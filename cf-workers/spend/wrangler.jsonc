@@ -1,0 +1,19 @@
+{
+  "name": "codeops-spend",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "SPEND_TRACKER", "class_name": "SpendTracker" },
+      { "name": "AGUI_SESSION", "class_name": "AGUISession" }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["SpendTracker", "AGUISession"]
+    }
+  ]
+}

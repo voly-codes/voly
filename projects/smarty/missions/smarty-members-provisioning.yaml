@@ -1,0 +1,159 @@
+# Combat mission: smarty-members-provisioning
+# Run: python3 -m codeops.cli smarty combat run smarty-members-provisioning --sequential
+
+name: smarty-members-provisioning
+description: 'Members: Email/Phone/Link invite via POST /employees/invite + status
+  badges; enterprise: LDAP/SCIM sync, AD groups→workgroups, 1C ZUP HR. Spec: docs/specs/workspace-members-provisioning.md'
+tasks:
+- agent: cursor
+  label: 'cursor: members spec + invite API types'
+  task: "STEP 1/10 — Spec review + frontend API foundation.\n\nREAD FIRST: {{MEMBERS_PROVISIONING_SPEC}}\n\
+    Backend invite flow: {{EMPLOYEES_API}} — POST /invite, EmployeesToInvite schema\n\
+    Tests: {{SMARTY_PROJECT}}/smarty-backend-stable/test/coworking/invite.spec.js\n\
+    Legacy UX: {{LEGACY_FRONTEND_DOCS}}/ROUTING.md — /crm/invite\n\nINVITE FLOW (must\
+    \ implement in hooks, not POST /employees alone):\n  1. POST /ws/:wsId/employees\
+    \ { accessType: 'full', fullName?, email?, phone? }\n  2. POST /ws/:wsId/employees/invite\
+    \ { not_send?, objects: [{ _id, email?, phone?, fullName? }] }\n     → returns\
+    \ [{ _id, invite, link }]; max 10 objects\n  3. DELETE /ws/:wsId/employees/invite?ids[]=\
+    \ — cancel\n\nEXTEND src/lib/api.ts:\n  Employee.inviteStatus, haveAccess, phone\
+    \ on Employee type\n  InviteEmployeePayload, SendInvitePayload, InviteResult types\n\
+    \  wsApi(wsId).employees.invite(data), .cancelInvite(ids)\n  Keep employees.create\
+    \ for step 1 of flow\n\nCREATE src/lib/members/status.ts:\n  mapEmployeeMemberStatus(employee)\
+    \ → 'active' | 'invited' | 'blocked' | 'declined' | 'pending'\n  Rules from spec\
+    \ §2.2 (invite_accepted+haveAccess=active, invite_sended=invited, etc.)\n\nNo\
+    \ UI yet. npm run build."
+- agent: cursor
+  label: 'cursor: invite hooks Email Phone Link'
+  task: "STEP 2/10 — TanStack Query hooks for invite flows.\n\nProject: {{SMARTY_PROJECT}}/src/hooks/useEmployees.ts\n\
+    Spec: {{MEMBERS_PROVISIONING_SPEC}} §2\n\nREPLACE useInviteEmployee (wrong: POST\
+    \ /employees only) with:\n  useSendEmployeeInvite() — orchestrates create + invite\
+    \ in one mutation:\n    - email mode: create employee with email → invite with\
+    \ email (not_send=false)\n    - phone mode: create with phone → invite with phone\
+    \ object\n    - link mode: create without email → invite with not_send=true →\
+    \ return link\n  useCancelEmployeeInvite() — DELETE /employees/invite\n  useResendEmployeeInvite()\
+    \ — re-POST invite for existing _id (P2 ok in same hook)\n\nInvalidate ['employees',\
+    \ wsId] on success.\nHandle backend errors (duplicate email, captcha on invite\
+    \ — show message).\nnpm run build."
+- agent: cursor
+  label: 'cursor: MembersTab invite tabs + status column'
+  task: 'STEP 3/10 — Members UI: Email | Phone | Link + status badges.
+
+
+    Project: {{SMARTY_PROJECT}}/src/pages/settings/workspace/MembersTab.tsx
+
+    Plane ref: {{PLANE_REF}} workspace members / invite patterns (style only)
+
+    Reuse: CopyableField from shared, ProfileSettingsHeading, Badge, Dialog
+
+
+    REFACTOR MembersTab:
+
+    1. Invite button opens dialog with Tabs: Email | Phone | Link (i18n settings.workspace.members.invite.*)
+
+    2. Email tab: email + fullName → useSendEmployeeInvite({ mode: ''email'' })
+
+    3. Phone tab: phone (E.164 or RU mask) + fullName → mode phone
+
+    4. Link tab: fullName → mode link → on success show CopyableField with invite
+    link + success hint
+
+    5. Table columns: Member | Role | Status | (Actions P2: copy link if invited)
+
+    6. Status Badge colors: active=emerald, invited=indigo, blocked=crimson
+
+    7. Admin-only invite (me.isAdmin). No mock data.
+
+
+    i18n en+ru settings.json workspace.members.* + status.* keys.
+
+    npm run build.'
+- agent: cursor
+  label: 'cursor: review members invite UX'
+  task: 'STEP 4/10 — Review track A (invite UX).
+
+
+    Project: {{SMARTY_PROJECT}}. Spec: {{MEMBERS_PROVISIONING_SPEC}} §2
+
+
+    CHECKLIST:
+
+    ✅ Invite uses POST /employees then POST /employees/invite (not create-only)
+
+    ✅ Email / Phone / Link tabs work
+
+    ✅ Link tab returns copyable URL from API
+
+    ✅ Status column: active / invited / blocked mapped from inviteStatus
+
+    ✅ i18n en+ru
+
+    ✅ npm run build 0 errors
+
+
+    Fix P0. List P1/P2 (resend, block, declined badge, captcha UX).'
+- agent: cursor
+  label: 'cursor: provisioning registry + integrations cards'
+  task: "STEP 5/10 — Enterprise provisioning registry (UI catalog, no LDAP engine\
+    \ yet).\n\nSpec: {{MEMBERS_PROVISIONING_SPEC}} §3.1\nExtend: {{SMARTY_PROJECT}}/src/lib/integrations/registry.ts\n\
+    \nADD category 'directory' OR subcategory under integrations:\n  zitadel (live\
+    \ stub — backend OIDC exists), keycloak(planned), avanpost(planned),\n  ldap_ad(planned),\
+    \ scim(planned), yandex360(planned), onec_zup_hr(planned)\n\nADD providers to\
+    \ integrations.json en+ru with honest adapterStatus.\nCREATE src/pages/settings/workspace/provisioning/DirectorySyncHub.tsx\n\
+    \  — linked from MembersTab secondary link OR /settings/members/sync route\n \
+    \ — cards: SSO/Zitadel, SCIM, LDAP/AD, 1C ZUP HR\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: Zitadel SSO settings panel'
+  task: "STEP 6/10 — Zitadel / OIDC workspace settings (existing backend).\n\nBackend:\
+    \ {{ZITADEL_AUTH}}\nWorkspace fields: zitadelOrgId, zitadelAuthEnabled in smarty-db/models/workspace/workspace.js\n\
+    Spec: {{MEMBERS_PROVISIONING_SPEC}} §3.1\n\nCREATE ZitadelIntegrationPanel.tsx\
+    \ at /settings/integrations/zitadel OR provisioning detail:\n  - Explain OIDC\
+    \ login flow (org mapping, employee zitadelUserId on first login)\n  - Read-only\
+    \ display of zitadelOrgId if API exposes via GET workspace\n  - Toggle zitadelAuthEnabled\
+    \ if PATCH workspace supports it (else disabled + hint)\n  - Link to /auth/zitadel/start\
+    \ for test login\n  - Backend-pending banner for admin provisioning UI\n\nWire\
+    \ route in IntegrationDetailPage or new slug in registry.\nnpm run build."
+- agent: cursor
+  label: 'cursor: SCIM + LDAP spec UI (planned)'
+  task: "STEP 7/10 — SCIM & LDAP integration detail pages (spec-driven, no sync engine).\n\
+    \nSpec: {{MEMBERS_PROVISIONING_SPEC}} §3.2–3.3\n\nCREATE ScimProvisioningPanel.tsx:\n\
+    \  - SCIM 2.0 base URL placeholder (/ws/:wsId/provisioning/scim/v2)\n  - Bearer\
+    \ token field (disabled — 'Generate token' coming soon)\n  - Supported attributes\
+    \ table (userName, emails, active, groups)\n  - IdP setup hints: Keycloak, Azure\
+    \ AD SCIM\n\nCREATE LdapAdSyncPanel.tsx:\n  - LDAPS host, base DN, bind DN, user/group\
+    \ filters (disabled inputs)\n  - Sync schedule selector (disabled)\n  - 'Coming\
+    \ soon' + link to spec §3.3\n\nRegister slugs ldap_ad, scim in registry. npm run\
+    \ build."
+- agent: cursor
+  label: 'cursor: AD groups → workgroups mapping UI'
+  task: "STEP 8/10 — AD/LDAP group → workgroup mapping UI (config only).\n\nSpec:\
+    \ {{MEMBERS_PROVISIONING_SPEC}} §3.4\nBackend today: GET/POST /ws/:wsId/workgroups,\
+    \ POST /employees/:id/workgroups\nHook: useWorkgroups if missing — wire real API\n\
+    \nCREATE AdWorkgroupMappingPanel.tsx:\n  - Table: External group DN | Smarty workgroup\
+    \ (Select from useWorkgroups) | Auto-sync toggle\n  - 'Add mapping' row (local\
+    \ state only until backend store exists)\n  - 'Sync now' button disabled + last\
+    \ sync log placeholder\n  - Explain: sync upserts employees by email then PATCH\
+    \ workgroups\n\nEmbed in LdapAdSyncPanel as section or separate route /settings/integrations/ldap_ad#groups\n\
+    i18n integrations.provisioning.* en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: 1C ZUP HR sync panel'
+  task: "STEP 9/10 — 1C:ЗУП HR integration page.\n\nSpec: {{MEMBERS_PROVISIONING_SPEC}}\
+    \ §3.5\nExtend: {{SMARTY_PROJECT}}/src/pages/settings/workspace/erp/OnecIntegrationPanel.tsx\
+    \ OR new OneCZupHrPanel.tsx\n\nUI sections:\n  1. Connection: OData base URL /\
+    \ HTTP service URL, login/password (disabled)\n  2. Config version: ZUP 3.1 /\
+    \ ERP 2.5 (select)\n  3. Field mapping: 1C Физлицо/Сотрудник → Employee (fullName,\
+    \ email, phone, position)\n  4. Department → workgroup auto-create toggle\n  5.\
+    \ Termination date → deactivate employee\n  6. Schedule: manual / daily + 'Sync\
+    \ now' disabled\n  - Planned notice — no backend HR pull yet\n\nAdd registry slug\
+    \ onec_zup_hr. npm run build."
+- agent: cursor
+  label: 'cursor: review smarty-members-provisioning'
+  task: "STEP 10/10 — Final review + backend gap list.\n\nProject: {{SMARTY_PROJECT}}.\
+    \ Spec: {{MEMBERS_PROVISIONING_SPEC}}\n\nCHECKLIST:\n✅ Members Email/Phone/Link\
+    \ invite via /employees/invite\n✅ Status badges active / invited / blocked\n✅\
+    \ Provisioning registry: Zitadel, SCIM, LDAP/AD, 1C ZUP HR\n✅ AD→workgroups mapping\
+    \ UI (config placeholder)\n✅ Honest planned/stub labels — no fake sync\n✅ i18n\
+    \ en+ru\n✅ npm run build 0 errors\n\nBACKEND GAP LIST (separate missions):\n \
+    \ - smarty-provisioning-scim (SCIM 2.0 endpoint + token)\n  - smarty-provisioning-ldap\
+    \ (LDAPS sync job)\n  - smarty-provisioning-ad-workgroups (group mapping store\
+    \ + cron)\n  - smarty-1c-zup-hr (OData/HTTP employee pull)\n\nUPDATE docs/reports/CURRENT_STATUS.md\
+    \ + spec status.\nFix P0; list P1/P2."

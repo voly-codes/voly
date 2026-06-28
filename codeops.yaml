@@ -1,0 +1,163 @@
+# CodeOps Configuration
+# =====================
+
+default_model: claude-sonnet
+default_agent: cursor
+
+models:
+  claude-sonnet:
+    provider: anthropic
+    model: claude-sonnet-4-5-20250929
+    api_key: "${ANTHROPIC_API_KEY}"
+  claude-opus:
+    provider: anthropic
+    model: claude-opus-4-5-20250929
+    api_key: "${ANTHROPIC_API_KEY}"
+  gpt-4o:
+    provider: openai
+    model: gpt-4o
+    api_key: "${OPENAI_API_KEY}"
+  gemini-pro:
+    provider: google
+    model: gemini-2.5-pro
+    api_key: "${GOOGLE_API_KEY}"
+
+agents:
+  cursor:
+    description: "Cursor Agent — реализация кода и задачи с большим выводом"
+    executor: cursor
+  claude:
+    description: "Claude Code — основной агент разработки"
+    model: claude-sonnet
+  architect:
+    description: "Агент архитектурного планирования"
+    model: claude-opus
+    tools: [github, gitlab, wiki]
+  reviewer:
+    description: "Агент код-ревью"
+    model: gpt-4o
+    tools: [github]
+  bugfixer:
+    description: "Агент исправления багов"
+    model: claude-sonnet
+    tools: [github, temporal]
+
+rtk:
+  enabled: true
+  auto_install: true
+
+headroom:
+  enabled: true
+  port: 8787
+  savings_profile: agent-90
+  memory_enabled: false
+
+memory:
+  enabled: false
+  backend: hybrid
+  remote_url: "${CF_WORKER_MEMORY_URL}"
+  db_path: ".codeops/memory.db"
+
+a2a:
+  enabled: true
+  port: 9100
+  federation_url: "${CF_WORKER_A2A_URL}"
+  agent_discovery: true
+  remote_agents: []
+  local_agents: []
+
+agui:
+  enabled: true
+  port: 9101
+  remote_url: "${CF_WORKER_SPEND_URL}"
+  streaming: true
+  session_timeout_seconds: 3600
+
+spend:
+  enabled: true
+  remote_url: "${CF_WORKER_SPEND_URL}"
+  daily_budget_usd: 20.0
+
+mcp:
+  servers: []
+  tools_allowlist: []
+
+workflow:
+  enabled: true
+  max_retries: 3
+  retry_delay_seconds: 5.0
+  timeout_seconds: 300.0
+
+registry:
+  enabled: true
+  agents_path: ".codeops/agents"
+  skills_path: ".codeops/skills"
+  marketplace_url: "${CF_WORKER_MARKETPLACE_URL}"
+
+scanner:
+  enabled: true
+  auto_scan: true
+  scan_depth: 3
+
+ai_gateway:
+  enabled: true
+  provider: cloudflare
+  account_id: "${CLOUDFLARE_ACCOUNT_ID}"
+  gateway_id: "${CLOUDFLARE_AI_GATEWAY_ID}"
+  api_token: "${CLOUDFLARE_API_TOKEN}"
+  caching:
+    enabled: true
+    ttl_seconds: 3600
+  rate_limits:
+    enabled: true
+    requests_per_minute: 60
+  spend_limits:
+    enabled: true
+    daily_budget_usd: 20
+    per_agent_budget: {}
+  fallback:
+    enabled: true
+    chain: []
+    retries: 3
+  dlp:
+    enabled: false
+    block_secrets: true
+    block_pii: true
+
+cost_policy:
+  enabled: true
+  max_task_cost_usd: 1.00
+  stop_on_budget_exceeded: true
+  prefer_cheaper_model_for:
+    - docs
+    - tests
+    - summarization
+  cheaper_model: deepseek-v4-flash
+
+telemetry:
+  enabled: true
+  events_dir: ".codeops/events"
+  pipeline_url: "${CF_PIPELINE_TELEMETRY_ENDPOINT}"
+  pipeline_enabled: true
+  pipeline_timeout_seconds: 5
+  r2_enabled: true
+
+# DSPy optimizer layer (requires: pip install codeops[dspy])
+# mode: off | shadow | active
+# shadow — runs DSPy in parallel, logs diff to telemetry, does NOT affect responses
+# active — replaces AIGateway.chat() for the agents listed in `agents`
+# Start with shadow to collect comparison data before switching to active.
+dspy:
+  enabled: false
+  mode: shadow
+  optimizer: bootstrap_fewshot
+  min_examples: 20
+  compile_budget: small
+  routing_mode: shadow
+  agents:
+    - reviewer
+    - documenter
+    - architect
+  active_tag: production
+  shadow_tag: candidate
+  program_overrides: {}

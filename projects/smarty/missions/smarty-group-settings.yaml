@@ -1,0 +1,98 @@
+# P1: CRM section groups — stages, custom fields, visibility, templates
+name: smarty-group-settings
+
+description: >
+  P1: Группы CRM-секций — стадии, кастомные поля, видимость, шаблоны.
+  Legacy /:section/groups/:groupId (+ /templates). Prerequisite: smarty-custom-fields-advanced.
+
+tasks:
+  - agent: cursor
+    label: "cursor: groups API hooks"
+    task: |
+      STEP 1/5 — Groups API client + hooks.
+
+      {{LEGACY_GAP_REF}}
+      Legacy UI: {{LEGACY_GROUP_SETTINGS}}/
+      Legacy routes: {{LEGACY_FRONTEND_ROUTES}} — search `groups/:groupId`
+      API ref: {{LEGACY_GROUPS_API}} — GET/POST/PATCH `/ws/:wsId/groups`
+
+      Sections (v1): {{GROUP_SETTINGS_SECTIONS}}
+
+      EXTEND src/lib/api.ts wsApi(wsId).groups:
+        - list(params?: { collectionName?, parentId? })
+        - get(id), create(data), update(id, data), delete(id)
+      ADD types Group in src/types/ or api.ts.
+      ADD hooks: useGroups(collectionName), useGroup(id), useCreateGroup, useUpdateGroup.
+      Stages/custom_fields already scoped via collectionName + groupId query params — verify backend.
+      No UI yet — npm run build.
+
+  - agent: cursor
+    label: "cursor: group settings routes layout"
+    task: |
+      STEP 2/5 — Group settings routes + layout shell.
+
+      {{LEGACY_GAP_REF}}
+      Legacy: {{LEGACY_GROUP_SETTINGS}}/GroupSettingsRightSidebar.js, StagesContent
+
+      REGISTER routes (App.tsx):
+        /contacts/groups/:groupId
+        /deals/groups/:groupId
+        /assignments/groups/:groupId
+        /requisitions/groups/:groupId
+        Optional sub-routes: …/templates, …/templates/info
+
+      CREATE src/pages/groups/GroupSettingsPage.tsx + GroupSettingsLayout:
+        - Tabs: Stages | Custom fields | Visibility | Templates
+        - Breadcrumb back to section list (contacts/deals/…)
+      ENTRY POINTS: link from Contacts/Deals PageHeader (gear icon or «Groups») — admin only.
+      i18n namespace groups en+ru; register in src/lib/i18n.ts.
+
+  - agent: cursor
+    label: "cursor: group stages editor"
+    task: |
+      STEP 3/5 — Stages editor per group.
+
+      {{LEGACY_GAP_REF}}
+      Legacy stages: {{LEGACY_FRONTEND}}/src/js/components/settings/StagesContent/
+      REUSE useStages(collectionName) + useUpdateStage with groupId filter.
+
+      CREATE GroupStagesTab:
+        - List pipeline stages for group (title, color, order)
+        - Drag reorder or up/down buttons
+        - Add stage / rename / delete (PATCH stages/:id)
+        - Copy stages from another group — stub button if modal too large
+      Plane table + color badges; empty state when no stages.
+
+  - agent: cursor
+    label: "cursor: group custom fields visibility"
+    task: |
+      STEP 4/5 — Custom fields + visibility per group.
+
+      {{LEGACY_GAP_REF}}
+      REUSE CustomFieldEditor patterns from src/components/shared/ + useCustomFields.
+
+      GroupCustomFieldsTab:
+        - List fields for group (collectionName + groupId)
+        - Create/edit field definitions (reuse useCreateCustomField / useUpdateCustomField)
+        - Field order, required flag, visibility on card
+
+      GroupVisibilityTab:
+        - Read legacy GroupSettings visibility schema
+        - Workgroup / employee visibility toggles if API supports
+        - Else read-only placeholder with i18n «backend pending»
+
+      GroupTemplatesTab:
+        - Link to /groups/:groupId/templates or placeholder EmptyState
+        - Defer full template editor to smarty-custom-fields-advanced if needed.
+
+  - agent: cursor
+    label: "cursor: group settings review"
+    task: |
+      STEP 5/5 — Review group settings.
+
+      {{LEGACY_GAP_REF}}
+      VERIFY vs legacy routesData group routes for contacts + deals minimum.
+      npm run build; oxlint on src/pages/groups/, hooks/useGroups.ts.
+      UPDATE legacy-gap-audit §2.4 Group settings row → 🟡 or ✅.
+      UPDATE CURRENT_STATUS.md — group settings milestone.
+      NOTE: unblocks smarty-custom-fields-advanced + list filters by group.

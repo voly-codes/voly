@@ -1,0 +1,22 @@
+{
+  "name": "codeops-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CODEOPS_MCP_AGENT",
+        "class_name": "CodeOpsMcpAgent"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["CodeOpsMcpAgent"]
+    }
+  ]
+}

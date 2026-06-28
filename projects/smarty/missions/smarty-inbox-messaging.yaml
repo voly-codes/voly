@@ -1,0 +1,44 @@
+# Combat mission: smarty-inbox-messaging
+# Run: python3 -m codeops.cli smarty combat run smarty-inbox-messaging --sequential
+
+name: smarty-inbox-messaging
+description: 'P0: Inbox — thread messages API, send/reply, two-pane messaging parity
+  (legacy dialogs section).'
+tasks:
+- agent: cursor
+  label: 'cursor: dialog messages API client'
+  task: "STEP 1/4 — Dialog messages API + hooks.\n\n{{LEGACY_GAP_REF}}\nLegacy: {{LEGACY_FRONTEND}}/src/js/components/Dialogs/\n\
+    Backend docs: {{LEGACY_FRONTEND_DOCS}}/ or api-rest dialogs routes\n\nEXTEND src/lib/api.ts\
+    \ wsApi(wsId).dialogs:\n  - messages.list(dialogId, params), messages.send, messages.reply\
+    \ (match backend)\nADD hooks: useDialogMessages, useSendDialogMessage in src/hooks/\n\
+    Types in src/types/ for message envelope.\nNo UI yet — verify TanStack Query keys\
+    \ and invalidation on send."
+- agent: cursor
+  label: 'cursor: inbox thread list + message pane'
+  task: "STEP 2/4 — Two-pane inbox message UI.\n\n{{LEGACY_GAP_REF}}\nEXTEND src/pages/inbox/Inbox.tsx\
+    \ (or split InboxThreadList, InboxMessagePane):\n  - Left: existing dialog list\
+    \ + unread badges\n  - Right: message thread (scroll, grouped by date), empty\
+    \ state when none selected\n  - useMarkDialogRead on select (if not done in legacy-quick-wins)\n\
+    Plane style: dark-first, text-sm, border-subtle dividers.\ni18n inbox namespace\
+    \ en+ru."
+- agent: cursor
+  label: 'cursor: inbox compose send reply'
+  task: "STEP 3/4 — Compose bar: send + reply.\n\n{{LEGACY_GAP_REF}}\nADD InboxCompose\
+    \ (bottom of message pane):\n  - Textarea + send button; Enter to send (Shift+Enter\
+    \ newline)\n  - Optimistic update or refetch on success\n  - Reply context if\
+    \ backend supports replyTo\n  - Attachments: stub UI (disabled + tooltip «coming\
+    \ soon») unless API ready\nError toast on failure; loading state on send."
+- agent: cursor
+  label: 'cursor: inbox messaging review'
+  task: 'STEP 4/4 — Review + docs.
+
+
+    {{LEGACY_GAP_REF}}
+
+    VERIFY against legacy Dialogs: list, open thread, send message, unread clears.
+
+    npm run build; oxlint clean on touched files.
+
+    UPDATE legacy-gap-audit matrix row dialogs → 🟡 or ✅.
+
+    UPDATE CURRENT_STATUS.md — inbox messaging milestone.'

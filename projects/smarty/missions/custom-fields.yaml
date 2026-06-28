@@ -1,0 +1,18 @@
+# Combat mission: custom-fields
+# Run: python3 -m codeops.cli smarty combat run custom-fields --sequential
+
+name: custom-fields
+description: CustomFieldRenderer + Editor на ContactDetail и DealDetail
+tasks:
+- agent: cursor
+  label: 'cursor: implement CustomFieldRenderer + Editor'
+  task: Implement shared CustomFieldRenderer and CustomFieldEditor in {{SMARTY_PROJECT}}/src/components/shared/.
+    Use useCustomFields(collectionName) from src/hooks/useCustomFields.ts. Wire into
+    ContactDetail.tsx and DealDetail.tsx. Add i18n en+ru (customFields namespace),
+    register in src/lib/i18n.ts. Plane dark-first style, no mock data. Fix TS errors
+    in touched files.
+- agent: cursor
+  label: 'cursor: review custom fields implementation'
+  task: 'Review CustomFieldRenderer/Editor changes in {{SMARTY_PROJECT}}/src/. Do
+    NOT edit files — review only. Check: Plane style, i18n parity, real API hooks,
+    TypeScript. Output P0/P1/P2 issues list.'

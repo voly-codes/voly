@@ -1,0 +1,115 @@
+# Combat mission: smarty-ai-assistant
+# Run: python3 -m codeops.cli smarty combat run smarty-ai-assistant --sequential
+
+name: smarty-ai-assistant
+description: 'AI-помощник Smarty: /assistant chat (consultant API) + /settings/ai-assistant
+  (data blocks / permissions / KB / skills). Plane pi-chat UX. Spec: docs/specs/'
+tasks:
+- agent: cursor
+  label: 'cursor: spec + consultant API hooks'
+  task: "STEP 1/10 — Read spec + wire consultant API (no UI yet).\n\nREAD FIRST: {{AI_ASSISTANT_SPEC}}\n\
+    Consultant routes: {{CONSULTANT_API}}\nAPI docs: {{MARKET_API}} §3.9–3.16 (bot-helpers,\
+    \ bot-knowledge-bases, bot-skills, bot-plugins, consultant)\nBot schema: {{SMARTY_PROJECT}}/smarty-backend-stable/smarty-db/models/workspace/employee.js\
+    \ botSettings\nPlane ref (style): {{PLANE_PI_CHAT_NAV}} (pi-chat), {{PLANE_GPT_ASSISTANT}}\n\
+    \nEXTEND src/lib/api.ts:\n  consultantApi(wsId): get() → { botId }, getHistory(),\
+    \ sendMessage({ content, attaches?, voice? })\n  Types: ConsultantMessage, ConsultantSendPayload\n\
+    \  Optional: botKnowledgeBaseApi, botSkillsApi stubs for step 6\n\nCREATE src/hooks/useConsultant.ts:\n\
+    \  useConsultantBotId(), useConsultantHistory(), useSendConsultantMessage()\n\
+    \  TanStack Query; invalidate history on send success\n\nCREATE src/lib/ai-assistant/permissions-registry.ts\
+    \ — UI data blocks → botPermission keys (spec §2.3A)\nnpm run build."
+- agent: cursor
+  label: 'cursor: AssistantPage chat shell Plane-style'
+  task: "STEP 2/10 — /assistant chat page shell (Plane pi-chat).\n\nSpec: {{AI_ASSISTANT_SPEC}}\
+    \ §3–4\n{{PLANE_AI_UX}}\nProject: {{SMARTY_PROJECT}}/src/pages/assistant/\n\n\
+    CREATE AssistantPage.tsx:\n  - Full-height layout inside AppShell (no PageHeader\
+    \ max-width constraint)\n  - Header: title «AI-помощник Smarty», gear link → /settings/ai-assistant\
+    \ (admin only)\n  - Center column: chat area (thread placeholder + composer)\n\
+    \  - Plane dark-first: surface-1 thread bg, compact text-sm\n\nROUTE App.tsx:\
+    \ /assistant → AssistantPage; /pi-chat → redirect /assistant\nSIDEBAR (Plane user-menu\
+    \ strip): PiChatIcon + nav.piChat → /assistant after Dashboard\nExtend SidebarNavLink\
+    \ for custom icon if needed (iconVariant custom).\ni18n: assistant.json + nav.piChat\
+    \ en+ru\nRegister in i18n.ts. npm run build."
+- agent: cursor
+  label: 'cursor: chat thread + composer wired'
+  task: "STEP 3/10 — Live consultant chat + Plane composer (real API).\n\nHooks: useConsultantHistory,\
+    \ useSendConsultantMessage\nBackend: GET /consultant/history, POST /consultant/message\n\
+    {{PLANE_AI_UX}}\nComposer reference: {{PLANE_GPT_ASSISTANT}}\n\nCREATE/REFINE\
+    \ AssistantChat.tsx:\n  1. Load history on mount; skeleton while loading\n  2.\
+    \ Message bubbles: user right / assistant left (Plane-neutral stacked)\n  3. Composer\
+    \ in rounded-xl bordered panel (sticky bottom); textarea + Send; Enter send /\
+    \ Shift+Enter newline\n  4. Disclaimer row (AlertCircle + consent text) when thread\
+    \ empty — like gpt-assistant-popover\n  5. Optimistic user bubble OR spinner until\
+    \ POST returns\n  6. Append assistant reply from response.messages[1]\n  7. Error\
+    \ state + retry; empty state with 3 starter prompt chips\n\nNO mock messages.\
+    \ NO streaming P1.\nnpm run build."
+- agent: cursor
+  label: 'cursor: useConsultantBot settings hook'
+  task: "STEP 4/10 — Load/save consultant bot settings via employees API.\n\nFlow:\
+    \ GET /consultant → botId → GET/PATCH /employees/:botId\nSpec: {{AI_ASSISTANT_SPEC}}\
+    \ §2.2\nPermissions registry: src/lib/ai-assistant/permissions-registry.ts\n\n\
+    CREATE useConsultantBot.ts:\n  useConsultantBotSettings() — fetch employee by\
+    \ botId from consultant get\n  useUpdateConsultantBotSettings() — PATCH botSettings\
+    \ subset\n  useCanManageAiAssistant() — isAdmin || manage_bots (useMyEmployee)\n\
+    \nMap botSettings.botPermissions ↔ UI checkbox groups.\nHandle consultant system\
+    \ bot: show disclaimer for code-locked model/prompt.\nnpm run build."
+- agent: cursor
+  label: 'cursor: settings Data blocks tab'
+  task: "STEP 5/10 — Agent settings: data blocks (Plane settings layout).\n\nRoute:\
+    \ /settings/ai-assistant (tabs like profile settings)\nSpec: {{AI_ASSISTANT_SPEC}}\
+    \ §5 tab 1\nLayout ref: {{PROFILE_SETTINGS_REF}} — 250px sidebar + content\nReuse:\
+    \ SettingsControlItem, ToggleSwitch, ProfileSettingsHeading\n\nCREATE pages/settings/ai-assistant/AiAssistantSettingsPage.tsx\
+    \ + DataBlocksTab.tsx:\n  - Grouped sections: Contacts, Deals, Tasks, Requisitions,\
+    \ Notes, Files, Team, Dialogs, Web, Admin\n  - Each row: label + description +\
+    \ toggles (view/create/edit/delete where applicable)\n  - Save button → PATCH\
+    \ botSettings.botPermissions\n  - Admin-only; non-admin redirect to /assistant\n\
+    \  - Confirm dialog for dangerous flags (delete_*, manage_bots, web_search)\n\n\
+    Add workspace settings nav link OR standalone route.\ni18n settings.workspace.aiAssistant.*\
+    \ + assistant.permissions.* en+ru.\nnpm run build."
+- agent: cursor
+  label: 'cursor: groups-tree context viewer'
+  task: "STEP 6/10 — CRM groups / dialogs context tree (read-only P1).\n\nAPI: GET\
+    \ /bot-helpers/groups-tree → { tree }\nSpec: {{AI_ASSISTANT_SPEC}} §2.3E\n\nCREATE\
+    \ ContextScopeTab.tsx under ai-assistant settings:\n  - Fetch groups-tree via\
+    \ wsApi\n  - Render collapsible tree: collection → category → group title\n  -\
+    \ Separate section for dialogs (External / Public / Private pseudo-categories)\n\
+    \  - Explain: bot tools respect botPermissions; tree shows available CRM scope\n\
+    \  - P2 placeholder: 'Limit to selected groups' disabled\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: knowledge base + skills tabs'
+  task: "STEP 7/10 — KB + Skills/Plugins settings tabs.\n\nAPI: bot-knowledge-bases\
+    \ (GET ?botId=, POST documents), bot-skills, bot-plugins\nSpec: {{AI_ASSISTANT_SPEC}}\
+    \ §2.3B–D\n\nCREATE KnowledgeBaseTab.tsx:\n  - Load KB for consultant botId\n\
+    \  - List documents, upload text snippet, enableAutoRAG toggle\n  - knowledgeRetrieval:\
+    \ autoInject, maxChunks (SettingsControlItem)\n\nCREATE SkillsPluginsTab.tsx:\n\
+    \  - List skills (scope=all) with enabled state from botSettings.enabledSkills\n\
+    \  - Toggle skills → PATCH enabledSkills array or null for auto\n  - List linked\
+    \ plugins from enabledPlugins\n\nHonest errors if manage_bots denied.\nnpm run\
+    \ build."
+- agent: cursor
+  label: 'cursor: usage traces tab (admin debug)'
+  task: "STEP 8/10 — Token usage + traces (admin debug tab).\n\nAPI: GET /bot-token-usage?botId=,\
+    \ GET /bot-traces?botId=&limit=20\n\nCREATE UsageTracesTab.tsx:\n  - Token usage\
+    \ cards: today / 7d / 30d / all time\n  - Traces table: date, status, model, triggerType\
+    \ — click row expands tool steps (if traceId query supported)\n  - Link from chat\
+    \ settings header\n\nP2 polish OK. npm run build."
+- agent: cursor
+  label: 'cursor: polish nav + empty states'
+  task: "STEP 9/10 — Plane pi-chat polish + integration.\n\nProject: {{SMARTY_PROJECT}}\n\
+    {{PLANE_AI_UX}}\n\n  - Sidebar: pi-chat strip matches user-menu.tsx (PiChatIcon,\
+    \ nav.piChat, not Sparkles in CRM)\n  - AssistantChat composer panel matches gpt-assistant-popover\
+    \ tone\n  - Profile settings sidebar: link to AI assistant settings (admin)\n\
+    \  - Workspace SettingsLayout: 'AI assistant' nav → /settings/ai-assistant\n \
+    \ - Mobile: sticky bottom composer; loading/error empty states Plane-style\n \
+    \ - i18n parity en/ru (assistant.disclaimer, nav.piChat)\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: review smarty-ai-assistant'
+  task: "STEP 10/10 — Review + gap list.\n\nProject: {{SMARTY_PROJECT}}. Spec: {{AI_ASSISTANT_SPEC}}\n\
+    \nCHECKLIST:\n✅ /assistant chat uses GET/POST /ws/:wsId/consultant/* (no mock)\n\
+    ✅ Settings: data blocks map to botPermissions via PATCH /employees/:botId\n✅ groups-tree\
+    \ context viewer\n✅ KB + skills tabs wired to bot-knowledge-bases / bot-skills\n\
+    ✅ Sidebar pi-chat-style entry (user-menu strip + PiChatIcon, not Sparkles in CRM)\n\
+    ✅ Composer UX aligned with gpt-assistant-popover (disclaimer, rounded panel)\n\
+    ✅ i18n assistant + settings en/ru\n✅ npm run build 0 errors\n\nBACKEND GAP LIST:\n\
+    \  - consultant HTTP streaming (SSE/socket)\n  - PATCH /consultant/settings convenience\
+    \ endpoint\n  - botSettings.contextGroupIds explicit scope\n  - Voice attach UI\n\
+    \nUPDATE docs/reports/CURRENT_STATUS.md.\nFix P0; list P1/P2."

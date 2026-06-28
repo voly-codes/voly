@@ -1,0 +1,90 @@
+# Combat mission: plane-dashboard-charts
+# Run: python3 -m codeops.cli smarty combat run plane-dashboard-charts --sequential
+
+name: plane-dashboard-charts
+description: 'Dashboard Plane charts: active-cycles → active sprints widget, all-issues
+  → workspace issues widget, красивые InsightCard/графики.'
+tasks:
+- agent: cursor
+  label: 'cursor: audit plane dashboard chart sources'
+  task: "STEP 1/7 — Audit Plane active-cycles + all-issues for dashboard.\n\nProject:\
+    \ {{SMARTY_PROJECT}}\n{{PLANE_DASHBOARD_CHARTS_UX}}\nDashboard: src/pages/dashboard/\
+    \ or src/pages/home/\nSprints API: {{TRACKER_API}} GET /sprints, POST start/complete\n\
+    \nWRITE docs/reports/plane-dashboard-charts-audit.md:\n  - active-cycles charts\
+    \ → ActiveSprintsWidget (progress/productivity/stats)\n  - all-issues → AllIssuesSummaryWidget\
+    \ (by status/priority mini charts)\n  - Component reuse from plane-dashboard-charts\
+    \ step 2\n  - Audit only, no UI edits.\n"
+- agent: cursor
+  label: 'cursor: shared Plane chart primitives'
+  task: "STEP 2/7 — Shared chart components for dashboard + analytics.\n\nPlane refs:\
+    \ {{PLANE_ACTIVE_CYCLES}}progress.tsx, productivity.tsx, cycle-stats.tsx, {{PLANE_ANALYTICS_INSIGHT}},\
+    \ {{PLANE_ANALYTICS_TREND}}\nProject: src/components/shared/charts/\n\nCREATE\
+    \ (original implementations, Plane visual language):\n  InsightMetricCard — value,\
+    \ label, optional trend\n  ProgressChart — horizontal/ring progress with legend\n\
+    \  MiniBarChart — compact bars for dashboard widgets\n  StackedStatusChart — issues\
+    \ by status colors\n  ChartEmptyState — muted placeholder\n\nTailwind v4, dark-first,\
+    \ no chart library unless recharts already in deps.\nnpm run build."
+- agent: cursor
+  label: 'cursor: ActiveSprintsWidget active-cycles'
+  task: "STEP 3/7 — Active sprints widget (= Plane active-cycles).\n\nPlane ref: {{PLANE_ACTIVE_CYCLES}},\
+    \ {{PLANE_ACTIVE_CYCLES_PAGE}}\nProject: src/pages/dashboard/widgets/ActiveSprintsWidget.tsx\
+    \ (or src/pages/home/widgets/ if home migration done)\n\nIMPLEMENT:\n  - Fetch\
+    \ active sprints across tracker projects (state=active via sprints API)\n  - Per\
+    \ sprint row: name, project key, date range, ProgressChart (done/total issues)\n\
+    \  - Expand row: 3 mini charts like ActiveCycleProgress/Productivity/Stats\n \
+    \ - Link «View all» → /tracker (filter active sprints P2)\n  - Empty: «No active\
+    \ sprints»\n\nHooks: extend useTracker with useActiveSprints() if missing.\nnpm\
+    \ run build."
+- agent: cursor
+  label: 'cursor: AllIssuesWidget workspace view'
+  task: "STEP 4/7 — All issues widget (= Plane workspace-views/all-issues).\n\nPlane\
+    \ ref: {{PLANE_ALL_ISSUES}}\nProject: src/pages/dashboard/widgets/AllIssuesWidget.tsx\n\
+    \nIMPLEMENT:\n  - useAllTrackerIssues — aggregate open issues workspace-wide\n\
+    \  - Top: InsightMetricCard row (open, overdue, unassigned, high priority)\n \
+    \ - Charts: StackedStatusChart + MiniBarChart by priority\n  - Table: last 8 issues\
+    \ (key, title, status, assignee) → /tracker/issues/:id\n  - Link «View all issues»\
+    \ → /tracker with all-issues filter or dedicated route P2\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: wire dashboard bento + customize'
+  task: "STEP 5/7 — Wire widgets into Dashboard/Home bento grid.\n\nProject: src/pages/dashboard/Dashboard.tsx\
+    \ or src/pages/home/HomePage.tsx\nPlane ref: {{HOME_REF}}/home-dashboard-widgets.tsx\n\
+    \nADD to dashboard layout / home-config registry:\n  active_sprints — ActiveSprintsWidget\
+    \ (default enabled, work category)\n  all_issues — AllIssuesWidget (default enabled,\
+    \ work category)\n  Place after my_issues or crm_pulse row\n  LayoutCustomizer\
+    \ blocks if home widgets system exists\n\nUpgrade existing PipelineWidget / StatsRow\
+    \ charts to use shared chart primitives.\nnpm run build."
+- agent: cursor
+  label: 'cursor: dashboard visual polish Plane charts'
+  task: "STEP 6/7 — Visual polish — «красивые графики как в Plane».\n\nProject: {{SMARTY_PROJECT}}/src/pages/dashboard/\n\
+    Plane refs: {{PLANE_ANALYTICS_INSIGHT}}, {{HOME_REF}}/widgets/\n\nPOLISH all dashboard\
+    \ chart widgets:\n  - Consistent card padding p-4, rounded-lg, border-subtle\n\
+    \  - Chart colors from globals.css status/priority tokens\n  - Hover tooltips\
+    \ on bars/segments\n  - Skeleton loaders per widget (not full-page)\n  - Responsive:\
+    \ stack charts on mobile\n\ni18n dashboard.widgets.activeSprints, allIssues en+ru.\n\
+    npm run build."
+- agent: cursor
+  label: 'cursor: review plane-dashboard-charts'
+  task: 'STEP 7/7 — Review dashboard Plane chart parity.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    CHECKLIST:
+
+    ✅ ActiveSprintsWidget maps Plane active-cycles charts
+
+    ✅ AllIssuesWidget maps Plane all-issues summary
+
+    ✅ Shared chart components reused
+
+    ✅ Dashboard bento includes both widgets
+
+    ✅ Real tracker/sprint API
+
+    ✅ i18n en+ru
+
+    ✅ npm run build 0 errors
+
+
+    UPDATE CURRENT_STATUS.md.'

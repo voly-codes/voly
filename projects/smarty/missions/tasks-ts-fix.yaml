@@ -1,0 +1,11 @@
+# Combat mission: tasks-ts-fix
+# Run: python3 -m codeops.cli smarty combat run tasks-ts-fix --sequential
+
+name: tasks-ts-fix
+description: Fix TypeScript errors in tasks module
+tasks:
+- agent: cursor
+  label: 'cursor: fix tasks TS errors'
+  task: Fix all TypeScript errors in {{SMARTY_PROJECT}}/src/pages/tasks/. Run npm
+    run build, fix isSettlingRef, Checkbox props, mutation return types. Minimal diff,
+    match existing patterns.

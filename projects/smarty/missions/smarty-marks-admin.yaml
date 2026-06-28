@@ -1,0 +1,28 @@
+# Combat mission: smarty-marks-admin
+# Run: python3 -m codeops.cli smarty combat run smarty-marks-admin --sequential
+
+name: smarty-marks-admin
+description: 'P2: Marks admin — /settings/marks CRUD; link from LabelPicker admin.'
+tasks:
+- agent: cursor
+  label: 'cursor: marks admin CRUD page'
+  task: 'STEP 1/2 — Marks settings page.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy: {{LEGACY_FRONTEND}}/src/js/components/Marks/
+
+    Page /settings/marks: list, create, edit color/name, delete.
+
+    wsApi.marks; expand beyond legacy-quick-wins minimal page.
+
+    LabelPicker admin entry link; i18n settings.marks en+ru.'
+- agent: cursor
+  label: 'cursor: marks admin review'
+  task: 'STEP 2/2 — Review marks admin.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build.'

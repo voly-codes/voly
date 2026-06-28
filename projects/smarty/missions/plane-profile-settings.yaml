@@ -1,0 +1,167 @@
+# Combat mission: plane-profile-settings
+# Run: python3 -m codeops.cli smarty combat run plane-profile-settings --sequential
+
+name: plane-profile-settings
+description: 'Profile settings (Plane parity): /settings/profile/:tab — General (cover+avatar
+  overlap), Preferences (theme/lang/timezone), Email notifications, Change password.
+  Workspace settings (team/integrations/custom fields) остаются на /settings.'
+tasks:
+- agent: cursor
+  label: 'cursor: profile API + hooks foundation'
+  task: "STEP 1/6 — API client + TanStack Query hooks (no mock data).\n\nProject:\
+    \ {{SMARTY_PROJECT}}. Read ../CLAUDE.md.\nBackend refs: {{AUTH_API}} (PATCH /user/me,\
+    \ POST /user/update-password), {{NOTIF_API}} (POST /usernotification/notifyon|notifyoff,\
+    \ /:collection/notifyon), {{MEDIA_API}} (POST /avatar/me, /avatar/ws/:wsId/me).\n\
+    \nVERIFY/COMPLETE src/lib/api.ts:\n1. SessionUser fields: fullName, imageSrc,\
+    \ language, locale, timeZone, position, confNotifications, confNotificationsCollection\n\
+    2. authApi.updateMe(payload), authApi.updatePassword({ oldPassword, newPassword\
+    \ })\n3. avatarApi.uploadUser(file), avatarApi.uploadEmployee(wsId, file), delete\
+    \ variants\n4. userNotificationApi.setGlobal(enabled), setCollection(collection,\
+    \ enabled)\n   Collections: contacts | projects | dialogs | requisitions | assignments\n\
+    \nCREATE src/hooks/useUserProfile.ts:\n  useProfileUser (wrap useMe), useUpdateUser,\
+    \ useUploadAvatar, useDeleteAvatar,\n  useChangePassword, useNotificationPreference\
+    \ (optimistic PATCH on ['me'])\n\nUTILS src/lib/utils.ts:\n  getUserDisplayName,\
+    \ getInitials, resolveProfileAvatarUrl(imageSrc, { wsId?, size? })\n\nRULES: session\
+    \ cookies, invalidate ['me'] + ['employees'] after avatar, sync i18n.changeLanguage\
+    \ on language PATCH. npm run build on touched files."
+- agent: cursor
+  label: 'cursor: profile routes + sidebar layout (Plane 250px)'
+  task: "STEP 2/6 — Profile settings shell + routing.\n\nProject: {{SMARTY_PROJECT}}/src/pages/settings/profile/.\n\
+    Plane ref (style only, no AGPL copy): {{PROFILE_SETTINGS_REF}}/sidebar/header.tsx,\
+    \ {{PROFILE_SETTINGS_REF}}/sidebar/root.tsx, {{PROFILE_SETTINGS_REF}}/sidebar/item-categories.tsx,\
+    \ {{PLANE_REF}}/apps/web/app/(all)/settings/profile/[profileTabId]/page.tsx.\n\
+    \nROUTES (App.tsx):\n  /settings/profile → redirect /settings/profile/general\n\
+    \  /settings/profile/:tab — tabs: general | preferences | notifications | security\n\
+    \  /settings — workspace-only (team, integrations, customFields)\n\nIMPLEMENT:\n\
+    1. ProfileSettingsPage — flex h-full, sidebar w-[250px] + scrollable content\n\
+    2. ProfileSettingsSidebar — border-r bg-surface-2 px-3 py-4:\n   HEADER (Plane\
+    \ pattern): Avatar 32px + fullName + email truncate\n   NAV: General, Preferences,\
+    \ Notifications, Security (lucide icons)\n   Link 'Workspace settings' → /settings\
+    \ at bottom\n3. ProfileSettingsContent — switch tab, max-w-2xl px-8 py-10\n4.\
+    \ Refactor Settings.tsx — remove profile/account/notifications/security sections;\
+    \ keep Team, Integrations, Custom Fields only\n\ni18n: extend settings.json en+ru\
+    \ with profile.tabs.*, profile.sidebar.* keys.\nPlane dark-first. npm run build."
+- agent: cursor
+  label: 'cursor: General tab — cover strip + avatar overlap'
+  task: 'STEP 3/6 — General profile tab (Plane avatar placement).
+
+
+    Project: {{SMARTY_PROJECT}}/src/pages/settings/profile/tabs/GeneralTab.tsx.
+
+    Plane ref (layout only): {{PROFILE_SETTINGS_REF}}/content/pages/general/form.tsx.
+
+
+    LAYOUT (Plane pattern — mandatory):
+
+    1. Cover strip h-44 rounded-lg bg-surface-2 (gradient ok; NO cover upload v1)
+
+    2. Avatar absolute -bottom-6 left-6 — h-16 w-16, overlaps cover bottom-left
+
+    3. Below cover+avatar offset: display name + email read-only summary
+
+    4. Form grid: fullName (PATCH /user/me), email (disabled), position (PATCH if
+    supported)
+
+    5. Avatar click → hidden file input → POST avatar API → invalidate me/employee
+
+    6. Remove photo button → DELETE avatar API
+
+    7. Save button → PATCH { fullName, position }; show loading/error states
+
+
+    DATA: useMe() + useMyEmployee() — prefer user.fullName, fallback employee.fullName;
+    avatar src via resolveProfileAvatarUrl(user.imageSrc || employee.imageSrc, { wsId
+    }).
+
+
+    NO mock ''Maria Ivanova''. Delete/replace ProfileSection.tsx mock content.
+
+    Use ProfileSettingsHeading component. npm run build.'
+- agent: cursor
+  label: 'cursor: Preferences tab — theme, language, timezone'
+  task: "STEP 4/6 — Preferences tab.\n\nProject: {{SMARTY_PROJECT}}/src/pages/settings/profile/tabs/PreferencesTab.tsx.\n\
+    Plane ref: {{PROFILE_SETTINGS_REF}}/content/pages/preferences/, {{PROFILE_SETTINGS_REF}}/content/pages/preferences/default-list.tsx,\
+    \ {{PROFILE_SETTINGS_REF}}/content/pages/preferences/language-and-timezone-list.tsx.\n\
+    \nCREATE shared components in src/components/settings/:\n  ProfileSettingsHeading,\
+    \ SettingsControlItem, ToggleSwitch\n\nIMPLEMENT PreferencesTab with SettingsControlItem\
+    \ rows:\n1. Theme — reuse useTheme(); segmented control Dark / Light (localStorage\
+    \ smarty-theme)\n2. Language — Select en|ru → PATCH /user/me { language } + i18n.changeLanguage\n\
+    3. Timezone — Select common IANA zones → PATCH /user/me { timeZone }\n   Pre-fill\
+    \ from useMe().timeZone; fallback Europe/Moscow or browser TZ\n\nAuto-save on\
+    \ change (debounce 300ms for timezone) OR explicit Save — match Plane auto-save\
+    \ feel.\nRemove AccountSection mock workspace/timezone (migrate logic here).\n\
+    i18n keys: profile.preferences.* en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: Email notifications tab — Smarty backend toggles'
+  task: "STEP 5/6 — Email notifications tab.\n\nProject: {{SMARTY_PROJECT}}/src/pages/settings/profile/tabs/NotificationsTab.tsx.\n\
+    Plane ref: {{PROFILE_SETTINGS_REF}}/content/pages/notifications/email-notification-form.tsx.\n\
+    Backend: {{NOTIF_API}} §3 — POST /api/v2/usernotification/*\n\nMAP Plane email\
+    \ toggles → Smarty CRM (NOT property_change/state_change):\n  Master: Email notifications\
+    \ → POST /usernotification/notifyon|notifyoff\n    Read: !user.confNotifications?.disabled\n\
+    \  Per-entity (SettingsControlItem + ToggleSwitch, auto-save on toggle):\n   \
+    \ Contacts      → contacts/notifyon|notifyoff\n    Deals         → projects/notifyon|notifyoff\n\
+    \    Inbox/Dialogs → dialogs/notifyon|notifyoff\n    Requisitions  → requisitions/notifyon|notifyoff\n\
+    \    Assignments   → assignments/notifyon|notifyoff\n  Read: !user.confNotificationsCollection?.[collection]?.disabled\n\
+    \nuseNotificationPreference hook — optimistic update + rollback on error.\nSkip\
+    \ browser push v1 (no backend) — do NOT show fake toggle.\nReplace NotificationsSection.tsx\
+    \ mock local state.\ni18n: profile.notifications.* en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: Security tab + sidebar footer + review'
+  task: 'STEP 6/6 — Security (change password) + sidebar user menu + review.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+    Plane ref: {{PROFILE_SETTINGS_REF}}/content/pages/security.tsx.
+
+    Backend: POST /api/v2/user/update-password { oldPassword, newPassword }
+
+
+    IMPLEMENT SecurityTab.tsx:
+
+    1. ProfileSettingsHeading ''Change password''
+
+    2. Fields: current password, new password, confirm password
+
+    3. Eye/EyeOff toggle per field (lucide-react)
+
+    4. Validation: required, new !== old, confirm match, min length 6
+
+    5. Submit → useChangePassword; success → clear form + toast/message
+
+    6. Skip active sessions mock v1 (no sessions API) — remove SecuritySection mock
+    sessions
+
+
+    SIDEBAR UX:
+
+    1. SidebarUserFooter — add menu item ''Profile settings'' → /settings/profile/general
+
+    2. Use getUserDisplayName(me), resolveProfileAvatarUrl for avatar in footer +
+    sidebar header
+
+    3. Remove hardcoded displayName ''User'' / mock initials in Sidebar.tsx
+
+
+    REVIEW CHECKLIST (✅/❌/partial):
+
+    - /settings/profile/:tab routes + sidebar avatar 32px + name/email header
+
+    - General: cover strip + avatar overlap bottom-left (Plane layout)
+
+    - Preferences: theme + language + timezone wired to PATCH /user/me
+
+    - Notifications: real usernotification API, no mock toggles
+
+    - Security: update-password API, Eye toggles
+
+    - /settings workspace-only (team, integrations, custom fields)
+
+    - i18n en+ru, Plane dark-first, no mock data in profile paths
+
+    - npm run build — 0 errors in settings/profile/* and useUserProfile.ts
+
+
+    UPDATE docs/reports/CURRENT_STATUS.md — Settings row → Live API.
+
+    Fix P0 issues; list P1/P2 gaps (cover upload, sessions list, employee PATCH position).'

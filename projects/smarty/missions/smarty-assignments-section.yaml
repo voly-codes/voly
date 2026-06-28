@@ -1,0 +1,33 @@
+# Combat mission: smarty-assignments-section
+# Run: python3 -m codeops.cli smarty combat run smarty-assignments-section --sequential
+
+name: smarty-assignments-section
+description: 'P0: Поручения — /assignments routes, sidebar, list/kanban/card from
+  existing hooks.'
+tasks:
+- agent: cursor
+  label: 'cursor: assignments routes + nav'
+  task: "STEP 1/3 — Routes and navigation.\n\n{{LEGACY_GAP_REF}}\nLegacy: {{LEGACY_FRONTEND}}/src/js/components/Assignments/\n\
+    Existing: src/hooks/useAssignments.ts, orphan pages under src/pages/\n\nREGISTER\
+    \ App.tsx routes:\n  /assignments — list or board default\n  /assignments/:id\
+    \ — detail card\nSidebar nav + i18n assignments namespace (en+ru), register i18n.ts.\n\
+    Remove or redirect any stub from legacy-quick-wins if superseded."
+- agent: cursor
+  label: 'cursor: assignments list kanban card'
+  task: "STEP 2/3 — List, kanban, detail views.\n\n{{LEGACY_GAP_REF}}\nWIRE useAssignments\
+    \ to:\n  - AssignmentsList or table (DataTable pattern from contacts)\n  - Kanban\
+    \ by stage if stages API available (else status columns)\n  - AssignmentDetail:\
+    \ title, assignee, dates, stage, custom fields if any\nPageHeader + filters consistent\
+    \ with deals/contacts.\nReal API only — wsApi(wsId).assignments."
+- agent: cursor
+  label: 'cursor: assignments section review'
+  task: 'STEP 3/3 — Review assignments parity.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Compare legacy assignments: create, edit stage, delete, filters.
+
+    Document remaining gaps in CURRENT_STATUS.md.
+
+    npm run build.'

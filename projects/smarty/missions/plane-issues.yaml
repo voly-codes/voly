@@ -1,0 +1,207 @@
+# Combat mission: plane-issues
+# Run: python3 -m codeops.cli smarty combat run plane-issues --sequential
+
+name: plane-issues
+description: 'Issues (Plane parity): supervised multi-executor — opencode/cursor/zen
+  + Zen models'
+tasks:
+- agent: cursor
+  label: 'cursor: tracker backend — dates, relations, links, attachments'
+  task: "STEP 1/8 — Extend smarty-tracker backend for Plane parity.\n\nEdit files\
+    \ in {{SMARTY_PROJECT}}/smarty-backend-stable/smarty-tracker/ (routes/index.js,\
+    \ models/, docs/API.md). Read current API: {{TRACKER_API}}.\n\nADD TO tracker_issue\
+    \ schema (models/issue.js + issueDto + PATCH/POST):\n  - startDate: Number (nullable)\
+    \ — for calendar/gantt\n  (dueDate already exists; ensure PATCH accepts startDate)\n\
+    \nNEW MODEL tracker_issue_relation (register in models/index.js):\n  _wsId, _issueId,\
+    \ _relatedIssueId, relationType enum:\n  blocking | blocked_by | duplicate | relates_to\n\
+    \  Unique index on (_issueId, _relatedIssueId, relationType). Soft-delete optional.\n\
+    \nNEW MODEL tracker_issue_link:\n  _wsId, _issueId, title (max 200), url (max\
+    \ 2000), _createdBy, _createdOn\n\nNEW MODEL tracker_issue_attachment:\n  _wsId,\
+    \ _issueId, name, size, mimeType, url (or _fileId ref), _createdBy, _createdOn\n\
+    \  POST accepts multipart OR {fileId} from ws /files upload.\n\nNEW ROUTES under\
+    \ /tracker:\n  GET/POST /issues/:issueId/relations — list + create {relatedIssueId,\
+    \ relationType}\n  DELETE /issues/:issueId/relations/:relationId\n  GET/POST /issues/:issueId/links\
+    \ — list + create {title, url}\n  DELETE /issues/:issueId/links/:linkId\n  GET/POST\
+    \ /issues/:issueId/attachments — list + upload/create\n  DELETE /issues/:issueId/attachments/:attachmentId\n\
+    \  GET /issues/by-key/:key — resolve PLT-128 → issue (for browse route)\n\nExtend\
+    \ GET /issues/:issueId to return relationCount, linkCount, attachmentCount.\n\
+    Update docs/API.md. Match existing EmployeeRequest auth patterns.\nDo NOT touch\
+    \ CRM assignments. Minimal diff, working JS."
+- agent: cursor
+  label: 'cursor: tracker API + types + hooks'
+  task: 'STEP 2/8 — Frontend foundation in {{SMARTY_PROJECT}}.
+
+
+    Wire smarty-tracker backend /ws/:wsId/tracker/* (including new endpoints from
+    step 1).
+
+    Backend ref: {{TRACKER_API}}. Plane types ref (style only): {{PLANE_REF}}/packages/types/src/issues/issue.ts,
+    {{PLANE_REF}}/packages/types/src/issues/issue_relation.ts, {{PLANE_REF}}/packages/types/src/issues/issue_attachment.ts.
+
+
+    IMPLEMENT:
+
+    1. Types: TrackerProject, TrackerStatus, TrackerIssue (+ startDate, dueDate, counts),
+    TrackerSprint, TrackerEpic, TrackerComment, TrackerRelation, TrackerLink, TrackerAttachment.
+
+    2. trackerApi(wsId) in src/lib/api.ts — all CRUD + move + comments + relations
+    + links + attachments + getByKey(key).
+
+    3. Hooks: useTrackerProjects, useTrackerProject, useTrackerIssues, useTrackerIssue,
+    useTrackerIssueByKey, mutations for create/update/move/delete, useTrackerRelations,
+    useCreateTrackerRelation, useTrackerLinks, useTrackerAttachments (+ upload via
+    wsApi.files).
+
+    4. Optimistic updates for PATCH/move. Reuse StatusIcon, PriorityIcon.
+
+
+    RULES: session cookies, no mock data, named exports, npm run build.'
+- agent: cursor
+  label: 'cursor: list + kanban layouts'
+  task: 'STEP 3/8 — List + Kanban (Plane parity) in {{SMARTY_PROJECT}}/src/pages/tracker/.
+
+
+    REFERENCE: {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/roots/project-layout-root.tsx,
+    {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/list/, {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/kanban/block.tsx,
+    {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/properties/all-properties.tsx.
+
+
+    IMPLEMENT:
+
+    1. TrackerProjectsPage — project grid, admin create (key+name).
+
+    2. ProjectIssuesPage orchestrator with layout store (localStorage per projectId).
+
+    3. IssueListView — group_by status|priority|assignee|type|sprint|epic; column
+    toggles.
+
+    4. IssueKanbanView — status columns, DnD (@dnd-kit like TaskBoardView), move API.
+
+    5. Inline property editors on cards. Quick-add per group/column.
+
+    6. Layout switcher placeholder for 5 layouts (list|kanban|calendar|spreadsheet|gantt).
+
+
+    i18n: en/tracker.json + ru/tracker.json. Plane dark-first. npm run build.'
+- agent: cursor
+  label: 'cursor: calendar + spreadsheet + gantt layouts'
+  task: "STEP 4/8 — Calendar, Spreadsheet, Gantt layouts (Plane parity) in {{SMARTY_PROJECT}}.\n\
+    \nREFERENCE:\n  Calendar: {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/calendar/\n\
+    \  Spreadsheet: {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/spreadsheet/\n\
+    \  Gantt: {{PLANE_REF}}/apps/web/core/components/issues/issue-layouts/gantt/\n\
+    \  Layout enum: {{PLANE_REF}}/packages/types/src/issues/issue.ts (EIssueLayoutTypes)\n\
+    \nIMPLEMENT under src/pages/tracker/layouts/:\n\n1. IssueCalendarView — month/week/day\
+    \ modes (reuse/extend src/components/shared/TaskCalendar.tsx for TrackerIssue).\
+    \ Place issues on startDate or dueDate. Drag issue between days → PATCH dates.\
+    \ Click → peek or detail. Header: month nav, view mode dropdown (like Plane calendar/header.tsx).\n\
+    \n2. IssueSpreadsheetView — editable table/grid like Plane spreadsheet-view.tsx:\n\
+    \   Rows = issues, columns = key, title, status, priority, assignee, labels, sprint,\
+    \ epic, storyPoints, startDate, dueDate, created. Inline cell edit → PATCH. Resizable/sticky\
+    \ header row. Multi-select rows + bulk delete/status change.\n\n3. IssueGanttView\
+    \ — horizontal timeline like Plane gantt (simplified OK without full gantt-chart\
+    \ pkg):\n   Bars from startDate→dueDate (fallback: dueDate only as 1-day bar).\
+    \ Scroll timeline, zoom week/month. Drag bar edges to resize dates. Sidebar issue\
+    \ list + timeline canvas (CSS grid or SVG). Group by status or none.\n\nWire all\
+    \ 3 into ProjectIssuesPage layout switcher (5 layouts total). Persist active layout\
+    \ in view store. i18n + npm run build."
+- agent: cursor
+  label: 'cursor: issue detail + routes + widgets shell'
+  task: "STEP 5/8 — Issue detail page + routes in {{SMARTY_PROJECT}}.\n\nREFERENCE:\
+    \ {{PLANE_REF}}/apps/web/core/components/issues/issue-detail/root.tsx, {{PLANE_REF}}/apps/web/core/components/issues/issue-detail/main-content.tsx,\
+    \ {{PLANE_REF}}/apps/web/core/components/issues/issue-detail/sidebar.tsx, {{PLANE_REF}}/apps/web/core/components/issues/issue-detail-widgets/root.tsx.\n\
+    \nROUTES + Sidebar nav (Tracker section):\n  /tracker, /tracker/:projectId/issues\n\
+    \  /tracker/browse/:issueKey, /tracker/issues/:issueId\n\nIssueDetailPage — 75%\
+    \ main + 25% sidebar:\nMAIN: breadcrumb, type badge, editable title, description,\
+    \ comments thread.\nSIDEBAR: status, priority, assignee, reporter, sprint, epic,\
+    \ parent, storyPoints, labels, startDate, dueDate, created.\nWIDGETS section (collapsible\
+    \ accordions like Plane issue-detail-widgets):\n  placeholders for Sub-issues,\
+    \ Relations, Links, Attachments (implement in step 6).\nSub-issues: children where\
+    \ parentId=current.\nnpm run build."
+- agent: cursor
+  label: 'cursor: relations + links + attachments widgets'
+  task: "STEP 6/8 — Relations, Links, Attachments (Plane parity) in {{SMARTY_PROJECT}}.\n\
+    \nREFERENCE:\n  Relations: {{PLANE_REF}}/apps/web/core/components/issues/issue-detail-widgets/relations/\n\
+    \  Relations list: {{PLANE_REF}}/apps/web/core/components/issues/relations/issue-list.tsx\n\
+    \  Links: {{PLANE_REF}}/apps/web/core/components/issues/issue-detail-widgets/links/\n\
+    \  Attachments: {{PLANE_REF}}/apps/web/core/components/issues/issue-detail-widgets/attachments/\n\
+    \  Relation types: {{PLANE_REF}}/packages/types/src/issues/issue_relation.ts\n\
+    \nIMPLEMENT src/pages/tracker/widgets/:\n\n1. RelationsWidget — 4 groups: Blocking,\
+    \ Blocked by, Duplicate, Relates to.\n   Each group: list related issues (key\
+    \ + title), add via issue search picker (project issues), remove relation. Icons/colors\
+    \ per type (Plane helper.tsx pattern).\n   RelationsGraphPanel: visual mini-graph\
+    \ (nodes = current issue + related issues,    directed edges by relation type,\
+    \ SVG or simple force layout) — collapsible below lists.\n\n2. LinksWidget — list\
+    \ external links (title + url), add/edit/delete inline.\n\n3. AttachmentsWidget\
+    \ — list files with name/size/download, upload button (wsApi.files.create FormData\
+    \ → POST tracker attachment), delete attachment.\n   Show attachment_count on\
+    \ issue cards in list/kanban when >0.\n\nWire widgets into IssueDetailPage + IssuePeekOverview.\
+    \ i18n en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: modals + peek + filters'
+  task: 'STEP 7/8 — Create/edit modal, peek, filters in {{SMARTY_PROJECT}}.
+
+
+    REFERENCE: {{PLANE_REF}}/apps/web/core/components/issues/issue-modal/form.tsx,
+    {{PLANE_REF}}/apps/web/core/components/issues/peek-overview/root.tsx, {{PLANE_REF}}/packages/constants/src/issue/filter.ts.
+
+
+    IMPLEMENT:
+
+    1. CreateIssueModal / EditIssueModal — all fields incl. startDate.
+
+    2. IssuePeekOverview — slide-over with main props + all 4 widgets (sub-issues,
+    relations, links, attachments).
+
+    3. IssueFiltersBar — filter/group/order + layout switch (list|kanban|calendar|spreadsheet|gantt).
+
+    4. Context menu: open, new tab, copy key, delete. Backlog filter (sprint=backlog).
+
+    5. displayProperties toggles per layout (which columns show on cards/rows).
+
+
+    Plane visual density. i18n. npm run build.'
+- agent: cursor
+  label: 'cursor: review plane-issues full parity'
+  task: 'STEP 8/8 — Full parity review: {{SMARTY_PROJECT}}/src/pages/tracker/ vs {{PLANE_REF}}/apps/web/core/components/issues/.
+
+
+    Do NOT edit files — review only.
+
+
+    Checklist (✅/❌/partial):
+
+    - 5 layouts: list, kanban, calendar, spreadsheet, gantt
+
+    - Kanban DnD + move API
+
+    - Calendar drag-between-days
+
+    - Spreadsheet inline edit + bulk actions
+
+    - Gantt timeline bars + date drag
+
+    - Detail main+sidebar
+
+    - Browse URL by key (PLT-128)
+
+    - Peek overview with widgets
+
+    - Relations (4 types) + relations graph panel
+
+    - Links widget
+
+    - Attachments upload/list/delete
+
+    - Sub-issues
+
+    - Comments
+
+    - Filters + group/order + layout persist
+
+    - Backend endpoints (relations/links/attachments/startDate)
+
+    - Real API, i18n en+ru, Plane dark-first, TS build
+
+
+    Output P0/P1/P2 gaps.'
+supervised: true

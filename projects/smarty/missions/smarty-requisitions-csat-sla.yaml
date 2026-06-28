@@ -1,0 +1,38 @@
+# Combat mission: smarty-requisitions-csat-sla
+# Run: python3 -m codeops.cli smarty combat run smarty-requisitions-csat-sla --sequential
+
+name: smarty-requisitions-csat-sla
+description: 'P1: Requisitions — CSAT submit, SLA panel, section import/export.'
+tasks:
+- agent: cursor
+  label: 'cursor: requisitions CSAT submit'
+  task: 'STEP 1/3 — CSAT submit form.
+
+
+    {{LEGACY_GAP_REF}}
+
+    RequisitionDetail: CSAT rating form + submit via wsApi requisitions.csat.
+
+    Read-only display for completed; i18n requisitions.csat en+ru.'
+- agent: cursor
+  label: 'cursor: requisitions SLA panel'
+  task: 'STEP 2/3 — SLA metrics panel.
+
+
+    {{LEGACY_GAP_REF}}
+
+    SLA block on requisition detail: first response, resolution deadlines.
+
+    Use hd/dashboard or requisition SLA fields from API.
+
+    Overdue styling with status tokens.'
+- agent: cursor
+  label: 'cursor: requisitions import export review'
+  task: 'STEP 3/3 — Import/export + review.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Full /requisitions/import-export page (if quick-win was stub).
+
+    npm run build; gap audit requisitions row.'

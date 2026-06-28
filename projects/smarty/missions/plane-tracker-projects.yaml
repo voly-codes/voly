@@ -1,0 +1,76 @@
+# Combat mission: plane-tracker-projects
+# Run: python3 -m codeops.cli smarty combat run plane-tracker-projects --sequential
+
+name: plane-tracker-projects
+description: 'Tracker projects hub: Plane projects list/card UI на /tracker. ProjectCard
+  grid, header, sidebar strip. Backend tracker projects API.'
+tasks:
+- agent: cursor
+  label: 'cursor: audit plane projects → tracker mapping'
+  task: "STEP 1/6 — Audit Plane projects UI vs Smarty tracker.\n\nProject: {{SMARTY_PROJECT}}\n\
+    {{PLANE_PROJECTS_UX}}\nCurrent: src/pages/tracker/TrackerProjectsPage.tsx\nBackend:\
+    \ {{TRACKER_API}} — GET/POST /tracker/projects\n\nWRITE docs/reports/plane-tracker-projects-audit.md:\n\
+    \  - Plane ProjectCard fields → TrackerProject DTO mapping\n  - Grid layout, header\
+    \ actions, empty state\n  - P2 skip: favorites, archive, join modal, cover upload\n\
+    \  - DO NOT edit UI this step.\n"
+- agent: cursor
+  label: 'cursor: TrackerProjectCard Plane-style'
+  task: "STEP 2/6 — Project card component.\n\nPlane ref: {{PLANE_PROJECTS_CARD}}\n\
+    Project: src/pages/tracker/components/TrackerProjectCard.tsx\n\nCREATE TrackerProjectCard:\n\
+    \  - rounded-lg border border-border-subtle bg-surface-1 hover:border-border-default\
+    \ hover:shadow-sm\n  - Top: project key badge + name (truncate), optional emoji/icon\
+    \ placeholder\n  - Middle: description line or open issues count\n  - Bottom:\
+    \ member avatars (from project members if API) + link arrow\n  - Click → /tracker/:projectId/issues\n\
+    \  - Context menu P2: settings, archive stub\n\nUse useTrackerProjects data. npm\
+    \ run build."
+- agent: cursor
+  label: 'cursor: projects list header + grid'
+  task: "STEP 3/6 — Projects list page layout.\n\nPlane refs: {{PLANE_PROJECTS_HEADER}},\
+    \ {{PLANE_PROJECTS_LIST}}\nRefactor: TrackerProjectsPage.tsx\n\nIMPLEMENT:\n \
+    \ - Header: «Projects» / i18n tracker.projectsTitle (ru: «Проекты»)\n  - Subheader\
+    \ row: project count, search input (client filter by name/key)\n  - Grid: sm:2\
+    \ lg:3 gap-4 p-6 (replace plain cards)\n  - Empty state: Plane no-projects tone\
+    \ (from home/widgets/empty-states/no-projects.tsx pattern)\n  - New project button\
+    \ → existing CreateTrackerProjectModal\n\nRoute /tracker stays projects hub. npm\
+    \ run build."
+- agent: cursor
+  label: 'cursor: tracker sidebar projects strip'
+  task: "STEP 4/6 — Sidebar projects list under Tracker nav.\n\nPlane ref: {{PLANE_PROJECTS_SIDEBAR}},\
+    \ {{PLANE_WORKSPACE_MENU}}\nProject: src/components/layout/Sidebar.tsx or tracker/TrackerSidebar.tsx\n\
+    \nWhen route starts with /tracker:\n  - Optional collapsible «Projects» section\
+    \ listing top 8 tracker projects\n  - Each row: key + name → /tracker/:id/issues\n\
+    \  - «View all projects» → /tracker\n  - OR embed in Tracker section of main Sidebar\
+    \ (match Plane workspace menu Projects item)\n\ni18n tracker.sidebar.projects\
+    \ en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: project issues header polish'
+  task: "STEP 5/6 — Project detail entry header (Plane project shell).\n\nPlane ref:\
+    \ {{PLANE_REF}}/apps/web/app/(all)/[workspaceSlug]/(projects)/projects/(detail)/\n\
+    Project: ProjectIssuesPage.tsx\n\nPOLISH project header when inside a tracker\
+    \ project:\n  - Project icon/key + name + breadcrumbs\n  - Tabs row P2: Issues\
+    \ | Sprints | Settings stub\n  - Compact Plane density, surface-0 header bar\n\
+    \nNo backend changes. npm run build."
+- agent: cursor
+  label: 'cursor: review plane-tracker-projects'
+  task: 'STEP 6/6 — Review Plane projects → tracker parity.
+
+
+    Project: {{SMARTY_PROJECT}}. Audit doc.
+
+
+    CHECKLIST:
+
+    ✅ /tracker = Plane-style projects grid with TrackerProjectCard
+
+    ✅ Search, create project, empty state
+
+    ✅ Sidebar projects strip or nav alignment
+
+    ✅ Real tracker API, no mock
+
+    ✅ i18n «Проекты» en+ru
+
+    ✅ npm run build 0 errors
+
+
+    UPDATE CURRENT_STATUS.md.'

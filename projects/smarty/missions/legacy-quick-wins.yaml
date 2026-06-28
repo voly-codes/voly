@@ -1,0 +1,25 @@
+# Combat mission: legacy-quick-wins
+# Run: python3 -m codeops.cli smarty combat run legacy-quick-wins --sequential
+
+name: legacy-quick-wins
+description: 'Быстрые правки из legacy-gap-audit §5 (<1 день): маршруты, i18n, markRead,
+  settings redirect, import/export stubs.'
+tasks:
+- agent: cursor
+  label: 'cursor: routes + i18n quick wins'
+  task: "STEP 1/2 — Quick wins batch A (routes + i18n).\n\n{{LEGACY_GAP_REF}}\nReport\
+    \ §5 items: SignUp route, settings default tab, nav.piChat EN, remove orphan nav.tasks,\
+    \ assignments route stub.\n\nIMPLEMENT:\n  - App.tsx: /sign-up → SignUp; /settings\
+    \ → general; /assignments minimal list\n  - Sidebar: assignments nav entry if\
+    \ stub added\n  - locales/en/nav.json: piChat → AI Assistant; remove stale tasks\
+    \ key (en+ru)\n  - SignIn link to /sign-up works; authApi.signup already exists\n\
+    \nCHECKLIST: npm run build passes; no mock data."
+- agent: cursor
+  label: 'cursor: inbox read + import-export stubs'
+  task: "STEP 2/2 — Quick wins batch B.\n\n{{LEGACY_GAP_REF}}\nReport §5: mark dialog\
+    \ read on open, import/export nav for deals/requisitions, requisitions CSAT display\
+    \ polish, service note + file detail routes (minimal).\n\nIMPLEMENT:\n  - Inbox.tsx:\
+    \ call useMarkDialogRead when dialog selected\n  - /deals/import-export, /requisitions/import-export\
+    \ — reuse ImportExport pattern\n  - RequisitionDetail: read-only CSAT fields +\
+    \ i18n\n  - Minimal detail routes for service note (useServiceNote) and file (useFile)\n\
+    \nUPDATE docs/reports/CURRENT_STATUS.md — mark quick wins done."

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "watcher": {
+    "ignore": [
+      "rtk/target/**",
+      "headroom/**",
+      "cf-workers/marketplace/node_modules/**"
+    ]
+  }
+}

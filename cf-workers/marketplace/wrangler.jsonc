@@ -1,0 +1,38 @@
+{
+  "name": "codeops-marketplace",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "codeops",
+      "database_id": "0c11557b-a216-46eb-8564-f548175a0408"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "SKILLS_BUCKET",
+      "bucket_name": "codeops-skills"
+    }
+  ],
+
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "codeops-skills"
+    }
+  ],
+
+  "kv_namespaces": [
+    {
+      "binding": "INDEX",
+      "id": "1e3d22bbb7804bacbd06cf484c0f6008"
+    }
+  ],
+
+  "ai": {
+    "binding": "AI"
+  }
+}
