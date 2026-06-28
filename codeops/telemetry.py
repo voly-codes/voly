@@ -148,10 +148,14 @@ class TelemetryDeliveryError(Exception):
     """Ошибка доставки события во внешнее хранилище (Pipeline / R2)."""
 
 
+def _is_unresolved(s: str) -> bool:
+    return "${" in s
+
+
 def resolve_pipeline_endpoint(config_url: str = "") -> str:
     """URL ingest endpoint CF Pipelines из config или env."""
     url = os.path.expandvars((config_url or "").strip())
-    if url:
+    if url and not _is_unresolved(url):
         return url.rstrip("/")
     for key in ("CF_PIPELINE_TELEMETRY_ENDPOINT", "PIPELINE_TELEMETRY_ENDPOINT"):
         env_url = os.environ.get(key, "").strip()

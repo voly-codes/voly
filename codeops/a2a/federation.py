@@ -134,9 +134,13 @@ class FederationClient:
         return list(data.get("tasks", []))
 
 
+def _is_unresolved(s: str) -> bool:
+    return "${" in s
+
+
 def resolve_federation_url(config_url: str = "") -> str:
     url = os.path.expandvars((config_url or "").strip())
-    if url:
+    if url and not _is_unresolved(url):
         return url.rstrip("/")
     for key in ("CF_WORKER_A2A_URL", "A2A_FEDERATION_URL"):
         env_url = os.environ.get(key, "").strip()

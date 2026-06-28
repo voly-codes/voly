@@ -99,9 +99,13 @@ class MemoryClient:
         return list(data.get("memories", []))
 
 
+def _is_unresolved(s: str) -> bool:
+    return "${" in s
+
+
 def resolve_memory_url(config_url: str = "") -> str:
     url = os.path.expandvars((config_url or "").strip())
-    if url:
+    if url and not _is_unresolved(url):
         return url.rstrip("/")
     for key in ("CF_WORKER_MEMORY_URL", "MEMORY_URL"):
         env_url = os.environ.get(key, "").strip()
