@@ -11,8 +11,10 @@
   let error = $state('')
   let query = $state('')
   let page = $state(1)
-  let installing = $state(/** @type {Set<string>} */ (new Set()))
-  let installed = $state(/** @type {Set<string>} */ (new Set()))
+  /** @type {Record<string, boolean>} */
+  let installing = $state({})
+  /** @type {Record<string, boolean>} */
+  let installed = $state({})
 
   const LIMIT = 24
 
@@ -51,15 +53,15 @@
 
   async function install(skill) {
     const id = skill.id
-    if (!id || installing.has(id) || installed.has(id)) return
-    installing.add(id)
+    if (!id || installing[id] || installed[id]) return
+    installing[id] = true
     try {
       await installSkill(id)
-      installed.add(id)
+      installed[id] = true
     } catch (e) {
       error = `Не удалось установить ${id}: ${e.message}`
     } finally {
-      installing.delete(id)
+      installing[id] = false
     }
   }
 
@@ -154,15 +156,15 @@
 
             <button
               class="install-btn"
-              class:installed={installed.has(skill.id)}
-              class:installing={installing.has(skill.id)}
+              class:installed={!!installed[skill.id]}
+              class:installing={!!installing[skill.id]}
               onclick={() => install(skill)}
-              disabled={installing.has(skill.id) || installed.has(skill.id)}
+              disabled={!!installing[skill.id] || !!installed[skill.id]}
             >
-              {#if installed.has(skill.id)}
+              {#if installed[skill.id]}
                 <CheckIcon size="11" strokeWidth="2.5" />
                 Installed
-              {:else if installing.has(skill.id)}
+              {:else if installing[skill.id]}
                 Installing…
               {:else}
                 <DownloadIcon size="11" strokeWidth="2" />
