@@ -11,8 +11,8 @@
   let error = $state('')
   let query = $state('')
   let page = $state(1)
-  let installing = $state(new Set())
-  let installed = $state(new Set())
+  let installing = $state(/** @type {Set<string>} */ (new Set()))
+  let installed = $state(/** @type {Set<string>} */ (new Set()))
 
   const LIMIT = 24
 
@@ -50,15 +50,16 @@
   }
 
   async function install(skill) {
-    if (installing.has(skill.id) || installed.has(skill.id)) return
-    installing = new Set([...installing, skill.id])
+    const id = skill.id
+    if (!id || installing.has(id) || installed.has(id)) return
+    installing.add(id)
     try {
-      await installSkill(skill.id)
-      installed = new Set([...installed, skill.id])
+      await installSkill(id)
+      installed.add(id)
     } catch (e) {
-      error = `Failed to install ${skill.id}: ${e.message}`
+      error = `Не удалось установить ${id}: ${e.message}`
     } finally {
-      installing = new Set([...installing].filter(x => x !== skill.id))
+      installing.delete(id)
     }
   }
 
