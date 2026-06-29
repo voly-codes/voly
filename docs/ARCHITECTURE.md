@@ -95,23 +95,26 @@ Developer / UI / CI / Scheduler
 
 ### `codeops/pipeline.py` — central orchestrator
 
-`Pipeline.run(task)` wires together routing, context, inference and telemetry. It emits `PipelineStage` hooks so UI/AG-UI/debug tools can observe execution.
+`Pipeline.run(task)` wires together routing, context, inference and telemetry. It emits `PipelineStage` hooks so UI/AG-UI/debug tools can observe execution. Hook errors are logged at DEBUG level and never propagate.
 
-```text
-task
-  → AgentRouter.analyze_task()
-  → AgentRouter.route()
-  → CostPolicy
-  → MemoryStore.search()
-  → RTK / Headroom
-  → InferenceManager.run()
-  → ModelResponse
-  → MemoryStore.add()
-  → TaskEvent
-  → PipelineResult
-```
+`run()` is a thin coordinator (~115 lines) that delegates to stage methods:
 
-Important stages:
+| Method | Responsibility |
+|---|---|
+| `_stage_agui_start` | initialise AG-UI session |
+| `_stage_a2a` | A2A delegation; returns `PipelineResult` if delegated |
+| `_stage_route` | routing + cost policy; returns `(route, analysis, task_type)` |
+| `_stage_spend_check` | pre-call spend limit; returns `PipelineResult` if blocked |
+| `_stage_memory_retrieve` | memory search → context messages |
+| `_stage_rtk` | RTK stats |
+| `_check_gateway_errors` | DLP / rate / spend errors after model call |
+| `_build_model_response` | `ModelResponse` from gateway dict |
+| `_stage_memory_store` | persist task result to memory |
+| `_stage_agui_done` | stream response to AG-UI |
+| `_extract_dspy_fields` | unpack DSPy metadata from `DSPyResult` |
+| `_emit_task_event` | build and emit `TaskEvent` to telemetry |
+
+Important `PipelineStage` values:
 
 | Stage | Purpose |
 |---|---|
@@ -190,7 +193,7 @@ off → shadow → candidate program → eval → promote production → active
 3. Rate limit
 4. Spend limit
 5. Provider call with fallback
-6. Metrics/cost recording
+6. Metrics/cost recording (`_calculate_cost` delegates to `telemetry._estimate_cost` — single source of truth for pricing rates)
 
 Supported provider groups:
 

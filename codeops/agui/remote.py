@@ -75,7 +75,7 @@ def resolve_agui_remote_url(config_url: str = "") -> str:
     url = os.path.expandvars((config_url or "").strip())
     if url and not _is_unresolved(url):
         return url.rstrip("/")
-    for key in ("CF_WORKER_SPEND_URL", "CF_WORKER_AGUI_URL", "AGUI_REMOTE_URL"):
+    for key in ("CF_WORKER_AGUI_URL", "AGUI_URL", "AGUI_REMOTE_URL"):
         env_url = os.environ.get(key, "").strip()
         if env_url:
             return env_url.rstrip("/")
