@@ -24,18 +24,34 @@ def _skills_dir(request: Request):
 
 @router.get("/api/marketplace/skills/installed")
 def marketplace_installed(request: Request) -> list[str]:
-    """Return IDs of locally installed skills (from .codeops/skills/*.json)."""
+    """Return IDs of locally installed skills from .codeops/skills/."""
     skills_dir = _skills_dir(request)
     if not skills_dir.exists():
         return []
-    ids = []
+    ids: list[str] = []
+    seen: set[str] = set()
+
+    # YAML/YML — canonical format written by install_from_marketplace
+    try:
+        from codeops.registry.loader import load_skills_from_directory
+        for skill in load_skills_from_directory(skills_dir):
+            if skill.id not in seen:
+                ids.append(skill.id)
+                seen.add(skill.id)
+    except Exception:
+        pass
+
+    # JSON — legacy format from old install handler
     for f in skills_dir.glob("*.json"):
         try:
             data = json.loads(f.read_text())
-            if sid := data.get("id"):
+            sid = data.get("id")
+            if sid and sid not in seen:
                 ids.append(sid)
+                seen.add(sid)
         except Exception:
             pass
+
     return ids
 
 
@@ -84,14 +100,19 @@ def marketplace_install(skill_id: str, request: Request) -> dict[str, Any]:
     if not url:
         raise HTTPException(status_code=503, detail="Marketplace not configured")
     try:
-        from codeops.registry.marketplace import MarketplaceClient
-        skill_data = MarketplaceClient(url).download_skill(skill_id)
-        skills_dir = _ev_dir(request).parent / "skills"
-        skills_dir.mkdir(parents=True, exist_ok=True)
-        safe = skill_id.replace("/", "_").replace("..", "")
-        (skills_dir / f"{safe}.json").write_text(
-            json.dumps(skill_data, ensure_ascii=False, indent=2)
+        from codeops.registry.skills import create_skill_registry
+        skills_dir = _skills_dir(request)
+        registry = create_skill_registry(
+            skills_path=str(skills_dir),
+            marketplace_url=url,
         )
-        return {"installed": True, "skill_id": skill_id}
+        skill = registry.install_from_marketplace(skill_id)
+        return {
+            "installed": True,
+            "skill_id": skill.id,
+            "name": skill.name,
+            "version": skill.version,
+            "source": skill.source.value,
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
