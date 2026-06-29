@@ -52,7 +52,6 @@ class ClassicRuntime:
             tools=tool_specs or [],
             system=system_prompt,
             agent=getattr(route, "agent", None),
-            stop_sequences=route.config.get("stop_sequences"),
         )
         return RuntimeResult(response=response, runtime="classic", used=True)
 

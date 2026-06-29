@@ -18,11 +18,14 @@ Pipeline — главный оркестратор CodeOps.
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 from codeops.automation import compute_automation_metrics
 from codeops.config import CodeOpsConfig, load_config
@@ -269,114 +272,26 @@ class Pipeline:
             self._fire(PipelineStage.INIT, task=task)
 
             if self.config.agui.enabled and agui_session_id:
-                from codeops.agui import AGUIContext
-
-                if not self.agui._event_queues.get(agui_session_id):
-                    ctx = AGUIContext(
-                        conversation_id=agui_session_id,
-                        session_id=agui_session_id,
-                    )
-                    self.agui.create_session(ctx)
-                self._fire(PipelineStage.AGUI_START, session_id=agui_session_id)
+                self._stage_agui_start(agui_session_id)
 
             if self.config.a2a.enabled and delegate_to_a2a:
-                self._fire(PipelineStage.A2A_DISCOVER, task=task)
+                result = self._stage_a2a(task, agui_session_id, started)
+                if result is not None:
+                    return result
 
-                from codeops.a2a import A2ATask
+            route, analysis, task_type = self._stage_route(task, context, force_model, force_agent)
 
-                a2a_task = self.a2a.create_task(
-                    title=task[:100],
-                    description=task,
-                )
-                self.a2a.route_and_delegate(a2a_task)
-                self._fire(PipelineStage.A2A_DELEGATE, a2a_task=a2a_task)
+            spend_result = self._stage_spend_check(route, task_id, analysis, agui_session_id, started)
+            if spend_result is not None:
+                return spend_result
 
-                if a2a_task.state.value in ("completed", "working"):
-                    return PipelineResult(
-                        success=a2a_task.state.value == "completed",
-                        stage=PipelineStage.DONE,
-                        route=RouteDecision(agent=a2a_task.metadata.get("routed_to", "a2a"),
-                                          model="auto", provider="anthropic"),
-                        a2a_tasks=[a2a_task],
-                        agui_session_id=agui_session_id or "",
-                        duration_ms=(time.monotonic() - started) * 1000,
-                    )
-
-            analysis = self.router.analyze_task(task)
-            route = self.router.route(task, context)
-            if force_model:
-                model_cfg = self.config.get_model_config(force_model)
-                route.model = force_model
-                route.provider = model_cfg.provider
-            if force_agent:
-                route.agent = force_agent
-            policy = apply_cost_policy(route, task, self.config)
-            if policy.model_override:
-                route.model = policy.model_override
-                route.provider = policy.provider_override or route.provider
-            task_type = policy.task_type or detect_task_type(task)
-            self._fire(PipelineStage.ROUTE, route=route, analysis=analysis, policy=policy)
-            self._metrics.route_distribution[route.agent] = (
-                self._metrics.route_distribution.get(route.agent, 0) + 1
-            )
-
-            if self.config.spend.enabled and self.config.ai_gateway.spend_limits_enabled:
-                from codeops.spend import check_agent_spend_limit
-
-                spend_check = check_agent_spend_limit(route.agent, self.config)
-                if spend_check and not spend_check.get("ok"):
-                    duration = (time.monotonic() - started) * 1000
-                    ev = TaskEvent(
-                        task_id=task_id,
-                        agent=route.agent,
-                        status="spend_limited",
-                        model=route.model,
-                        provider=route.provider,
-                        error=(
-                            f"Daily spend limit exceeded: ${spend_check.get('spent', 0):.4f} "
-                            f"/ ${spend_check.get('limit', 0):.2f}"
-                        ),
-                        duration_ms=duration,
-                    )
-                    emit_event_from_config(ev, self.config)
-                    return PipelineResult(
-                        success=False,
-                        stage=PipelineStage.ERROR,
-                        route=route,
-                        analysis=analysis,
-                        error=ev.error or "Daily spend limit exceeded",
-                        agui_session_id=agui_session_id or "",
-                        duration_ms=duration,
-                    )
-
-            memory_messages = []
-            if self.config.memory.enabled:
-                memory_results = self.memory.search(task, limit=5)
-                for m in memory_results:
-                    memory_messages.append({
-                        "role": "user",
-                        "content": f"[MEMORY: {m.category}] {m.title}: {m.content}",
-                    })
-                self._fire(PipelineStage.MEMORY_RETRIEVE, hits=memory_results)
-
-            if self.config.rtk.enabled and self.rtk.is_installed():
-                rtk_stats = self.rtk.get_stats(scope="project")
-                self._fire(PipelineStage.RTK_FILTER, stats=rtk_stats)
-            else:
-                rtk_stats = {}
+            memory_messages = self._stage_memory_retrieve(task)
+            rtk_stats = self._stage_rtk()
 
             model = self._resolve_model(route)
-
-            msgs = list(memory_messages)
-            if messages:
-                msgs.extend(messages)
-            if task:
-                msgs.append({"role": "user", "content": task})
-
+            msgs = self._build_messages(memory_messages, messages, task)
             self._fire(PipelineStage.HEADROOM_COMPRESS, messages=msgs[:])
 
-            dspy_result = None
-            dspy_used = False
             inference_outcome = self.inference_manager.run(
                 task=task,
                 messages=msgs,
@@ -388,98 +303,23 @@ class Pipeline:
             gw_result = inference_outcome.response
             dspy_result = inference_outcome.dspy_result
             dspy_used = inference_outcome.used_dspy
-            # ────────────────────────────────────────────────────────────────
-            if gw_result.get("dlp_blocked"):
-                _dur = (time.monotonic() - started) * 1000
-                ev = TaskEvent(
-                    task_id=task_id, agent=route.agent, status="dlp_blocked",
-                    gateway=GatewayMetrics(dlp_blocked=True),
-                    routing_score=route.routing_score, duration_ms=_dur,
-                    model=model, provider=route.provider,
-                    error=gw_result.get("error"),
-                )
-                emit_event_from_config(ev, self.config)
-                return PipelineResult(
-                    success=False, stage=PipelineStage.ERROR,
-                    error=f"DLP blocked: {gw_result.get('error')}",
-                    route=route, analysis=analysis,
-                    agui_session_id=agui_session_id or "",
-                    duration_ms=_dur, event=ev,
-                )
-            if gw_result.get("rate_limited"):
-                _dur = (time.monotonic() - started) * 1000
-                ev = TaskEvent(
-                    task_id=task_id, agent=route.agent, status="rate_limited",
-                    routing_score=route.routing_score, duration_ms=_dur,
-                    model=model, provider=route.provider, error="Rate limit exceeded",
-                )
-                emit_event_from_config(ev, self.config)
-                return PipelineResult(
-                    success=False, stage=PipelineStage.ERROR,
-                    error="Rate limit exceeded",
-                    route=route, analysis=analysis,
-                    agui_session_id=agui_session_id or "",
-                    duration_ms=_dur, event=ev,
-                )
-            if gw_result.get("spend_limited"):
-                _dur = (time.monotonic() - started) * 1000
-                ev = TaskEvent(
-                    task_id=task_id, agent=route.agent, status="spend_limited",
-                    routing_score=route.routing_score, duration_ms=_dur,
-                    model=model, provider=route.provider, error="Daily spend limit exceeded",
-                )
-                emit_event_from_config(ev, self.config)
-                return PipelineResult(
-                    success=False, stage=PipelineStage.ERROR,
-                    error="Daily spend limit exceeded",
-                    route=route, analysis=analysis,
-                    agui_session_id=agui_session_id or "",
-                    duration_ms=_dur, event=ev,
-                )
-            if gw_result.get("error") and not gw_result.get("content"):
-                raise RuntimeError(gw_result["error"])
 
-            usage = gw_result.get("usage", {})
-            dspy_program_id = dspy_result.program_id if dspy_result else None
-            dspy_program_version = dspy_result.program_version if dspy_result else None
-            dspy_program_tag = dspy_result.program_tag if dspy_result else None
-            dspy_optimizer = dspy_result.optimizer if dspy_result else None
-            dspy_dataset = dspy_result.dataset if dspy_result else None
-            dspy_compile_id = dspy_result.compile_id if dspy_result else None
-            dspy_score_value = dspy_result.score if dspy_result else None
-            dspy_shadow_delta = (
-                dspy_result.shadow_score_delta if dspy_result else None
+            error_result = self._check_gateway_errors(
+                gw_result, route, analysis, task_id, model, agui_session_id, started
             )
-            response = ModelResponse(
-                content=gw_result.get("content", ""),
-                usage=ModelUsage(
-                    input_tokens=usage.get("input_tokens", 0),
-                    output_tokens=usage.get("output_tokens", 0),
-                ),
-                model=gw_result.get("model", model),
-            )
+            if error_result is not None:
+                return error_result
+
+            response = self._build_model_response(gw_result, model)
             self._fire(PipelineStage.MODEL_CALL, response=response)
             self._metrics.total_tokens_in += response.usage.input_tokens
             self._metrics.total_tokens_out += response.usage.output_tokens
 
             if self.config.memory.enabled:
-                self.memory.add(
-                    title=f"Task: {task[:100]}",
-                    content=response.content[:2000],
-                    category="history",
-                    metadata={
-                        "agent": route.agent,
-                        "model": route.model,
-                        "provider": route.provider,
-                    },
-                    importance=0.6,
-                    tags=[route.agent, "task"],
-                )
-                self._fire(PipelineStage.MEMORY_STORE)
+                self._stage_memory_store(task, response, route)
 
             if self.config.agui.enabled and agui_session_id:
-                self.agui.stream_text(agui_session_id, response.content)
-                self._fire(PipelineStage.AGUI_DONE, session_id=agui_session_id)
+                self._stage_agui_done(agui_session_id, response)
 
             duration = (time.monotonic() - started) * 1000
             self._metrics.total_tasks += 1
@@ -487,74 +327,14 @@ class Pipeline:
                 (self._metrics.avg_duration_ms * (self._metrics.total_tasks - 1) + duration)
                 / self._metrics.total_tasks
             )
-
             self._fire(PipelineStage.DONE)
 
-            skill_ids = [s.id for s in self.match_skills_for_task(task, route.agent)]
-            resolved_model = gw_result.get("model", model)
-            cost_usd = _estimate_cost(
-                resolved_model,
-                response.usage.input_tokens,
-                response.usage.output_tokens,
+            ev, status, cost_usd = self._emit_task_event(
+                task_id, route, response, gw_result, rtk_stats, task_type, dspy_result, duration, task
             )
-            pseudo_result = ExecutorResult(
-                success=True,
-                num_turns=1,
-                cost_usd=cost_usd,
-                input_tokens=response.usage.input_tokens,
-                output_tokens=response.usage.output_tokens,
-            )
-            automation_score, manual_steps = compute_automation_metrics(
-                "pipeline",
-                pseudo_result,
-                task_type=task_type,
-                via_pipeline=True,
-            )
-            status = budget_status(cost_usd, self.config)
-            ev = TaskEvent(
-                task_id=task_id,
-                agent=route.agent,
-                status=status,
-                tokens=TokenMetrics(
-                    input=response.usage.input_tokens,
-                    output=response.usage.output_tokens,
-                    saved_rtk=rtk_stats.get("total_saved", 0),
-                    saved_headroom=0,
-                ),
-                gateway=GatewayMetrics(
-                    cache_hit=gw_result.get("cache_hit", False),
-                    fallback_used=gw_result.get("fallback_used", False),
-                    dlp_blocked=False,
-                ),
-                skill_ids=skill_ids,
-                routing_score=route.routing_score,
-                cost_usd=cost_usd,
-                duration_ms=duration,
-                model=resolved_model,
-                provider=route.provider,
-                executor="pipeline",
-                task_type=task_type,
-                automation_score=automation_score,
-                manual_steps_removed=manual_steps,
-                error=(
-                    f"Budget exceeded: ${cost_usd:.4f} > "
-                    f"${self.config.cost_policy.max_task_cost_usd:.2f}"
-                    if status == "budget_exceeded" else None
-                ),
-                dspy_enabled=self.config.dspy.enabled,
-                dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else None,
-                dspy_program_id=dspy_program_id,
-                dspy_program_version=dspy_program_version,
-                dspy_program_tag=dspy_program_tag,
-                dspy_optimizer=dspy_optimizer,
-                dspy_dataset=dspy_dataset,
-                dspy_compile_id=dspy_compile_id,
-                dspy_score=dspy_score_value,
-                dspy_shadow_delta=dspy_shadow_delta,
-            )
-            emit_event_from_config(ev, self.config)
             self._metrics.total_tokens_saved_rtk += rtk_stats.get("total_saved", 0)
 
+            dspy_fields = self._extract_dspy_fields(dspy_result)
             return PipelineResult(
                 success=status == "completed",
                 stage=PipelineStage.DONE,
@@ -568,14 +348,7 @@ class Pipeline:
                 event=ev,
                 dspy_used=dspy_used,
                 dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else "",
-                dspy_program_id=dspy_program_id,
-                dspy_program_version=dspy_program_version,
-                dspy_program_tag=dspy_program_tag,
-                dspy_optimizer=dspy_optimizer,
-                dspy_dataset=dspy_dataset,
-                dspy_compile_id=dspy_compile_id,
-                dspy_score=dspy_score_value,
-                dspy_shadow_delta=dspy_shadow_delta,
+                **dspy_fields,
             )
 
         except Exception as e:
@@ -597,6 +370,292 @@ class Pipeline:
                 duration_ms=_dur,
                 event=ev,
             )
+
+    # ── Pipeline stage helpers ────────────────────────────────────────────────
+
+    def _stage_agui_start(self, session_id: str) -> None:
+        from codeops.agui import AGUIContext
+
+        if not self.agui._event_queues.get(session_id):
+            ctx = AGUIContext(conversation_id=session_id, session_id=session_id)
+            self.agui.create_session(ctx)
+        self._fire(PipelineStage.AGUI_START, session_id=session_id)
+
+    def _stage_a2a(
+        self, task: str, agui_session_id: str | None, started: float
+    ) -> PipelineResult | None:
+        self._fire(PipelineStage.A2A_DISCOVER, task=task)
+        a2a_task = self.a2a.create_task(title=task[:100], description=task)
+        self.a2a.route_and_delegate(a2a_task)
+        self._fire(PipelineStage.A2A_DELEGATE, a2a_task=a2a_task)
+
+        if a2a_task.state.value in ("completed", "working"):
+            return PipelineResult(
+                success=a2a_task.state.value == "completed",
+                stage=PipelineStage.DONE,
+                route=RouteDecision(
+                    agent=a2a_task.metadata.get("routed_to", "a2a"),
+                    model="auto",
+                    provider="anthropic",
+                ),
+                a2a_tasks=[a2a_task],
+                agui_session_id=agui_session_id or "",
+                duration_ms=(time.monotonic() - started) * 1000,
+            )
+        return None
+
+    def _stage_route(
+        self,
+        task: str,
+        context: dict[str, Any],
+        force_model: str | None,
+        force_agent: str | None,
+    ) -> tuple[RouteDecision, TaskAnalysis, str | None]:
+        analysis = self.router.analyze_task(task)
+        route = self.router.route(task, context)
+        if force_model:
+            model_cfg = self.config.get_model_config(force_model)
+            route.model = force_model
+            route.provider = model_cfg.provider
+        if force_agent:
+            route.agent = force_agent
+        policy = apply_cost_policy(route, task, self.config)
+        if policy.model_override:
+            route.model = policy.model_override
+            route.provider = policy.provider_override or route.provider
+        task_type = policy.task_type or detect_task_type(task)
+        self._fire(PipelineStage.ROUTE, route=route, analysis=analysis, policy=policy)
+        self._metrics.route_distribution[route.agent] = (
+            self._metrics.route_distribution.get(route.agent, 0) + 1
+        )
+        return route, analysis, task_type
+
+    def _stage_spend_check(
+        self,
+        route: RouteDecision,
+        task_id: str,
+        analysis: TaskAnalysis,
+        agui_session_id: str | None,
+        started: float,
+    ) -> PipelineResult | None:
+        if not (self.config.spend.enabled and self.config.ai_gateway.spend_limits_enabled):
+            return None
+        from codeops.spend import check_agent_spend_limit
+
+        spend_check = check_agent_spend_limit(route.agent, self.config)
+        if not spend_check or spend_check.get("ok"):
+            return None
+
+        duration = (time.monotonic() - started) * 1000
+        error_msg = (
+            f"Daily spend limit exceeded: ${spend_check.get('spent', 0):.4f} "
+            f"/ ${spend_check.get('limit', 0):.2f}"
+        )
+        ev = TaskEvent(
+            task_id=task_id,
+            agent=route.agent,
+            status="spend_limited",
+            model=route.model,
+            provider=route.provider,
+            error=error_msg,
+            duration_ms=duration,
+        )
+        emit_event_from_config(ev, self.config)
+        return PipelineResult(
+            success=False,
+            stage=PipelineStage.ERROR,
+            route=route,
+            analysis=analysis,
+            error=error_msg,
+            agui_session_id=agui_session_id or "",
+            duration_ms=duration,
+        )
+
+    def _stage_memory_retrieve(self, task: str) -> list[dict[str, Any]]:
+        if not self.config.memory.enabled:
+            return []
+        memory_results = self.memory.search(task, limit=5)
+        messages = [
+            {"role": "user", "content": f"[MEMORY: {m.category}] {m.title}: {m.content}"}
+            for m in memory_results
+        ]
+        self._fire(PipelineStage.MEMORY_RETRIEVE, hits=memory_results)
+        return messages
+
+    def _stage_rtk(self) -> dict[str, Any]:
+        if self.config.rtk.enabled and self.rtk.is_installed():
+            stats = self.rtk.get_stats(scope="project")
+            self._fire(PipelineStage.RTK_FILTER, stats=stats)
+            return stats
+        return {}
+
+    def _build_messages(
+        self,
+        memory_messages: list[dict[str, Any]],
+        extra_messages: list[dict[str, Any]] | None,
+        task: str,
+    ) -> list[dict[str, Any]]:
+        msgs = list(memory_messages)
+        if extra_messages:
+            msgs.extend(extra_messages)
+        if task:
+            msgs.append({"role": "user", "content": task})
+        return msgs
+
+    def _check_gateway_errors(
+        self,
+        gw_result: dict[str, Any],
+        route: RouteDecision,
+        analysis: TaskAnalysis,
+        task_id: str,
+        model: str,
+        agui_session_id: str | None,
+        started: float,
+    ) -> PipelineResult | None:
+        _GATEWAY_ERRORS: list[tuple[str, str, dict[str, Any]]] = [
+            ("dlp_blocked",   "dlp_blocked",   {"gateway": GatewayMetrics(dlp_blocked=True)}),
+            ("rate_limited",  "rate_limited",  {}),
+            ("spend_limited", "spend_limited", {}),
+        ]
+        _MESSAGES = {
+            "dlp_blocked":   lambda r: f"DLP blocked: {r.get('error')}",
+            "rate_limited":  lambda _: "Rate limit exceeded",
+            "spend_limited": lambda _: "Daily spend limit exceeded",
+        }
+        for flag, status, extra_gw in _GATEWAY_ERRORS:
+            if not gw_result.get(flag):
+                continue
+            _dur = (time.monotonic() - started) * 1000
+            error_msg = _MESSAGES[flag](gw_result)
+            ev = TaskEvent(
+                task_id=task_id,
+                agent=route.agent,
+                status=status,
+                routing_score=route.routing_score,
+                duration_ms=_dur,
+                model=model,
+                provider=route.provider,
+                error=error_msg if flag != "dlp_blocked" else gw_result.get("error"),
+                **extra_gw,
+            )
+            emit_event_from_config(ev, self.config)
+            return PipelineResult(
+                success=False,
+                stage=PipelineStage.ERROR,
+                error=error_msg,
+                route=route,
+                analysis=analysis,
+                agui_session_id=agui_session_id or "",
+                duration_ms=_dur,
+                event=ev,
+            )
+
+        if gw_result.get("error") and not gw_result.get("content"):
+            raise RuntimeError(gw_result["error"])
+        return None
+
+    def _build_model_response(self, gw_result: dict[str, Any], model: str) -> ModelResponse:
+        usage = gw_result.get("usage", {})
+        return ModelResponse(
+            content=gw_result.get("content", ""),
+            usage=ModelUsage(
+                input_tokens=usage.get("input_tokens", 0),
+                output_tokens=usage.get("output_tokens", 0),
+            ),
+            model=gw_result.get("model", model),
+        )
+
+    def _stage_memory_store(
+        self, task: str, response: ModelResponse, route: RouteDecision
+    ) -> None:
+        self.memory.add(
+            title=f"Task: {task[:100]}",
+            content=response.content[:2000],
+            category="history",
+            metadata={"agent": route.agent, "model": route.model, "provider": route.provider},
+            importance=0.6,
+            tags=[route.agent, "task"],
+        )
+        self._fire(PipelineStage.MEMORY_STORE)
+
+    def _stage_agui_done(self, session_id: str, response: ModelResponse) -> None:
+        self.agui.stream_text(session_id, response.content)
+        self._fire(PipelineStage.AGUI_DONE, session_id=session_id)
+
+    def _extract_dspy_fields(self, dspy_result: Any) -> dict[str, Any]:
+        return {
+            "dspy_program_id":      dspy_result.program_id if dspy_result else None,
+            "dspy_program_version": dspy_result.program_version if dspy_result else None,
+            "dspy_program_tag":     dspy_result.program_tag if dspy_result else None,
+            "dspy_optimizer":       dspy_result.optimizer if dspy_result else None,
+            "dspy_dataset":         dspy_result.dataset if dspy_result else None,
+            "dspy_compile_id":      dspy_result.compile_id if dspy_result else None,
+            "dspy_score":           dspy_result.score if dspy_result else None,
+            "dspy_shadow_delta":    dspy_result.shadow_score_delta if dspy_result else None,
+        }
+
+    def _emit_task_event(
+        self,
+        task_id: str,
+        route: RouteDecision,
+        response: ModelResponse,
+        gw_result: dict[str, Any],
+        rtk_stats: dict[str, Any],
+        task_type: str | None,
+        dspy_result: Any,
+        duration: float,
+        task: str,
+    ) -> tuple[TaskEvent, str, float]:
+        skill_ids = [s.id for s in self.match_skills_for_task(task, route.agent)]
+        resolved_model = gw_result.get("model", response.model)
+        cost_usd = _estimate_cost(resolved_model, response.usage.input_tokens, response.usage.output_tokens)
+        pseudo_result = ExecutorResult(
+            success=True,
+            num_turns=1,
+            cost_usd=cost_usd,
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+        )
+        automation_score, manual_steps = compute_automation_metrics(
+            "pipeline", pseudo_result, task_type=task_type, via_pipeline=True
+        )
+        status = budget_status(cost_usd, self.config)
+        dspy_fields = self._extract_dspy_fields(dspy_result)
+        ev = TaskEvent(
+            task_id=task_id,
+            agent=route.agent,
+            status=status,
+            tokens=TokenMetrics(
+                input=response.usage.input_tokens,
+                output=response.usage.output_tokens,
+                saved_rtk=rtk_stats.get("total_saved", 0),
+                saved_headroom=0,
+            ),
+            gateway=GatewayMetrics(
+                cache_hit=gw_result.get("cache_hit", False),
+                fallback_used=gw_result.get("fallback_used", False),
+                dlp_blocked=False,
+            ),
+            skill_ids=skill_ids,
+            routing_score=route.routing_score,
+            cost_usd=cost_usd,
+            duration_ms=duration,
+            model=resolved_model,
+            provider=route.provider,
+            executor="pipeline",
+            task_type=task_type,
+            automation_score=automation_score,
+            manual_steps_removed=manual_steps,
+            error=(
+                f"Budget exceeded: ${cost_usd:.4f} > ${self.config.cost_policy.max_task_cost_usd:.2f}"
+                if status == "budget_exceeded" else None
+            ),
+            dspy_enabled=self.config.dspy.enabled,
+            dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else None,
+            **dspy_fields,
+        )
+        emit_event_from_config(ev, self.config)
+        return ev, status, cost_usd
 
     def setup_environment(self) -> bool:
         ok = True
@@ -857,5 +916,5 @@ class Pipeline:
         for hook in self._stage_hooks.get(stage, []):
             try:
                 hook(stage=stage, **kwargs)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("pipeline hook error at stage %s: %s", stage.value, exc)

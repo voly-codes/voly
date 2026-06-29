@@ -13,6 +13,7 @@ from .models import (
     GatewayProvider, FallbackStrategy,
     RateLimit, SpendLimit, CacheConfig, FallbackChain, DLPConfig, GatewayMetrics,
 )
+from codeops.telemetry import _estimate_cost as _telemetry_estimate_cost
 
 # Providers natively supported by Cloudflare AI Gateway
 _CF_PROVIDERS = frozenset({"anthropic", "openai", "google-ai-studio", "deepseek"})
@@ -403,31 +404,14 @@ class AIGateway:
 
     def _estimate_cost(self, model: str, provider: str, input_chars: int) -> float:
         input_tokens = input_chars // 4
-        costs: dict[str, float] = {
-            "claude-opus": 0.015, "claude-sonnet": 0.003,
-            "gpt-4o": 0.0025, "gpt-4o-mini": 0.00015,
-            "gemini-2.5-pro": 0.00125, "gemini-2.5-flash": 0.00015,
-        }
-        for key, rate in costs.items():
-            if key in model.lower():
-                return (input_tokens / 1000) * rate
-        return (input_tokens / 1000) * 0.003
+        return _telemetry_estimate_cost(model, input_tokens, 0)
 
     def _calculate_cost(self, model: str, provider: str, usage: dict[str, int]) -> float:
-        in_tok  = usage.get("input_tokens", 0)
-        out_tok = usage.get("output_tokens", 0)
-        rates: dict[str, tuple[float, float]] = {
-            "claude-opus":    (0.015, 0.075),
-            "claude-sonnet":  (0.003, 0.015),
-            "gpt-4o":         (0.0025, 0.010),
-            "gpt-4o-mini":    (0.00015, 0.0006),
-            "gemini-2.5-pro": (0.00125, 0.005),
-            "gemini-2.5-flash": (0.00015, 0.0006),
-        }
-        for key, (in_rate, out_rate) in rates.items():
-            if key in model.lower():
-                return (in_tok / 1_000_000) * in_rate + (out_tok / 1_000_000) * out_rate
-        return (in_tok / 1_000_000) * 0.003 + (out_tok / 1_000_000) * 0.015
+        return _telemetry_estimate_cost(
+            model,
+            usage.get("input_tokens", 0),
+            usage.get("output_tokens", 0),
+        )
 
     def fetch_cf_logs(
         self,

@@ -45,53 +45,52 @@ class RouteDecision:
 
 
 class AgentRouter:
-    _routing_rules: dict[str, RouteDecision] = {
-        "архитектур*|architecture|design.*system|проект*": RouteDecision(
-            agent="architect",
-            model="claude-opus",
-            provider="anthropic",
-            tools=["github", "wiki"],
-        ),
-        "ревью|review|code.*review|провер*": RouteDecision(
-            agent="reviewer",
-            model="gpt-4o",
-            provider="openai",
-            tools=["github", "gitlab"],
-        ),
-        "баг|bug|fix|исправ*|ошибк*|error|дебаг|debug": RouteDecision(
-            agent="bugfixer",
-            model="claude-sonnet",
-            provider="anthropic",
-            tools=["github", "temporal"],
-        ),
-        "тест*|test|unittest|pytest|spec": RouteDecision(
-            agent="tester",
-            model="gpt-4o-mini",
-            provider="openai",
-            tools=["github"],
-        ),
-        "деплой|deploy|релиз|release|publish": RouteDecision(
-            agent="deployer",
-            model="claude-sonnet",
-            provider="anthropic",
-            tools=["github", "docker", "kubernetes"],
-        ),
-        "документ*|document*|wiki|readme": RouteDecision(
-            agent="documenter",
-            model="gpt-4o-mini",
-            provider="openai",
-            tools=["wiki", "confluence"],
-        ),
-        "база.*данных|database|sql|postgres|migration": RouteDecision(
-            agent="data-engineer",
-            model="claude-sonnet",
-            provider="anthropic",
-            tools=["postgresql"],
-        ),
-    }
-
     def __init__(self, config: CodeOpsConfig | None = None):
         self.config = config or CodeOpsConfig()
+        self._routing_rules: dict[str, RouteDecision] = {
+            "архитектур|architecture|design.*system|проект": RouteDecision(
+                agent="architect",
+                model="claude-opus",
+                provider="anthropic",
+                tools=["github", "wiki"],
+            ),
+            "ревью|review|code.*review|провер": RouteDecision(
+                agent="reviewer",
+                model="gpt-4o",
+                provider="openai",
+                tools=["github", "gitlab"],
+            ),
+            "баг|bug|fix|исправ|ошибк|error|дебаг|debug": RouteDecision(
+                agent="bugfixer",
+                model="claude-sonnet",
+                provider="anthropic",
+                tools=["github", "temporal"],
+            ),
+            "тест|test|unittest|pytest|spec": RouteDecision(
+                agent="tester",
+                model="gpt-4o-mini",
+                provider="openai",
+                tools=["github"],
+            ),
+            "деплой|deploy|релиз|release|publish": RouteDecision(
+                agent="deployer",
+                model="claude-sonnet",
+                provider="anthropic",
+                tools=["github", "docker", "kubernetes"],
+            ),
+            "документ|document|wiki|readme": RouteDecision(
+                agent="documenter",
+                model="gpt-4o-mini",
+                provider="openai",
+                tools=["wiki", "confluence"],
+            ),
+            "база.*данных|database|sql|postgres|migration": RouteDecision(
+                agent="data-engineer",
+                model="claude-sonnet",
+                provider="anthropic",
+                tools=["postgresql"],
+            ),
+        }
 
     def route(self, task: str, context: dict[str, Any] | None = None) -> RouteDecision:
         context = context or {}

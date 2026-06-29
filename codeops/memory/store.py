@@ -116,6 +116,9 @@ class MemoryStore:
     ) -> str:
         import uuid
 
+        if category not in self.VALID_CATEGORIES:
+            raise ValueError(f"Invalid category {category!r}. Must be one of: {self.VALID_CATEGORIES}")
+
         entry_id = uuid.uuid4().hex
         self.conn.execute(
             """INSERT INTO memories (id, category, title, content, metadata, timestamp, importance, tags)
@@ -156,6 +159,14 @@ class MemoryStore:
             return None
         return self._row_to_entry(row)
 
+    @staticmethod
+    def _sanitize_fts_query(query: str) -> str:
+        # Wrap in double quotes to treat the whole query as a phrase search,
+        # escaping any embedded quotes. This prevents FTS5 syntax errors when
+        # the query contains operators like AND, OR, NOT, NEAR, or bare quotes.
+        escaped = query.replace('"', '""')
+        return f'"{escaped}"'
+
     def search(self, query: str, limit: int = 10) -> list[MemoryEntry]:
         client = self._get_remote_client()
         if client:
@@ -166,14 +177,17 @@ class MemoryStore:
             except Exception:
                 pass
 
-        rows = self.conn.execute(
-            """SELECT m.* FROM memories m
-               INNER JOIN memories_fts fts ON m.rowid = fts.rowid
-               WHERE memories_fts MATCH ?
-               ORDER BY rank
-               LIMIT ?""",
-            (query, limit),
-        ).fetchall()
+        try:
+            rows = self.conn.execute(
+                """SELECT m.* FROM memories m
+                   INNER JOIN memories_fts fts ON m.rowid = fts.rowid
+                   WHERE memories_fts MATCH ?
+                   ORDER BY rank
+                   LIMIT ?""",
+                (self._sanitize_fts_query(query), limit),
+            ).fetchall()
+        except Exception:
+            rows = []
         return [self._row_to_entry(r) for r in rows]
 
     def list_by_category(self, category: str, limit: int = 50) -> list[MemoryEntry]:

@@ -453,7 +453,7 @@ def _parse_config(raw: dict) -> CodeOpsConfig:
                 break
 
     if not config.agui.remote_url:
-        for key in ("CF_WORKER_AGUI_URL", "CF_WORKER_SPEND_URL"):
+        for key in ("CF_WORKER_AGUI_URL", "AGUI_URL"):
             env_url = os.environ.get(key, "").strip()
             if env_url:
                 config.agui.remote_url = env_url.rstrip("/")
@@ -658,7 +658,7 @@ a2a:
 agui:
   enabled: true
   port: 9101
-  remote_url: "${CF_WORKER_SPEND_URL}"
+  remote_url: "${CF_WORKER_AGUI_URL}"
   streaming: true
   session_timeout_seconds: 3600
 
