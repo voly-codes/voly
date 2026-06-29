@@ -272,13 +272,36 @@ def create_app(
     # ------------------------------------------------------------------ #
 
     @app.get("/api/registry/agents")
-    def registry_agents() -> list[dict[str, Any]]:
+    def registry_agents() -> list[str]:
         try:
             from codeops.registry.agents import AgentRegistry
-            reg = AgentRegistry()
-            return [a.to_dict() for a in reg.list_agents()]
-        except Exception as exc:
-            return [{"error": str(exc)}]
+            return AgentRegistry().list_names()
+        except Exception:
+            return ["cursor", "architect", "developer", "reviewer", "tester",
+                    "security", "devops", "documenter", "product-analyst"]
+
+    @app.get("/api/registry/models")
+    def registry_models(executor: str = "pipeline") -> list[str]:
+        """Return model options for the given executor."""
+        # Executor-specific fixed models
+        _executor_models: dict[str, list[str]] = {
+            "cursor":     ["composer-2.5"],
+            "opencode":   ["kimi-k2.6", "claude-sonnet-4-6", "gpt-4o"],
+            "zen":        ["claude-sonnet-4-6", "claude-haiku-4-5", "gpt-4o-mini"],
+            "deepseek":   ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat"],
+            "mimo":       ["mimo-v2.5-free"],
+        }
+        if executor in _executor_models:
+            return _executor_models[executor]
+        # pipeline / claude-code → all gateway models
+        try:
+            from codeops.telemetry import _COST_RATES
+            return list(_COST_RATES.keys())
+        except Exception:
+            return [
+                "claude-sonnet-4-6", "claude-opus-4-8", "claude-haiku-4-5",
+                "gpt-4o", "gpt-4o-mini", "deepseek-v4-flash",
+            ]
 
     @app.get("/api/registry/skills")
     def registry_skills(source: str = "", status: str = "active") -> list[dict[str, Any]]:

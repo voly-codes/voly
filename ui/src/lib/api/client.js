@@ -49,6 +49,8 @@ export async function* runTask(req) {
 
 // Registry
 export const fetchAgents = () => get('/api/registry/agents')
+export const fetchModels = (executor = 'pipeline') =>
+  get(`/api/registry/models?executor=${encodeURIComponent(executor)}`)
 export const fetchSkills = (source = '', status = 'active') =>
   get(`/api/registry/skills?${new URLSearchParams({ source, status })}`)
 

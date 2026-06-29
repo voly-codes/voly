@@ -1,9 +1,10 @@
 <script>
+  import { onMount } from 'svelte'
   import {
     PlayIcon, StopCircleIcon, ChevronDownIcon,
     ZapIcon, CpuIcon, ClockIcon,
   } from '../../icons.js'
-  import { runTask } from '../../api/client.js'
+  import { runTask, fetchAgents, fetchModels } from '../../api/client.js'
 
   let { onTaskComplete } = $props()
 
@@ -18,14 +19,35 @@
   let error = $state(null)
   let startedAt = $state(null)
 
+  let agents = $state([])
+  let models = $state([])
+
   const executors = [
-    { id: 'pipeline',   label: 'Pipeline (AI Gateway)' },
-    { id: 'cursor',     label: 'Cursor Agent' },
-    { id: 'claude-code',label: 'Claude Code' },
-    { id: 'opencode',   label: 'OpenCode' },
-    { id: 'deepseek',   label: 'DeepSeek' },
-    { id: 'zen',        label: 'OpenCode Zen (readonly)' },
+    { id: 'pipeline',    label: 'Pipeline (AI Gateway)' },
+    { id: 'cursor',      label: 'Cursor Agent' },
+    { id: 'claude-code', label: 'Claude Code' },
+    { id: 'opencode',    label: 'OpenCode' },
+    { id: 'deepseek',    label: 'DeepSeek' },
+    { id: 'zen',         label: 'OpenCode Zen (readonly)' },
   ]
+
+  onMount(async () => {
+    try { agents = await fetchAgents() } catch {}
+    await loadModels()
+  })
+
+  async function loadModels() {
+    try {
+      models = await fetchModels(executor)
+      // reset model selection if current value not in new list
+      if (model && !models.includes(model)) model = ''
+    } catch {}
+  }
+
+  $effect(() => {
+    executor  // re-run when executor changes
+    loadModels()
+  })
 
   async function submit() {
     if (!task.trim() || running) return
@@ -92,25 +114,29 @@
       </div>
 
       <div class="option-group">
-        <label class="option-label" for="run-agent">Agent override</label>
-        <input
-          id="run-agent"
-          class="option-input"
-          placeholder="auto"
-          bind:value={agent}
-          disabled={running}
-        />
+        <label class="option-label" for="run-agent">Agent</label>
+        <div class="select-wrap">
+          <select id="run-agent" class="option-select" bind:value={agent} disabled={running}>
+            <option value="">auto</option>
+            {#each agents as a}
+              <option value={a}>{a}</option>
+            {/each}
+          </select>
+          <ChevronDownIcon size="12" strokeWidth="2" class="select-arrow" />
+        </div>
       </div>
 
       <div class="option-group">
-        <label class="option-label" for="run-model">Model override</label>
-        <input
-          id="run-model"
-          class="option-input"
-          placeholder="auto"
-          bind:value={model}
-          disabled={running}
-        />
+        <label class="option-label" for="run-model">Model</label>
+        <div class="select-wrap">
+          <select id="run-model" class="option-select" bind:value={model} disabled={running}>
+            <option value="">auto</option>
+            {#each models as m}
+              <option value={m}>{m}</option>
+            {/each}
+          </select>
+          <ChevronDownIcon size="12" strokeWidth="2" class="select-arrow" />
+        </div>
       </div>
 
       {#if executor !== 'pipeline'}
