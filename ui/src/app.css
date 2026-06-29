@@ -1,0 +1,429 @@
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Light theme (default) — cool, high-contrast, readable */
+:root {
+  --bg-primary: #f5f6f8;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f0f1f4;
+  --bg-inset: #ecedf2;
+  --border-default: #d8dae2;
+  --border-muted: #e4e6ec;
+  --text-primary: #181b24;
+  --text-secondary: #555b6e;
+  --text-muted: #878ea0;
+  --accent-blue: #2563eb;
+  --accent-rose: #e11d48;
+  --accent-purple: #7c3aed;
+  --accent-amber: #d97706;
+  --accent-green: #059669;
+  --accent-coral: #f34e3f;
+  --accent-black: #2d2d2d;
+  --accent-teal: #0d9488;
+  --accent-red: #dc2626;
+  --accent-indigo: #6366f1;
+  --accent-teal: #0d9488;
+  --accent-orange: #e09040;
+  --accent-sky: #0284c7;
+  --accent-pink: #ec4899;
+  --accent-lime: #65a30d;
+  --accent-cyan: #0891b2;
+  --accent-violet: #7c3aed;
+  --accent-blue-foreground: #ffffff;
+  --accent-rose-foreground: #ffffff;
+  --accent-purple-foreground: #ffffff;
+  --accent-amber-foreground: #07111f;
+  --accent-green-foreground: #07111f;
+  --accent-coral-foreground: #07111f;
+  --accent-black-foreground: #ffffff;
+  --accent-teal-foreground: #07111f;
+  --accent-red-foreground: #ffffff;
+  --accent-indigo-foreground: #000000;
+  --accent-orange-foreground: #07111f;
+  --accent-sky-foreground: #07111f;
+  --accent-pink-foreground: #07111f;
+  --accent-lime-foreground: #07111f;
+  --accent-cyan-foreground: #07111f;
+  --accent-violet-foreground: #ffffff;
+  /* Tool-category color map (see internal/parser/taxonomy.go for normalized values) */
+  --cat-read:  #4a7ba8; /* Read, Grep, Glob */
+  --cat-edit:  #5a8b3a; /* Edit, Write */
+  --cat-bash:  #d4a35a; /* Bash */
+  --cat-task:  #c45a5a; /* Task / sub-agents */
+  --cat-tool:  #7a5fa8; /* Tool: Skills, MCP, misc */
+  --cat-other: #888888; /* Other */
+  --cat-mixed: #4a4a4a; /* Mixed: parallel-group rail, no-dominant */
+  /* Duration UX state colors */
+  --slow-fg:    #f29070;
+  --slow-bg:    rgba(242, 144, 112, 0.12);
+  --slow-ring:  rgba(242, 144, 112, 0.20);
+  --running-fg: #6ad0a8;
+  --running-bg: rgba(106, 208, 168, 0.12);
+  --running-ring: rgba(106, 208, 168, 0.22);
+  /* Status-only color reserved for the "awaiting user input"
+     bubble. Warm muted gold so it doesn't clash with the green
+     working pulse, the amber stale dot, the red unclean dot, or
+     any of the agent-identity colors above. */
+  --status-waiting: #a48a55;
+  --user-bg: #eef2ff;
+  --assistant-bg: #faf9ff;
+  --thinking-bg: #f5f3ff;
+  --tool-bg: #fffbf0;
+  --code-bg: #1e1e2e;
+  --code-text: #cdd6f4;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code",
+    "Fira Mono", Menlo, Consolas, monospace;
+  --viewport-indicator: rgba(0, 0, 0, 0.08);
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --header-height: 40px;
+  --status-bar-height: 24px;
+  color-scheme: light;
+}
+
+/* Dark theme */
+:root.dark {
+  --bg-primary: #0d0d12;
+  --bg-surface: #16161e;
+  --bg-surface-hover: #1f1f2a;
+  --bg-inset: #111116;
+  --border-default: #2b2b38;
+  --border-muted: #232330;
+  --text-primary: #e4e6eb;
+  --text-secondary: #9ea5b4;
+  --text-muted: #6c7385;
+  --accent-blue: #60a5fa;
+  --accent-rose: #fb7185;
+  --accent-purple: #a78bfa;
+  --accent-amber: #fbbf24;
+  --accent-green: #34d399;
+  --accent-coral: #f34e3f;
+  --accent-black: #b0b0b0;
+  --accent-teal: #2dd4bf;
+  --accent-red: #f87171;
+  --accent-indigo: #818cf8;
+  --accent-teal: #2dd4bf;
+  --accent-orange: #f0a050;
+  --accent-sky: #38bdf8;
+  --accent-pink: #f472b6;
+  --accent-lime: #a3e635;
+  --accent-cyan: #22d3ee;
+  --accent-violet: #a78bfa;
+  --accent-blue-foreground: #07111f;
+  --accent-rose-foreground: #07111f;
+  --accent-purple-foreground: #07111f;
+  --accent-amber-foreground: #07111f;
+  --accent-green-foreground: #07111f;
+  --accent-coral-foreground: #07111f;
+  --accent-black-foreground: #07111f;
+  --accent-teal-foreground: #07111f;
+  --accent-red-foreground: #07111f;
+  --accent-indigo-foreground: #07111f;
+  --accent-orange-foreground: #07111f;
+  --accent-sky-foreground: #07111f;
+  --accent-pink-foreground: #07111f;
+  --accent-lime-foreground: #07111f;
+  --accent-cyan-foreground: #07111f;
+  --accent-violet-foreground: #07111f;
+  /* Lighter champagne for dark mode — keeps the same warm-gold
+     identity without disappearing into the dark surface. */
+  --status-waiting: #d4b878;
+  --user-bg: #111827;
+  --assistant-bg: #141220;
+  --thinking-bg: #1a1530;
+  --tool-bg: #1a1508;
+  --code-bg: #0d0d14;
+  --code-text: #cdd6f4;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --viewport-indicator: rgba(255, 255, 255, 0.08);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --header-height: 40px;
+  --status-bar-height: 24px;
+  color-scheme: dark;
+}
+
+/* High contrast — overrides neutral text/border tokens (and
+   --accent-blue, which colors links, focus rings, and filled accents) to
+   clear WCAG AA. Semantic/identity tokens (--cat-*, --slow-*,
+   --running-*, --status-waiting, --user-bg, data-viz palettes) are
+   intentionally left unchanged so meaning is preserved. */
+:root.high-contrast {
+  --text-primary: #000000;
+  --text-secondary: #2a2f3a;
+  --text-muted: #44495a;
+  --border-default: #6b7080;
+  --border-muted: #7d8290;
+  --accent-blue: #0a47c2;
+}
+
+:root.dark.high-contrast {
+  --text-primary: #ffffff;
+  --text-secondary: #d4d8e0;
+  --text-muted: #b8bdc9;
+  --border-default: #8a8f9e;
+  --border-muted: #6e7282;
+  --accent-blue: #8ab8ff;
+}
+
+:root.high-contrast :focus-visible {
+  outline-width: 3px;
+  outline-offset: 2px;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-blue);
+  color: var(--accent-blue-foreground);
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 1px;
+}
+
+/* Button reset */
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Input reset */
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Code */
+code,
+pre {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Utility: visually hidden */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Mark tag (search highlights) */
+mark {
+  background: var(--accent-amber);
+  color: var(--text-primary);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* In-session find highlights */
+mark.search-highlight {
+  background: color-mix(in srgb, var(--accent-amber) 35%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+mark.search-highlight--current {
+  background: var(--accent-amber);
+  color: var(--text-primary);
+  outline: 1px solid color-mix(in srgb, var(--accent-amber) 80%, var(--text-primary));
+  outline-offset: 1px;
+}
+
+/* Modal shared styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.modal-panel .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.modal-panel .modal-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-panel .modal-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+}
+
+.modal-panel .modal-close:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.modal-panel .modal-body {
+  padding: 16px;
+}
+
+.modal-panel .modal-btn {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--bg-surface-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.modal-panel .modal-btn:hover {
+  background: var(--bg-inset);
+  color: var(--text-primary);
+}
+
+.modal-panel .modal-btn-primary {
+  background: var(--accent-blue);
+  color: var(--accent-blue-foreground);
+  border-color: var(--accent-blue);
+}
+
+.modal-panel .modal-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.modal-panel .modal-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-panel .modal-error {
+  font-size: 12px;
+  color: var(--accent-red, #f85149);
+  background: var(--bg-inset);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-red, #f85149);
+  word-break: break-word;
+}
+
+.modal-panel .modal-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: modal-spin 0.8s linear infinite;
+}
+
+@keyframes modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes duration-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+/* Enlarge header on touch devices so layout offsets stay in sync */
+@media (pointer: coarse) {
+  :root {
+    --header-height: 44px;
+  }
+}

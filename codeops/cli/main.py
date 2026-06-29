@@ -38,6 +38,7 @@ from codeops.cli.commands import (
     spend,
     catalog,
     dspy_cmd,
+    ui,
 )
 
 
@@ -79,6 +80,7 @@ main.add_command(dspy_cmd, name="dspy")
 main.add_command(init)
 main.add_command(setup)
 main.add_command(serve)
+main.add_command(ui)
 main.add_command(run)
 main.add_command(status)
 main.add_command(config_cmd)

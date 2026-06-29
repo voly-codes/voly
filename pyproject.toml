@@ -42,6 +42,10 @@ cursor = [
 dspy = [
     "dspy>=2.5.0",
 ]
+ui = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -50,7 +54,7 @@ dev = [
     "mypy>=1.0.0",
 ]
 all = [
-    "codeops[proxy,semantic,cursor,dspy,dev]",
+    "codeops[proxy,semantic,cursor,dspy,ui,dev]",
 ]
 
 [project.scripts]
@@ -78,6 +82,7 @@ packages = [
     "codeops.scanner",
     "codeops.spend",
     "codeops.tools",
+    "codeops.web",
     "codeops.workflow",
 ]
 

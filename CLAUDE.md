@@ -46,7 +46,9 @@ docs/               README.md   CLAUDE.md
 
 ### Pipeline
 
-`Pipeline.run()` flow: `ROUTE → MEMORY_RETRIEVE → RTK_FILTER → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → TaskEvent`
+`Pipeline.run()` flow: `INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE → emit TaskEvent`
+
+`run()` delegates to named stage methods (`_stage_agui_start`, `_stage_a2a`, `_stage_route`, etc.) — see `docs/ARCHITECTURE.md` for the full table.
 
 When changing: keep stage hooks meaningful, preserve `PipelineResult`, emit telemetry, avoid product logic, document in `docs/ARCHITECTURE.md`.
 
@@ -65,7 +67,7 @@ Optimization layer only. Rules:
 
 ### AI Gateway
 
-Preserve: DLP, cache, rate limits, spend limits, fallback, metrics. When adding providers update: config defaults, provider routing, telemetry cost estimation, docs.
+Preserve: DLP, cache, rate limits, spend limits, fallback, metrics. When adding providers update: config defaults, provider routing, `_COST_RATES` in `codeops/telemetry.py` (single source of truth for pricing), docs.
 
 ### Executors
 

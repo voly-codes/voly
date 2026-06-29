@@ -15,6 +15,7 @@ from .tunnel import tunnel
 from .spend import spend
 from .catalog import catalog
 from .dspy_cmd import dspy_cmd
+from .ui_cmd import ui
 
 __all__ = [
     "a2a",
@@ -45,4 +46,5 @@ __all__ = [
     "spend",
     "catalog",
     "dspy_cmd",
+    "ui",
 ]

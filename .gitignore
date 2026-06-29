@@ -24,3 +24,8 @@ dist/
 # External repos (use git submodule if needed)
 # headroom/
 rtk/
+
+# UI build artifacts
+ui/node_modules/
+ui/dist/
+codeops/web/static/
