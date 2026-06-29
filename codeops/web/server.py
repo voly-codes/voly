@@ -443,3 +443,7 @@ def _resolve_events_dir() -> pathlib.Path:
         if c.exists():
             return c
     return candidates[0]
+
+
+# Entry point for uvicorn --reload: codeops ui --reload
+_dev_app = create_app()

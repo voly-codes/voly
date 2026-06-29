@@ -15,6 +15,7 @@ import click
 @click.option("--events-dir", default=None, help="Path to .codeops/events/ directory")
 @click.option("--dev", is_flag=True, help="Start Vite dev server instead of production build")
 @click.option("--build", "do_build", is_flag=True, help="Build the Svelte app before serving")
+@click.option("--reload", "hot_reload", is_flag=True, help="Auto-reload server on code changes (dev)")
 @click.pass_context
 def ui(
     ctx: click.Context,
@@ -23,6 +24,7 @@ def ui(
     events_dir: str | None,
     dev: bool,
     do_build: bool,
+    hot_reload: bool,
 ) -> None:
     """Start CodeOps web dashboard (FastAPI + Svelte UI).
 
@@ -77,7 +79,14 @@ def ui(
     click.echo(f"CodeOps UI: http://{host}:{port}")
     click.echo("Press Ctrl+C to stop")
 
-    uvicorn.run(app, host=host, port=port, log_level="warning")
+    if hot_reload:
+        uvicorn.run(
+            "codeops.web.server:_dev_app",
+            host=host, port=port, log_level="info", reload=True,
+            reload_dirs=[str(pathlib.Path(__file__).parents[2])],
+        )
+    else:
+        uvicorn.run(app, host=host, port=port, log_level="warning")
 
 
 def _start_dev(ui_dir: pathlib.Path, api_port: int) -> None:
