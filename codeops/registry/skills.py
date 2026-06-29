@@ -268,8 +268,113 @@ class SkillRegistry:
         }
 
     def _load_builtins(self) -> None:
+        """Load builtin skills: CF Marketplace (cached) → hardcoded fallback."""
+        if self.marketplace_url:
+            loaded = self._load_builtins_from_cf()
+            if loaded:
+                return
         for skill in BUILTIN_SKILLS:
             self.register(skill)
+
+    def _load_builtins_from_cf(self) -> bool:
+        """Try to load builtins from CF, using a local cache (1h TTL).
+
+        Returns True if any skills were loaded, False to signal fallback needed.
+        """
+        import time
+        import logging
+        log = logging.getLogger(__name__)
+
+        cache_path = (self.skills_path / ".builtins_cache.yaml") if self.skills_path else None
+
+        # --- cache hit ---
+        if cache_path and cache_path.exists():
+            cached = self._read_builtins_cache(cache_path)
+            if cached is not None:
+                self._register_from_dicts(cached)
+                return bool(cached)
+
+        # --- cache miss: fetch from CF ---
+        try:
+            from codeops.registry.marketplace import MarketplaceClient
+            client = MarketplaceClient(self.marketplace_url, timeout=5)
+            remote = client.fetch_builtins()
+            if remote:
+                if cache_path:
+                    self._write_builtins_cache(cache_path, remote)
+                self._register_from_dicts(remote)
+                log.debug("Loaded %d builtin skills from CF Marketplace", len(remote))
+                return True
+        except Exception as exc:
+            log.debug("CF builtins fetch failed, using hardcoded fallback: %s", exc)
+
+        return False
+
+    # ── Builtin cache helpers ─────────────────────────────────────────────────
+
+    _BUILTIN_CACHE_TTL = 3600  # 1 hour
+
+    def _read_builtins_cache(self, path: Path) -> list[dict[str, Any]] | None:
+        import time
+        try:
+            import yaml
+            data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            if not isinstance(data, dict):
+                return None
+            if time.time() - data.get("fetched_at", 0) > self._BUILTIN_CACHE_TTL:
+                return None
+            skills = data.get("skills", [])
+            return skills if isinstance(skills, list) else None
+        except Exception:
+            return None
+
+    def _write_builtins_cache(self, path: Path, skills: list[dict[str, Any]]) -> None:
+        import time
+        try:
+            import yaml
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                yaml.safe_dump({"fetched_at": time.time(), "skills": skills},
+                               allow_unicode=True, sort_keys=False),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
+
+    def _register_from_dicts(self, skill_dicts: list[dict[str, Any]]) -> None:
+        from codeops.registry.loader import skill_from_dict
+        for data in skill_dicts:
+            try:
+                self.register(skill_from_dict(data))
+            except Exception:
+                pass
+
+    def sync_builtins(self) -> int:
+        """Force-refresh builtin skills from CF, bypassing the cache.
+
+        Returns the number of skills loaded. Raises MarketplaceError if CF unavailable.
+        """
+        from codeops.registry.marketplace import MarketplaceClient
+
+        if not self.marketplace_url:
+            from codeops.registry.marketplace import MarketplaceError
+            raise MarketplaceError("marketplace_url is not configured")
+
+        client = MarketplaceClient(self.marketplace_url, timeout=15)
+        remote = client.fetch_builtins()
+
+        # Remove existing builtins from index before re-registering
+        for skill in list(self.index.list_all()):
+            if skill.source == SkillSource.BUILTIN:
+                self.index.remove(skill.id)
+
+        if remote:
+            cache_path = (self.skills_path / ".builtins_cache.yaml") if self.skills_path else None
+            if cache_path:
+                self._write_builtins_cache(cache_path, remote)
+            self._register_from_dicts(remote)
+
+        return len(remote)
 
     def _load_directory(self, path: Path) -> None:
         from codeops.registry.loader import load_skills_from_directory

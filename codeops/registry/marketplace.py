@@ -108,6 +108,11 @@ class MarketplaceClient:
         except urllib.error.URLError as exc:
             raise MarketplaceError(str(exc.reason)) from exc
 
+    def fetch_builtins(self, limit: int = 200) -> list[dict[str, Any]]:
+        """Fetch active builtin skills from CF Marketplace."""
+        data = self.list_skills(source="builtin", status="active", limit=limit)
+        return data.get("skills", [])
+
     def publish_skill(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/skills", body=payload)
 

@@ -141,6 +141,25 @@ def skill_publish(ctx: click.Context, yaml_path: str) -> None:
     click.echo(f"Published: {skill_id}")
 
 
+@skill.command("sync")
+@click.option("--verbose", "-v", is_flag=True)
+@click.pass_context
+def skill_sync(ctx: click.Context, verbose: bool) -> None:
+    """Refresh builtin skills from CF Marketplace (clears local cache)."""
+    from codeops.registry.marketplace import MarketplaceError
+
+    reg = _registry(ctx)
+    try:
+        count = reg.sync_builtins()
+    except MarketplaceError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(f"Synced {count} builtin skill(s) from CF Marketplace.")
+    if verbose:
+        for s in reg.search(source=__import__("codeops.registry.skills", fromlist=["SkillSource"]).SkillSource.BUILTIN):
+            click.echo(f"  {s.id} — {s.name}")
+
+
 @skill.command("generate")
 @click.option("--cwd", "project_root", default=".", show_default=True, help="Project root to scan")
 @click.option("--dry-run", is_flag=True, help="Print skills without saving")
