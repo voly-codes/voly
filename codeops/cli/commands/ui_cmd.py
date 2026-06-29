@@ -69,10 +69,11 @@ def ui(
         sys.exit(1)
 
     ev_path = pathlib.Path(events_dir) if events_dir else None
+    config = ctx.obj.get("config") if ctx.obj else None
 
     from codeops.web.server import create_app
 
-    app = create_app(events_dir=ev_path)
+    app = create_app(events_dir=ev_path, config=config)
     click.echo(f"CodeOps UI: http://{host}:{port}")
     click.echo("Press Ctrl+C to stop")
 
