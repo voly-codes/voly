@@ -18,6 +18,27 @@ def _ev_dir(request: Request):
     return request.app.state.app.ev_dir
 
 
+def _skills_dir(request: Request):
+    return _ev_dir(request).parent / "skills"
+
+
+@router.get("/api/marketplace/skills/installed")
+def marketplace_installed(request: Request) -> list[str]:
+    """Return IDs of locally installed skills (from .codeops/skills/*.json)."""
+    skills_dir = _skills_dir(request)
+    if not skills_dir.exists():
+        return []
+    ids = []
+    for f in skills_dir.glob("*.json"):
+        try:
+            data = json.loads(f.read_text())
+            if sid := data.get("id"):
+                ids.append(sid)
+        except Exception:
+            pass
+    return ids
+
+
 @router.get("/api/marketplace/skills")
 def marketplace_skills(
     request: Request,

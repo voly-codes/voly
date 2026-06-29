@@ -55,6 +55,8 @@ export const fetchSkills = (source = '', status = 'active') =>
   get(`/api/registry/skills?${new URLSearchParams({ source, status })}`)
 
 // Marketplace
+export const fetchInstalledSkills = () => get('/api/marketplace/skills/installed')
+
 export const fetchMarketplaceSkills = (page = 1, limit = 24, agent = '') =>
   get(`/api/marketplace/skills?${new URLSearchParams({ page, limit, ...(agent && { agent }) })}`)
 

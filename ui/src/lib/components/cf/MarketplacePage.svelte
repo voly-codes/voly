@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { SearchIcon, DownloadIcon, CheckIcon, AlertCircleIcon } from '../../icons.js'
-  import { fetchMarketplaceSkills, searchMarketplace, installSkill } from '../../api/client.js'
+  import { fetchMarketplaceSkills, searchMarketplace, installSkill, fetchInstalledSkills } from '../../api/client.js'
 
   let skills = $state([])
   let total = $state(0)
@@ -42,7 +42,13 @@
     }
   }
 
-  onMount(load)
+  onMount(async () => {
+    try {
+      const ids = await fetchInstalledSkills()
+      for (const id of ids) installed[id] = true
+    } catch {}
+    await load()
+  })
 
   let searchTimer
   function onSearch() {
