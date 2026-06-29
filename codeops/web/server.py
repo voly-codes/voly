@@ -25,6 +25,26 @@ except ImportError:
 _STATIC = pathlib.Path(__file__).parent / "static"
 _THREAD_POOL = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
+# Load .env on import so env vars are available regardless of how the server starts.
+# Uses the same parser as CodeOpsConfig (no external deps, first-set wins).
+def _load_dotenv_once() -> None:
+    _pkg_root = pathlib.Path(__file__).parent.parent.parent  # repo root
+    _env_file = _pkg_root / ".env"
+    if not _env_file.exists():
+        return
+    with open(_env_file) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _key, _, _val = _line.partition("=")
+            _key = _key.strip()
+            _val = _val.strip().strip("'\"")
+            if _key and _key not in os.environ:
+                os.environ[_key] = _val
+
+_load_dotenv_once()
+
 
 def create_app(
     events_dir: pathlib.Path | None = None,
