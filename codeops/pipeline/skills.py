@@ -23,8 +23,10 @@ class _SkillsMixin:
         profile = self.scan_project() if self.config.scanner.enabled else None  # type: ignore[attr-defined]
         skills: list[Any] = []
 
-        # 1. User-installed skills are always included (explicit user choice).
-        for source in (SkillSource.MARKETPLACE, SkillSource.ORGANIZATION):
+        # 1. Project / marketplace / org skills — always included.
+        #    PROJECT: generated from this project's docs (CLAUDE.md, README, etc.) → always relevant.
+        #    MARKETPLACE / ORGANIZATION: explicitly installed by the user → explicit intent to use.
+        for source in (SkillSource.PROJECT, SkillSource.MARKETPLACE, SkillSource.ORGANIZATION):
             skills.extend(self.skill_registry.search(source=source))  # type: ignore[attr-defined]
 
         # 2. Agent-specific built-ins.

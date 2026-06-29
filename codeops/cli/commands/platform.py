@@ -9,41 +9,43 @@ import click
 # ── Scan ──────────────────────────────────────────────────────────────────────
 
 @click.command("scan")
+@click.option("--save/--no-save", default=True, show_default=True, help="Save generated skills to .codeops/skills/")
 @click.pass_context
-def scan_project(ctx: click.Context) -> None:
-    """Scan project and detect languages, frameworks, architecture."""
-    from codeops.scanner import ProjectScanner, generate_project_skills
+def scan_project(ctx: click.Context, save: bool) -> None:
+    """Scan project and generate PROJECT skills from docs + stack."""
+    from pathlib import Path
+
+    from codeops.registry.loader import save_skill_yaml, skill_from_dict
+    from codeops.registry.project_skill_extractor import generate_project_skills
+    from codeops.registry.skills import create_skill_registry
+    from codeops.scanner import ProjectScanner
 
     scanner = ProjectScanner()
     profile = scanner.scan()
 
     click.echo(f"Project: {profile.name}")
     click.echo(f"Architecture: {profile.architecture}")
-    click.echo()
-    click.echo("Languages:")
-    for lang in profile.languages:
-        v = f" ({lang.version})" if lang.version else ""
-        click.echo(f"  {lang.name}{v} — {lang.files} files, confidence {lang.confidence:.0%}")
-    click.echo(f"\nFrameworks:")
-    for fw in profile.frameworks:
-        click.echo(f"  {fw.name} — confidence {fw.confidence:.0%}")
-    click.echo(f"\nPackage managers: {', '.join(profile.package_managers)}")
-    if profile.ci:
-        click.echo(f"CI: {', '.join(c.provider for c in profile.ci)}")
-    if profile.infrastructure.docker:
-        click.echo("Docker: yes")
+    if profile.languages:
+        click.echo("Languages: " + ", ".join(
+            f"{l.name}" + (f" {l.version}" if l.version else "") for l in profile.languages
+        ))
+    if profile.frameworks:
+        click.echo("Frameworks: " + ", ".join(f.name for f in profile.frameworks))
     if profile.infrastructure.databases:
-        click.echo(f"Databases: {', '.join(profile.infrastructure.databases)}")
+        click.echo("Databases: " + ", ".join(profile.infrastructure.databases))
     if profile.test_frameworks:
-        click.echo(f"Test frameworks: {', '.join(profile.test_frameworks)}")
+        click.echo("Tests: " + ", ".join(profile.test_frameworks))
     if profile.linter_tools:
-        click.echo(f"Linters: {', '.join(profile.linter_tools)}")
+        click.echo("Linters: " + ", ".join(profile.linter_tools))
 
-    skills = generate_project_skills(profile)
-    from pathlib import Path
+    skills = generate_project_skills(Path.cwd(), profile)
+    click.echo(f"\nGenerated {len(skills)} project skill(s):")
+    for s in skills:
+        src = s.get("metadata", {}).get("source_file", "profile")
+        click.echo(f"  {s['id']} — {s['name']}  [{src}]")
 
-    from codeops.registry.loader import save_skill_yaml, skill_from_dict
-    from codeops.registry.skills import create_skill_registry
+    if not save:
+        return
 
     config = ctx.obj["config"]
     config_path = ctx.obj.get("config_path")
@@ -59,7 +61,7 @@ def scan_project(ctx: click.Context) -> None:
             skill_obj = skill_from_dict(skill_dict)
             save_skill_yaml(skill_obj, reg.skills_path / f"{skill_obj.id}.yaml")
             saved += 1
-    click.echo(f"\nGenerated {len(skills)} project skills ({saved} saved to {reg.skills_path}).")
+    click.echo(f"\nSaved {saved} skill(s) → {reg.skills_path}")
 
 
 # ── Match ─────────────────────────────────────────────────────────────────────

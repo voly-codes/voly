@@ -141,6 +141,48 @@ def skill_publish(ctx: click.Context, yaml_path: str) -> None:
     click.echo(f"Published: {skill_id}")
 
 
+@skill.command("generate")
+@click.option("--cwd", "project_root", default=".", show_default=True, help="Project root to scan")
+@click.option("--dry-run", is_flag=True, help="Print skills without saving")
+@click.pass_context
+def skill_generate(ctx: click.Context, project_root: str, dry_run: bool) -> None:
+    """Generate PROJECT skills from CLAUDE.md, README, ARCHITECTURE docs."""
+    from pathlib import Path
+
+    from codeops.registry.loader import save_skill_yaml, skill_from_dict
+    from codeops.registry.project_skill_extractor import generate_project_skills
+    from codeops.scanner import ProjectScanner
+
+    root = Path(project_root).resolve()
+    scanner = ProjectScanner(root)
+    profile = scanner.scan()
+    skills = generate_project_skills(root, profile)
+
+    if not skills:
+        click.echo("No project skills generated — no CLAUDE.md, README.md or other docs found.")
+        return
+
+    for s in skills:
+        src = s.get("metadata", {}).get("source_file", "profile")
+        preview = s.get("content", "")[:80].replace("\n", " ")
+        click.echo(f"\n{s['id']} — {s['name']}")
+        click.echo(f"  source: {src}")
+        click.echo(f"  preview: {preview}…")
+
+    if dry_run:
+        click.echo(f"\n(dry run — {len(skills)} skill(s) not saved)")
+        return
+
+    reg = _registry(ctx)
+    saved = 0
+    if reg.skills_path:
+        for skill_dict in skills:
+            skill_obj = skill_from_dict(skill_dict)
+            save_skill_yaml(skill_obj, reg.skills_path / f"{skill_obj.id}.yaml")
+            saved += 1
+    click.echo(f"\nSaved {saved} skill(s) → {reg.skills_path}")
+
+
 @skill.command("show")
 @click.argument("skill_id")
 @click.option("--local", "local_only", is_flag=True, help="Show from local registry")
