@@ -1,6 +1,7 @@
 export { default as ActivityIcon } from "@lucide/svelte/icons/activity";
 export { default as AlertCircleIcon } from "@lucide/svelte/icons/alert-circle";
 export { default as BarChart2Icon } from "@lucide/svelte/icons/bar-chart-2";
+export { default as BookOpenIcon } from "@lucide/svelte/icons/book-open";
 export { default as BrainCircuitIcon } from "@lucide/svelte/icons/brain-circuit";
 export { default as CheckCircle2Icon } from "@lucide/svelte/icons/check-circle-2";
 export { default as CoinsIcon } from "@lucide/svelte/icons/coins";

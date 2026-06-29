@@ -60,6 +60,7 @@ class PipelineStage(Enum):
     ROUTE = "route"
     MEMORY_RETRIEVE = "memory_retrieve"
     RTK_FILTER = "rtk_filter"
+    SKILL_INJECT = "skill_inject"
     HEADROOM_COMPRESS = "headroom_compress"
     DSPY_PROGRAM_CALL = "dspy_program_call"
     MODEL_CALL = "model_call"
@@ -83,6 +84,7 @@ class PipelineResult:
     a2a_tasks: list = field(default_factory=list)
     agui_session_id: str = ""
     error: str = ""
+    injected_skills: list[str] = field(default_factory=list)
     event: TaskEvent | None = None
     dspy_used: bool = False
     dspy_mode: str = ""
@@ -287,10 +289,14 @@ class Pipeline:
 
             memory_messages = self._stage_memory_retrieve(task)
             rtk_stats = self._stage_rtk()
+            injected_skills, skills_system = self._stage_skill_inject(task, route.agent)
 
             model = self._resolve_model(route)
             msgs = self._build_messages(memory_messages, messages, task)
             self._fire(PipelineStage.HEADROOM_COMPRESS, messages=msgs[:])
+
+            base_system = route.config.get("system_prompt") or ""
+            system_prompt = (base_system + "\n\n" + skills_system).strip() if skills_system else base_system or None
 
             inference_outcome = self.inference_manager.run(
                 task=task,
@@ -298,7 +304,7 @@ class Pipeline:
                 route=route,
                 model=model,
                 tool_specs=self._build_tools(route.tools),
-                system_prompt=route.config.get("system_prompt"),
+                system_prompt=system_prompt,
             )
             gw_result = inference_outcome.response
             dspy_result = inference_outcome.dspy_result
@@ -330,7 +336,8 @@ class Pipeline:
             self._fire(PipelineStage.DONE)
 
             ev, status, cost_usd = self._emit_task_event(
-                task_id, route, response, gw_result, rtk_stats, task_type, dspy_result, duration, task
+                task_id, route, response, gw_result, rtk_stats, task_type, dspy_result, duration, task,
+                injected_skills=injected_skills,
             )
             self._metrics.total_tokens_saved_rtk += rtk_stats.get("total_saved", 0)
 
@@ -346,6 +353,7 @@ class Pipeline:
                 agui_session_id=agui_session_id or "",
                 duration_ms=duration,
                 event=ev,
+                injected_skills=injected_skills,
                 dspy_used=dspy_used,
                 dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else "",
                 **dspy_fields,
@@ -489,6 +497,33 @@ class Pipeline:
             return stats
         return {}
 
+    def _stage_skill_inject(
+        self, task: str, agent_name: str | None
+    ) -> tuple[list[str], str]:
+        """Match skills for task and build a skills system-prompt block.
+
+        Returns (skill_ids, system_prompt_addition).
+        skill_ids is empty and system_prompt_addition is "" when no skills match
+        or when there are no skills with content installed.
+        """
+        skills = self.match_skills_for_task(task, agent_name)
+        skills_with_content = [s for s in skills if s.content and s.content.strip()]
+
+        if not skills_with_content:
+            self._fire(PipelineStage.SKILL_INJECT, skill_ids=[], injected=0)
+            return [], ""
+
+        lines: list[str] = ["# Loaded skills\n"]
+        for skill in skills_with_content:
+            lines.append(f"### {skill.name} ({skill.id})")
+            lines.append(skill.content.strip()[:4000])
+            lines.append("")
+
+        block = "\n".join(lines).strip()
+        ids = [s.id for s in skills_with_content]
+        self._fire(PipelineStage.SKILL_INJECT, skill_ids=ids, injected=len(ids))
+        return ids, block
+
     def _build_messages(
         self,
         memory_messages: list[dict[str, Any]],
@@ -605,8 +640,9 @@ class Pipeline:
         dspy_result: Any,
         duration: float,
         task: str,
+        injected_skills: list[str] | None = None,
     ) -> tuple[TaskEvent, str, float]:
-        skill_ids = [s.id for s in self.match_skills_for_task(task, route.agent)]
+        skill_ids = injected_skills if injected_skills else [s.id for s in self.match_skills_for_task(task, route.agent)]
         resolved_model = gw_result.get("model", response.model)
         cost_usd = _estimate_cost(resolved_model, response.usage.input_tokens, response.usage.output_tokens)
         pseudo_result = ExecutorResult(

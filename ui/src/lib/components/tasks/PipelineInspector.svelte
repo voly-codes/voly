@@ -3,7 +3,7 @@
     RouteIcon, DatabaseIcon, ZapIcon, LayersIcon,
     BrainCircuitIcon, MessageSquareIcon, SaveIcon,
     BarChart2Icon, AlertCircleIcon, CheckCircle2Icon,
-    ChevronRightIcon,
+    ChevronRightIcon, BookOpenIcon,
   } from '../../icons.js'
 
   let { task = null } = $props()
@@ -48,6 +48,18 @@
         meta: savedRtk ? `${pct(savedRtk, totalIn)}% reduction` : '',
         badge: savedRtk ? `-${savedRtk.toLocaleString()}` : null,
         badgeColor: savedRtk ? 'var(--accent-teal)' : null,
+        ok: true,
+      },
+      {
+        id: 'skill_inject',
+        label: 'Skill Inject',
+        icon: BookOpenIcon,
+        detail: t.injected_skills?.length
+          ? `${t.injected_skills.length} skill(s) injected`
+          : 'no skills matched',
+        meta: t.injected_skills?.join(', ') ?? '',
+        badge: t.injected_skills?.length ? `+${t.injected_skills.length}` : null,
+        badgeColor: t.injected_skills?.length ? 'var(--accent-teal)' : null,
         ok: true,
       },
       {

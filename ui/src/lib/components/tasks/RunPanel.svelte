@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import {
     PlayIcon, StopCircleIcon, ChevronDownIcon,
-    ZapIcon, CpuIcon, ClockIcon,
+    ZapIcon, CpuIcon, ClockIcon, BookOpenIcon,
   } from '../../icons.js'
   import { runTask, fetchAgents, fetchModels } from '../../api/client.js'
 
@@ -215,6 +215,16 @@
         </div>
       </div>
 
+      {#if result.injected_skills?.length}
+        <div class="injected-skills">
+          <BookOpenIcon size="11" strokeWidth="2" />
+          <span class="injected-label">Skills injected:</span>
+          {#each result.injected_skills as sid}
+            <span class="skill-chip">{sid}</span>
+          {/each}
+        </div>
+      {/if}
+
       {#if result.content}
         <pre class="result-content">{result.content}</pre>
       {/if}
@@ -390,6 +400,32 @@
     font-size: 11px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
+  }
+
+  .injected-skills {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-muted);
+    color: var(--accent-teal);
+    font-size: 11px;
+  }
+
+  .injected-label {
+    font-weight: 500;
+    margin-right: 2px;
+  }
+
+  .skill-chip {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    background: color-mix(in srgb, var(--accent-teal) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-teal) 30%, transparent);
+    color: var(--accent-teal);
+    border-radius: var(--radius-sm);
+    padding: 1px 5px;
   }
 
   .result-content {

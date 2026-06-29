@@ -53,6 +53,7 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "stage": result.stage.value,
         "duration_ms": result.duration_ms,
         "error": result.error,
+        "injected_skills": result.injected_skills,
     }
     if result.route:
         out["agent"] = result.route.agent
