@@ -9,10 +9,32 @@ from fastapi import APIRouter
 router = APIRouter()
 
 _EXECUTOR_MODELS: dict[str, list[str]] = {
+    # Cursor — local agent IDE
     "cursor":   ["composer-2.5"],
-    "opencode": ["kimi-k2.6", "claude-sonnet-4-6", "gpt-4o"],
-    "zen":      ["claude-sonnet-4-6", "claude-haiku-4-5", "gpt-4o-mini"],
-    "deepseek": ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat"],
+
+    # OpenCode Go — subscription-based coding models (opencode.ai/zen/go/v1)
+    "opencode": [
+        "deepseek-v4-flash", "deepseek-v4-pro",
+        "kimi-k2.7-code", "kimi-k2.6",
+        "qwen3.7-plus", "qwen3.7-max",
+        "minimax-m3", "glm-5.2",
+        "mimo-v2.5", "mimo-v2.5-pro",
+    ],
+
+    # OpenCode Zen — curated pay-per-use models (opencode.ai/zen/v1)
+    "zen": [
+        "claude-sonnet-4-6", "claude-opus-4-8", "claude-haiku-4-5",
+        "gpt-5.5", "gpt-5.5-pro", "gpt-5.4", "gpt-5.4-mini",
+        "gemini-3.5-flash",
+        "deepseek-v4-flash", "deepseek-v4-pro",
+        "qwen3.7-max", "qwen3.7-plus",
+        "kimi-k2.6", "minimax-m2.7", "glm-5.2",
+        "deepseek-v4-flash-free", "mimo-v2.5-free",
+        "big-pickle", "grok-build-0.1",
+    ],
+
+    # Other direct providers
+    "deepseek": ["deepseek-chat", "deepseek-reasoner"],
     "mimo":     ["mimo-v2.5-free"],
 }
 

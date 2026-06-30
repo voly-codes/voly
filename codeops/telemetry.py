@@ -53,13 +53,19 @@ _COST_RATES: dict[str, tuple[float, float]] = {
     # MiMo
     "mimo-v2.5-pro": (0.001, 0.003),
     "mimo-v2.5": (0.0005, 0.0015),
-    # OpenCode (same as underlying models, approx)
+    # OpenCode Go (subscription; approximate per-token equivalents)
     "kimi-k2.6": (0.0005, 0.002),
     "kimi-k2.7-code": (0.0007, 0.003),
     "qwen3.7-plus": (0.0003, 0.0012),
     "qwen3.7-max": (0.0008, 0.0032),
     "minimax-m3": (0.0006, 0.0024),
     "glm-5.2": (0.0004, 0.0016),
+    # OpenCode Zen (real pay-per-use pricing from opencode.ai/docs/zen/)
+    "gpt-5.5": (0.005, 0.030),
+    "gpt-5.4": (0.0025, 0.015),
+    "gpt-5.4-mini": (0.00075, 0.0045),
+    "gemini-3.5-flash": (0.0015, 0.009),
+    "grok-build-0.1": (0.001, 0.002),
 }
 
 _DEFAULT_RATE = (0.001, 0.003)  # fallback если модель неизвестна
