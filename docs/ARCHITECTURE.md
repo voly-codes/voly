@@ -282,20 +282,35 @@ Optional remote destinations:
 
 ### `ui/` — web dashboard
 
-CodeOps ships a Svelte 5 web frontend under `ui/src/`:
+CodeOps ships a Svelte 5 web frontend under `ui/src/` supporting hash-based routing (`#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`) with deep-link to specific tasks (`#/tasks/<id>`).
 
 | Component | Purpose |
 |---|---|
-| `App.svelte` | main layout: nav, page routing, drawer triggers |
-| `TaskSidebar.svelte` | task list with search, status dots, cost display |
-| `PipelineInspector.svelte` | task detail: pipeline stages, token flow, work report, gateway/DSPy/metadata |
-| `RunPanel.svelte` | task runner: parameters grid, streaming result, pinned input area |
-| `CostPanel.svelte` | summary cards, by-agent/by-model breakdown, selected task detail |
-| `DSPyPage.svelte` | DSPy status and management page |
-| `CFPage.svelte` / `MarketplacePage.svelte` | Cloudflare and skill marketplace drawers |
-| `Drawer.svelte` | generic slide-out panel for Run/CF/Skills drawers |
-| `shared/` | reusable primitives: StatusDot, etc. |
-| `tasks/lib/utils.js` | shared formatters: `fmtTokens`, `fmtDur`, `fmtRel`, `calcPct`, `statusRu` |
+| `App.svelte` | main layout: nav, hash router, keyboard shortcuts (1-4 tab switching), drawer triggers |
+| `layout/AppHeader.svelte` | brand, task/cost stats, dark mode toggle |
+| `tasks/TaskSidebar.svelte` | task list with search, sort (date/cost/duration), status filter |
+| `tasks/PipelineInspector.svelte` | task detail: pipeline stages, token flow, work report, gateway/DSPy/metadata |
+| `tasks/CostPanel.svelte` | summary cards, by-agent/by-model breakdown, selected task detail |
+| `tasks/RunPanel.svelte` | task runner: parameters grid (RunParams), streaming result (RunResult), pinned input |
+| `gateway/GatewayPage.svelte` | AI Gateway dashboard: cache, rate, spend, fallback, DLP, errors, provider/model breakdowns |
+| `telemetry/TelemetryPage.svelte` | spending analytics: daily cost/token bar charts, top agents/models by spend (30d window) |
+| `dspy/DSPyPage.svelte` | DSPy optimizer: config status, programs list, lifecycle guide |
+| `cf/CFPage.svelte` / `MarketplacePage.svelte` | Cloudflare workers status and skill marketplace drawers |
+| `shared/Drawer.svelte` | reusable slide-out panel (Svelte 5 `{@render children}`) |
+| `shared/Modal.svelte` / `shared/Toast.svelte` | centered modal with Escape/backdrop; toast notifications (success/error/warning/info) |
+| `shared/Spinner.svelte` / `shared/Skeleton.svelte` | loading spinner; shimmer placeholder for card/row states |
+
+**Stores** (`src/lib/stores/` — Svelte 5 runes with `$state`):
+
+| Store | Purpose |
+|---|---|
+| `themeStore.svelte.ts` | dark mode with `localStorage` persistence and `prefers-color-scheme` detection |
+| `tasksStore.svelte.ts` | task list, selected, summary, refresh, SSE stream merge, deep-link task loading |
+| `routerStore.svelte.ts` | hash-based routing: `#/<page>` navigation, `#/tasks/<id>` task deep-link, `hashchange` listener |
+| `uiStore.svelte.ts` | drawer/modal open state |
+| `toastStore.svelte.ts` | toast notification queue with auto-dismiss |
+| `utils/format.js` | shared formatters: `fmtTokens`, `fmtDur`, `fmtRel`, `calcPct`, `statusRu` |
+| `utils/keyboard.js` | global keyboard shortcut registration with input-focus detection |
 
 The UI is served by `codeops serve` (FastAPI + static files under `codeops/web/`).
 
@@ -303,9 +318,15 @@ The UI is served by `codeops serve` (FastAPI + static files under `codeops/web/`
 
 | File | Purpose |
 |---|---|
-| `server.py` | FastAPI app with CORS, health/liveness endpoints |
+| `server.py` | FastAPI app with CORS, health/liveness, all routers |
+| `routes/tasks.py` | GET `/api/tasks`, `/api/tasks/{id}`, `/api/tasks/stats/summary`, SSE `/api/tasks/stream` |
 | `routes/run.py` | POST `/api/run` — SSE streaming task execution |
-| `routes/` | additional routes for tasks, agents, models, summary, status |
+| `routes/registry.py` | GET `/api/registry/agents`, `/api/registry/models`, `/api/registry/skills` |
+| `routes/marketplace.py` | skill marketplace: list, search, install |
+| `routes/cf.py` | Cloudflare workers status, spend summary |
+| `routes/dspy.py` | DSPy status |
+| `routes/gateway.py` | GET `/api/gateway/status` — AI Gateway config + metrics (`to_dict()`) |
+| `routes/telemetry.py` | GET `/api/telemetry/summary?days=30` — daily cost/token aggregation, top agents/models |
 
 ---
 

@@ -4,7 +4,8 @@
     BrainCircuitIcon, MessageSquareIcon, SaveIcon,
     BarChart2Icon, BookOpenIcon,
   } from '../../icons.js'
-  import { statusRu, calcPct, fmtTokens, fmtRel } from './lib/utils.js'
+  import { statusRu, calcPct } from '../../utils/format.js'
+  import { tasksStore } from '../../stores/tasksStore.svelte'
   import PipelineEmptyState from './PipelineEmptyState.svelte'
   import TaskHeader from './TaskHeader.svelte'
   import PipelineStages from './PipelineStages.svelte'
@@ -12,9 +13,8 @@
   import WorkReport from './WorkReport.svelte'
   import ExtrasSection from './ExtrasSection.svelte'
 
-  let { task = null } = $props()
-
   let outputExpanded = $state(true)
+  let task = $derived(tasksStore.selected)
 
   // Token flow bar segments
   let tokenBar = $derived.by(() => {
@@ -148,7 +148,7 @@
 
         <div class="right-sections">
           {#if task.result}
-              <ExtrasSection title="Вывод" chip="{(task.tokens?.output ?? 0).toLocaleString()} tok" collapsible bind:expanded={outputExpanded}>
+            <ExtrasSection title="Вывод" chip="{(task.tokens?.output ?? 0).toLocaleString()} tok" collapsible bind:expanded={outputExpanded}>
               <div class="text-block output-block">{task.result}</div>
             </ExtrasSection>
           {/if}

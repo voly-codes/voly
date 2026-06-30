@@ -1,9 +1,8 @@
 <script>
   import { MoonIcon, SunIcon, ActivityIcon } from '../../icons.js'
+  import { theme } from '../../stores/themeStore.svelte.ts'
 
-  let { dark = $bindable(false), taskCount = 0, totalCost = 0 } = $props()
-
-  function toggle() { dark = !dark }
+  let { taskCount = 0, totalCost = 0 } = $props()
 </script>
 
 <header class="app-header">
@@ -25,8 +24,8 @@
   </div>
 
   <div class="header-actions">
-    <button class="icon-btn" onclick={toggle} title="Toggle dark mode">
-      {#if dark}
+    <button class="icon-btn" onclick={() => theme.toggle()} title="Toggle dark mode">
+      {#if theme.dark}
         <SunIcon size="14" strokeWidth="2" />
       {:else}
         <MoonIcon size="14" strokeWidth="2" />

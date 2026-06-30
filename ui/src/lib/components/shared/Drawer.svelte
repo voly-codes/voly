@@ -1,5 +1,5 @@
 <script>
-  let { open = $bindable(false), title = '', width = '360px' } = $props()
+  let { open = $bindable(false), title = '', width = '360px', children } = $props()
 
   function onKey(e) {
     if (e.key === 'Escape') open = false
@@ -17,7 +17,7 @@
       <button class="drawer-close" onclick={() => open = false} aria-label="Закрыть">✕</button>
     </div>
     <div class="drawer-body">
-      <slot />
+      {@render children()}
     </div>
   </div>
 {/if}

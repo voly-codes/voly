@@ -1,0 +1,105 @@
+import { fetchTasks, fetchTask, fetchSummary, fetchStatus, taskStream } from '../api/client.js'
+import { router } from './routerStore.svelte'
+
+let tasks = $state<any[]>([])
+let selected = $state<any>(null)
+let summary = $state<any>(null)
+let status = $state<any>(null)
+let loading = $state(true)
+let error = $state<string | null>(null)
+
+let _es: EventSource | null = null
+
+// Merge new SSE tasks into the list (deduplicate by task_id, sort by mtime desc)
+function _mergeNew(incoming: any[]) {
+  const map = new Map<string, any>()
+  for (const t of tasks) map.set(t.task_id, t)
+  for (const t of incoming) {
+    const existing = map.get(t.task_id)
+    if (!existing || (t._mtime ?? 0) > (existing._mtime ?? 0)) {
+      map.set(t.task_id, t)
+    }
+  }
+  tasks = [...map.values()].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
+
+  // Auto-select if we have a deep-linked taskId
+  if (router.taskId && selected?.task_id !== router.taskId) {
+    const match = tasks.find((x: any) => x.task_id?.startsWith(router.taskId!))
+    if (match) selected = match
+  }
+}
+
+async function refresh() {
+  try {
+    const [t, s, st] = await Promise.all([fetchTasks(), fetchSummary(), fetchStatus()])
+    tasks = t
+    summary = s
+    status = st
+    error = null
+
+    if (router.taskId && selected?.task_id !== router.taskId) {
+      const match = tasks.find((x: any) => x.task_id?.startsWith(router.taskId!))
+      if (match) selected = match
+      else await loadById(router.taskId)
+    }
+  } catch (e: any) {
+    error = e.message
+  } finally {
+    loading = false
+  }
+}
+
+async function loadById(taskId: string) {
+  try {
+    const t = await fetchTask(taskId)
+    if (t) selected = t
+  } catch {}
+}
+
+function select(task: any) {
+  selected = task
+  if (task?.task_id) {
+    router.navigate('tasks', task.task_id.slice(0, 8))
+  }
+}
+
+function startStream() {
+  try {
+    const es = taskStream()
+    es.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data)
+        if (msg.type === 'new' && msg.tasks?.length) {
+          _mergeNew(msg.tasks)
+        }
+      } catch {}
+    }
+    es.onerror = () => {
+      // EventSource auto-reconnects; fallback to polling after 3 failures
+    }
+    _es = es
+  } catch {
+    // Fallback: poll every 10s if EventSource not available
+    const iv = setInterval(refresh, 10_000)
+    window.addEventListener('beforeunload', () => clearInterval(iv))
+  }
+}
+
+function stopStream() {
+  _es?.close()
+  _es = null
+}
+
+export const tasksStore = {
+  get tasks() { return tasks },
+  get selected() { return selected },
+  set selected(v) { selected = v },
+  get summary() { return summary },
+  get status() { return status },
+  get loading() { return loading },
+  get error() { return error },
+  refresh,
+  select,
+  startStream,
+  stopStream,
+}

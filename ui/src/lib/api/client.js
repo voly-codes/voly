@@ -72,3 +72,16 @@ export const fetchCFSpend = (days = 7) => get(`/api/cf/spend/summary?days=${days
 
 // DSPy
 export const fetchDSPyStatus = () => get('/api/dspy/status')
+
+// Gateway
+export const fetchGatewayStatus = () => get('/api/gateway/status')
+
+// SSE task stream
+export function taskStream() {
+  const url = `${BASE}/api/tasks/stream`
+  const source = new EventSource(url)
+  return source
+}
+
+// Telemetry
+export const fetchTelemetry = (days = 30) => get(`/api/telemetry/summary?days=${days}`)

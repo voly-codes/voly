@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte'
   import AppHeader from './lib/components/layout/AppHeader.svelte'
   import TaskSidebar from './lib/components/tasks/TaskSidebar.svelte'
@@ -8,66 +8,63 @@
   import MarketplacePage from './lib/components/cf/MarketplacePage.svelte'
   import CFPage from './lib/components/cf/CFPage.svelte'
   import DSPyPage from './lib/components/dspy/DSPyPage.svelte'
+  import GatewayPage from './lib/components/gateway/GatewayPage.svelte'
+  import TelemetryPage from './lib/components/telemetry/TelemetryPage.svelte'
   import Drawer from './lib/components/shared/Drawer.svelte'
+  import Toast from './lib/components/shared/Toast.svelte'
+  import Spinner from './lib/components/shared/Spinner.svelte'
   import { PlayIcon, CloudUploadIcon, BookOpenIcon } from './lib/icons.js'
-  import { fetchTasks, fetchSummary, fetchStatus } from './lib/api/client.js'
-
-  let dark = $state(false)
-  let page = $state('tasks')   // 'tasks' | 'dspy'
-
-  let tasks = $state([])
-  let selected = $state(null)
-  let summary = $state(null)
-  let status = $state(null)
-  let loading = $state(true)
-  let error = $state(null)
-
-  // Drawers
-  let runOpen       = $state(false)
-  let cfOpen        = $state(false)
-  let marketOpen    = $state(false)
+  import { tasksStore } from './lib/stores/tasksStore.svelte'
+  import { ui } from './lib/stores/uiStore.svelte'
+  import { toast } from './lib/stores/toastStore.svelte'
+  import { router } from './lib/stores/routerStore.svelte'
+  import { registerShortcuts, global } from './lib/utils/keyboard.js'
 
   const navItems = [
-    { id: 'tasks', label: 'Tasks' },
-    { id: 'dspy',  label: 'DSPy' },
+    { id: 'tasks',     label: 'Tasks' },
+    { id: 'gateway',   label: 'Gateway' },
+    { id: 'telemetry', label: 'Telemetry' },
+    { id: 'dspy',      label: 'DSPy' },
   ]
 
   const drawerBtns = [
-    { open: () => runOpen    = true, icon: PlayIcon,        label: 'Run' },
-    { open: () => cfOpen     = true, icon: CloudUploadIcon, label: 'CF' },
-    { open: () => marketOpen = true, icon: BookOpenIcon,    label: 'Skills' },
+    { open: () => ui.runOpen    = true, icon: PlayIcon,        label: 'Run' },
+    { open: () => ui.cfOpen     = true, icon: CloudUploadIcon, label: 'CF' },
+    { open: () => ui.marketOpen = true, icon: BookOpenIcon,    label: 'Skills' },
   ]
 
-  $effect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-  })
-
-  async function load() {
-    try {
-      const [t, s, st] = await Promise.all([fetchTasks(), fetchSummary(), fetchStatus()])
-      tasks = t
-      summary = s
-      status = st
-      error = null
-    } catch (e) {
-      error = e.message
-    } finally {
-      loading = false
-    }
-  }
-
   onMount(() => {
-    load()
-    const iv = setInterval(load, 10_000)
-    return () => clearInterval(iv)
+    router.init()
+    tasksStore.refresh()
+    tasksStore.startStream()
+
+    const unreg = registerShortcuts({
+      '1-false-false-false': () => router.navigate('tasks'),
+      '2-false-false-false': () => router.navigate('gateway'),
+      '3-false-false-false': () => router.navigate('telemetry'),
+      '4-false-false-false': () => router.navigate('dspy'),
+      'r-true-true-false': global(() => { ui.runOpen = true }),
+      'Escape-false-false-false': () => {
+        if (ui.activeModal) { ui.activeModal = null; return }
+        ui.closeAll()
+      },
+      '/-false-false-false': () => {
+        const el = document.querySelector<HTMLInputElement>('.sidebar-search input')
+        el?.focus()
+      },
+    })
+
+    return () => {
+      tasksStore.stopStream()
+      unreg()
+    }
   })
 </script>
 
 <div class="app">
   <AppHeader
-    bind:dark
-    taskCount={status?.tasks_count ?? tasks.length}
-    totalCost={summary?.total_cost_usd ?? 0}
+    taskCount={tasksStore.status?.tasks_count ?? tasksStore.tasks.length}
+    totalCost={tasksStore.summary?.total_cost_usd ?? 0}
   />
 
   <nav class="nav">
@@ -75,8 +72,8 @@
       {#each navItems as item}
         <button
           class="nav-btn"
-          class:active={page === item.id}
-          onclick={() => page = item.id}
+          class:active={router.page === item.id}
+          onclick={() => router.navigate(item.id)}
         >{item.label}</button>
       {/each}
     </div>
@@ -92,43 +89,52 @@
     </div>
   </nav>
 
-  {#if error && page === 'tasks'}
+  {#if tasksStore.error && router.page === 'tasks'}
     <div class="error-banner">
-      Нет соединения с CodeOps API: {error}
-      <button onclick={load}>Повторить</button>
+      Нет соединения с CodeOps API: {tasksStore.error}
+      <button onclick={() => { tasksStore.refresh(); toast.info('Refreshing...') }}>Повторить</button>
     </div>
   {/if}
 
   <div class="body">
-    {#if page === 'tasks'}
-      {#if loading && tasks.length === 0}
-        <div class="loading">Загрузка задач…</div>
+    {#if router.page === 'tasks'}
+      {#if tasksStore.loading && tasksStore.tasks.length === 0}
+        <div class="loading"><Spinner size={24} /> Загрузка задач…</div>
       {:else}
-        <TaskSidebar {tasks} bind:selected />
+        <TaskSidebar />
         <main class="main">
-          <PipelineInspector task={selected} />
+          <PipelineInspector />
         </main>
-        <CostPanel {summary} task={selected} />
+        <CostPanel />
       {/if}
 
-    {:else if page === 'dspy'}
+    {:else if router.page === 'gateway'}
+      <GatewayPage />
+
+    {:else if router.page === 'telemetry'}
+      <TelemetryPage />
+
+    {:else if router.page === 'dspy'}
       <DSPyPage />
     {/if}
   </div>
 </div>
 
 <!-- Drawers -->
-<Drawer bind:open={runOpen} title="Запустить задачу" width="480px">
-  <RunPanel onTaskComplete={() => { runOpen = false; load() }} />
+<Drawer bind:open={ui.runOpen} title="Запустить задачу" width="480px">
+  <RunPanel onTaskComplete={() => { ui.runOpen = false; tasksStore.refresh() }} />
 </Drawer>
 
-<Drawer bind:open={cfOpen} title="Cloudflare" width="520px">
+<Drawer bind:open={ui.cfOpen} title="Cloudflare" width="520px">
   <CFPage />
 </Drawer>
 
-<Drawer bind:open={marketOpen} title="Skill Marketplace" width="600px">
+<Drawer bind:open={ui.marketOpen} title="Skill Marketplace" width="600px">
   <MarketplacePage />
 </Drawer>
+
+<!-- Toast notifications -->
+<Toast />
 
 <style>
   .app {

@@ -1,27 +1,53 @@
 <script>
-  import { SearchIcon } from '../../icons.js'
+  import { SearchIcon, ChevronDownIcon } from '../../icons.js'
   import StatusDot from '../shared/StatusDot.svelte'
-  import { fmtDur, fmtRel } from './lib/utils.js'
-
-  let { tasks = [], selected = $bindable(null), onselect } = $props()
+  import { fmtDur, fmtRel } from '../../utils/format.js'
+  import { tasksStore } from '../../stores/tasksStore.svelte'
 
   let query = $state('')
+  let sortBy = $state('date')
+  let statusFilter = $state('')
 
-  let filtered = $derived(
-    query.trim()
-      ? tasks.filter(t =>
-          (t.agent ?? '').includes(query) ||
-          (t.model ?? '').includes(query) ||
-          (t.task_id ?? '').includes(query) ||
-          (t.executor ?? '').includes(query)
-        )
-      : tasks
-  )
+  let tasks = $derived(tasksStore.tasks)
+  let selected = $derived(tasksStore.selected)
 
-  function select(task) {
-    selected = task
-    onselect?.(task)
-  }
+  let filtered = $derived.by(() => {
+    let list = tasks
+    if (query.trim()) {
+      const q = query.toLowerCase()
+      list = list.filter(t =>
+        (t.agent ?? '').toLowerCase().includes(q) ||
+        (t.model ?? '').toLowerCase().includes(q) ||
+        (t.task_id ?? '').toLowerCase().includes(q) ||
+        (t.executor ?? '').toLowerCase().includes(q)
+      )
+    }
+    if (statusFilter) {
+      list = list.filter(t => t.status === statusFilter)
+    }
+    const sorted = [...list]
+    if (sortBy === 'cost') {
+      sorted.sort((a, b) => (b.cost_usd ?? 0) - (a.cost_usd ?? 0))
+    } else if (sortBy === 'duration') {
+      sorted.sort((a, b) => (b.duration_ms ?? 0) - (a.duration_ms ?? 0))
+    } else {
+      sorted.sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
+    }
+    return sorted
+  })
+
+  const sortOptions = [
+    { id: 'date',     label: 'Date' },
+    { id: 'cost',     label: 'Cost' },
+    { id: 'duration', label: 'Duration' },
+  ]
+
+  const statusOptions = [
+    { id: '',           label: 'All' },
+    { id: 'completed',  label: 'Completed' },
+    { id: 'failed',     label: 'Failed' },
+    { id: 'running',    label: 'Running' },
+  ]
 </script>
 
 <aside class="sidebar">
@@ -29,15 +55,34 @@
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
     <input
       type="text"
-      placeholder="Поиск: агент, модель, executor, ID…"
+      placeholder="Search: agent, model, ID…"
       bind:value={query}
       class="search-input"
     />
   </div>
 
+  <div class="sidebar-filters">
+    <div class="filter-group">
+      <select bind:value={sortBy} class="filter-select">
+        {#each sortOptions as opt}
+          <option value={opt.id}>{opt.label}</option>
+        {/each}
+      </select>
+    </div>
+    <div class="filter-group">
+      <select bind:value={statusFilter} class="filter-select">
+        {#each statusOptions as opt}
+          <option value={opt.id}>{opt.label}</option>
+        {/each}
+      </select>
+    </div>
+  </div>
+
   <div class="task-count">
     {filtered.length} задач{filtered.length === 1 ? 'а' : filtered.length < 5 ? 'и' : ''}
-    <span class="count-desc">· обновляется каждые 10с</span>
+    {#if tasks.length !== filtered.length}
+      <span class="count-desc">из {tasks.length}</span>
+    {/if}
   </div>
 
   <div class="task-list">
@@ -46,12 +91,12 @@
       <button
         class="task-row"
         class:selected={isSelected}
-        onclick={() => select(task)}
+        onclick={() => tasksStore.select(task)}
       >
         <div class="task-row-top">
           <StatusDot status={task.status} size={7} />
           <span class="task-agent">{task.agent ?? 'неизвестно'}</span>
-          <span class="task-cost" title="Стоимость AI API для этой задачи">${(task.cost_usd ?? 0).toFixed(4)}</span>
+          <span class="task-cost" title="Стоимость AI API">${(task.cost_usd ?? 0).toFixed(4)}</span>
         </div>
         <div class="task-row-mid">
           <span class="task-model">{task.model ?? '—'}</span>
@@ -88,7 +133,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 10px;
+    padding: 6px 10px;
     border-bottom: 1px solid var(--border-muted);
     color: var(--text-muted);
   }
@@ -104,8 +149,34 @@
 
   .search-input::placeholder { color: var(--text-muted); }
 
+  .sidebar-filters {
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--border-muted);
+  }
+
+  .filter-group {
+    flex: 1;
+  }
+
+  .filter-select {
+    width: 100%;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    color: var(--text-secondary);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+  }
+  .filter-select:focus { border-color: var(--accent-blue); }
+
   .task-count {
-    padding: 4px 10px;
+    padding: 3px 10px;
     font-size: 11px;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-muted);
@@ -117,7 +188,7 @@
   .count-desc {
     font-size: 10px;
     color: var(--text-muted);
-    opacity: 0.7;
+    opacity: 0.6;
   }
 
   .task-list {

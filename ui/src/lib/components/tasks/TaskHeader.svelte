@@ -19,19 +19,19 @@
 
   <div class="meta-strip">
     {#if task.agent}
-      <span class="meta-item"><span class="meta-k">агент</span>{task.agent}</span>
+      <span class="meta-badge meta-agent"><span class="meta-k">агент</span><span class="meta-v">{task.agent}</span></span>
     {/if}
     {#if task.model}
-      <span class="meta-item"><span class="meta-k">модель</span>{task.model}</span>
+      <span class="meta-badge meta-model"><span class="meta-k">модель</span><span class="meta-v">{task.model}</span></span>
     {/if}
     {#if task.provider}
-      <span class="meta-item"><span class="meta-k">провайдер</span>{task.provider}</span>
+      <span class="meta-badge meta-provider"><span class="meta-k">провайдер</span><span class="meta-v">{task.provider}</span></span>
     {/if}
     {#if task.executor}
-      <span class="meta-item"><span class="meta-k">executor</span>{task.executor}</span>
+      <span class="meta-badge meta-executor"><span class="meta-k">executor</span><span class="meta-v">{task.executor}</span></span>
     {/if}
     {#if task.task_type}
-      <span class="meta-item"><span class="meta-k">тип</span>{task.task_type}</span>
+      <span class="meta-badge meta-type"><span class="meta-k">тип</span><span class="meta-v">{task.task_type}</span></span>
     {/if}
   </div>
 
@@ -99,23 +99,89 @@
   .meta-strip {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    font-size: 11px;
+    gap: 5px;
   }
 
-  .meta-item {
+  .meta-badge {
     display: flex;
     align-items: center;
-    gap: 4px;
-    color: var(--text-secondary);
+    font-size: 10px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid;
   }
 
   .meta-k {
-    font-size: 9px;
+    padding: 1px 5px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-muted);
-    font-weight: 600;
+    font-size: 9px;
+  }
+
+  .meta-v {
+    padding: 1px 5px;
+    font-weight: 500;
+  }
+
+  .meta-agent {
+    border-color: color-mix(in srgb, var(--accent-blue) 25%, transparent);
+  }
+  .meta-agent .meta-k {
+    background: color-mix(in srgb, var(--accent-blue) 15%, transparent);
+    color: var(--accent-blue);
+  }
+  .meta-agent .meta-v {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+
+  .meta-model {
+    border-color: color-mix(in srgb, var(--accent-purple) 25%, transparent);
+  }
+  .meta-model .meta-k {
+    background: color-mix(in srgb, var(--accent-purple) 15%, transparent);
+    color: var(--accent-purple);
+  }
+  .meta-model .meta-v {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+
+  .meta-provider {
+    border-color: color-mix(in srgb, var(--accent-sky) 25%, transparent);
+  }
+  .meta-provider .meta-k {
+    background: color-mix(in srgb, var(--accent-sky) 15%, transparent);
+    color: var(--accent-sky);
+  }
+  .meta-provider .meta-v {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+
+  .meta-executor {
+    border-color: color-mix(in srgb, var(--accent-teal) 25%, transparent);
+  }
+  .meta-executor .meta-k {
+    background: color-mix(in srgb, var(--accent-teal) 15%, transparent);
+    color: var(--accent-teal);
+  }
+  .meta-executor .meta-v {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+
+  .meta-type {
+    border-color: color-mix(in srgb, var(--accent-amber) 25%, transparent);
+  }
+  .meta-type .meta-k {
+    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
+    color: var(--accent-amber);
+  }
+  .meta-type .meta-v {
+    background: var(--bg-surface);
+    color: var(--text-primary);
   }
 
   .task-error {

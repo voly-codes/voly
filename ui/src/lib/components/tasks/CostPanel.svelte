@@ -1,8 +1,10 @@
 <script>
   import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon } from '../../icons.js'
-  import { fmtTokens, fmtDur } from './lib/utils.js'
+  import { fmtTokens, fmtDur } from '../../utils/format.js'
+  import { tasksStore } from '../../stores/tasksStore.svelte'
 
-  let { summary = null, task = null } = $props()
+  let summary = $derived(tasksStore.summary)
+  let task = $derived(tasksStore.selected)
 
   let byAgent = $derived(
     summary?.by_agent

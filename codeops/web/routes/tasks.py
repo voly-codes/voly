@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import os
 import pathlib
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 
@@ -113,3 +116,50 @@ def get_task(task_id: str, request: Request) -> dict[str, Any]:
     if not path.exists():
         raise HTTPException(status_code=404, detail="Task not found")
     return json.loads(path.read_text())
+
+
+@router.get("/api/tasks/stream")
+async def stream_tasks(request: Request) -> StreamingResponse:
+    """SSE endpoint: pushes task list diffs to connected clients."""
+    ev_dir = _state(request).ev_dir
+    seen: dict[str, float] = {}
+
+    async def generator():
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+
+                current: dict[str, float] = {}
+                new_tasks: list[dict[str, Any]] = []
+                if ev_dir.exists():
+                    for f in ev_dir.glob("*.json"):
+                        current[f.stem] = f.stat().st_mtime
+                        if f.stem not in seen:
+                            try:
+                                d = json.loads(f.read_text())
+                                d["_mtime"] = f.stat().st_mtime
+                                new_tasks.append(d)
+                            except Exception:
+                                pass
+
+                if new_tasks:
+                    yield f"data: {json.dumps({'type': 'new', 'tasks': new_tasks})}\n\n"
+                    seen = current
+                else:
+                    # Heartbeat every 5s to keep connection alive
+                    yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
+
+                await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            pass
+
+    return StreamingResponse(
+        generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
