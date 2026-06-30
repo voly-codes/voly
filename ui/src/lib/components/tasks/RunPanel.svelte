@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
   import { runTask, fetchAgents, fetchModels } from '../../api/client.js'
+  import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunResult from './RunResult.svelte'
 
@@ -54,6 +55,9 @@
     error = null
     startedAt = Date.now()
 
+    const runId = crypto.randomUUID()
+    ui.pushRun({ id: runId, task: task.slice(0, 80), executor, agent: agent || 'auto', model: model || '—', startedAt: Date.now() })
+
     try {
       for await (const event of runTask({ task, executor, agent, model, cwd, max_turns: 30 })) {
         if (event.type === 'done') {
@@ -67,6 +71,7 @@
       error = e.message
     } finally {
       running = false
+      ui.resolveRun(runId)
     }
   }
 

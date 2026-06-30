@@ -96,8 +96,14 @@
         hint: 'Реальный LLM API вызов через AI Gateway. Gateway добавляет DLP-сканирование, кэш ответов, лимиты расходов и автоматический fallback.',
         icon: MessageSquareIcon,
         detail: `${totalIn.toLocaleString()} вход · ${(tokens.output ?? 0).toLocaleString()} выход`,
-        meta: [gw.cache_hit ? 'кэш попадание' : null, gw.fallback_used ? 'запасная модель' : null, gw.dlp_blocked ? 'DLP заблокировал' : null].filter(Boolean).join(' · ') || `${t.provider}`,
-        badge: gw.cache_hit ? 'кэш' : null, badgeColor: gw.cache_hit ? 'var(--accent-green)' : null, ok: !gw.dlp_blocked,
+        meta: [
+          gw.cache_hit ? 'кэш попадание' : null,
+          gw.fallback_used ? `fallback → ${gw.fallback_model || '?'}` : null,
+          gw.dlp_blocked ? 'DLP заблокировал' : null,
+        ].filter(Boolean).join(' · ') || `${t.provider ?? ''}`,
+        badge: gw.cache_hit ? 'кэш' : (gw.fallback_used ? 'fallback' : null),
+        badgeColor: gw.cache_hit ? 'var(--accent-green)' : (gw.fallback_used ? 'var(--accent-amber)' : null),
+        ok: !gw.dlp_blocked,
       },
       {
         id: 'memory_store', label: 'Сохранение в память',
@@ -158,7 +164,22 @@
             <ExtrasSection title="Gateway">
               <div class="extras-grid">
                 <div class="extra-row"><span class="extra-k">Кэш</span><span class="extra-v" class:ok={gw.cache_hit} class:muted={!gw.cache_hit}>{gw.cache_hit ? 'попадание ✓' : 'промах'}</span></div>
-                <div class="extra-row"><span class="extra-k">Fallback</span><span class="extra-v" class:warn={gw.fallback_used} class:muted={!gw.fallback_used}>{gw.fallback_used ? 'использован' : 'не нужен'}</span></div>
+                <div class="extra-row">
+                  <span class="extra-k">Fallback</span>
+                  <span class="extra-v" class:warn={gw.fallback_used} class:muted={!gw.fallback_used}>
+                    {#if gw.fallback_used}
+                      использован → {gw.fallback_model || '?'}{gw.fallback_provider ? ` (${gw.fallback_provider})` : ''}
+                    {:else}
+                      не нужен
+                    {/if}
+                  </span>
+                </div>
+                {#if gw.fallback_used && gw.fallback_reason}
+                  <div class="extra-row fallback-reason-row">
+                    <span class="extra-k">Причина</span>
+                    <span class="extra-v err fallback-reason" title={gw.fallback_reason}>{gw.fallback_reason}</span>
+                  </div>
+                {/if}
                 <div class="extra-row"><span class="extra-k">DLP</span><span class="extra-v" class:err={gw.dlp_blocked} class:muted={!gw.dlp_blocked}>{gw.dlp_blocked ? 'заблокировал' : 'пропущено'}</span></div>
                 {#if task.provider}
                   <div class="extra-row"><span class="extra-k">Провайдер</span><span class="extra-v">{task.provider}</span></div>
@@ -291,6 +312,15 @@
   .extra-v.warn { color: var(--accent-amber); }
   .extra-v.err  { color: var(--accent-red); }
   .extra-v.muted { color: var(--text-muted); }
+
+  .fallback-reason {
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+    cursor: help;
+  }
 
   .text-block {
     margin-top: 7px;

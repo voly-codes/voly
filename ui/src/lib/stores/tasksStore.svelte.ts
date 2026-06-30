@@ -7,6 +7,7 @@ let summary = $state<any>(null)
 let status = $state<any>(null)
 let loading = $state(true)
 let error = $state<string | null>(null)
+let unseenIds = $state<Set<string>>(new Set())
 
 let _es: EventSource | null = null
 
@@ -16,8 +17,13 @@ function _mergeNew(incoming: any[]) {
   for (const t of tasks) map.set(t.task_id, t)
   for (const t of incoming) {
     const existing = map.get(t.task_id)
-    if (!existing || (t._mtime ?? 0) > (existing._mtime ?? 0)) {
+    const isNew = !existing
+    if (isNew || (t._mtime ?? 0) > (existing._mtime ?? 0)) {
       map.set(t.task_id, t)
+      // Mark as unseen only if it arrived via SSE (not initial load) and isn't selected
+      if (isNew && selected?.task_id !== t.task_id) {
+        unseenIds = new Set([...unseenIds, t.task_id])
+      }
     }
   }
   tasks = [...map.values()].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
@@ -59,8 +65,17 @@ async function loadById(taskId: string) {
 function select(task: any) {
   selected = task
   if (task?.task_id) {
+    unseenIds = new Set([...unseenIds].filter(id => id !== task.task_id))
     router.navigate('tasks', task.task_id.slice(0, 8))
   }
+}
+
+function isUnseen(taskId: string): boolean {
+  return unseenIds.has(taskId)
+}
+
+function markAllSeen() {
+  unseenIds = new Set()
 }
 
 function startStream() {
@@ -98,6 +113,9 @@ export const tasksStore = {
   get status() { return status },
   get loading() { return loading },
   get error() { return error },
+  get unseenCount() { return unseenIds.size },
+  isUnseen,
+  markAllSeen,
   refresh,
   select,
   startStream,

@@ -329,7 +329,11 @@ class _PipelineStageMixin:
         skill_ids = injected_skills if injected_skills is not None else [
             s.id for s in self.match_skills_for_task(task, route.agent)  # type: ignore[attr-defined]
         ]
-        resolved_model = gw_result.get("model", response.model)
+        fallback_used = gw_result.get("fallback_used", False)
+        fallback_model = gw_result.get("fallback_model", "")
+        fallback_provider = gw_result.get("fallback_provider", "")
+        # When fallback succeeded, use the actual model that ran, not the primary
+        resolved_model = fallback_model or gw_result.get("model", response.model)
         cost_usd = _estimate_cost(resolved_model, response.usage.input_tokens, response.usage.output_tokens)
         pseudo_result = ExecutorResult(
             success=True,
@@ -355,7 +359,10 @@ class _PipelineStageMixin:
             ),
             gateway=GatewayMetrics(
                 cache_hit=gw_result.get("cache_hit", False),
-                fallback_used=gw_result.get("fallback_used", False),
+                fallback_used=fallback_used,
+                fallback_model=fallback_model,
+                fallback_provider=fallback_provider,
+                fallback_reason=gw_result.get("fallback_reason", ""),
                 dlp_blocked=False,
             ),
             skill_ids=skill_ids,

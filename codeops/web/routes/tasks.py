@@ -110,14 +110,6 @@ def get_summary(request: Request) -> dict[str, Any]:
     }
 
 
-@router.get("/api/tasks/{task_id}")
-def get_task(task_id: str, request: Request) -> dict[str, Any]:
-    path = _state(request).ev_dir / f"{task_id}.json"
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Task not found")
-    return json.loads(path.read_text())
-
-
 @router.get("/api/tasks/stream")
 async def stream_tasks(request: Request) -> StreamingResponse:
     """SSE endpoint: pushes task list diffs to connected clients."""
@@ -163,3 +155,11 @@ async def stream_tasks(request: Request) -> StreamingResponse:
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get("/api/tasks/{task_id}")
+def get_task(task_id: str, request: Request) -> dict[str, Any]:
+    path = _state(request).ev_dir / f"{task_id}.json"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Task not found")
+    return json.loads(path.read_text())

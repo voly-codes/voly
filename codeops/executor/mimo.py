@@ -15,6 +15,7 @@ import os
 import time
 
 from codeops.executor.base import Executor, ExecutorResult
+from codeops.telemetry import _estimate_cost
 
 
 class MiMoExecutor(Executor):
@@ -58,14 +59,18 @@ class MiMoExecutor(Executor):
             duration_ms = (time.monotonic() - started) * 1000
             content = response.choices[0].message.content or ""
             usage = response.usage
+            in_tok = usage.prompt_tokens if usage else 0
+            out_tok = usage.completion_tokens if usage else 0
 
             return ExecutorResult(
                 success=True,
                 output=content,
-                input_tokens=usage.prompt_tokens if usage else 0,
-                output_tokens=usage.completion_tokens if usage else 0,
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+                cost_usd=_estimate_cost(self._model, in_tok, out_tok),
                 duration_ms=duration_ms,
                 num_turns=1,
+                metadata={"model": self._model, "provider": "mimo"},
             )
         except Exception as e:
             duration_ms = (time.monotonic() - started) * 1000

@@ -4,10 +4,13 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import logging
 import os
 import urllib.request
 import urllib.error
 from typing import Any, Callable
+
+_log = logging.getLogger("codeops.ai_gateway")
 
 from .models import (
     GatewayProvider, FallbackStrategy,
@@ -99,6 +102,11 @@ class AIGateway:
             result = self._gateway_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools, **kwargs)
         else:
             result = self._direct_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools)
+            # _direct_call has no built-in fallback — try the chain if it failed
+            if result.get("error") and self.fallback.enabled and self.fallback.chain:
+                result = self._direct_fallback(
+                    result, messages, max_tokens, temperature, system, tools, **kwargs
+                )
 
         self.spend_limit.record(estimated_cost, agent)
         cost = self._calculate_cost(model, provider_name, result.get("usage", {}))
@@ -124,24 +132,33 @@ class AIGateway:
         last_error = None
 
         for attempt, spec in enumerate(all_models):
-            if attempt > 0:
-                self.metrics.record_fallback()
-
             prov = spec.get("provider", provider_name)
             mdl  = spec.get("model", model)
+
+            if attempt > 0:
+                self.metrics.record_fallback()
+                _log.info("Fallback attempt %d: provider=%s model=%s (reason: %s)", attempt, prov, mdl, last_error)
 
             try:
                 result = self._single_call(messages, mdl, prov, max_tokens, temperature, system, tools=tools, **kwargs)
                 if not result.get("error"):
+                    if attempt > 0:
+                        result["fallback_used"] = True
+                        result["fallback_provider"] = prov
+                        result["fallback_model"] = mdl
+                        _log.info("Fallback succeeded: provider=%s model=%s", prov, mdl)
                     return result
                 last_error = result.get("error")
+                _log.warning("provider=%s model=%s returned error: %s", prov, mdl, last_error)
             except Exception as e:
                 last_error = str(e)
+                _log.warning("provider=%s model=%s raised exception: %s", prov, mdl, last_error)
 
             if attempt >= self.fallback.retries:
                 break
 
         self.metrics.record_error()
+        _log.error("All models failed. Last error: %s", last_error)
         return {"error": f"All models failed. Last: {last_error}", "content": ""}
 
     def _single_call(
@@ -394,6 +411,47 @@ class AIGateway:
         except Exception as e:
             self.metrics.record_error()
             return {"error": str(e), "content": ""}
+
+    def _direct_fallback(
+        self,
+        primary_result: dict[str, Any],
+        messages: list[dict[str, Any]],
+        max_tokens: int,
+        temperature: float,
+        system: str | None,
+        tools: list[dict[str, Any]] | None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        primary_error = primary_result.get("error", "unknown error")
+        last_error = primary_error
+        _log.warning("Primary call failed (%s) — trying %d fallback(s)", last_error, len(self.fallback.chain))
+        for i, spec in enumerate(self.fallback.chain[: self.fallback.retries]):
+            self.metrics.record_fallback()
+            fb_prov  = spec.get("provider", "")
+            fb_model = spec.get("model", "")
+            if not fb_prov or not fb_model:
+                continue
+            _log.info("Fallback attempt %d: provider=%s model=%s", i + 1, fb_prov, fb_model)
+            try:
+                if self.cloudflare_enabled and fb_prov in _CF_PROVIDERS:
+                    fb = self._single_call(messages, fb_model, fb_prov, max_tokens, temperature, system, tools=tools, **kwargs)
+                else:
+                    fb = self._direct_call(messages, fb_model, fb_prov, max_tokens, temperature, system, tools=tools)
+                if not fb.get("error"):
+                    _log.info("Fallback succeeded: provider=%s model=%s", fb_prov, fb_model)
+                    fb["fallback_used"] = True
+                    fb["fallback_provider"] = fb_prov
+                    fb["fallback_model"] = fb_model
+                    fb["fallback_reason"] = primary_error
+                    return fb
+                last_error = fb.get("error", last_error)
+                _log.warning("Fallback %d failed: %s", i + 1, last_error)
+            except Exception as exc:
+                last_error = str(exc)
+                _log.warning("Fallback %d raised exception: %s", i + 1, last_error)
+        self.metrics.record_error()
+        _log.error("All fallbacks exhausted. Last error: %s", last_error)
+        return {"error": f"All fallbacks failed. Last: {last_error}", "content": ""}
 
     def _cache_key(self, messages: list, model: str, provider: str, system: str, extra: str) -> str:
         raw = json.dumps(

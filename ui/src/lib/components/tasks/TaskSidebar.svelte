@@ -1,8 +1,9 @@
 <script>
-  import { SearchIcon, ChevronDownIcon } from '../../icons.js'
+  import { SearchIcon } from '../../icons.js'
   import StatusDot from '../shared/StatusDot.svelte'
   import { fmtDur, fmtRel } from '../../utils/format.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
+  import { ui } from '../../stores/uiStore.svelte'
 
   let query = $state('')
   let sortBy = $state('date')
@@ -86,16 +87,40 @@
   </div>
 
   <div class="task-list">
+    {#each ui.activeRuns as run (run.id)}
+      <div class="task-row task-row--running">
+        <div class="task-row-top">
+          <StatusDot status="running" size={7} />
+          <span class="task-agent">{run.agent}</span>
+          <span class="running-badge">выполняется</span>
+        </div>
+        <div class="task-row-mid">
+          <span class="task-model">{run.model}</span>
+          {#if run.executor !== run.agent}
+            <span class="task-executor">via {run.executor}</span>
+          {/if}
+        </div>
+        <div class="task-row-bot">
+          <span class="task-prompt">{run.task}</span>
+        </div>
+      </div>
+    {/each}
+
     {#each filtered as task (task.task_id)}
       {@const isSelected = selected?.task_id === task.task_id}
+      {@const isNew = tasksStore.isUnseen(task.task_id)}
       <button
         class="task-row"
         class:selected={isSelected}
+        class:unseen={isNew}
         onclick={() => tasksStore.select(task)}
       >
         <div class="task-row-top">
           <StatusDot status={task.status} size={7} />
           <span class="task-agent">{task.agent ?? 'неизвестно'}</span>
+          {#if isNew}
+            <span class="new-badge">new</span>
+          {/if}
           <span class="task-cost" title="Стоимость AI API">${(task.cost_usd ?? 0).toFixed(4)}</span>
         </div>
         <div class="task-row-mid">
@@ -112,7 +137,7 @@
       </button>
     {/each}
 
-    {#if filtered.length === 0}
+    {#if filtered.length === 0 && ui.activeRuns.length === 0}
       <div class="empty">Задачи не найдены</div>
     {/if}
   </div>
@@ -278,5 +303,50 @@
     text-align: center;
     font-size: 12px;
     color: var(--text-muted);
+  }
+
+  .task-row--running {
+    cursor: default;
+    border-left: 2px solid var(--running-fg, var(--accent-blue));
+    background: color-mix(in srgb, var(--running-fg, var(--accent-blue)) 5%, transparent);
+  }
+
+  .running-badge {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--running-fg, var(--accent-blue));
+    animation: run-pulse 1.6s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes run-pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  .task-prompt {
+    font-size: 10px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .unseen {
+    border-left: 2px solid var(--accent-blue);
+  }
+
+  .new-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: var(--accent-blue);
+    color: var(--accent-blue-foreground, #fff);
+    border-radius: 4px;
+    padding: 0 4px;
+    line-height: 14px;
+    flex-shrink: 0;
   }
 </style>

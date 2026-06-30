@@ -70,9 +70,20 @@ _COST_RATES: dict[str, tuple[float, float]] = {
 
 _DEFAULT_RATE = (0.001, 0.003)  # fallback если модель неизвестна
 
+# Бесплатные модели OpenCode Zen — всегда $0.00 независимо от токенов
+_FREE_MODELS: frozenset[str] = frozenset({
+    "big-pickle",            # Big Pickle
+    "deepseek-v4-flash-free",  # DeepSeek V4 Flash Free
+    "mimo-v2.5-free",          # MiMo V2.5 Free
+    "north-mini-code-free",    # North Mini Code Free
+    "nemotron-3-ultra-free",   # Nemotron 3 Ultra Free
+})
+
 
 def _estimate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
     """Оценивает стоимость запроса в USD."""
+    if any(key in model for key in _FREE_MODELS):
+        return 0.0
     rate_in, rate_out = _DEFAULT_RATE
     for key, rates in _COST_RATES.items():
         if model.startswith(key) or key in model:
@@ -101,6 +112,9 @@ class TokenMetrics:
 class GatewayMetrics:
     cache_hit: bool = False
     fallback_used: bool = False
+    fallback_model: str = ""
+    fallback_provider: str = ""
+    fallback_reason: str = ""
     dlp_blocked: bool = False
 
 

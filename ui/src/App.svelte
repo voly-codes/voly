@@ -74,7 +74,12 @@
           class="nav-btn"
           class:active={router.page === item.id}
           onclick={() => router.navigate(item.id)}
-        >{item.label}</button>
+        >
+          {item.label}
+          {#if item.id === 'tasks' && tasksStore.unseenCount > 0}
+            <span class="nav-badge">{tasksStore.unseenCount}</span>
+          {/if}
+        </button>
       {/each}
     </div>
 
@@ -227,6 +232,22 @@
   .nav-btn.active {
     background: var(--bg-inset);
     color: var(--text-primary);
+  }
+
+  .nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 14px;
+    padding: 0 4px;
+    border-radius: 7px;
+    background: var(--accent-blue);
+    color: var(--accent-blue-foreground, #fff);
+    font-size: 9px;
+    font-weight: 700;
+    margin-left: 4px;
+    line-height: 1;
   }
 
   .drawer-trigger {

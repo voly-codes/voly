@@ -51,12 +51,22 @@ def _resolve_events_dir() -> pathlib.Path:
 _load_dotenv_once()
 
 
+def _configure_logging() -> None:
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+    logging.getLogger("codeops.executor").setLevel(logging.DEBUG)
+
+
 def create_app(
     events_dir: pathlib.Path | None = None,
     config: "CodeOpsConfig | None" = None,
 ) -> "FastAPI":
     if not HAS_FASTAPI:
         raise ImportError("Install UI dependencies: pip install 'codeops[ui]'")
+    _configure_logging()
 
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware

@@ -16,7 +16,8 @@ import shutil
 import subprocess
 import time
 
-from codeops.executor.base import Executor, ExecutorResult
+from codeops.executor.base import Executor, ExecutorResult, _extract_cli_error
+from codeops.telemetry import _estimate_cost
 
 
 class OpenCodeExecutor(Executor):
@@ -61,23 +62,21 @@ class OpenCodeExecutor(Executor):
         max_turns: int = 20,
         timeout: int = 600,
     ) -> ExecutorResult:
-        """Run via opencode CLI: `opencode run <message>`.
+        """Run via opencode CLI: `opencode run --format json -m provider/model <message>`."""
+        model_id = self._model
+        if model_id and "/" not in model_id:
+            model_id = f"opencode-go/{model_id}"
+        cmd = ["opencode", "run", "--format", "json"]
+        if model_id:
+            cmd += ["-m", model_id]
+        cmd.append(task)
 
-        Message is a positional argument — NOT stdin.
-        Output is plain text with ANSI codes stripped.
-        """
-        cmd = ["opencode", "run", task]
-
-        env = {**os.environ}
-        if self._model:
-            env["OPENCODE_MODEL"] = self._model
         started = time.monotonic()
-
         try:
             proc = subprocess.run(
                 cmd,
                 cwd=cwd,
-                env=env,
+                env={**os.environ},
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -85,28 +84,15 @@ class OpenCodeExecutor(Executor):
             duration_ms = (time.monotonic() - started) * 1000
 
             if proc.returncode != 0:
+                error = _extract_cli_error(proc.stdout, proc.stderr, proc.returncode)
                 return ExecutorResult(
                     success=False,
-                    error=proc.stderr or f"opencode exited with code {proc.returncode}",
+                    error=error,
                     duration_ms=duration_ms,
-                    metadata={"mode": "cli"},
+                    metadata={"mode": "cli", "model": self._model, "provider": "opencode-go"},
                 )
 
-            import re
-            # stdout holds the assistant reply; stderr has progress/model info
-            output = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', proc.stdout).strip()
-            if not output:
-                # Some versions write to stderr; strip ANSI and use last non-empty line
-                lines = [re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', l).strip()
-                         for l in proc.stderr.splitlines() if l.strip()]
-                output = lines[-1] if lines else ""
-
-            return ExecutorResult(
-                success=True,
-                output=output,
-                duration_ms=duration_ms,
-                metadata={"mode": "cli", "provider": "opencode-go"},
-            )
+            return self._parse_json_events(proc.stdout, proc.stderr, duration_ms)
 
         except subprocess.TimeoutExpired:
             duration_ms = (time.monotonic() - started) * 1000
@@ -116,7 +102,6 @@ class OpenCodeExecutor(Executor):
                 duration_ms=duration_ms,
             )
         except FileNotFoundError:
-            # CLI not found — fall back to API
             self._use_cli = False
             return self._run_api(task, timeout=timeout)
 
@@ -149,12 +134,15 @@ class OpenCodeExecutor(Executor):
             duration_ms = (time.monotonic() - started) * 1000
             content = response.choices[0].message.content or ""
             usage = response.usage
+            in_tok = usage.prompt_tokens if usage else 0
+            out_tok = usage.completion_tokens if usage else 0
 
             return ExecutorResult(
                 success=True,
                 output=content,
-                input_tokens=usage.prompt_tokens if usage else 0,
-                output_tokens=usage.completion_tokens if usage else 0,
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+                cost_usd=_estimate_cost(self._model, in_tok, out_tok),
                 duration_ms=duration_ms,
                 num_turns=1,
                 metadata={"mode": "api", "model": self._model, "provider": "opencode-go"},
@@ -167,8 +155,10 @@ class OpenCodeExecutor(Executor):
         """Parse NDJSON event stream from `opencode run --format json`."""
         import json
         import re
+        from codeops.executor.base import _oc_event_error
 
         text_parts: list[str] = []
+        error_parts: list[str] = []
         input_tokens = output_tokens = cost = num_turns = 0
         session_id = ""
 
@@ -181,28 +171,55 @@ class OpenCodeExecutor(Executor):
             except json.JSONDecodeError:
                 continue
 
+            err = _oc_event_error(ev)
+            if err:
+                error_parts.append(err)
+                continue
+
             t = ev.get("type", "")
-            # Assistant text content
-            if t == "assistant" and isinstance(ev.get("content"), list):
+            part = ev.get("part") or {}
+            session_id = session_id or ev.get("sessionID") or ev.get("session_id") or ""
+
+            if t == "text":
+                text = (
+                    part.get("text") or part.get("content") or part.get("value")
+                    or ev.get("text") or ""
+                )
+                if text:
+                    text_parts.append(text)
+            elif t == "assistant" and isinstance(ev.get("content"), list):
                 for block in ev["content"]:
                     if isinstance(block, dict) and block.get("type") == "text":
                         text_parts.append(block.get("text", ""))
-            # Plain text events (older format)
-            elif t in ("text", "message") and "text" in ev:
+            elif t == "message" and "text" in ev:
                 text_parts.append(ev["text"])
-            # Usage / cost summary
+            elif t == "step_finish":
+                num_turns += 1
+                tokens = part.get("tokens") or {}
+                if isinstance(tokens, dict):
+                    input_tokens += tokens.get("input") or 0
+                    output_tokens += tokens.get("output") or 0
+                cost += part.get("cost") or part.get("costUsd") or 0
             elif t in ("cost", "usage", "summary"):
-                input_tokens += ev.get("input_tokens", 0) or 0
-                output_tokens += ev.get("output_tokens", 0) or 0
-                cost += ev.get("cost", 0) or 0
-                num_turns += ev.get("turns", 0) or 0
-                session_id = session_id or ev.get("session_id", "")
+                input_tokens += ev.get("inputTokens") or ev.get("input_tokens") or 0
+                output_tokens += ev.get("outputTokens") or ev.get("output_tokens") or 0
+                cost += ev.get("cost") or ev.get("costUsd") or 0
             elif t == "session":
                 session_id = session_id or ev.get("id", "")
 
-        # Fallback: if no structured text, strip ANSI and use raw stdout
+        if error_parts and not text_parts:
+            return ExecutorResult(
+                success=False,
+                error="\n".join(error_parts),
+                duration_ms=duration_ms,
+                metadata={"mode": "cli", "model": self._model, "provider": "opencode-go"},
+            )
+
         if not text_parts:
             text_parts = [re.sub(r'\x1b\[[0-9;]*m', '', stdout).strip()]
+
+        if not cost and (input_tokens or output_tokens):
+            cost = _estimate_cost(self._model, input_tokens, output_tokens)
 
         return ExecutorResult(
             success=True,
@@ -213,5 +230,5 @@ class OpenCodeExecutor(Executor):
             duration_ms=duration_ms,
             num_turns=num_turns or 1,
             session_id=session_id,
-            metadata={"mode": "cli", "provider": "opencode-go"},
+            metadata={"mode": "cli", "model": self._model, "provider": "opencode-go"},
         )

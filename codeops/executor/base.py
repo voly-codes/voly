@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
@@ -36,6 +38,72 @@ class ExecutorResult:
     session_id: str = ""
     metadata: dict = field(default_factory=dict)
     report: WorkReport | None = None
+
+
+def _oc_event_error(ev: dict) -> str | None:
+    """Extract error string from an opencode JSON event, or None if not an error event.
+
+    Handles opencode formats:
+      {"type":"error", "error":{"name":"...", "data":{"message":"...", "ref":"..."}}}
+      {"type":"error", "message":"..."}
+      {"name":"SomeError", "data":{"message":"...", "ref":"..."}}
+    """
+    def _extract(obj: object) -> tuple[str, str]:
+        """Returns (message, ref) from any error-shaped object."""
+        if isinstance(obj, str):
+            return obj, ""
+        if not isinstance(obj, dict):
+            return str(obj), ""
+        # opencode nested: {"name":..., "data":{"message":..., "ref":...}}
+        data = obj.get("data")
+        if isinstance(data, dict):
+            msg = data.get("message") or data.get("text") or obj.get("name", "error")
+            ref = data.get("ref", "")
+            return str(msg), str(ref)
+        # flat: {"message":..., "ref":...}
+        msg = obj.get("message") or obj.get("text") or obj.get("name") or json.dumps(obj, ensure_ascii=False)
+        ref = obj.get("ref", "")
+        return str(msg), str(ref)
+
+    t = ev.get("type", "")
+    name = ev.get("name", "")
+
+    if t == "error":
+        inner = ev.get("error") or ev.get("message") or ev
+        msg, ref = _extract(inner)
+        return f"{msg} ({ref})" if ref else msg
+
+    if name and ("error" in name.lower() or "Error" in name):
+        msg, ref = _extract(ev)
+        return f"{msg} ({ref})" if ref else msg
+
+    return None
+
+
+def _extract_cli_error(stdout: str, stderr: str, returncode: int) -> str:
+    """Extract a meaningful error from opencode CLI output (JSON or plain text)."""
+    messages: list[str] = []
+
+    for source in (stdout, stderr):
+        for line in source.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+                err = _oc_event_error(ev)
+                if err:
+                    messages.append(err)
+            except json.JSONDecodeError:
+                clean = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', line)
+                if clean:
+                    messages.append(clean)
+        if messages:
+            break
+
+    if messages:
+        return "\n".join(messages)
+    return f"opencode exited with code {returncode}"
 
 
 class Executor(ABC):
