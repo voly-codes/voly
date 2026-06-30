@@ -23,12 +23,12 @@ Developer / UI / CI / Scheduler
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Pipeline (codeops/pipeline.py)                              │
+│ Pipeline (codeops/pipeline/core.py)                         │
 │                                                             │
 │ INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE →  │
-│ MEMORY_RETRIEVE → RTK_FILTER → HEADROOM_COMPRESS →         │
-│ DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE →            │
-│ AGUI_DONE → DONE → emit TaskEvent                           │
+│ MEMORY_RETRIEVE → RTK_FILTER → SKILL_INJECT →              │
+│ HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL →       │
+│ MEMORY_STORE → AGUI_DONE → DONE / ERROR → emit TaskEvent   │
 │                                                             │
 │ Returns: PipelineResult { response, route, analysis, event }│
 └──────────────┬──────────────────────────────────────────────┘
@@ -93,11 +93,11 @@ Developer / UI / CI / Scheduler
 
 ## Key modules
 
-### `codeops/pipeline.py` — central orchestrator
+### `codeops/pipeline/` — central orchestrator
 
 `Pipeline.run(task)` wires together routing, context, inference and telemetry. It emits `PipelineStage` hooks so UI/AG-UI/debug tools can observe execution. Hook errors are logged at DEBUG level and never propagate.
 
-`run()` is a thin coordinator (~115 lines) that delegates to stage methods:
+`run()` (~140 lines in `core.py`) delegates to stage methods and mixins:
 
 | Method | Responsibility |
 |---|---|
@@ -107,6 +107,7 @@ Developer / UI / CI / Scheduler
 | `_stage_spend_check` | pre-call spend limit; returns `PipelineResult` if blocked |
 | `_stage_memory_retrieve` | memory search → context messages |
 | `_stage_rtk` | RTK stats |
+| `_stage_skill_inject` | match skills for task/agent, inject into system prompt |
 | `_check_gateway_errors` | DLP / rate / spend errors after model call |
 | `_build_model_response` | `ModelResponse` from gateway dict |
 | `_stage_memory_store` | persist task result to memory |
@@ -121,6 +122,7 @@ Important `PipelineStage` values:
 | `ROUTE` | selected agent/model/provider/tools |
 | `MEMORY_RETRIEVE` | memory hits injected into context |
 | `RTK_FILTER` | command output/context reduction |
+| `SKILL_INJECT` | skill matching and system prompt injection |
 | `HEADROOM_COMPRESS` | context compression boundary |
 | `DSPY_PROGRAM_CALL` | DSPy optimizer boundary when enabled |
 | `MODEL_CALL` | user-visible LLM response produced |
@@ -153,6 +155,7 @@ Core files:
 | `adapter.py` | `CodeOpsDSPyLM`, DSPy LM adapter over `AIGateway.chat()` |
 | `runner.py` | `DSPyRunner`, integration point used by `InferenceManager` |
 | `signatures.py` | structured DSPy signatures |
+| `modules.py` | DSPy modules with forward/optimize methods |
 | `programs/` | program registry and per-program factories |
 | `compiler.py` | dataset loading and program compilation |
 | `store.py` | versioned compiled program storage |
@@ -229,6 +232,7 @@ Catalog stores OpenCode Zen model metadata and helps choose executor/model combi
 | `routing.py` | task matching / executor-model selection |
 | `supervisor.py` | supervised planning helpers |
 | `client.py` | optional Cloudflare Worker client |
+| `multi_agent.py` | parallel/sequential task orchestration (in `codeops/executor/`) |
 
 ### `codeops/telemetry.py` — task telemetry
 
@@ -276,6 +280,33 @@ Optional remote destinations:
 - R2 telemetry upload;
 - spend tracking Durable Object/client.
 
+### `ui/` — web dashboard
+
+CodeOps ships a Svelte 5 web frontend under `ui/src/`:
+
+| Component | Purpose |
+|---|---|
+| `App.svelte` | main layout: nav, page routing, drawer triggers |
+| `TaskSidebar.svelte` | task list with search, status dots, cost display |
+| `PipelineInspector.svelte` | task detail: pipeline stages, token flow, work report, gateway/DSPy/metadata |
+| `RunPanel.svelte` | task runner: parameters grid, streaming result, pinned input area |
+| `CostPanel.svelte` | summary cards, by-agent/by-model breakdown, selected task detail |
+| `DSPyPage.svelte` | DSPy status and management page |
+| `CFPage.svelte` / `MarketplacePage.svelte` | Cloudflare and skill marketplace drawers |
+| `Drawer.svelte` | generic slide-out panel for Run/CF/Skills drawers |
+| `shared/` | reusable primitives: StatusDot, etc. |
+| `tasks/lib/utils.js` | shared formatters: `fmtTokens`, `fmtDur`, `fmtRel`, `calcPct`, `statusRu` |
+
+The UI is served by `codeops serve` (FastAPI + static files under `codeops/web/`).
+
+### `codeops/web/` — backend API
+
+| File | Purpose |
+|---|---|
+| `server.py` | FastAPI app with CORS, health/liveness endpoints |
+| `routes/run.py` | POST `/api/run` — SSE streaming task execution |
+| `routes/` | additional routes for tasks, agents, models, summary, status |
+
 ---
 
 ## CI and release hygiene
@@ -308,4 +339,8 @@ Generated runtime state should stay out of git:
 | `docs/executors.md` | executor runtime guide |
 | `docs/catalog-supervisor.md` | catalog/model planning guide |
 | `docs/dspy.md` | DSPy integration guide |
+| `docs/ai-gateway.md` | AI Gateway: DLP, cache, rate/spend limits, fallback |
+| `docs/workflows.md` | workflow engine and human approval gates |
+| `docs/skills.md` | skill registry and marketplace |
+| `docs/project-scanner.md` | project scanner and profile detection |
 | `docs/ARCHITECTURE.md` | this architecture document |

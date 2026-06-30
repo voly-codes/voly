@@ -104,6 +104,9 @@ codeops run "review recent changes for security and regressions" \
 | OpenCode GO | `opencode` | `OPENCODE_BASE_URL` | да, через CLI/API flow |
 | OpenCode Zen | `zen` | `OPENCODE_ZEN_BASE_URL` | нет, text-only analysis |
 
+Zen-модели (через `opencode-zen` провайдер): `claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`, `deepseek-v4-flash-free`, `mimo-v2.5-free`.
+GO-модели (через `opencode` провайдер): `deepseek-v4-flash`, `deepseek-v4-pro`, `kimi-k2.6`, `kimi-k2.7-code`, `qwen3.7-plus`, `qwen3.7-max`, `minimax-m3`, `glm-5.2`.
+
 Один ключ обычно используется через `OPENCODE_API_KEY`.
 
 ```bash

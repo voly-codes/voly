@@ -26,7 +26,22 @@ DLP scan → Cache check → Rate limit → Spend limit → [LLM call]
 4. **Spend limit** — проверяет дневной бюджет, при превышении `{"spend_limited": true}`
 5. **Routing** — выбирает CF Gateway или прямой вызов, выполняет запрос
 
-## Routing: CF Gateway vs Direct
+## Routing: инфраструктурные провайдеры vs LLM провайдеры
+
+Gateway различает два уровня:
+
+1. **Инфраструктурный провайдер** (`GatewayProvider`): `CLOUDFLARE` или `CUSTOM` — определяет, через какой API-слой идёт запрос.
+2. **LLM провайдер** — конкретный сервис моделей: Anthropic, OpenAI, Google, DeepSeek, MiMo, OpenCode Zen/GO.
+
+```python
+# codeops/ai_gateway/models.py
+class GatewayProvider(Enum):
+    CLOUDFLARE = "cloudflare"
+    CUSTOM = "custom"
+```
+
+Через Cloudflare AI Gateway маршрутизируются: Anthropic, OpenAI, Google AI Studio, DeepSeek.
+Напрямую (CUSTOM): MiMo, OpenCode GO, OpenCode Zen.
 
 ```python
 _CF_PROVIDERS = frozenset({"anthropic", "openai", "google-ai-studio", "deepseek"})

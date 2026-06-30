@@ -1,6 +1,7 @@
 <script>
   import { SearchIcon } from '../../icons.js'
   import StatusDot from '../shared/StatusDot.svelte'
+  import { fmtDur, fmtRel } from './lib/utils.js'
 
   let { tasks = [], selected = $bindable(null), onselect } = $props()
 
@@ -20,22 +21,6 @@
   function select(task) {
     selected = task
     onselect?.(task)
-  }
-
-  function fmt(ms) {
-    if (!ms) return '—'
-    if (ms < 1000) return `${Math.round(ms)}ms`
-    return `${(ms / 1000).toFixed(1)}s`
-  }
-
-  function rel(mtime) {
-    if (!mtime) return ''
-    const d = new Date(mtime * 1000)
-    const diff = (Date.now() - d) / 1000
-    if (diff < 60) return 'только что'
-    if (diff < 3600) return `${Math.round(diff / 60)}м назад`
-    if (diff < 86400) return `${Math.round(diff / 3600)}ч назад`
-    return d.toLocaleDateString()
   }
 </script>
 
@@ -76,8 +61,8 @@
         </div>
         <div class="task-row-bot">
           <span class="task-id">{(task.task_id ?? '').slice(0, 8)}</span>
-          <span class="task-dur">{fmt(task.duration_ms)}</span>
-          <span class="task-rel">{rel(task._mtime)}</span>
+          <span class="task-dur">{fmtDur(task.duration_ms)}</span>
+          <span class="task-rel">{fmtRel(task._mtime)}</span>
         </div>
       </button>
     {/each}

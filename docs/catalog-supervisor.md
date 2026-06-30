@@ -60,7 +60,7 @@ CodeOps CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
 | Routing | `codeops/catalog/routing.py` | task matching and model/executor selection |
 | Supervisor | `codeops/catalog/supervisor.py` | planning helpers for multi-step execution |
 | CF client | `codeops/catalog/client.py` | optional remote worker client |
-| Orchestrator | `codeops/executor/multi_agent.py` | sequential/parallel executor tasks |
+| Multi-agent | `codeops/executor/multi_agent.py` | sequential/parallel executor tasks |
 
 ---
 

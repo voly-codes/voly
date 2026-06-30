@@ -128,6 +128,7 @@ active rollout for selected agents
 | `codeops/dspy/adapter.py` | DSPy LM adapter over `AIGateway.chat()` |
 | `codeops/dspy/runner.py` | Runtime entry point used by `DSPyRuntime` |
 | `codeops/dspy/signatures.py` | DSPy signatures |
+| `codeops/dspy/modules.py` | DSPy modules (forward/optimize methods) |
 | `codeops/dspy/programs/` | Program definitions and registry |
 | `codeops/dspy/compiler.py` | Dataset loading and compile pipeline |
 | `codeops/dspy/store.py` | Versioned compiled program storage |

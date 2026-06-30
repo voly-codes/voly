@@ -1,20 +1,8 @@
 <script>
   import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon } from '../../icons.js'
+  import { fmtTokens, fmtDur } from './lib/utils.js'
 
   let { summary = null, task = null } = $props()
-
-  function fmtTokens(n) {
-    if (!n) return '0'
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
-    return String(n)
-  }
-
-  function fmtDur(ms) {
-    if (!ms) return '—'
-    if (ms < 1000) return `${Math.round(ms)}ms`
-    return `${(ms / 1000).toFixed(1)}s`
-  }
 
   let byAgent = $derived(
     summary?.by_agent
@@ -30,7 +18,6 @@
 </script>
 
 <div class="cost-panel">
-  <!-- Summary cards -->
   {#if summary}
     <section class="panel-section">
       <div class="section-title">Обзор</div>
@@ -98,55 +85,28 @@
       <div class="section-title">Статусы</div>
       <div class="status-grid">
         {#each Object.entries(summary.by_status ?? {}) as [s, n]}
-          {@const statusRu = { completed: 'выполнено', failed: 'ошибка', running: 'в работе', error: 'ошибка' }}
+          {@const r = { completed: 'выполнено', failed: 'ошибка', running: 'в работе', error: 'ошибка' }}
           <div class="status-chip status-{s}">
             <span class="status-n">{n}</span>
-            <span class="status-name">{statusRu[s] ?? s}</span>
+            <span class="status-name">{r[s] ?? s}</span>
           </div>
         {/each}
       </div>
     </section>
   {/if}
 
-  <!-- Selected task detail -->
   {#if task}
     <section class="panel-section">
       <div class="section-title">Выбранная задача</div>
       <div class="task-detail-rows">
-        <div class="detail-row">
-          <span class="dr-label">Стоимость</span>
-          <span class="dr-val accent">${(task.cost_usd ?? 0).toFixed(6)}</span>
-        </div>
-        <div class="detail-row">
-          <span class="dr-label">Токены вход</span>
-          <span class="dr-val">{fmtTokens(task.tokens?.input)}</span>
-        </div>
-        <div class="detail-row">
-          <span class="dr-label">Токены выход</span>
-          <span class="dr-val">{fmtTokens(task.tokens?.output)}</span>
-        </div>
-        <div class="detail-row">
-          <span class="dr-label">RTK экономия</span>
-          <span class="dr-val saved">{fmtTokens(task.tokens?.saved_rtk)}</span>
-        </div>
-        <div class="detail-row">
-          <span class="dr-label">Headroom экон.</span>
-          <span class="dr-val saved">{fmtTokens(task.tokens?.saved_headroom)}</span>
-        </div>
-        <div class="detail-row">
-          <span class="dr-label">Кэш</span>
-          <span class="dr-val">{task.gateway?.cache_hit ? 'да' : 'нет'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="dr-label">Длительность</span>
-          <span class="dr-val">{fmtDur(task.duration_ms)}</span>
-        </div>
-        {#if task.automation_score != null}
-          <div class="detail-row">
-            <span class="dr-label">Автоматизация</span>
-            <span class="dr-val">{(task.automation_score * 100).toFixed(0)}%</span>
-          </div>
-        {/if}
+        <div class="detail-row"><span class="dr-label">Стоимость</span><span class="dr-val accent">${(task.cost_usd ?? 0).toFixed(6)}</span></div>
+        <div class="detail-row"><span class="dr-label">Токены вход</span><span class="dr-val">{fmtTokens(task.tokens?.input)}</span></div>
+        <div class="detail-row"><span class="dr-label">Токены выход</span><span class="dr-val">{fmtTokens(task.tokens?.output)}</span></div>
+        <div class="detail-row"><span class="dr-label">RTK экономия</span><span class="dr-val saved">{fmtTokens(task.tokens?.saved_rtk)}</span></div>
+        <div class="detail-row"><span class="dr-label">Headroom экон.</span><span class="dr-val saved">{fmtTokens(task.tokens?.saved_headroom)}</span></div>
+        <div class="detail-row"><span class="dr-label">Кэш</span><span class="dr-val">{task.gateway?.cache_hit ? 'да' : 'нет'}</span></div>
+        <div class="detail-row"><span class="dr-label">Длительность</span><span class="dr-val">{fmtDur(task.duration_ms)}</span></div>
+        {#if task.automation_score != null}<div class="detail-row"><span class="dr-label">Автоматизация</span><span class="dr-val">{(task.automation_score * 100).toFixed(0)}%</span></div>{/if}
       </div>
     </section>
   {/if}

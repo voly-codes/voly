@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
-    """CodeOps pipeline: INIT → ROUTE → SKILL_INJECT → MODEL_CALL → DONE."""
+    """CodeOps pipeline: INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE / ERROR."""
 
     def __init__(self, config: Any = None):
         from codeops.config import load_config
