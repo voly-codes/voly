@@ -78,7 +78,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
 
     runner = AgentRunner(cfg)
     work_dir = req.cwd or os.getcwd()
-    result = runner.run(req.task, req.executor, cwd=work_dir, max_turns=req.max_turns)
+    result = runner.run(req.task, req.executor, cwd=work_dir, max_turns=req.max_turns, model=req.model or "")
     return {
         "success": result.success,
         "executor": result.executor,

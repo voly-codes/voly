@@ -154,11 +154,14 @@ def resolve_executor(agent: str, config: CodeOpsConfig) -> tuple[str, str]:
     return "cursor", key
 
 
-def _build_executor(executor_name: str) -> Executor:
+def _build_executor(executor_name: str, model: str | None = None) -> Executor:
+    kwargs = {}
+    if model:
+        kwargs["model"] = model
     factories: dict[str, Callable[[], Executor]] = {
         "cursor": lambda: __import__(
             "codeops.executor.cursor", fromlist=["CursorExecutor"]
-        ).CursorExecutor(),
+        ).CursorExecutor(**kwargs),
         "claude-code": lambda: __import__(
             "codeops.executor.claude_code", fromlist=["ClaudeCodeExecutor"]
         ).ClaudeCodeExecutor(),
@@ -167,13 +170,13 @@ def _build_executor(executor_name: str) -> Executor:
         ).MiMoExecutor(),
         "opencode": lambda: __import__(
             "codeops.executor.opencode", fromlist=["OpenCodeExecutor"]
-        ).OpenCodeExecutor(),
+        ).OpenCodeExecutor(**kwargs),
         "deepseek": lambda: __import__(
             "codeops.executor.deepseek", fromlist=["DeepSeekExecutor"]
-        ).DeepSeekExecutor(),
+        ).DeepSeekExecutor(**kwargs),
         "zen": lambda: __import__(
             "codeops.executor.zen", fromlist=["ZenExecutor"]
-        ).ZenExecutor(),
+        ).ZenExecutor(**kwargs),
     }
     if executor_name not in factories:
         valid = ", ".join(sorted(factories))
@@ -218,6 +221,7 @@ class AgentRunner:
         cwd: str,
         max_turns: int = 30,
         timeout: int = 300,
+        model: str = "",
     ) -> RunnerResult:
         self.setup_rtk()
 
@@ -225,7 +229,7 @@ class AgentRunner:
         task_type = detect_task_type(task)
         task_id = new_task_id()
 
-        executor = _build_executor(executor_name)
+        executor = _build_executor(executor_name, model or None)
         git_before = _git_porcelain(cwd)
         t0 = time.monotonic()
         result = executor.run(
@@ -262,8 +266,8 @@ class AgentRunner:
             ),
             cost_usd=result.cost_usd,
             duration_ms=result.duration_ms,
-            model=executor_name,
-            provider=executor_name,
+            model=result.metadata.get("model") if result.metadata else (model or executor_name),
+            provider=result.metadata.get("provider") if result.metadata else executor_name,
             task_type=task_type,
             automation_score=automation_score,
             manual_steps_removed=manual_steps,
