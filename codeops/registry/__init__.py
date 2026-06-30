@@ -16,11 +16,11 @@ from codeops.registry.skills import (
     Skill,
     SkillSource,
     SkillStatus,
-    BUILTIN_SKILLS,
     create_skill_registry,
     resolve_marketplace_url,
     resolve_skills_path,
 )
+from codeops.registry.builtin_data import BUILTIN_SKILLS
 
 __all__ = [
     "AgentRegistry",

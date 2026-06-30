@@ -7,10 +7,13 @@
   import RunPanel from './lib/components/tasks/RunPanel.svelte'
   import MarketplacePage from './lib/components/cf/MarketplacePage.svelte'
   import CFPage from './lib/components/cf/CFPage.svelte'
+  import DSPyPage from './lib/components/dspy/DSPyPage.svelte'
+  import Drawer from './lib/components/shared/Drawer.svelte'
+  import { PlayIcon, CloudUploadIcon, BookOpenIcon } from './lib/icons.js'
   import { fetchTasks, fetchSummary, fetchStatus } from './lib/api/client.js'
 
   let dark = $state(false)
-  let page = $state('tasks')   // 'tasks' | 'run' | 'marketplace' | 'cf'
+  let page = $state('tasks')   // 'tasks' | 'dspy'
 
   let tasks = $state([])
   let selected = $state(null)
@@ -19,11 +22,20 @@
   let loading = $state(true)
   let error = $state(null)
 
+  // Drawers
+  let runOpen       = $state(false)
+  let cfOpen        = $state(false)
+  let marketOpen    = $state(false)
+
   const navItems = [
-    { id: 'tasks',       label: 'Tasks' },
-    { id: 'run',         label: 'Run' },
-    { id: 'marketplace', label: 'Marketplace' },
-    { id: 'cf',          label: 'CF' },
+    { id: 'tasks', label: 'Tasks' },
+    { id: 'dspy',  label: 'DSPy' },
+  ]
+
+  const drawerBtns = [
+    { open: () => runOpen    = true, icon: PlayIcon,        label: 'Run' },
+    { open: () => cfOpen     = true, icon: CloudUploadIcon, label: 'CF' },
+    { open: () => marketOpen = true, icon: BookOpenIcon,    label: 'Skills' },
   ]
 
   $effect(() => {
@@ -59,26 +71,38 @@
   />
 
   <nav class="nav">
-    {#each navItems as item}
-      <button
-        class="nav-btn"
-        class:active={page === item.id}
-        onclick={() => page = item.id}
-      >{item.label}</button>
-    {/each}
+    <div class="nav-left">
+      {#each navItems as item}
+        <button
+          class="nav-btn"
+          class:active={page === item.id}
+          onclick={() => page = item.id}
+        >{item.label}</button>
+      {/each}
+    </div>
+
+    <div class="nav-right">
+      {#each drawerBtns as btn}
+        {@const Icon = btn.icon}
+        <button class="drawer-trigger" onclick={btn.open} title={btn.label}>
+          <Icon size="13" strokeWidth="2" />
+          <span>{btn.label}</span>
+        </button>
+      {/each}
+    </div>
   </nav>
 
   {#if error && page === 'tasks'}
     <div class="error-banner">
-      Failed to connect to CodeOps API: {error}
-      <button onclick={load}>Retry</button>
+      Нет соединения с CodeOps API: {error}
+      <button onclick={load}>Повторить</button>
     </div>
   {/if}
 
   <div class="body">
     {#if page === 'tasks'}
       {#if loading && tasks.length === 0}
-        <div class="loading">Loading tasks…</div>
+        <div class="loading">Загрузка задач…</div>
       {:else}
         <TaskSidebar {tasks} bind:selected />
         <main class="main">
@@ -87,19 +111,24 @@
         <CostPanel {summary} task={selected} />
       {/if}
 
-    {:else if page === 'run'}
-      <div class="run-page">
-        <RunPanel onTaskComplete={load} />
-      </div>
-
-    {:else if page === 'marketplace'}
-      <MarketplacePage />
-
-    {:else if page === 'cf'}
-      <CFPage />
+    {:else if page === 'dspy'}
+      <DSPyPage />
     {/if}
   </div>
 </div>
+
+<!-- Drawers -->
+<Drawer bind:open={runOpen} title="Запустить задачу" width="480px">
+  <RunPanel onTaskComplete={() => { runOpen = false; load() }} />
+</Drawer>
+
+<Drawer bind:open={cfOpen} title="Cloudflare" width="520px">
+  <CFPage />
+</Drawer>
+
+<Drawer bind:open={marketOpen} title="Skill Marketplace" width="600px">
+  <MarketplacePage />
+</Drawer>
 
 <style>
   .app {
@@ -150,27 +179,27 @@
     font-size: 11px;
   }
 
-  .run-page {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    background: var(--bg-primary);
-    max-width: 900px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 0 0 40px;
-  }
-
   .nav {
     display: flex;
     align-items: center;
-    gap: 2px;
+    justify-content: space-between;
     padding: 0 12px;
     height: 36px;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-default);
     flex-shrink: 0;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .nav-btn {
@@ -192,5 +221,26 @@
   .nav-btn.active {
     background: var(--bg-inset);
     color: var(--text-primary);
+  }
+
+  .drawer-trigger {
+    height: 26px;
+    padding: 0 9px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--border-muted);
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+
+  .drawer-trigger:hover {
+    background: var(--bg-inset);
+    color: var(--text-primary);
+    border-color: var(--border-default);
   }
 </style>

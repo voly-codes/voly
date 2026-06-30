@@ -32,9 +32,9 @@
     if (!mtime) return ''
     const d = new Date(mtime * 1000)
     const diff = (Date.now() - d) / 1000
-    if (diff < 60) return 'just now'
-    if (diff < 3600) return `${Math.round(diff / 60)}m ago`
-    if (diff < 86400) return `${Math.round(diff / 3600)}h ago`
+    if (diff < 60) return 'только что'
+    if (diff < 3600) return `${Math.round(diff / 60)}м назад`
+    if (diff < 86400) return `${Math.round(diff / 3600)}ч назад`
     return d.toLocaleDateString()
   }
 </script>
@@ -44,13 +44,16 @@
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
     <input
       type="text"
-      placeholder="Filter tasks…"
+      placeholder="Поиск: агент, модель, executor, ID…"
       bind:value={query}
       class="search-input"
     />
   </div>
 
-  <div class="task-count">{filtered.length} tasks</div>
+  <div class="task-count">
+    {filtered.length} задач{filtered.length === 1 ? 'а' : filtered.length < 5 ? 'и' : ''}
+    <span class="count-desc">· обновляется каждые 10с</span>
+  </div>
 
   <div class="task-list">
     {#each filtered as task (task.task_id)}
@@ -62,8 +65,8 @@
       >
         <div class="task-row-top">
           <StatusDot status={task.status} size={7} />
-          <span class="task-agent">{task.agent ?? 'unknown'}</span>
-          <span class="task-cost">${(task.cost_usd ?? 0).toFixed(4)}</span>
+          <span class="task-agent">{task.agent ?? 'неизвестно'}</span>
+          <span class="task-cost" title="Стоимость AI API для этой задачи">${(task.cost_usd ?? 0).toFixed(4)}</span>
         </div>
         <div class="task-row-mid">
           <span class="task-model">{task.model ?? '—'}</span>
@@ -80,7 +83,7 @@
     {/each}
 
     {#if filtered.length === 0}
-      <div class="empty">No tasks found</div>
+      <div class="empty">Задачи не найдены</div>
     {/if}
   </div>
 </aside>
@@ -121,6 +124,15 @@
     font-size: 11px;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .count-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.7;
   }
 
   .task-list {

@@ -141,25 +141,6 @@ def skill_publish(ctx: click.Context, yaml_path: str) -> None:
     click.echo(f"Published: {skill_id}")
 
 
-@skill.command("sync")
-@click.option("--verbose", "-v", is_flag=True)
-@click.pass_context
-def skill_sync(ctx: click.Context, verbose: bool) -> None:
-    """Refresh builtin skills from CF Marketplace (clears local cache)."""
-    from codeops.registry.marketplace import MarketplaceError
-
-    reg = _registry(ctx)
-    try:
-        count = reg.sync_builtins()
-    except MarketplaceError as exc:
-        raise click.ClickException(str(exc)) from exc
-
-    click.echo(f"Synced {count} builtin skill(s) from CF Marketplace.")
-    if verbose:
-        for s in reg.search(source=__import__("codeops.registry.skills", fromlist=["SkillSource"]).SkillSource.BUILTIN):
-            click.echo(f"  {s.id} — {s.name}")
-
-
 @skill.command("generate")
 @click.option("--cwd", "project_root", default=".", show_default=True, help="Project root to scan")
 @click.option("--dry-run", is_flag=True, help="Print skills without saving")
@@ -200,6 +181,50 @@ def skill_generate(ctx: click.Context, project_root: str, dry_run: bool) -> None
             save_skill_yaml(skill_obj, reg.skills_path / f"{skill_obj.id}.yaml")
             saved += 1
     click.echo(f"\nSaved {saved} skill(s) → {reg.skills_path}")
+
+
+@skill.command("seed")
+@click.option("--force", is_flag=True, help="Overwrite skills that already exist in the marketplace")
+@click.option("--dry-run", is_flag=True, help="Print what would be seeded without writing")
+@click.pass_context
+def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
+    """Seed CF Marketplace with builtin skills from builtin_data.py.
+
+    Skills already present in the marketplace are skipped unless --force is set.
+    Run once after initial deployment to populate the D1 database.
+    """
+    from codeops.registry.builtin_data import BUILTIN_SKILLS
+    from codeops.registry.loader import skill_to_yaml_dict
+
+    mp = _marketplace_client(ctx)
+
+    seeded = skipped = errors = 0
+    for skill_obj in BUILTIN_SKILLS:
+        if dry_run:
+            click.echo(f"  would seed: {skill_obj.id} — {skill_obj.name}")
+            seeded += 1
+            continue
+
+        if not force:
+            try:
+                mp.get_skill(skill_obj.id)
+                click.echo(f"  skip (exists): {skill_obj.id}")
+                skipped += 1
+                continue
+            except MarketplaceError:
+                pass  # 404 = not found, proceed with seed
+
+        payload = skill_to_yaml_dict(skill_obj)
+        try:
+            mp.publish_skill(payload)
+            click.echo(f"  seeded: {skill_obj.id} — {skill_obj.name}")
+            seeded += 1
+        except MarketplaceError as exc:
+            click.echo(f"  error: {skill_obj.id}: {exc}", err=True)
+            errors += 1
+
+    label = "would seed" if dry_run else "seeded"
+    click.echo(f"\n{label}: {seeded}  skipped: {skipped}  errors: {errors}")
 
 
 @skill.command("show")

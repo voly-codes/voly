@@ -61,9 +61,12 @@ class OpenCodeExecutor(Executor):
         max_turns: int = 20,
         timeout: int = 600,
     ) -> ExecutorResult:
-        """Run via opencode CLI in headless mode via stdin pipe."""
-        # opencode run reads from stdin when piped (no --print flag needed)
-        cmd = ["opencode", "run"]
+        """Run via opencode CLI: `opencode run <message>`.
+
+        Message is a positional argument — NOT stdin.
+        Output is plain text with ANSI codes stripped.
+        """
+        cmd = ["opencode", "run", task]
 
         env = {**os.environ}
         if self._model:
@@ -75,7 +78,6 @@ class OpenCodeExecutor(Executor):
                 cmd,
                 cwd=cwd,
                 env=env,
-                input=task,
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -90,9 +92,14 @@ class OpenCodeExecutor(Executor):
                     metadata={"mode": "cli"},
                 )
 
-            # Strip ANSI escape codes from output
             import re
-            output = re.sub(r'\x1b\[[0-9;]*m', '', proc.stdout).strip()
+            # stdout holds the assistant reply; stderr has progress/model info
+            output = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', proc.stdout).strip()
+            if not output:
+                # Some versions write to stderr; strip ANSI and use last non-empty line
+                lines = [re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', l).strip()
+                         for l in proc.stderr.splitlines() if l.strip()]
+                output = lines[-1] if lines else ""
 
             return ExecutorResult(
                 success=True,
@@ -155,3 +162,56 @@ class OpenCodeExecutor(Executor):
         except Exception as e:
             duration_ms = (time.monotonic() - started) * 1000
             return ExecutorResult(success=False, error=str(e), duration_ms=duration_ms)
+
+    def _parse_json_events(self, stdout: str, stderr: str, duration_ms: float) -> ExecutorResult:
+        """Parse NDJSON event stream from `opencode run --format json`."""
+        import json
+        import re
+
+        text_parts: list[str] = []
+        input_tokens = output_tokens = cost = num_turns = 0
+        session_id = ""
+
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            t = ev.get("type", "")
+            # Assistant text content
+            if t == "assistant" and isinstance(ev.get("content"), list):
+                for block in ev["content"]:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        text_parts.append(block.get("text", ""))
+            # Plain text events (older format)
+            elif t in ("text", "message") and "text" in ev:
+                text_parts.append(ev["text"])
+            # Usage / cost summary
+            elif t in ("cost", "usage", "summary"):
+                input_tokens += ev.get("input_tokens", 0) or 0
+                output_tokens += ev.get("output_tokens", 0) or 0
+                cost += ev.get("cost", 0) or 0
+                num_turns += ev.get("turns", 0) or 0
+                session_id = session_id or ev.get("session_id", "")
+            elif t == "session":
+                session_id = session_id or ev.get("id", "")
+
+        # Fallback: if no structured text, strip ANSI and use raw stdout
+        if not text_parts:
+            text_parts = [re.sub(r'\x1b\[[0-9;]*m', '', stdout).strip()]
+
+        return ExecutorResult(
+            success=True,
+            output="\n\n".join(p for p in text_parts if p).strip(),
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost_usd=cost,
+            duration_ms=duration_ms,
+            num_turns=num_turns or 1,
+            session_id=session_id,
+            metadata={"mode": "cli", "provider": "opencode-go"},
+        )

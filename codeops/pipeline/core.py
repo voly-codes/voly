@@ -51,6 +51,8 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
         self._ai_gateway: Any = None
         self._dspy_runner: Any = None
         self._inference_manager: Any = None
+        self._run_started: float = 0.0
+        self._run_stage_log: list[dict] = []
 
     # ── Lazy-loaded subsystems ────────────────────────────────────────────────
 
@@ -237,6 +239,8 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
         from codeops.telemetry import TaskEvent, emit_event_from_config, new_task_id
 
         started = time.monotonic()
+        self._run_started = started
+        self._run_stage_log = []
         context = context or {}
         task_id = new_task_id()
 
@@ -359,6 +363,8 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
         return self._provider
 
     def _fire(self, stage: PipelineStage, **kwargs: Any) -> None:
+        elapsed = round((time.monotonic() - self._run_started) * 1000) if self._run_started else 0
+        self._run_stage_log.append({"stage": stage.value, "elapsed_ms": elapsed})
         for hook in self._stage_hooks.get(stage, []):
             try:
                 hook(stage=stage, **kwargs)

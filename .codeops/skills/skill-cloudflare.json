@@ -1,0 +1,39 @@
+{
+  "id": "skill-cloudflare",
+  "name": "Cloudflare Platform",
+  "description": "Работа с Cloudflare: Workers, R2, D1, Pages, Queues, KV",
+  "source": "builtin",
+  "status": "active",
+  "version": "1.0.0",
+  "tags": [
+    "cloudflare",
+    "serverless",
+    "edge"
+  ],
+  "capabilities": [
+    "serverless",
+    "storage",
+    "edge-computing"
+  ],
+  "required_tools": [
+    "cloudflare"
+  ],
+  "compatible_agents": [
+    "developer",
+    "devops"
+  ],
+  "compatible_languages": [
+    "typescript",
+    "javascript",
+    "rust"
+  ],
+  "compatible_frameworks": [
+    "nextjs",
+    "hono",
+    "remix"
+  ],
+  "usage_count": 0,
+  "success_rate": 1,
+  "content": "Cloudflare best practices: Workers для edge compute, R2 для object storage, D1 для SQLite...",
+  "updated_at": 1782214233626
+}

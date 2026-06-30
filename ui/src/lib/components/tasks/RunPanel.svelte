@@ -99,6 +99,7 @@
       rows="3"
       disabled={running}
     ></textarea>
+    <p class="field-desc">Опишите задачу — что нужно сделать, в каких файлах, с какими ограничениями. Чем точнее, тем лучше результат. Ctrl+Enter для запуска.</p>
 
     <div class="run-options">
       <div class="option-group">
@@ -111,6 +112,11 @@
           </select>
           <ChevronDownIcon size="12" strokeWidth="2" class="select-arrow" />
         </div>
+        {#if executor === 'pipeline'}
+          <p class="field-desc">AI Gateway: оптимизация токенов, инъекция скилов, кэш и DLP.</p>
+        {:else}
+          <p class="field-desc">IDE executor: работает напрямую с файлами проекта.</p>
+        {/if}
       </div>
 
       <div class="option-group">
@@ -124,6 +130,7 @@
           </select>
           <ChevronDownIcon size="12" strokeWidth="2" class="select-arrow" />
         </div>
+        <p class="field-desc">auto — роутер выберет роль. Принудительно: architect, developer, reviewer, tester, devops, security.</p>
       </div>
 
       <div class="option-group">
@@ -137,6 +144,7 @@
           </select>
           <ChevronDownIcon size="12" strokeWidth="2" class="select-arrow" />
         </div>
+        <p class="field-desc">auto — роутер выберет. Opus для сложных задач, Haiku для быстрых/дешёвых.</p>
       </div>
 
       {#if executor !== 'pipeline'}
@@ -149,6 +157,7 @@
             bind:value={cwd}
             disabled={running}
           />
+          <p class="field-desc">Абсолютный путь — executor будет читать/писать файлы здесь.</p>
         </div>
       {/if}
 
@@ -248,6 +257,13 @@
   }
 
   .run-form { display: flex; flex-direction: column; gap: 8px; }
+
+  .field-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin: 0;
+  }
 
   .task-input {
     width: 100%;

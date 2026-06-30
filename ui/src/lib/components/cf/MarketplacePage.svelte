@@ -83,18 +83,21 @@
 
 <div class="marketplace">
   <div class="mkt-header">
-    <div class="mkt-title">
-      <span class="title-text">Skill Marketplace</span>
-      {#if total > 0}
-        <span class="total-badge">{total}</span>
-      {/if}
+    <div class="mkt-title-row">
+      <div class="mkt-title">
+        <span class="title-text">Skill Marketplace</span>
+        {#if total > 0}
+          <span class="total-badge">{total}</span>
+        {/if}
+      </div>
+      <p class="mkt-header-desc">Скилы — наборы инструкций, хранящихся в Cloudflare D1. После установки автоматически инжектируются в pipeline когда задача совпадает по тематике. Поиск через FTS + Vectorize.</p>
     </div>
 
     <div class="mkt-search">
       <SearchIcon size="13" strokeWidth="2" />
       <input
         type="text"
-        placeholder="Search skills…"
+        placeholder="Поиск по имени, тегам, технологии…"
         bind:value={query}
         oninput={onSearch}
         class="search-input"
@@ -106,8 +109,8 @@
     <div class="not-configured">
       <AlertCircleIcon size="16" strokeWidth="2" />
       <div>
-        <div class="nc-title">Marketplace not configured</div>
-        <div class="nc-hint">{hint || 'Set CF_WORKER_MARKETPLACE_URL in .env to enable'}</div>
+        <div class="nc-title">Marketplace не настроен</div>
+        <div class="nc-hint">{hint || 'Укажи CF_WORKER_MARKETPLACE_URL в .env для подключения'}</div>
       </div>
     </div>
   {:else if loading}
@@ -123,14 +126,15 @@
     </div>
   {:else if skills.length === 0}
     <div class="empty">
-      {query ? `No skills matching "${query}"` : 'No skills in marketplace yet'}
+      {query ? `Нет скилов по запросу «${query}»` : 'Маркетплейс пуст'}
     </div>
   {:else}
     <div class="skills-grid">
       {#each skills as skill (skill.id ?? skill.name)}
         <div class="skill-card">
           <div class="skill-top">
-            <span class="skill-source" style:color={sourceColor(skill.source)}>
+            <span class="skill-source" style:color={sourceColor(skill.source)}
+              title="builtin = core CodeOps skills · marketplace = community · project = from your docs · organization = team-provided · generated = auto-created">
               {skill.source ?? 'marketplace'}
             </span>
             {#if skill.status && skill.status !== 'active'}
@@ -166,15 +170,18 @@
               class:installing={!!installing[skill.id]}
               onclick={() => install(skill)}
               disabled={!!installing[skill.id] || !!installed[skill.id]}
+              title={installed[skill.id]
+                ? 'Установлен в .codeops/skills/ — будет активен при следующем запуске pipeline'
+                : 'Скачать скил в .codeops/skills/ — после этого он будет автоматически добавляться в контекст агента'}
             >
               {#if installed[skill.id]}
                 <CheckIcon size="11" strokeWidth="2.5" />
-                Installed
+                Установлен
               {:else if installing[skill.id]}
-                Installing…
+                Установка…
               {:else}
                 <DownloadIcon size="11" strokeWidth="2" />
-                Install
+                Установить
               {/if}
             </button>
           </div>
@@ -184,9 +191,9 @@
 
     {#if total > LIMIT && !query}
       <div class="pagination">
-        <button onclick={prevPage} disabled={page === 1}>← Prev</button>
-        <span class="page-info">Page {page} of {Math.ceil(total / LIMIT)}</span>
-        <button onclick={nextPage} disabled={page * LIMIT >= total}>Next →</button>
+        <button onclick={prevPage} disabled={page === 1}>← Назад</button>
+        <span class="page-info">Стр. {page} из {Math.ceil(total / LIMIT)}</span>
+        <button onclick={nextPage} disabled={page * LIMIT >= total}>Вперёд →</button>
       </div>
     {/if}
   {/if}
@@ -209,11 +216,25 @@
     flex-shrink: 0;
   }
 
+  .mkt-title-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
   .mkt-title {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-shrink: 0;
+  }
+
+  .mkt-header-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin: 0;
+    max-width: 380px;
   }
 
   .title-text {
@@ -255,7 +276,7 @@
   }
   .search-input::placeholder { color: var(--text-muted); }
 
-  .not-configured {
+.not-configured {
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -371,7 +392,6 @@
   }
 
   .install-btn {
-    margin-left: auto;
     height: 24px;
     padding: 0 8px;
     font-size: 11px;

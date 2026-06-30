@@ -128,6 +128,11 @@ class TaskEvent:
     dspy_compile_id: str | None = None
     dspy_score: float | None = None
     dspy_shadow_delta: float | None = None
+    # Task content
+    task_prompt: str | None = None      # original user task text (capped at 2000 chars)
+    result: str | None = None           # LLM output text (capped at 8000 chars)
+    stage_log: list[dict] = field(default_factory=list)  # [{stage, elapsed_ms}]
+    report: dict | None = None          # WorkReport.to_dict() — mini work summary
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

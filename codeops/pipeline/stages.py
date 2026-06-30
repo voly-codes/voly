@@ -374,6 +374,9 @@ class _PipelineStageMixin:
             ),
             dspy_enabled=self.config.dspy.enabled,  # type: ignore[attr-defined]
             dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else None,  # type: ignore[attr-defined]
+            task_prompt=task[:2000] if task else None,
+            result=response.content[:8000] if response.content else None,
+            stage_log=list(getattr(self, "_run_stage_log", [])),  # type: ignore[attr-defined]
             **dspy_fields,
         )
         emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]

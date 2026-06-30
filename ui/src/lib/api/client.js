@@ -69,3 +69,6 @@ export const installSkill = skill_id =>
 // CF
 export const fetchCFWorkersStatus = () => get('/api/cf/workers/status')
 export const fetchCFSpend = (days = 7) => get(`/api/cf/spend/summary?days=${days}`)
+
+// DSPy
+export const fetchDSPyStatus = () => get('/api/dspy/status')

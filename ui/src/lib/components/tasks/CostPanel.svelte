@@ -33,34 +33,34 @@
   <!-- Summary cards -->
   {#if summary}
     <section class="panel-section">
-      <div class="section-title">Overview</div>
+      <div class="section-title">Обзор</div>
       <div class="cards">
         <div class="card">
           <CoinsIcon size="13" strokeWidth="2" />
           <span class="card-value">${(summary.total_cost_usd ?? 0).toFixed(4)}</span>
-          <span class="card-label">total cost</span>
+          <span class="card-label">расходы</span>
         </div>
         <div class="card">
           <CpuIcon size="13" strokeWidth="2" />
           <span class="card-value">{fmtTokens(summary.total_input_tokens + summary.total_output_tokens)}</span>
-          <span class="card-label">tokens used</span>
+          <span class="card-label">токенов</span>
         </div>
         <div class="card">
           <TrendingUpIcon size="13" strokeWidth="2" />
           <span class="card-value">{fmtTokens(summary.total_saved_tokens)}</span>
-          <span class="card-label">tokens saved</span>
+          <span class="card-label">сэкономлено</span>
         </div>
         <div class="card">
           <TimerIcon size="13" strokeWidth="2" />
           <span class="card-value">{fmtDur(summary.avg_duration_ms)}</span>
-          <span class="card-label">avg duration</span>
+          <span class="card-label">среднее время</span>
         </div>
       </div>
     </section>
 
     {#if byAgent.length}
       <section class="panel-section">
-        <div class="section-title">By Agent</div>
+        <div class="section-title">По агентам</div>
         <div class="bar-list">
           {#each byAgent as [agent, count]}
             {@const pct = Math.round((count / summary.total_tasks) * 100)}
@@ -78,7 +78,7 @@
 
     {#if byModel.length}
       <section class="panel-section">
-        <div class="section-title">By Model</div>
+        <div class="section-title">По моделям</div>
         <div class="bar-list">
           {#each byModel.slice(0, 5) as [model, count]}
             {@const pct = Math.round((count / summary.total_tasks) * 100)}
@@ -95,12 +95,13 @@
     {/if}
 
     <section class="panel-section">
-      <div class="section-title">Status</div>
+      <div class="section-title">Статусы</div>
       <div class="status-grid">
         {#each Object.entries(summary.by_status ?? {}) as [s, n]}
+          {@const statusRu = { completed: 'выполнено', failed: 'ошибка', running: 'в работе', error: 'ошибка' }}
           <div class="status-chip status-{s}">
             <span class="status-n">{n}</span>
-            <span class="status-name">{s}</span>
+            <span class="status-name">{statusRu[s] ?? s}</span>
           </div>
         {/each}
       </div>
@@ -110,39 +111,39 @@
   <!-- Selected task detail -->
   {#if task}
     <section class="panel-section">
-      <div class="section-title">Selected Task</div>
+      <div class="section-title">Выбранная задача</div>
       <div class="task-detail-rows">
         <div class="detail-row">
-          <span class="dr-label">Cost</span>
+          <span class="dr-label">Стоимость</span>
           <span class="dr-val accent">${(task.cost_usd ?? 0).toFixed(6)}</span>
         </div>
         <div class="detail-row">
-          <span class="dr-label">Input tokens</span>
+          <span class="dr-label">Токены вход</span>
           <span class="dr-val">{fmtTokens(task.tokens?.input)}</span>
         </div>
         <div class="detail-row">
-          <span class="dr-label">Output tokens</span>
+          <span class="dr-label">Токены выход</span>
           <span class="dr-val">{fmtTokens(task.tokens?.output)}</span>
         </div>
         <div class="detail-row">
-          <span class="dr-label">RTK saved</span>
+          <span class="dr-label">RTK экономия</span>
           <span class="dr-val saved">{fmtTokens(task.tokens?.saved_rtk)}</span>
         </div>
         <div class="detail-row">
-          <span class="dr-label">Headroom saved</span>
+          <span class="dr-label">Headroom экон.</span>
           <span class="dr-val saved">{fmtTokens(task.tokens?.saved_headroom)}</span>
         </div>
         <div class="detail-row">
-          <span class="dr-label">Cache hit</span>
-          <span class="dr-val">{task.gateway?.cache_hit ? 'yes' : 'no'}</span>
+          <span class="dr-label">Кэш</span>
+          <span class="dr-val">{task.gateway?.cache_hit ? 'да' : 'нет'}</span>
         </div>
         <div class="detail-row">
-          <span class="dr-label">Duration</span>
+          <span class="dr-label">Длительность</span>
           <span class="dr-val">{fmtDur(task.duration_ms)}</span>
         </div>
         {#if task.automation_score != null}
           <div class="detail-row">
-            <span class="dr-label">Automation</span>
+            <span class="dr-label">Автоматизация</span>
             <span class="dr-val">{(task.automation_score * 100).toFixed(0)}%</span>
           </div>
         {/if}

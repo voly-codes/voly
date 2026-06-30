@@ -66,6 +66,10 @@ class MarketplaceClient:
     def health(self) -> dict[str, Any]:
         return self._request("GET", "/health")
 
+    def health_detailed(self) -> dict[str, Any]:
+        """Check availability of all CF services (D1, R2, KV, Vectorize)."""
+        return self._request("GET", "/health/detailed")
+
     def list_skills(
         self,
         *,
@@ -107,11 +111,6 @@ class MarketplaceClient:
             raise MarketplaceError(f"HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
             raise MarketplaceError(str(exc.reason)) from exc
-
-    def fetch_builtins(self, limit: int = 200) -> list[dict[str, Any]]:
-        """Fetch active builtin skills from CF Marketplace."""
-        data = self.list_skills(source="builtin", status="active", limit=limit)
-        return data.get("skills", [])
 
     def publish_skill(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/skills", body=payload)

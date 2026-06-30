@@ -63,7 +63,7 @@ def create_app(
     from fastapi.staticfiles import StaticFiles
 
     from codeops.web.deps import AppState
-    from codeops.web.routes import cf, marketplace, registry, run, tasks
+    from codeops.web.routes import cf, dspy, marketplace, registry, run, tasks
 
     app = FastAPI(title="CodeOps UI", version="0.1.0", docs_url="/api/docs")
     app.add_middleware(
@@ -83,6 +83,7 @@ def create_app(
     app.include_router(registry.router)
     app.include_router(marketplace.router)
     app.include_router(cf.router)
+    app.include_router(dspy.router)
 
     if _STATIC.exists():
         app.mount("/", StaticFiles(directory=str(_STATIC), html=True), name="static")

@@ -40,6 +40,17 @@
     telemetry:   'Telemetry Ingest',
   }
 
+  const workerHints = {
+    spend:       'Tracks AI API spend per agent using Durable Objects. Provides daily breakdown and agent-level cost attribution.',
+    marketplace: 'Serves skill definitions from D1 + R2. Supports FTS and semantic search via Vectorize. Skills are installed from here into .codeops/skills/.',
+    agui:        'AG-UI protocol gateway. Streams agent events (text deltas, tool calls, state updates) to the frontend in real time.',
+    memory:      'Semantic memory store. Embeds task results via Workers AI and stores them in Vectorize + D1 for future context retrieval.',
+    a2a:         'Agent-to-Agent federation layer. Discovers specialized sub-agents and delegates tasks to the best match.',
+    workflow:    'Multi-step workflow engine with human-in-the-loop approval gates, parallel branches, and checkpoint/resume support.',
+    catalog:     'Model catalog and router. Lists available models, their costs, and selects the optimal one for each task.',
+    telemetry:   'Ingest worker for pipeline events. Records cost, tokens, duration, and stage data for observability and analytics.',
+  }
+
   function statusColor(configured) {
     return configured ? 'var(--accent-green)' : 'var(--border-default)'
   }
@@ -50,11 +61,12 @@
   <section class="cf-section">
     <div class="section-header">
       <span class="section-title">Cloudflare Workers</span>
-      <span class="section-sub">Set env vars to connect each service</span>
+      <span class="section-sub">Зелёный — подключён, серый — не настроен</span>
     </div>
+    <p class="section-desc">Каждый воркер — отдельный Cloudflare Worker. Укажи URL в .env (напр. <code>CF_WORKER_MARKETPLACE_URL</code>) чтобы подключить его к CodeOps.</p>
 
     {#if loadingWorkers}
-      <div class="loading-text">Loading…</div>
+      <div class="loading-text">Загрузка…</div>
     {:else}
       <div class="workers-grid">
         {#each Object.entries(workers) as [key, w]}
@@ -62,6 +74,9 @@
             <div class="worker-dot" style:background={statusColor(w.configured)}></div>
             <div class="worker-info">
               <div class="worker-name">{workerNames[key] ?? key}</div>
+              {#if workerHints[key]}
+                <div class="worker-hint">{workerHints[key]}</div>
+              {/if}
               {#if w.configured}
                 <div class="worker-url">{w.url}</div>
               {:else}
@@ -72,7 +87,7 @@
               {#if w.configured}
                 <CheckIcon size="12" strokeWidth="2.5" style="color: var(--accent-green)" />
               {:else}
-                <span class="not-set">not set</span>
+                <span class="not-set">не задан</span>
               {/if}
             </div>
           </div>
@@ -99,8 +114,10 @@
       </div>
     </div>
 
+    <p class="section-desc">AI API расходы по агентам через Durable Objects. Данные накапливаются в реальном времени. Установи <code>CF_WORKER_SPEND_URL</code> для подключения.</p>
+
     {#if loadingSpend}
-      <div class="loading-text">Loading spend data…</div>
+      <div class="loading-text">Загрузка расходов…</div>
     {:else if spendError}
       <div class="spend-error">
         <AlertCircleIcon size="13" strokeWidth="2" />
@@ -118,7 +135,7 @@
       <div class="spend-summary">
         <div class="spend-total">
           <span class="spend-val">${(spend.total ?? 0).toFixed(4)}</span>
-          <span class="spend-label">last {spendDays} day{spendDays > 1 ? 's' : ''}</span>
+          <span class="spend-label">за {spendDays} дн.</span>
         </div>
 
         {#if spend.agents?.length}
@@ -139,7 +156,7 @@
         {/if}
 
         {#if spend.daily}
-          <div class="daily-title">Daily breakdown</div>
+          <div class="daily-title">По дням</div>
           <div class="daily-chart">
             {#each spend.daily as day}
               {@const max = Math.max(...spend.daily.map(d => d.total ?? 0), 0.001)}
@@ -226,10 +243,33 @@
 
   .worker-info { flex: 1; min-width: 0; }
 
+  .section-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0 0 10px;
+  }
+
+  .section-desc code {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: var(--bg-inset);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: var(--text-secondary);
+  }
+
   .worker-name {
     font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
+  }
+
+  .worker-hint {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-top: 2px;
   }
 
   .worker-url {

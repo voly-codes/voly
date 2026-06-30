@@ -1,7 +1,11 @@
+-- CodeOps Marketplace — D1 schema (fresh install)
+-- For existing installs run: wrangler d1 execute codeops --file=migrate/001_add_content.sql --remote
+
 CREATE TABLE IF NOT EXISTS skills (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT DEFAULT '',
+  content TEXT DEFAULT '',        -- full skill instructions (injected into agent context)
   version TEXT DEFAULT '1.0.0',
   author TEXT DEFAULT '',
   source TEXT DEFAULT 'marketplace',

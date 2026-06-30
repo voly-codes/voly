@@ -148,7 +148,7 @@ telemetry:
 # active — replaces AIGateway.chat() for the agents listed in `agents`
 # Start with shadow to collect comparison data before switching to active.
 dspy:
-  enabled: false
+  enabled: true
   mode: shadow
   optimizer: bootstrap_fewshot
   min_examples: 20

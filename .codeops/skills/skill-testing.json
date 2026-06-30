@@ -1,0 +1,33 @@
+{
+  "id": "skill-testing",
+  "name": "Testing Strategy",
+  "description": "Стратегия тестирования: unit, integration, e2e, contract tests, TDD",
+  "source": "builtin",
+  "status": "active",
+  "version": "1.0.0",
+  "tags": [
+    "testing",
+    "quality",
+    "tdd"
+  ],
+  "capabilities": [
+    "testing",
+    "unit-tests",
+    "integration-tests"
+  ],
+  "required_tools": [],
+  "compatible_agents": [
+    "tester",
+    "developer"
+  ],
+  "compatible_languages": [
+    "*"
+  ],
+  "compatible_frameworks": [
+    "*"
+  ],
+  "usage_count": 0,
+  "success_rate": 1,
+  "content": "Testing pyramid: много unit-тестов, меньше integration, минимум e2e...",
+  "updated_at": 1782214229093
+}
