@@ -69,14 +69,15 @@ _WORKERS_AI_MODELS: dict[str, str] = {
 # ── Task-type → ordered list of preferred providers (best fit first) ────────────
 
 _TASK_PROVIDERS: dict[str, list[str]] = {
-    "architecture": ["anthropic", "openai", "workers-ai", "opencode-zen", "deepseek"],
-    "review":       ["anthropic", "workers-ai", "deepseek", "opencode-zen", "google"],
-    "bug":          ["anthropic", "opencode-zen", "workers-ai", "deepseek", "openai"],
-    "test":         ["anthropic", "workers-ai", "deepseek", "opencode-zen"],
-    "deploy":       ["anthropic", "opencode-zen", "workers-ai", "deepseek"],
-    "docs":         ["anthropic", "workers-ai", "opencode-zen", "deepseek"],
-    "database":     ["anthropic", "opencode-zen", "workers-ai", "deepseek"],
-    "default":      ["anthropic", "workers-ai", "opencode-zen", "deepseek", "google", "mimo"],
+    # cloudflare-dynamic uses the ai_route schema (anthropic primary → workers-ai fallback)
+    "architecture": ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
+    "review":       ["anthropic", "cloudflare-dynamic", "workers-ai", "deepseek", "opencode-zen", "google"],
+    "bug":          ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
+    "test":         ["anthropic", "cloudflare-dynamic", "workers-ai", "deepseek", "opencode-zen"],
+    "deploy":       ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
+    "docs":         ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
+    "database":     ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
+    "default":      ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek", "google", "mimo"],
 }
 
 # ── Keyword → (task_type, agent, tools) ─────────────────────────────────────────

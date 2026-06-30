@@ -148,11 +148,18 @@ ai_gateway:
   fallback:
     enabled: true
     chain:
+      # 1. CF Workers AI — бесплатный, никакого биллинга, глобальная сеть
+      - provider: workers-ai
+        model: "@cf/meta/llama-4-scout-17b-16e-instruct"
+      # 2. CF Dynamic Routing — автоматически выбирает доступный провайдер
+      - provider: cloudflare-dynamic
+        model: dynamic/ai_route
+      # 3. Бесплатные zen-модели как последний резерв
       - provider: opencode-zen
         model: big-pickle
       - provider: opencode-zen
         model: deepseek-v4-flash-free
-    retries: 3
+    retries: 4
   dlp:
     enabled: false
     block_secrets: true
