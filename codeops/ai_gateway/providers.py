@@ -230,33 +230,59 @@ class _GatewayProvidersMixin:
         if not account_id:
             return {"error": "cloudflare-dynamic: CLOUDFLARE_ACCOUNT_ID not set", "content": ""}
 
-        # Dynamic routing goes through the OpenAI-compat endpoint of CF AI Gateway.
-        # model must be "dynamic/{gateway_id}" — routing rules are set in CF dashboard.
-        base      = f"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/openai"
-        dyn_model = model if model.startswith("dynamic/") else f"dynamic/{gateway_id}"
-        hdrs: dict[str, str] = {"Content-Type": "application/json"}
-        if token:
-            hdrs["cf-aig-authorization"] = f"Bearer {token}"
-        for env_key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"):
-            val = os.environ.get(env_key, "")
-            if val:
-                hdrs["Authorization"] = f"Bearer {val}"
-                break
+        # CF AI Gateway dynamic routing uses the /compat endpoint.
+        # model = "dynamic/<route_name>" where route_name is set in CF Dashboard
+        # (AI Gateway → {gateway_id} → Routing → route name).
+        # CF_AIG_ROUTE env overrides the route name; defaults to "ai_route".
+        route_name = os.environ.get("CF_AIG_ROUTE", "ai_route")
+        # /compat is an OpenAI-compat proxy; full chat URL — no /v1 prefix appended
+        url       = f"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat/chat/completions"
+        dyn_model = model if model.startswith("dynamic/") else f"dynamic/{route_name}"
+        # /compat with authentication:true requires cf-aig-authorization header.
+        # User-Agent is required to pass CF bot protection at the edge.
+        aig_token = os.environ.get("CF_AIG_TOKEN", token)
+        hdrs: dict[str, str] = {
+            "Content-Type": "application/json",
+            "User-Agent": "CodeOps/0.1 Python-urllib",
+        }
+        if aig_token:
+            hdrs["cf-aig-authorization"] = f"Bearer {aig_token}"
 
-        _log.info("CF dynamic routing: model=%s gateway=%s/%s", dyn_model, account_id, gateway_id)
+        msgs = list(messages)
+        if system:
+            msgs.insert(0, {"role": "system", "content": system})
+        body: dict[str, Any] = {
+            "model": dyn_model,
+            "messages": msgs,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        if tools:
+            body["tools"] = tools
+
+        _log.info("CF dynamic routing: %s → %s", dyn_model, url)
+        req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=hdrs, method="POST")
         try:
-            return self._call_openai(base, messages, dyn_model, max_tokens, temperature, system, hdrs, tools=tools)
-        except RuntimeError as e:
-            if "403" in str(e):
-                return {
-                    "error": (
-                        "CF dynamic routing not configured. "
-                        "Set up routing rules in CF Dashboard → AI Gateway → default → Routing (Beta). "
-                        f"Original: {e}"
-                    ),
-                    "content": "",
-                }
-            raise
+            with urllib.request.urlopen(req, timeout=120.0) as resp:
+                data = json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            body_text = e.read().decode(errors="replace")
+            try:
+                msg = json.loads(body_text).get("error", {}).get("message", body_text)
+            except Exception:
+                msg = body_text
+            raise RuntimeError(f"CF-dynamic {e.code}: {msg}") from e
+
+        choice = (data.get("choices") or [{}])[0]
+        return {
+            "content": choice.get("message", {}).get("content", ""),
+            "model": data.get("model", dyn_model),
+            "usage": {
+                "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
+                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
+                "total_tokens":  data.get("usage", {}).get("total_tokens", 0),
+            },
+        }
 
     # ── _direct_call: builds headers and dispatches to a format adapter ──────────
 

@@ -66,8 +66,8 @@ _EXECUTOR_MODELS: dict[str, list[str]] = {
         "@cf/aisingapore/gemma-sea-lion-v4-27b-it",      # 128K ctx, multilingual
     ],
 
-    # CF AI Gateway Dynamic Routing (rules set in CF dashboard)
-    "cloudflare-dynamic": ["dynamic/codeops"],
+    # CF AI Gateway Dynamic Routing — route name from CF Dashboard → Routing → "ai_route"
+    "cloudflare-dynamic": ["dynamic/ai_route"],
 }
 
 _FALLBACK_AGENTS = [

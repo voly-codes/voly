@@ -52,7 +52,7 @@ _PROVIDER_MODELS: dict[str, tuple[str, str]] = {
     "opencode":            ("deepseek-v4-flash", "opencode"),
     # Workers AI: default to fast Llama 4 Scout (131K ctx, tested 2026-06-30)
     "workers-ai":          ("@cf/meta/llama-4-scout-17b-16e-instruct", "workers-ai"),
-    "cloudflare-dynamic":  ("dynamic/default", "cloudflare-dynamic"),
+    "cloudflare-dynamic":  ("dynamic/ai_route", "cloudflare-dynamic"),
 }
 
 # Workers AI models by task type (all tested working via CF API)
