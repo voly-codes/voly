@@ -66,17 +66,31 @@ _COST_RATES: dict[str, tuple[float, float]] = {
     "gpt-5.4-mini": (0.00075, 0.0045),
     "gemini-3.5-flash": (0.0015, 0.009),
     "grok-build-0.1": (0.001, 0.002),
+    # Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/platform/pricing/)
+    # ~$0.011–0.028 per million tokens; many models free within daily neuron quota
+    "@cf/meta/llama-4": (0.000028, 0.000028),
+    "@cf/meta/llama-3": (0.000022, 0.000022),
+    "@cf/mistral/mistral": (0.000011, 0.000011),
+    "@cf/google/gemma": (0.000015, 0.000015),
+    "@cf/qwen/qwen": (0.000015, 0.000015),
+    "@cf/deepseek-ai/deepseek": (0.000018, 0.000018),
 }
 
 _DEFAULT_RATE = (0.001, 0.003)  # fallback если модель неизвестна
 
 # Бесплатные модели OpenCode Zen — всегда $0.00 независимо от токенов
 _FREE_MODELS: frozenset[str] = frozenset({
-    "big-pickle",            # Big Pickle
-    "deepseek-v4-flash-free",  # DeepSeek V4 Flash Free
-    "mimo-v2.5-free",          # MiMo V2.5 Free
-    "north-mini-code-free",    # North Mini Code Free
-    "nemotron-3-ultra-free",   # Nemotron 3 Ultra Free
+    # OpenCode Zen free tier
+    "big-pickle",
+    "deepseek-v4-flash-free",
+    "mimo-v2.5-free",
+    "north-mini-code-free",
+    "nemotron-3-ultra-free",
+    # CF Workers AI — free within 10k neurons/day quota
+    "@cf/meta/llama-3.2-1b-instruct",
+    "@cf/meta/llama-3.2-3b-instruct",
+    "@cf/meta/llama-3.1-8b-instruct-fp8",
+    "@cf/ibm-granite/granite-4.0-h-micro",
 })
 
 
@@ -322,62 +336,10 @@ def _emit_to_r2(
     access_key: str,
     secret_key: str,
 ) -> None:
-    """PUT события в R2 через AWS Signature v4 (нет зависимостей кроме stdlib)."""
-    import datetime
-    import hashlib
-    import hmac
-    import urllib.request
-
-    body = event.to_json().encode()
-    key = f"events/{event.task_id}.json"
-    host = endpoint.removeprefix("https://").removeprefix("http://")
-    url = f"{endpoint.rstrip('/')}/{bucket}/{key}"
-
-    now = datetime.datetime.utcnow()
-    amz_date = now.strftime("%Y%m%dT%H%M%SZ")
-    date_stamp = now.strftime("%Y%m%d")
-    content_hash = hashlib.sha256(body).hexdigest()
-    region = "auto"
-    service = "s3"
-
-    # Canonical request
-    canonical_headers = f"host:{host}\nx-amz-content-sha256:{content_hash}\nx-amz-date:{amz_date}\n"
-    signed_headers = "host;x-amz-content-sha256;x-amz-date"
-    canonical_request = "\n".join([
-        "PUT", f"/{bucket}/{key}", "",
-        canonical_headers, signed_headers, content_hash,
-    ])
-
-    # String to sign
-    credential_scope = f"{date_stamp}/{region}/{service}/aws4_request"
-    string_to_sign = "\n".join([
-        "AWS4-HMAC-SHA256", amz_date, credential_scope,
-        hashlib.sha256(canonical_request.encode()).hexdigest(),
-    ])
-
-    # Signing key
-    def _hmac(key: bytes, msg: str) -> bytes:
-        return hmac.new(key, msg.encode(), hashlib.sha256).digest()
-
-    signing_key = _hmac(
-        _hmac(_hmac(_hmac(f"AWS4{secret_key}".encode(), date_stamp), region), service),
-        "aws4_request",
-    )
-    signature = hmac.new(signing_key, string_to_sign.encode(), hashlib.sha256).hexdigest()
-
-    auth = (
-        f"AWS4-HMAC-SHA256 Credential={access_key}/{credential_scope}, "
-        f"SignedHeaders={signed_headers}, Signature={signature}"
-    )
-
-    req = urllib.request.Request(url, data=body, method="PUT", headers={
-        "Authorization": auth,
-        "x-amz-date": amz_date,
-        "x-amz-content-sha256": content_hash,
-        "Content-Type": "application/json",
-    })
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        resp.read()
+    """PUT события в R2 через R2Client (правильный SigV4)."""
+    from codeops.cloudflare.r2 import R2Client
+    r2 = R2Client(endpoint, access_key, secret_key, timeout=5.0)
+    r2.put(bucket, f"events/{event.task_id}.json", event.to_json().encode(), "application/json")
 
 
 def load_events(events_dir: str | Path | None = None) -> list[TaskEvent]:

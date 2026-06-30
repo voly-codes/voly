@@ -7,10 +7,11 @@
     ClockIcon, ArrowDownWideNarrowIcon, AlertCircleIcon,
     CheckCircle2Icon, ZapIcon, LayersIcon, RefreshCwIcon,
   } from '../../icons.js'
-  import { fetchGatewayStatus } from '../../api/client.js'
+  import { fetchGatewayStatus, fetchProviderHealth } from '../../api/client.js'
   import { fmtTokens } from '../../utils/format.js'
 
   let gw = $state(null)
+  let health = $state<{ providers: Record<string, {healthy: boolean, reason: string}>, healthy: string[] } | null>(null)
   let loading = $state(true)
   let error = $state(null)
 
@@ -18,7 +19,7 @@
     loading = true
     error = null
     try {
-      gw = await fetchGatewayStatus()
+      ;[gw, health] = await Promise.all([fetchGatewayStatus(), fetchProviderHealth()])
     } catch (e) {
       error = e.message
     } finally {
@@ -250,6 +251,26 @@
               <span class="bar-val">{count}</span>
             </div>
           {/each}
+        </div>
+      </section>
+    {/if}
+
+    <!-- Provider Health -->
+    {#if health}
+      <section class="breakdown-section">
+        <div class="breakdown-title">Провайдеры — состояние ключей</div>
+        <div class="health-grid">
+          {#each Object.entries(health.providers) as [prov, st]}
+            <div class="health-row" class:healthy={st.healthy} class:unhealthy={!st.healthy}>
+              <span class="health-dot" class:ok={st.healthy} class:err={!st.healthy}></span>
+              <span class="health-name">{prov}</span>
+              <span class="health-reason">{st.reason}</span>
+            </div>
+          {/each}
+        </div>
+        <div class="health-hint">
+          Маршрутизатор обходит нездоровые провайдеры автоматически. Порядок приоритета:
+          anthropic → workers-ai → deepseek → opencode-zen → mimo → google → openai
         </div>
       </section>
     {/if}
@@ -516,5 +537,43 @@
     width: 24px;
     text-align: right;
     flex-shrink: 0;
+  }
+
+  .health-grid { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+
+  .health-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+  }
+  .health-row.healthy  { background: color-mix(in srgb, var(--accent-green) 6%, transparent); }
+  .health-row.unhealthy { background: color-mix(in srgb, var(--accent-red)   6%, transparent); }
+
+  .health-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .health-dot.ok  { background: var(--accent-green); }
+  .health-dot.err { background: var(--accent-red); }
+
+  .health-name {
+    width: 140px;
+    flex-shrink: 0;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 11px;
+  }
+  .health-reason { font-size: 10px; color: var(--text-muted); }
+
+  .health-hint {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    opacity: 0.8;
   }
 </style>

@@ -150,6 +150,26 @@ class _PipelineStageMixin:
         )
         self._fire(PipelineStage.MEMORY_STORE)  # type: ignore[attr-defined]
 
+    # ── Headroom compress ─────────────────────────────────────────────────────
+
+    def _stage_headroom_compress(
+        self, messages: list[dict[str, Any]], model: str
+    ) -> tuple[list[dict[str, Any]], int]:
+        """Compress messages via Headroom when it's running. Returns (messages, tokens_saved)."""
+        mgr = getattr(self, "headroom_mgr", None)
+        if mgr is None or not mgr.is_running():
+            self._fire(PipelineStage.HEADROOM_COMPRESS, messages=messages, tokens_saved=0)  # type: ignore[attr-defined]
+            return messages, 0
+        try:
+            result = mgr.compress(messages, model=model)
+            compressed = result.get("messages", messages)
+            saved = result.get("tokens_saved", 0)
+            self._fire(PipelineStage.HEADROOM_COMPRESS, messages=compressed, tokens_saved=saved)  # type: ignore[attr-defined]
+            return compressed, saved
+        except Exception:
+            self._fire(PipelineStage.HEADROOM_COMPRESS, messages=messages, tokens_saved=0)  # type: ignore[attr-defined]
+            return messages, 0
+
     # ── RTK ───────────────────────────────────────────────────────────────────
 
     def _stage_rtk(self) -> dict[str, Any]:
@@ -317,6 +337,7 @@ class _PipelineStageMixin:
         duration: float,
         task: str,
         injected_skills: list[str] | None = None,
+        headroom_saved: int = 0,
     ) -> tuple[Any, str, float]:
         from codeops.automation import compute_automation_metrics
         from codeops.cost_policy import budget_status
@@ -355,7 +376,7 @@ class _PipelineStageMixin:
                 input=response.usage.input_tokens,
                 output=response.usage.output_tokens,
                 saved_rtk=rtk_stats.get("total_saved", 0),
-                saved_headroom=0,
+                saved_headroom=headroom_saved,
             ),
             gateway=GatewayMetrics(
                 cache_hit=gw_result.get("cache_hit", False),

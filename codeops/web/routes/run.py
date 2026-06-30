@@ -23,6 +23,7 @@ class RunRequest(BaseModel):
     executor: str = "pipeline"
     cwd: str = ""
     max_turns: int = 30
+    a2a_delegate: bool = False
 
 
 def _sse(event_type: str, data: dict[str, Any]) -> str:
@@ -44,6 +45,7 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
             req.task,
             force_model=req.model or None,
             force_agent=req.agent or None,
+            delegate_to_a2a=req.a2a_delegate,
         )
     finally:
         pipeline.shutdown()
@@ -54,6 +56,10 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "duration_ms": result.duration_ms,
         "error": result.error,
         "injected_skills": result.injected_skills,
+        "tokens_saved_by_rtk": result.tokens_saved_by_rtk,
+        "tokens_saved_by_headroom": result.tokens_saved_by_headroom,
+        "dspy_used": result.dspy_used,
+        "dspy_mode": result.dspy_mode,
     }
     if result.route:
         out["agent"] = result.route.agent
@@ -65,6 +71,11 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
             "input_tokens": result.response.usage.input_tokens,
             "output_tokens": result.response.usage.output_tokens,
         }
+    if result.a2a_tasks:
+        out["a2a_tasks"] = [
+            {"id": t.id, "state": t.state.value, "agent": t.metadata.get("routed_to", "")}
+            for t in result.a2a_tasks
+        ]
     return out
 
 

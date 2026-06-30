@@ -7,22 +7,22 @@ import json
 import logging
 import os
 import urllib.request
-import urllib.error
 from typing import Any, Callable
-
-_log = logging.getLogger("codeops.ai_gateway")
 
 from .models import (
     GatewayProvider, FallbackStrategy,
     RateLimit, SpendLimit, CacheConfig, FallbackChain, DLPConfig, GatewayMetrics,
 )
+from .providers import _GatewayProvidersMixin
 from codeops.telemetry import _estimate_cost as _telemetry_estimate_cost
+
+_log = logging.getLogger("codeops.ai_gateway")
 
 # Providers natively supported by Cloudflare AI Gateway
 _CF_PROVIDERS = frozenset({"anthropic", "openai", "google-ai-studio", "deepseek"})
 
 
-class AIGateway:
+class AIGateway(_GatewayProvidersMixin):
     def __init__(
         self,
         provider: GatewayProvider = GatewayProvider.CLOUDFLARE,
@@ -30,18 +30,18 @@ class AIGateway:
         gateway_id: str = "default",
         api_token: str = "",
     ):
-        self.provider = provider
-        self.account_id = account_id
-        self.gateway_id = gateway_id
-        self.api_token = api_token
+        self.provider    = provider
+        self.account_id  = account_id
+        self.gateway_id  = gateway_id
+        self.api_token   = api_token
 
-        self.cache = CacheConfig()
-        self.rate_limit = RateLimit()
+        self.cache       = CacheConfig()
+        self.rate_limit  = RateLimit()
         self.spend_limit = SpendLimit()
-        self.fallback = FallbackChain()
-        self.dlp = DLPConfig()
-        self.metrics = GatewayMetrics()
-        self._enabled = True
+        self.fallback    = FallbackChain()
+        self.dlp         = DLPConfig()
+        self.metrics     = GatewayMetrics()
+        self._enabled    = True
         self._transports: dict[str, Callable] = {}
 
     @property
@@ -60,6 +60,8 @@ class AIGateway:
 
     def provider_url(self, provider_name: str) -> str:
         return f"{self.base_url}/{provider_name}"
+
+    # ── Main entry point ─────────────────────────────────────────────────────────
 
     def chat(
         self,
@@ -87,7 +89,6 @@ class AIGateway:
             if cached:
                 self.metrics.record_cache_hit()
                 return json.loads(cached)
-
         self.metrics.record_cache_miss()
 
         if self.rate_limit.enabled and self.metrics.requests_in_last_minute() >= self.rate_limit.requests_per_minute:
@@ -102,11 +103,8 @@ class AIGateway:
             result = self._gateway_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools, **kwargs)
         else:
             result = self._direct_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools)
-            # _direct_call has no built-in fallback — try the chain if it failed
             if result.get("error") and self.fallback.enabled and self.fallback.chain:
-                result = self._direct_fallback(
-                    result, messages, max_tokens, temperature, system, tools, **kwargs
-                )
+                result = self._direct_fallback(result, messages, max_tokens, temperature, system, tools, **kwargs)
 
         self.spend_limit.record(estimated_cost, agent)
         cost = self._calculate_cost(model, provider_name, result.get("usage", {}))
@@ -116,6 +114,8 @@ class AIGateway:
             self.cache.set(cache_key, json.dumps(result))
 
         return result
+
+    # ── Gateway call with fallback chain (CF-routed providers) ───────────────────
 
     def _gateway_call(
         self,
@@ -143,9 +143,9 @@ class AIGateway:
                 result = self._single_call(messages, mdl, prov, max_tokens, temperature, system, tools=tools, **kwargs)
                 if not result.get("error"):
                     if attempt > 0:
-                        result["fallback_used"] = True
+                        result["fallback_used"]     = True
                         result["fallback_provider"] = prov
-                        result["fallback_model"] = mdl
+                        result["fallback_model"]    = mdl
                         _log.info("Fallback succeeded: provider=%s model=%s", prov, mdl)
                     return result
                 last_error = result.get("error")
@@ -202,215 +202,7 @@ class AIGateway:
                 headers["Authorization"] = f"Bearer {os.environ.get('OPENAI_API_KEY', '')}"
                 return self._call_openai(url, messages, model, max_tokens, temperature, system, headers, tools=tools)
 
-    def _call_anthropic(
-        self, url: str, messages: list, model: str, max_tokens: int,
-        temperature: float, system: str | None, headers: dict,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> dict[str, Any]:
-        body: dict[str, Any] = {
-            "model": model, "messages": messages,
-            "max_tokens": max_tokens, "temperature": temperature,
-        }
-        if system:
-            body["system"] = system
-        if tools:
-            body["tools"] = tools
-
-        req = urllib.request.Request(
-            f"{url}/v1/messages",
-            data=json.dumps(body).encode(),
-            headers=headers,
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
-        except urllib.error.HTTPError as e:
-            body_text = e.read().decode(errors="replace")
-            try:
-                msg = json.loads(body_text).get("error", {}).get("message", body_text)
-            except Exception:
-                msg = body_text
-            raise RuntimeError(f"Anthropic {e.code}: {msg}") from e
-
-        return {
-            "content": "".join(
-                b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
-            ),
-            "model": data.get("model", model),
-            "usage": {
-                "input_tokens":  data.get("usage", {}).get("input_tokens", 0),
-                "output_tokens": data.get("usage", {}).get("output_tokens", 0),
-                "total_tokens":  (data.get("usage", {}).get("input_tokens", 0)
-                                  + data.get("usage", {}).get("output_tokens", 0)),
-            },
-        }
-
-    def _call_openai(
-        self, url: str, messages: list, model: str, max_tokens: int,
-        temperature: float, system: str | None, headers: dict,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> dict[str, Any]:
-        msgs = list(messages)
-        if system:
-            msgs.insert(0, {"role": "system", "content": system})
-
-        body: dict[str, Any] = {
-            "model": model, "messages": msgs,
-            "max_tokens": max_tokens, "temperature": temperature,
-        }
-        if tools:
-            body["tools"] = tools
-
-        req = urllib.request.Request(
-            f"{url}/v1/chat/completions",
-            data=json.dumps(body).encode(),
-            headers=headers,
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
-        except urllib.error.HTTPError as e:
-            body_text = e.read().decode(errors="replace")
-            try:
-                msg = json.loads(body_text).get("error", {}).get("message", body_text)
-            except Exception:
-                msg = body_text
-            raise RuntimeError(f"OpenAI {e.code}: {msg}") from e
-
-        choice = data["choices"][0]
-        return {
-            "content": choice["message"].get("content", ""),
-            "model": data.get("model", model),
-            "usage": {
-                "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
-                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
-                "total_tokens":  data.get("usage", {}).get("total_tokens", 0),
-            },
-        }
-
-    def _call_google(
-        self, url: str, messages: list, model: str, max_tokens: int,
-        temperature: float, system: str | None, headers: dict,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> dict[str, Any]:
-        contents = []
-        for msg in messages:
-            role = "user" if msg["role"] == "user" else "model"
-            parts = [{"text": msg["content"]}] if isinstance(msg["content"], str) else msg["content"]
-            contents.append({"role": role, "parts": parts})
-
-        body: dict[str, Any] = {
-            "contents": contents,
-            "generationConfig": {"maxOutputTokens": max_tokens, "temperature": temperature},
-        }
-        if system:
-            body["systemInstruction"] = {"parts": [{"text": system}]}
-        if tools:
-            body["tools"] = [{"functionDeclarations": tools}]
-
-        req = urllib.request.Request(
-            f"{url}/v1beta/models/{model}:generateContent",
-            data=json.dumps(body).encode(),
-            headers=headers,
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
-        except urllib.error.HTTPError as e:
-            body_text = e.read().decode(errors="replace")
-            try:
-                msg = json.loads(body_text).get("error", {}).get("message", body_text)
-            except Exception:
-                msg = body_text
-            raise RuntimeError(f"Google {e.code}: {msg}") from e
-
-        candidates = data.get("candidates", [{}])
-        parts = candidates[0].get("content", {}).get("parts", [{"text": ""}])
-        text = "".join(p.get("text", "") for p in parts)
-        meta = data.get("usageMetadata", {})
-
-        return {
-            "content": text,
-            "model": model,
-            "usage": {
-                "input_tokens":  meta.get("promptTokenCount", 0),
-                "output_tokens": meta.get("candidatesTokenCount", 0),
-                "total_tokens":  meta.get("promptTokenCount", 0) + meta.get("candidatesTokenCount", 0),
-            },
-        }
-
-    def _direct_call(
-        self,
-        messages: list[dict[str, Any]],
-        model: str,
-        provider_name: str,
-        max_tokens: int,
-        temperature: float,
-        system: str | None,
-        tools: list[dict[str, Any]] | None = None,
-    ) -> dict[str, Any]:
-        try:
-            if provider_name == "anthropic":
-                key = os.environ.get("ANTHROPIC_API_KEY", "")
-                base = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com")
-                hdrs = {"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"}
-                return self._call_anthropic(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name == "openai":
-                key  = os.environ.get("OPENAI_API_KEY", "")
-                base = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com")
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-                return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name in ("google", "google-ai-studio"):
-                base = os.environ.get("GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com")
-                hdrs = {"Content-Type": "application/json"}
-                return self._call_google(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name == "deepseek":
-                key  = os.environ.get("DEEPSEEK_API_KEY", "")
-                base = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-                return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name == "mimo":
-                key  = os.environ.get("MIMO_API_KEY", "")
-                base = os.environ.get("MIMO_BASE_URL_OPENAI", "https://token-plan-sgp.xiaomimimo.com")
-                if base.endswith("/v1"):
-                    base = base[:-3]
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-                return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name == "mimo-anthropic":
-                key  = os.environ.get("MIMO_API_KEY", "")
-                base = os.environ.get("MIMO_BASE_URL_ANTHROPIC", "https://token-plan-sgp.xiaomimimo.com/anthropic")
-                hdrs = {"x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
-                return self._call_anthropic(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name == "opencode":
-                key  = os.environ.get("OPENCODE_API_KEY", "")
-                base = os.environ.get("OPENCODE_BASE_URL", "https://opencode.ai/zen/go")
-                if base.endswith("/v1"):
-                    base = base[:-3]
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "codeops/0.1.0"}
-                return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            elif provider_name == "opencode-zen":
-                key  = os.environ.get("OPENCODE_API_KEY", "")
-                base = os.environ.get("OPENCODE_ZEN_BASE_URL", "https://opencode.ai/zen")
-                if base.endswith("/v1"):
-                    base = base[:-3]
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "codeops/0.1.0"}
-                return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
-
-            return {"error": f"Unsupported provider: {provider_name}", "content": ""}
-
-        except Exception as e:
-            self.metrics.record_error()
-            return {"error": str(e), "content": ""}
+    # ── Fallback for non-CF providers ────────────────────────────────────────────
 
     def _direct_fallback(
         self,
@@ -423,8 +215,9 @@ class AIGateway:
         **kwargs: Any,
     ) -> dict[str, Any]:
         primary_error = primary_result.get("error", "unknown error")
-        last_error = primary_error
+        last_error    = primary_error
         _log.warning("Primary call failed (%s) — trying %d fallback(s)", last_error, len(self.fallback.chain))
+
         for i, spec in enumerate(self.fallback.chain[: self.fallback.retries]):
             self.metrics.record_fallback()
             fb_prov  = spec.get("provider", "")
@@ -439,19 +232,22 @@ class AIGateway:
                     fb = self._direct_call(messages, fb_model, fb_prov, max_tokens, temperature, system, tools=tools)
                 if not fb.get("error"):
                     _log.info("Fallback succeeded: provider=%s model=%s", fb_prov, fb_model)
-                    fb["fallback_used"] = True
+                    fb["fallback_used"]     = True
                     fb["fallback_provider"] = fb_prov
-                    fb["fallback_model"] = fb_model
-                    fb["fallback_reason"] = primary_error
+                    fb["fallback_model"]    = fb_model
+                    fb["fallback_reason"]   = primary_error
                     return fb
                 last_error = fb.get("error", last_error)
                 _log.warning("Fallback %d failed: %s", i + 1, last_error)
             except Exception as exc:
                 last_error = str(exc)
                 _log.warning("Fallback %d raised exception: %s", i + 1, last_error)
+
         self.metrics.record_error()
         _log.error("All fallbacks exhausted. Last error: %s", last_error)
         return {"error": f"All fallbacks failed. Last: {last_error}", "content": ""}
+
+    # ── Cost helpers ─────────────────────────────────────────────────────────────
 
     def _cache_key(self, messages: list, model: str, provider: str, system: str, extra: str) -> str:
         raw = json.dumps(
@@ -461,42 +257,33 @@ class AIGateway:
         return hashlib.sha256(raw.encode()).hexdigest()
 
     def _estimate_cost(self, model: str, provider: str, input_chars: int) -> float:
-        input_tokens = input_chars // 4
-        return _telemetry_estimate_cost(model, input_tokens, 0)
+        return _telemetry_estimate_cost(model, input_chars // 4, 0)
 
     def _calculate_cost(self, model: str, provider: str, usage: dict[str, int]) -> float:
         return _telemetry_estimate_cost(
-            model,
-            usage.get("input_tokens", 0),
-            usage.get("output_tokens", 0),
+            model, usage.get("input_tokens", 0), usage.get("output_tokens", 0)
         )
 
+    # ── CF Gateway log fetching ───────────────────────────────────────────────────
+
     def fetch_cf_logs(
-        self,
-        since_hours: int = 24,
-        limit: int = 100,
-        provider: str | None = None,
+        self, since_hours: int = 24, limit: int = 100, provider: str | None = None,
     ) -> list[dict[str, Any]]:
-        """Fetch logs from Cloudflare AI Gateway REST API."""
         if not self.cloudflare_enabled or not self.api_token:
             return []
-
-        since = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=since_hours)
+        since  = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=since_hours)
         params: dict[str, str] = {
-            "per_page": str(min(limit, 100)),
-            "page": "1",
-            "order_by": "created_at",
-            "direction": "desc",
+            "per_page": str(min(limit, 100)), "page": "1",
+            "order_by": "created_at", "direction": "desc",
             "filter[start_date]": since.strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
         if provider:
             params["filter[provider]"] = provider
-
         url = (
             f"https://api.cloudflare.com/client/v4/accounts/{self.account_id}"
             f"/ai-gateway/gateways/{self.gateway_id}/logs"
         )
-        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        qs  = "&".join(f"{k}={v}" for k, v in params.items())
         req = urllib.request.Request(
             f"{url}?{qs}",
             headers={"Authorization": f"Bearer {self.api_token}", "Content-Type": "application/json"},
@@ -508,7 +295,6 @@ class AIGateway:
             return []
 
     def fetch_cf_metrics(self, since_hours: int = 24) -> dict[str, Any]:
-        """Aggregate CF AI Gateway logs into a metrics summary."""
         logs = self.fetch_cf_logs(since_hours=since_hours, limit=100)
         if not logs:
             return {"available": False, "reason": "No CF credentials or no logs found"}
@@ -517,33 +303,29 @@ class AIGateway:
         tokens_in  = sum(e.get("prompt_tokens") or 0 for e in logs)
         tokens_out = sum(e.get("response_tokens") or 0 for e in logs)
         cost       = sum(float(e.get("cost") or 0) for e in logs)
-
         cached_count  = sum(1 for e in logs if e.get("cached"))
         success_count = sum(1 for e in logs if not (e.get("errors_count") or e.get("status_code", 200) >= 400))
         error_count   = total - success_count
         durations     = sorted(e["duration"] for e in logs if e.get("duration"))
 
         def _pct(data: list[int], p: float) -> int:
-            if not data:
-                return 0
-            return data[max(0, int(len(data) * p / 100) - 1)]
+            return data[max(0, int(len(data) * p / 100) - 1)] if data else 0
 
         by_provider: dict[str, int] = {}
-        by_model: dict[str, int] = {}
+        by_model:    dict[str, int] = {}
         by_provider_tokens: dict[str, dict[str, Any]] = {}
         for e in logs:
             prov = e.get("provider", "unknown")
-            mdl  = e.get("model", "unknown")
+            mdl  = e.get("model",    "unknown")
             by_provider[prov] = by_provider.get(prov, 0) + 1
             by_model[mdl]     = by_model.get(mdl, 0) + 1
             pt = by_provider_tokens.setdefault(prov, {"in": 0, "out": 0, "cost": 0.0})
-            pt["in"]   += e.get("prompt_tokens") or 0
-            pt["out"]  += e.get("response_tokens") or 0
+            pt["in"]   += e.get("prompt_tokens")   or 0
+            pt["out"]  += e.get("response_tokens")  or 0
             pt["cost"] += float(e.get("cost") or 0)
 
         return {
-            "available": True,
-            "since_hours": since_hours,
+            "available": True, "since_hours": since_hours,
             "requests": {
                 "total": total, "success": success_count, "errors": error_count,
                 "error_rate": round(error_count / total, 3) if total else 0.0,
@@ -554,10 +336,8 @@ class AIGateway:
             "cost_usd": round(cost, 6),
             "latency_ms": {
                 "avg": round(sum(durations) / len(durations)) if durations else 0,
-                "p50": _pct(durations, 50), "p95": _pct(durations, 95),
-                "p99": _pct(durations, 99),
-                "min": durations[0] if durations else 0,
-                "max": durations[-1] if durations else 0,
+                "p50": _pct(durations, 50), "p95": _pct(durations, 95), "p99": _pct(durations, 99),
+                "min": durations[0] if durations else 0, "max": durations[-1] if durations else 0,
             },
             "by_provider": by_provider,
             "by_provider_tokens": {
@@ -567,47 +347,45 @@ class AIGateway:
             "by_model": dict(sorted(by_model.items(), key=lambda x: -x[1])[:10]),
         }
 
+    # ── Serialisation ─────────────────────────────────────────────────────────────
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "provider":   self.provider.value,
             "account_id": self.account_id[:8] + "..." if self.account_id else "",
             "gateway_id": self.gateway_id,
             "enabled":    self.enabled,
-            "cache":       self.cache.to_dict(),
-            "rate_limit":  self.rate_limit.to_dict(),
-            "spend_limit": self.spend_limit.to_dict(),
-            "fallback":    self.fallback.to_dict(),
-            "dlp":         self.dlp.to_dict(),
-            "metrics":     self.metrics.to_dict(),
+            "cache":      self.cache.to_dict(),
+            "rate_limit": self.rate_limit.to_dict(),
+            "spend_limit":self.spend_limit.to_dict(),
+            "fallback":   self.fallback.to_dict(),
+            "dlp":        self.dlp.to_dict(),
+            "metrics":    self.metrics.to_dict(),
         }
 
     def from_config(self, config: dict[str, Any]) -> None:
-        self._enabled    = config.get("enabled", True)
-        self.account_id  = config.get("account_id", self.account_id)
-        self.gateway_id  = config.get("gateway_id", self.gateway_id)
-        self.api_token   = config.get("api_token", self.api_token)
+        self._enabled   = config.get("enabled",    True)
+        self.account_id = config.get("account_id", self.account_id)
+        self.gateway_id = config.get("gateway_id", self.gateway_id)
+        self.api_token  = config.get("api_token",  self.api_token)
 
         if c := config.get("caching"):
-            self.cache.enabled     = c.get("enabled", True)
+            self.cache.enabled     = c.get("enabled",     True)
             self.cache.ttl_seconds = c.get("ttl_seconds", 3600)
             self.cache.max_entries = c.get("max_entries", 1000)
-
         if r := config.get("rate_limits"):
-            self.rate_limit.enabled              = r.get("enabled", True)
-            self.rate_limit.requests_per_minute  = r.get("requests_per_minute", 60)
-
+            self.rate_limit.enabled             = r.get("enabled",             True)
+            self.rate_limit.requests_per_minute = r.get("requests_per_minute", 60)
         if s := config.get("spend_limits"):
-            self.spend_limit.enabled           = s.get("enabled", True)
-            self.spend_limit.daily_budget_usd  = s.get("daily_budget_usd", 20.0)
-            self.spend_limit.per_agent_budget  = s.get("per_agent_budget", {})
-
+            self.spend_limit.enabled          = s.get("enabled",          True)
+            self.spend_limit.daily_budget_usd = s.get("daily_budget_usd", 20.0)
+            self.spend_limit.per_agent_budget = s.get("per_agent_budget", {})
         if f := config.get("fallback"):
-            self.fallback.enabled  = f.get("enabled", True)
-            self.fallback.chain    = f.get("chain", [])
-            self.fallback.retries  = f.get("retries", 3)
-
+            self.fallback.enabled = f.get("enabled", True)
+            self.fallback.chain   = f.get("chain",   [])
+            self.fallback.retries = f.get("retries", 3)
         if d := config.get("dlp"):
-            self.dlp.enabled        = d.get("enabled", False)
-            self.dlp.block_secrets  = d.get("block_secrets", True)
-            self.dlp.block_pii      = d.get("block_pii", True)
+            self.dlp.enabled        = d.get("enabled",        False)
+            self.dlp.block_secrets  = d.get("block_secrets",  True)
+            self.dlp.block_pii      = d.get("block_pii",      True)
             self.dlp.block_patterns = d.get("block_patterns", [])

@@ -267,7 +267,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
             model = self._resolve_model(route)
             msgs = self._build_messages(memory_messages, messages, task)
-            self._fire(PipelineStage.HEADROOM_COMPRESS, messages=msgs[:])
+            msgs, headroom_saved = self._stage_headroom_compress(msgs, model)
 
             base_system = route.config.get("system_prompt") or ""
             system_prompt = (base_system + "\n\n" + skills_system).strip() if skills_system else base_system or None
@@ -312,8 +312,10 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
             ev, status, cost_usd = self._emit_task_event(
                 task_id, route, response, gw_result, rtk_stats, task_type, dspy_result, duration, task,
                 injected_skills=injected_skills,
+                headroom_saved=headroom_saved,
             )
             self._metrics.total_tokens_saved_rtk += rtk_stats.get("total_saved", 0)
+            self._metrics.total_tokens_saved_headroom += headroom_saved
 
             dspy_fields = self._extract_dspy_fields(dspy_result)
             return PipelineResult(
@@ -324,6 +326,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
                 analysis=analysis,
                 memory_hits=memory_messages,
                 tokens_saved_by_rtk=rtk_stats.get("total_saved", 0),
+                tokens_saved_by_headroom=headroom_saved,
                 agui_session_id=agui_session_id or "",
                 duration_ms=duration,
                 event=ev,

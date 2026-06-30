@@ -151,7 +151,7 @@ class HeadroomManager:
     def compress(
         self,
         messages: list[dict],
-        model: str = "claude-sonnet-4-5-20250929",
+        model: str = "claude-sonnet-4-6",
     ) -> dict[str, Any]:
         try:
             import urllib.request

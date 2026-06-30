@@ -85,3 +85,4 @@ export function taskStream() {
 
 // Telemetry
 export const fetchTelemetry = (days = 30) => get(`/api/telemetry/summary?days=${days}`)
+export const fetchProviderHealth = () => get('/api/providers/health')

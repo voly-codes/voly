@@ -5,22 +5,52 @@ default_model: claude-sonnet
 default_agent: cursor
 
 models:
+  # Anthropic
   claude-sonnet:
     provider: anthropic
-    model: claude-sonnet-4-5-20250929
+    model: claude-sonnet-4-6
     api_key: "${ANTHROPIC_API_KEY}"
   claude-opus:
     provider: anthropic
-    model: claude-opus-4-5-20250929
+    model: claude-opus-4-8
     api_key: "${ANTHROPIC_API_KEY}"
+  # OpenAI (pay-per-use — last resort)
   gpt-4o:
     provider: openai
     model: gpt-4o
     api_key: "${OPENAI_API_KEY}"
+  # Google
   gemini-pro:
     provider: google
     model: gemini-2.5-pro
     api_key: "${GOOGLE_API_KEY}"
+  # Cloudflare Workers AI (included in CF plan, very cheap)
+  llama-fast:
+    provider: workers-ai
+    model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    api_key: "${CLOUDFLARE_API_TOKEN}"
+  llama-scout:
+    provider: workers-ai
+    model: "@cf/meta/llama-4-scout-17b-16e-instruct"
+    api_key: "${CLOUDFLARE_API_TOKEN}"
+  mistral-cf:
+    provider: workers-ai
+    model: "@cf/mistral/mistral-7b-instruct-v0.2"
+    api_key: "${CLOUDFLARE_API_TOKEN}"
+  # CF AI Gateway Dynamic Routing (routes by rules in CF dashboard)
+  cf-dynamic:
+    provider: cloudflare-dynamic
+    model: "dynamic/codeops"
+    api_key: "${CLOUDFLARE_API_TOKEN}"
+  # OpenCode Zen (free tier models)
+  zen-free:
+    provider: opencode-zen
+    model: big-pickle
+    api_key: "${OPENCODE_API_KEY}"
+  zen-deepseek-free:
+    provider: opencode-zen
+    model: deepseek-v4-flash-free
+    api_key: "${OPENCODE_API_KEY}"
 
 agents:
   cursor:

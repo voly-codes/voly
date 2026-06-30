@@ -42,3 +42,17 @@ def cf_workers_status(request: Request) -> dict[str, Any]:
         name: {"env_key": env_key, "url": url, "configured": bool(url)}
         for name, (env_key, url) in workers.items()
     }
+
+
+@router.get("/api/providers/health")
+def providers_health() -> dict[str, Any]:
+    """Return health status for each LLM provider (key-presence check, ~1s TTL cache)."""
+    from codeops.ai_gateway.health import get_checker, PROVIDER_PRIORITY
+    checker = get_checker()
+    return {
+        "providers": {
+            p: {"healthy": checker.check(p).healthy, "reason": checker.check(p).reason}
+            for p in PROVIDER_PRIORITY
+        },
+        "healthy": checker.healthy_providers(),
+    }

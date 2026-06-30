@@ -23,12 +23,14 @@
   let models = $state([])
 
   const executors = [
-    { id: 'pipeline',    label: 'Pipeline (AI Gateway)' },
-    { id: 'cursor',      label: 'Cursor Agent' },
-    { id: 'claude-code', label: 'Claude Code' },
-    { id: 'opencode',    label: 'OpenCode Go' },
-    { id: 'deepseek',    label: 'DeepSeek' },
-    { id: 'zen',         label: 'OpenCode Zen' },
+    { id: 'pipeline',            label: 'Pipeline (AI Gateway)' },
+    { id: 'cursor',              label: 'Cursor Agent' },
+    { id: 'claude-code',         label: 'Claude Code' },
+    { id: 'opencode',            label: 'OpenCode Go' },
+    { id: 'deepseek',            label: 'DeepSeek' },
+    { id: 'zen',                 label: 'OpenCode Zen' },
+    { id: 'workers-ai',          label: 'CF Workers AI' },
+    { id: 'cloudflare-dynamic',  label: 'CF Dynamic Routing' },
   ]
 
   onMount(async () => {

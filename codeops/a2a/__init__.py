@@ -409,6 +409,3 @@ def create_a2a_orchestrator(federation_url: str = "") -> A2AOrchestrator:
     if client:
         return A2AOrchestrator(A2AClient(), federation=FederationBackend(client))
     return A2AOrchestrator()
-
-
-import asyncio
