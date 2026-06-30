@@ -12,7 +12,7 @@
     'claude-code': 'Claude Code CLI — reads/writes files directly',
     opencode:    'OpenCode Go CLI/API — file-capable agent',
     deepseek:    'DeepSeek API — text/code generation only',
-    zen:         'OpenCode Zen API — analysis & review, read-only',
+        zen:         'OpenCode Zen — curated models, file-capable via CLI',
   }
 </script>
 

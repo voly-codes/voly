@@ -51,7 +51,7 @@ codeops run "review the auth module and propose a minimal refactor" \
 | `opencode` | OpenCode Go CLI/API — file-capable agent | opencode CLI или `OPENCODE_API_KEY` | fallback / bulk code tasks |
 | `claude-code` | Claude CLI | `ANTHROPIC_API_KEY`, `claude` CLI | Anthropic-native coding flow |
 | `deepseek` | text/code generation | `DEEPSEEK_API_KEY` | дешёвые черновики |
-| `zen` | OpenCode Zen API — analysis, review, planning (read-only, no file access) | `OPENCODE_API_KEY` | ревью, аудит, planning |
+| `zen` | OpenCode Zen CLI/API — curated models, file-capable via CLI | `OPENCODE_API_KEY`, opencode CLI | основной для Zen-моделей |
 | `mimo` | text/batch tasks | `MIMO_API_KEY` | batch генерация |
 
 ---
@@ -102,7 +102,7 @@ codeops run "review recent changes for security and regressions" \
 | Gateway | Executor | Endpoint | Может менять файлы |
 |---|---|---|---|
 | OpenCode GO | `opencode` | `OPENCODE_BASE_URL` | да, через CLI/API flow |
-| OpenCode Zen | `zen` | `OPENCODE_ZEN_BASE_URL` | нет, text-only analysis |
+| OpenCode Zen | `zen` | `OPENCODE_ZEN_BASE_URL` | да, через CLI (agentic) / нет, через API (text-only) |
 
 Zen-модели (через `opencode-zen` провайдер): `claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`, `deepseek-v4-flash-free`, `mimo-v2.5-free`.
 GO-модели (через `opencode` провайдер): `deepseek-v4-flash`, `deepseek-v4-pro`, `kimi-k2.6`, `kimi-k2.7-code`, `qwen3.7-plus`, `qwen3.7-max`, `minimax-m3`, `glm-5.2`.
