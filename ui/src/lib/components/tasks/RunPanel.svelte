@@ -25,9 +25,9 @@
     { id: 'pipeline',    label: 'Pipeline (AI Gateway)' },
     { id: 'cursor',      label: 'Cursor Agent' },
     { id: 'claude-code', label: 'Claude Code' },
-    { id: 'opencode',    label: 'OpenCode' },
+    { id: 'opencode',    label: 'OpenCode Go' },
     { id: 'deepseek',    label: 'DeepSeek' },
-    { id: 'zen',         label: 'OpenCode Zen (readonly)' },
+    { id: 'zen',         label: 'OpenCode Zen' },
   ]
 
   onMount(async () => {

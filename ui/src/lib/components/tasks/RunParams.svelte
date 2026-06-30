@@ -5,6 +5,15 @@
   } from '../../icons.js'
 
   let { executor = $bindable('pipeline'), agent = $bindable(''), model = $bindable(''), cwd = $bindable(''), executors = [], agents = [], models = [], running = false } = $props()
+
+  const executorHints = {
+    pipeline:    'AI Gateway — cache, DLP, spend control',
+    cursor:      'Cursor Agent IDE — reads/writes files directly',
+    'claude-code': 'Claude Code CLI — reads/writes files directly',
+    opencode:    'OpenCode Go CLI/API — file-capable agent',
+    deepseek:    'DeepSeek API — text/code generation only',
+    zen:         'OpenCode Zen API — analysis & review, read-only',
+  }
 </script>
 
 <div class="params-card">
@@ -23,9 +32,7 @@
         </select>
         <ChevronDownIcon size="10" strokeWidth="2" class="select-arrow" />
       </div>
-      <span class="param-hint">
-        {executor === 'pipeline' ? 'AI Gateway (cache + DLP)' : 'IDE tool (direct files)'}
-      </span>
+      <span class="param-hint">{executorHints[executor] ?? ''}</span>
     </div>
 
     <div class="param">

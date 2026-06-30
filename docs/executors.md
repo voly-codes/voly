@@ -48,10 +48,10 @@ codeops run "review the auth module and propose a minimal refactor" \
 | Executor | Инструменты | Требования | Когда использовать |
 |---|---|---|---|
 | `cursor` | Read/Write/Edit/Bash через Cursor Agent | `CURSOR_API_KEY`, `cursor-sdk` | основной file-capable executor |
-| `opencode` | CLI/API agentic execution | opencode CLI или `OPENCODE_API_KEY` | fallback / bulk code tasks |
+| `opencode` | OpenCode Go CLI/API — file-capable agent | opencode CLI или `OPENCODE_API_KEY` | fallback / bulk code tasks |
 | `claude-code` | Claude CLI | `ANTHROPIC_API_KEY`, `claude` CLI | Anthropic-native coding flow |
 | `deepseek` | text/code generation | `DEEPSEEK_API_KEY` | дешёвые черновики |
-| `zen` | readonly analysis/review/planning | `OPENCODE_API_KEY` | ревью, аудит, planning |
+| `zen` | OpenCode Zen API — analysis, review, planning (read-only, no file access) | `OPENCODE_API_KEY` | ревью, аудит, planning |
 | `mimo` | text/batch tasks | `MIMO_API_KEY` | batch генерация |
 
 ---
