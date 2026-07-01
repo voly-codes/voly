@@ -153,6 +153,7 @@ class TaskEvent:
     error: str | None = None
     # DSPy optimizer fields
     dspy_enabled: bool = False
+    dspy_used: bool = False       # True = DSPy executed and produced output (shadow: not returned to user)
     dspy_mode: str | None = None
     dspy_program_id: str | None = None
     dspy_program_version: int | None = None
@@ -171,6 +172,10 @@ class TaskEvent:
     # Each entry: {executor, model, status, duration_ms, error}
     # status: "success" | "billing_error" | "not_available" | "skipped" | "failed"
     chain_timelog: list[dict] = field(default_factory=list)
+    # A2A auto-dispatch fields
+    a2a_dispatched: bool = False
+    a2a_subtask_count: int = 0
+    a2a_agents_used: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

@@ -1,0 +1,258 @@
+"""
+Dataclass definitions for all CodeOps configuration sections.
+
+_DEFAULT_MODELS is defined at the bottom because CodeOpsConfig.get_model_config()
+references it at call time (not at class-definition time), which avoids a
+circular import with any module that imports ModelConfig first.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+DEFAULT_CONFIG_FILENAME = "codeops.yaml"
+DEFAULT_PROXY_PORT = 8787
+
+
+@dataclass
+class ModelConfig:
+    provider: str = "anthropic"
+    model: str = "claude-sonnet-4-5-20250929"
+    api_key: str = ""
+    base_url: str | None = None
+    max_tokens: int = 8192
+    temperature: float = 0.0
+    extra: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AgentConfig:
+    name: str = "claude"
+    description: str = ""
+    model: str | None = None
+    executor: str | None = None
+    tools: list[str] = field(default_factory=list)
+    system_prompt: str | None = None
+    max_turns: int = 100
+    sandbox: bool = False
+
+
+@dataclass
+class CostPolicyConfig:
+    enabled: bool = True
+    max_task_cost_usd: float = 1.0
+    stop_on_budget_exceeded: bool = True
+    prefer_cheaper_model_for: list[str] = field(
+        default_factory=lambda: ["docs", "tests", "summarization"]
+    )
+    cheaper_model: str = "deepseek-v4-flash"
+    cheaper_model_map: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class RTKConfig:
+    enabled: bool = True
+    binary_path: str | None = None
+    auto_install: bool = True
+
+
+@dataclass
+class HeadroomConfig:
+    enabled: bool = True
+    port: int = DEFAULT_PROXY_PORT
+    savings_profile: str = "agent-90"
+    memory_enabled: bool = False
+    code_graph: bool = False
+    lean_ctx: bool = False
+
+
+@dataclass
+class MemoryConfig:
+    enabled: bool = False
+    backend: str = "hybrid"
+    remote_url: str = ""
+    db_path: str = ".codeops/memory.db"
+    embedding_model: str = "all-MiniLM-L6-v2"
+    max_memories: int = 10000
+
+
+@dataclass
+class A2AConfig:
+    enabled: bool = True
+    port: int = 9100
+    federation_url: str = ""
+    agent_discovery: bool = True
+    remote_agents: list[str] = field(default_factory=list)
+    local_agents: list[dict[str, Any]] = field(default_factory=list)
+    token: str = ""
+    auto_dispatch: bool = True
+    min_flags_for_dispatch: int = 2
+    task_timeout_seconds: float = 120.0
+
+
+@dataclass
+class AGUIConfig:
+    enabled: bool = True
+    port: int = 9101
+    remote_url: str = ""
+    streaming: bool = True
+    session_timeout_seconds: int = 3600
+    cors_origins: list[str] = field(default_factory=lambda: ["*"])
+
+
+@dataclass
+class SpendConfig:
+    enabled: bool = True
+    remote_url: str = ""
+    daily_budget_usd: float = 20.0
+
+
+@dataclass
+class WorkflowConfig:
+    enabled: bool = True
+    remote_url: str = ""
+    max_retries: int = 3
+    retry_delay_seconds: float = 5.0
+    timeout_seconds: float = 300.0
+    checkpoint_dir: str = ".codeops/checkpoints"
+
+
+@dataclass
+class RegistryConfig:
+    enabled: bool = True
+    agents_path: str = ".codeops/agents"
+    skills_path: str = ".codeops/skills"
+    marketplace_url: str = ""
+
+
+@dataclass
+class ScannerConfig:
+    enabled: bool = True
+    auto_scan: bool = True
+    scan_depth: int = 3
+
+
+@dataclass
+class AIGatewayConfig:
+    enabled: bool = True
+    provider: str = "cloudflare"
+    account_id: str = ""
+    gateway_id: str = "default"
+    api_token: str = ""
+    cache_enabled: bool = True
+    cache_ttl_seconds: int = 3600
+    cache_max_entries: int = 1000
+    rate_limits_enabled: bool = True
+    rate_requests_per_minute: int = 60
+    spend_limits_enabled: bool = True
+    spend_daily_budget_usd: float = 20.0
+    spend_per_agent_budget: dict[str, float] = field(default_factory=dict)
+    fallback_enabled: bool = True
+    fallback_chain: list[dict[str, str]] = field(default_factory=list)
+    fallback_retries: int = 3
+    dlp_enabled: bool = False
+    dlp_block_secrets: bool = True
+    dlp_block_pii: bool = True
+
+
+@dataclass
+class MCPConfig:
+    servers: list[dict[str, Any]] = field(default_factory=list)
+    tools_allowlist: list[str] = field(default_factory=list)
+
+
+@dataclass
+class TelemetryConfig:
+    enabled: bool = True
+    events_dir: str = ".codeops/events"
+    pipeline_url: str = ""
+    pipeline_enabled: bool = True
+    pipeline_timeout_seconds: float = 5.0
+    r2_enabled: bool = True
+
+
+@dataclass
+class DSPyConfig:
+    """DSPy optimizer layer — sits between Headroom and AIGateway.chat()."""
+
+    enabled: bool = False
+    # off: DSPy not used at all
+    # shadow: runs in parallel, result logged but not returned to caller
+    # active: DSPy result replaces AIGateway.chat() for opted-in agents
+    mode: str = "shadow"
+    programs_dir: str = ".codeops/dspy/programs"
+    datasets_dir: str = ".codeops/dspy/datasets"
+    optimizer: str = "bootstrap_fewshot"
+    min_examples: int = 20
+    # small | medium | large — controls compile budget (num trials / epochs)
+    compile_budget: str = "small"
+    # agents to apply DSPy to; empty list = all agents when mode=active
+    agents: list[str] = field(default_factory=list)
+    # routing_mode: shadow | active — controls whether DSPy also drives routing
+    routing_mode: str = "shadow"
+    # model to use for DSPy inference; empty = use route model (may fail if no balance)
+    # Recommended: set to a cheap/free model, e.g. "llama-scout" (workers-ai)
+    model: str = ""
+    # provider for DSPy model; empty = auto-resolved from model config
+    provider: str = ""
+    # program registry / version manager
+    active_tag: str = "production"
+    shadow_tag: str = "candidate"
+    program_overrides: dict[str, str] = field(default_factory=dict)
+
+    VALID_MODES = {"off", "shadow", "active"}
+
+    @classmethod
+    def validate(cls, **kwargs: Any) -> bool:
+        model = kwargs.get("model", "")
+        provider = kwargs.get("provider", "")
+        mode = kwargs.get("mode", "")
+
+        if model and not provider:
+            raise ValueError("DSPyConfig: model is set but provider is empty")
+        if provider and not model:
+            raise ValueError("DSPyConfig: provider is set but model is empty")
+        if mode not in cls.VALID_MODES:
+            raise ValueError(
+                f"DSPyConfig: mode must be one of {cls.VALID_MODES}, got {mode!r}"
+            )
+        return True
+
+
+@dataclass
+class CodeOpsConfig:
+    models: dict[str, ModelConfig] = field(default_factory=dict)
+    agents: dict[str, AgentConfig] = field(default_factory=dict)
+    rtk: RTKConfig = field(default_factory=RTKConfig)
+    headroom: HeadroomConfig = field(default_factory=HeadroomConfig)
+    memory: MemoryConfig = field(default_factory=MemoryConfig)
+    a2a: A2AConfig = field(default_factory=A2AConfig)
+    agui: AGUIConfig = field(default_factory=AGUIConfig)
+    spend: SpendConfig = field(default_factory=SpendConfig)
+    workflow: WorkflowConfig = field(default_factory=WorkflowConfig)
+    registry: RegistryConfig = field(default_factory=RegistryConfig)
+    scanner: ScannerConfig = field(default_factory=ScannerConfig)
+    ai_gateway: AIGatewayConfig = field(default_factory=AIGatewayConfig)
+    mcp: MCPConfig = field(default_factory=MCPConfig)
+    cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
+    telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
+    dspy: DSPyConfig = field(default_factory=DSPyConfig)
+    default_model: str = "claude-sonnet"
+    default_agent: str = "claude"
+    default_cwd: str = ""   # CODEOPS_PROJECT_CWD or codeops.yaml: default_cwd
+
+    def get_model_config(self, name: str | None = None) -> ModelConfig:
+        from codeops.config._defaults import _DEFAULT_MODELS
+        name = name or self.default_model
+        if name in self.models:
+            return self.models[name]
+        if name in _DEFAULT_MODELS:
+            return _DEFAULT_MODELS[name]
+        return ModelConfig(provider="anthropic", model=name)
+
+    def get_agent_config(self, name: str | None = None) -> AgentConfig:
+        name = name or self.default_agent
+        if name in self.agents:
+            return self.agents[name]
+        return AgentConfig(name=name)

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import threading
 import time
 import urllib.request
@@ -29,6 +30,8 @@ import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 
 class TaskState(Enum):
@@ -174,8 +177,9 @@ class A2AAgent:
 
 
 class A2AClient:
-    def __init__(self, base_url: str | None = None):
+    def __init__(self, base_url: str | None = None, token: str = ""):
         self.base_url = base_url
+        self.token = token
         self._known_agents: dict[str, AgentCard] = {}
 
     def discover(self, agent_url: str) -> AgentCard | None:
@@ -219,10 +223,13 @@ class A2AClient:
                     }
                 },
             }
+            headers = {"Content-Type": "application/json"}
+            if self.token:
+                headers["Authorization"] = f"Bearer {self.token}"
             req = urllib.request.Request(
                 api_url,
                 data=json.dumps(body).encode(),
-                headers={"Content-Type": "application/json"},
+                headers=headers,
                 method="POST",
             )
             with urllib.request.urlopen(req, timeout=30.0) as resp:
@@ -242,7 +249,10 @@ class A2AClient:
     def get_task_status(self, agent_url: str, task_id: str) -> A2ATask | None:
         try:
             api_url = f"{agent_url.rstrip('/')}/tasks/{task_id}"
-            req = urllib.request.Request(api_url)
+            headers = {}
+            if self.token:
+                headers["Authorization"] = f"Bearer {self.token}"
+            req = urllib.request.Request(api_url, headers=headers)
             with urllib.request.urlopen(req, timeout=10.0) as resp:
                 data = json.loads(resp.read().decode())
                 state_str = data.get("state", "completed")
@@ -260,8 +270,8 @@ class A2AClient:
 
 
 class A2AOrchestrator:
-    def __init__(self, client: A2AClient | None = None, federation: Any | None = None):
-        self.client = client or A2AClient()
+    def __init__(self, client: A2AClient | None = None, federation: Any | None = None, token: str = ""):
+        self.client = client or A2AClient(token=token)
         self._federation = federation
         self._local_agents: dict[str, A2AAgent] = {}
         self._tasks: dict[str, A2ATask] = {}
@@ -309,8 +319,13 @@ class A2AOrchestrator:
         return task
 
     def route_and_delegate(self, task: A2ATask) -> A2ATask:
+        logger.debug("route_and_delegate: task_id=%s agent=%s has_federation=%s",
+                     task.id, task.metadata.get("agent"), bool(self._federation))
         if self._federation:
             agent_name = task.metadata.get("routed_to") or task.agent_url
+            if not agent_name:
+                agent_name = task.metadata.get("agent", "")
+            logger.debug("route_and_delegate: federation path, agent_name=%r", agent_name)
             if agent_name and not task.metadata.get("routed_to"):
                 candidates = self.client.find_agent_for_task(task.description)
                 if candidates:
@@ -322,20 +337,27 @@ class A2AOrchestrator:
                     task.agent_url = card.url
 
             if agent_name:
-                remote = self._federation.create_remote_task(
-                    task.title or task.description[:100],
-                    task.description,
-                    agent_name=str(agent_name),
-                )
-                task.id = remote.id
-                task.state = remote.state
-                task.metadata.update(remote.metadata)
-                task.agent_url = remote.agent_url
-                self._tasks[task.id] = task
+                try:
+                    remote = self._federation.create_remote_task(
+                        task.title or task.description[:100],
+                        task.description,
+                        agent_name=str(agent_name),
+                    )
+                    logger.debug("route_and_delegate: federation created task_id=%s state=%s", remote.id, remote.state)
+                    task.id = remote.id
+                    task.state = remote.state
+                    task.metadata.update(remote.metadata)
+                    task.agent_url = remote.agent_url
+                    self._tasks[task.id] = task
+                except Exception as exc:
+                    logger.error("route_and_delegate: federation.create_remote_task failed: %s", exc)
+                    task.state = TaskState.FAILED
+                    task.error = str(exc)
                 return task
 
         candidates = self.client.find_agent_for_task(task.description)
         if not candidates:
+            logger.warning("route_and_delegate: no agent candidates for task_id=%s", task.id)
             task.state = TaskState.FAILED
             task.error = "No suitable agent found for task"
             return task
@@ -375,6 +397,55 @@ class A2AOrchestrator:
             return updated
         return task
 
+    def dispatch_parallel(self, subtasks: list, timeout_seconds: float = 120.0) -> list:
+        '''
+        Dispatch subtasks to A2A agents, respecting depends_on ordering.
+        Uses threading for parallel execution of independent subtasks.
+        Returns list of A2ATask objects in the same order as subtasks.
+        '''
+        from codeops.a2a.decomposer import Subtask
+
+        results = [None] * len(subtasks)
+        errors = [None] * len(subtasks)
+
+        def run_subtask(i, subtask):
+            logger.info("dispatch_parallel[%d]: agent=%s", i, subtask.agent)
+            try:
+                a2a_task = self.create_task(
+                    title=subtask.agent + ': ' + subtask.description[:80],
+                    description=subtask.description,
+                )
+                a2a_task.metadata['agent'] = subtask.agent
+                self.route_and_delegate(a2a_task)
+                logger.info("dispatch_parallel[%d]: agent=%s → state=%s id=%s",
+                            i, subtask.agent, a2a_task.state, a2a_task.id)
+                results[i] = a2a_task
+            except Exception as e:
+                logger.error("dispatch_parallel[%d]: agent=%s exception: %s", i, subtask.agent, e, exc_info=True)
+                a2a_task = self.create_task(title=subtask.agent, description=subtask.description)
+                a2a_task.metadata['agent'] = subtask.agent
+                a2a_task.metadata['error'] = str(e)
+                a2a_task.state = TaskState.FAILED
+                results[i] = a2a_task
+                errors[i] = str(e)
+
+        # Group by dependency level: 0=no deps, 1=depends on level 0, etc.
+        # Simple approach: run no-dep subtasks in parallel, then wait, then next wave
+        no_deps = [i for i, s in enumerate(subtasks) if not s.depends_on]
+        has_deps = [i for i, s in enumerate(subtasks) if s.depends_on]
+
+        threads = [threading.Thread(target=run_subtask, args=(i, subtasks[i])) for i in no_deps]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=timeout_seconds)
+
+        # Run dependent subtasks sequentially after
+        for i in has_deps:
+            run_subtask(i, subtasks[i])
+
+        return [r for r in results if r is not None]
+
     def execute_workflow(self, tasks: list[A2ATask], parallel: bool = False) -> list[A2ATask]:
         results: list[A2ATask] = []
 
@@ -401,11 +472,12 @@ class A2AOrchestrator:
         return list(self.client._known_agents.values())
 
 
-def create_a2a_orchestrator(federation_url: str = "") -> A2AOrchestrator:
+def create_a2a_orchestrator(federation_url: str = "", token: str = "") -> A2AOrchestrator:
     from codeops.a2a.backend import FederationBackend
     from codeops.a2a.federation import create_federation_client
 
-    client = create_federation_client(federation_url)
-    if client:
-        return A2AOrchestrator(A2AClient(), federation=FederationBackend(client))
-    return A2AOrchestrator()
+    fed_client = create_federation_client(federation_url, token=token)
+    a2a_client = A2AClient(token=token)
+    if fed_client:
+        return A2AOrchestrator(a2a_client, federation=FederationBackend(fed_client))
+    return A2AOrchestrator(a2a_client)

@@ -1,61 +1,33 @@
+"""Default codeops.yaml template written by `codeops init`."""
+
+from pathlib import Path
+
+_DEFAULT_YAML = """\
 # CodeOps Configuration
 # =====================
 
 default_model: claude-sonnet
-default_agent: cursor
+default_agent: claude
 
 models:
-  # Anthropic
   claude-sonnet:
     provider: anthropic
-    model: claude-sonnet-4-6
+    model: claude-sonnet-4-5-20250929
     api_key: "${ANTHROPIC_API_KEY}"
   claude-opus:
     provider: anthropic
-    model: claude-opus-4-8
+    model: claude-opus-4-5-20250929
     api_key: "${ANTHROPIC_API_KEY}"
-  # OpenAI (pay-per-use — last resort)
   gpt-4o:
     provider: openai
     model: gpt-4o
     api_key: "${OPENAI_API_KEY}"
-  # Google
   gemini-pro:
     provider: google
     model: gemini-2.5-pro
     api_key: "${GOOGLE_API_KEY}"
-  # Cloudflare Workers AI (included in CF plan, very cheap)
-  llama-fast:
-    provider: workers-ai
-    model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
-    api_key: "${CLOUDFLARE_API_TOKEN}"
-  llama-scout:
-    provider: workers-ai
-    model: "@cf/meta/llama-4-scout-17b-16e-instruct"
-    api_key: "${CLOUDFLARE_API_TOKEN}"
-  mistral-cf:
-    provider: workers-ai
-    model: "@cf/mistral/mistral-7b-instruct-v0.2"
-    api_key: "${CLOUDFLARE_API_TOKEN}"
-  # CF AI Gateway Dynamic Routing (routes by rules in CF dashboard)
-  cf-dynamic:
-    provider: cloudflare-dynamic
-    model: "dynamic/codeops"
-    api_key: "${CLOUDFLARE_API_TOKEN}"
-  # OpenCode Zen (free tier models)
-  zen-free:
-    provider: opencode-zen
-    model: big-pickle
-    api_key: "${OPENCODE_API_KEY}"
-  zen-deepseek-free:
-    provider: opencode-zen
-    model: deepseek-v4-flash-free
-    api_key: "${OPENCODE_API_KEY}"
 
 agents:
-  cursor:
-    description: "Cursor Agent — реализация кода и задачи с большим выводом"
-    executor: cursor
   claude:
     description: "Claude Code — основной агент разработки"
     model: claude-sonnet
@@ -114,6 +86,7 @@ mcp:
 
 workflow:
   enabled: true
+  remote_url: "${CF_WORKER_WORKFLOW_URL}"
   max_retries: 3
   retry_delay_seconds: 5.0
   timeout_seconds: 300.0
@@ -122,7 +95,6 @@ registry:
   enabled: true
   agents_path: ".codeops/agents"
   skills_path: ".codeops/skills"
-  marketplace_url: "${CF_WORKER_MARKETPLACE_URL}"
 
 scanner:
   enabled: true
@@ -147,19 +119,8 @@ ai_gateway:
     per_agent_budget: {}
   fallback:
     enabled: true
-    chain:
-      # 1. CF Workers AI — бесплатный, никакого биллинга, глобальная сеть
-      - provider: workers-ai
-        model: "@cf/meta/llama-4-scout-17b-16e-instruct"
-      # 2. CF Dynamic Routing — автоматически выбирает доступный провайдер
-      - provider: cloudflare-dynamic
-        model: dynamic/ai_route
-      # 3. Бесплатные zen-модели как последний резерв
-      - provider: opencode-zen
-        model: big-pickle
-      - provider: opencode-zen
-        model: deepseek-v4-flash-free
-    retries: 4
+    chain: []
+    retries: 3
   dlp:
     enabled: false
     block_secrets: true
@@ -183,16 +144,13 @@ telemetry:
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
-# DSPy optimizer layer (requires: pip install codeops[dspy])
+# DSPy optimizer layer (optional, requires: pip install codeops[dspy])
 # mode: off | shadow | active
-# shadow — runs DSPy in parallel, logs diff to telemetry, does NOT affect responses
-# active — replaces AIGateway.chat() for the agents listed in `agents`
-# Start with shadow to collect comparison data before switching to active.
+# shadow — runs in parallel, logs diff to telemetry, does NOT affect responses
+# active — replaces AIGateway.chat() for agents listed in `agents`
 dspy:
-  enabled: true
+  enabled: false
   mode: shadow
-  model: llama-scout     # workers-ai: free CF tier, no balance issues
-  provider: workers-ai
   optimizer: bootstrap_fewshot
   min_examples: 20
   compile_budget: small
@@ -204,3 +162,9 @@ dspy:
   active_tag: production
   shadow_tag: candidate
   program_overrides: {}
+"""
+
+
+def create_default_config(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_DEFAULT_YAML)

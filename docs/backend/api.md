@@ -50,6 +50,18 @@ data: {"type": "update", "task": {...}}
 
 Состояние сервера, конфигурация, версии.
 
+```json
+{
+  "version": "0.1.0",
+  "tasks_count": 12,
+  "events_dir": "/path/to/.codeops/events",
+  "default_cwd": "/home/user/project",
+  "cf": { ... }
+}
+```
+
+`default_cwd` — путь из `codeops.yaml` (`default_cwd`) или env `CODEOPS_PROJECT_CWD`. Пустая строка если не задан. Используется UI (RunPanel) для авто-заполнения поля cwd при загрузке.
+
 ---
 
 ## GET /api/registry/agents
@@ -94,10 +106,23 @@ data: {"type": "update", "task": {...}}
 
 | Endpoint | Метод | Назначение |
 |---|---|---|
-| `/health` | GET | Проверка доступности + AI binding status |
+| `/health` | GET | Проверка доступности + pipeline/A2A callback status |
 | `/infer` | POST | CF AI Gateway inference → FILE blocks для LocalPatchApplier |
-| `/pipeline` | POST | Прокси к CodeOps pipeline runner |
-| `/a2a` | POST/GET | A2A federation endpoints |
+| `/agents/:name/run` | POST | Запуск задачи + A2A callback (`task_id` optional) |
+| `/mcp` | * | MCP tools (`run_task`) |
+
+**A2A callback:** `completeA2ATask()` POST `/tasks/:id/complete` на federation worker через
+service binding `A2A_FEDERATION` (HTTP fetch на `*.workers.dev` даёт CF error 1042).
+
+## CF Worker endpoints (`cf-workers/a2a/`)
+
+| Endpoint | Метод | Назначение |
+|---|---|---|
+| `/health` | GET | Federation + queue status |
+| `POST /tasks` | POST | Создать задачу (`async: true` → queue dispatch) |
+| `GET /tasks/:id` | GET | Статус задачи |
+| `POST /tasks/:id/complete` | POST | Callback от agent worker (Bearer `API_TOKEN`) |
+| queue consumer | — | Dispatch через service binding `AGENT_WORKER` |
 
 **`POST /infer`** — основной endpoint для WranglerExecutor:
 ```typescript

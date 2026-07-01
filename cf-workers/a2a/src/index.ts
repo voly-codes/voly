@@ -5,6 +5,7 @@ import { buildBuiltinAgents, getBuiltinAgent } from "./definitions";
 export interface Env {
   DB: D1Database;
   A2A_QUEUE: Queue;
+  AGENT_WORKER?: Fetcher;
   API_TOKEN?: string;
   AGENT_WORKER_URL?: string;
   AGENT_WORKER_TOKEN?: string;
@@ -356,20 +357,25 @@ async function processQueueMessage(env: Env, message: QueueMessage): Promise<voi
   }
 
   const agentBase = (env.AGENT_WORKER_URL ?? "").replace(/\/$/, "");
-  if (!agentBase) return;
+  if (!env.AGENT_WORKER && !agentBase) return;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const token = env.AGENT_WORKER_TOKEN ?? env.API_TOKEN;
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${agentBase}/agents/${encodeURIComponent(message.agent_name)}/run`, {
+  const path = `/agents/${encodeURIComponent(message.agent_name)}/run`;
+  const init: RequestInit = {
     method: "POST",
     headers,
     body: JSON.stringify({
       task: message.description,
       task_id: message.task_id,
     }),
-  });
+  };
+
+  const res = env.AGENT_WORKER
+    ? await env.AGENT_WORKER.fetch(new Request(`https://agent.internal${path}`, init))
+    : await fetch(`${agentBase}${path}`, init);
 
   if (!res.ok) {
     const errText = await res.text();

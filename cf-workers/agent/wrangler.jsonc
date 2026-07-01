@@ -4,6 +4,13 @@
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
 
+  "services": [
+    {
+      "binding": "A2A_FEDERATION",
+      "service": "codeops-a2a"
+    }
+  ],
+
   "ai": {
     "binding": "AI"
   },

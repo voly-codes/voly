@@ -169,7 +169,7 @@ class DSPyRunner:
                     duration_ms,
                     content[:120],
                 )
-                dspy_result.dspy_used = False
+                dspy_result.dspy_used = True  # DSPy ran; mode="shadow" = result not returned
                 return dspy_result
 
             return dspy_result
@@ -192,18 +192,33 @@ class DSPyRunner:
     # ------------------------------------------------------------------
 
     def _get_lm(self, model: str, provider: str, agent: str) -> Any:
-        """Return cached CodeOpsDSPyLM instance."""
-        key = (model, provider, agent)
+        """Return cached CodeOpsDSPyLM instance.
+
+        Uses config.dspy.model/provider if set — avoids routing model's provider
+        (which may have no balance). Falls back to route model/provider only when
+        no DSPy-specific model is configured.
+        """
+        cfg_dspy = self.config.dspy
+        effective_model = cfg_dspy.model or model
+        effective_provider = cfg_dspy.provider or provider
+
+        # If provider still empty, resolve from model config
+        if not effective_provider:
+            mc = self.config.get_model_config(effective_model)
+            effective_provider = mc.provider or "workers-ai"
+
+        key = (effective_model, effective_provider, agent)
         if key not in self._lm_cache:
             from codeops.dspy.adapter import CodeOpsDSPyLM
 
+            mc = self.config.get_model_config(effective_model)
             self._lm_cache[key] = CodeOpsDSPyLM(
                 gateway=self.gateway,
-                model=model,
-                provider=provider,
+                model=mc.model or effective_model,
+                provider=effective_provider,
                 agent=agent,
-                max_tokens=self.config.get_model_config(model).max_tokens,
-                temperature=self.config.get_model_config(model).temperature,
+                max_tokens=mc.max_tokens,
+                temperature=mc.temperature,
             )
         return self._lm_cache[key]
 

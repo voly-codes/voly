@@ -115,13 +115,31 @@ Compiled programs хранятся в `programs_dir/` — это **runtime artif
 dspy:
   enabled: false          # true чтобы включить
   mode: shadow            # off | shadow | active
-  model: claude-sonnet-4-6
+  model: llama-scout      # модель для DSPy inference (из секции models:)
+  provider: workers-ai    # провайдер для DSPy; пустая строка = из model config
   agents: []              # empty = все агенты (в active mode)
   programs_dir: .codeops/dspy/programs
   datasets_dir: .codeops/dspy/datasets
   active_tag: production
   shadow_tag: candidate
 ```
+
+`model` / `provider` — определяют какую модель использует DSPy для inference, **независимо** от routing модели задачи. Рекомендуется указывать дешёвую/бесплатную модель (например `llama-scout` через `workers-ai`), чтобы DSPy не конкурировал за баланс с основными executor-ами.
+
+Логика выбора модели в `DSPyRunner._get_lm()`:
+1. `config.dspy.model` → `config.dspy.provider` если оба заданы
+2. `config.dspy.model` → provider из `get_model_config(model)` если provider пустой
+3. Route model / provider как fallback (если `dspy.model` не задан)
+
+---
+
+## Телеметрия — `dspy_used`
+
+В `TaskEvent.dspy_used`:
+- `True` — DSPy успешно выполнился (в `shadow` mode — результат не возвращён пользователю, но DSPy отработал)
+- `False` — DSPy не запускался или завершился с ошибкой
+
+В `shadow` mode `dspy_used=True` означает "DSPy запустился", а не "результат использован". Поле `mode="shadow"` показывает что вывод не влиял на ответ.
 
 ---
 

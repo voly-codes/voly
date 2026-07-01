@@ -134,9 +134,15 @@ def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def savings(ctx: click.Context, days: int, as_json: bool) -> None:
-    """Show savings report: RTK + cache + model routing vs direct API cost."""
+    """Show savings report based on measured telemetry data."""
     import time
-    from codeops.rtk.installer import RTKManager
+    from codeops.telemetry import _estimate_cost
+
+    # Executor types that never go through AIGateway — no token/cost data in telemetry
+    _EXECUTOR_MODELS = frozenset({"claude-code", "cursor", "opencode", "zen", "wrangler", "mimo", "deepseek"})
+    # Baseline for routing comparison
+    _BASELINE_MODEL = "claude-sonnet-4-6"
+    _SONNET_IN_PER_TOKEN = 0.003 / 1000
 
     events_dir = Path(".codeops/events")
     events: list[dict] = []
@@ -151,7 +157,6 @@ def savings(ctx: click.Context, days: int, as_json: bool) -> None:
             except Exception:
                 pass
 
-    total_tasks = len(events)
     completed = [e for e in events if e.get("status") == "completed"]
     errors     = [e for e in events if e.get("status") not in ("completed", None)]
 
@@ -160,103 +165,124 @@ def savings(ctx: click.Context, days: int, as_json: bool) -> None:
     total_out         = sum(e.get("tokens", {}).get("output", 0) for e in completed)
     total_duration_ms = sum(e.get("duration_ms", 0) for e in completed)
 
-    cache_hits   = sum(1 for e in completed if e.get("gateway", {}).get("cache_hit"))
-    non_cached   = [e for e in completed if not e.get("gateway", {}).get("cache_hit")]
-    avg_cost_nc  = sum(e.get("cost_usd", 0) for e in non_cached) / len(non_cached) if non_cached else 0.0
-    saved_by_cache = cache_hits * avg_cost_nc
+    # ── Cache savings: cache_hit events saved a full API call ────────────
+    # When cache_hit=True, the event has tokens from the cached response.
+    # Actual cost was $0; saved cost = what the model would have charged.
+    cache_hits = 0
+    saved_by_cache = 0.0
+    for e in completed:
+        if not e.get("gateway", {}).get("cache_hit"):
+            continue
+        cache_hits += 1
+        mdl = e.get("model") or ""
+        tok = e.get("tokens", {})
+        saved_by_cache += _estimate_cost(mdl, tok.get("input", 0), tok.get("output", 0))
 
+    # ── Routing savings: cheaper model vs claude-sonnet-4-6 baseline ─────
+    # Only pipeline events with known model and real token counts.
+    saved_by_routing = 0.0
+    routing_tasks    = 0
+    for e in completed:
+        mdl = e.get("model") or ""
+        if not mdl or mdl in _EXECUTOR_MODELS or mdl == _BASELINE_MODEL:
+            continue
+        tok = e.get("tokens", {})
+        inp, out = tok.get("input", 0), tok.get("output", 0)
+        if inp == 0 and out == 0:
+            continue
+        delta = _estimate_cost(_BASELINE_MODEL, inp, out) - e.get("cost_usd", 0.0)
+        if delta > 0:
+            saved_by_routing += delta
+            routing_tasks += 1
+
+    # ── RTK / Headroom savings: tokens.saved_* from pipeline telemetry ───
+    # These fields are set only when RTK/Headroom actually compressed context
+    # before sending to the gateway. Converted to cost at Sonnet input price.
+    rtk_tokens    = sum(e.get("tokens", {}).get("saved_rtk", 0) for e in completed)
+    hdroom_tokens = sum(e.get("tokens", {}).get("saved_headroom", 0) for e in completed)
+    saved_by_rtk     = rtk_tokens    * _SONNET_IN_PER_TOKEN
+    saved_by_headroom = hdroom_tokens * _SONNET_IN_PER_TOKEN
+
+    # ── Billing fallback chain ────────────────────────────────────────────
+    fallback_used = sum(1 for e in completed if e.get("gateway", {}).get("fallback_used"))
+    # Free executors: zen and wrangler have $0 API cost
+    free_exec_tasks = sum(1 for e in completed if e.get("executor") in ("zen", "wrangler"))
+
+    # ── Productivity ─────────────────────────────────────────────────────
+    scored = [e for e in completed if e.get("automation_score") is not None]
+    avg_automation    = sum(e.get("automation_score", 0) for e in scored) / len(scored) if scored else 0.0
+    manual_removed    = sum(e.get("manual_steps_removed", 0) for e in completed)
+
+    # ── By agent / by model ───────────────────────────────────────────────
     by_agent: dict[str, dict] = {}
     by_model: dict[str, dict] = {}
     for e in completed:
-        ag = e.get("agent", "unknown")
-        by_agent.setdefault(ag, {"tasks": 0, "cost": 0.0, "tokens": 0})
-        by_agent[ag]["tasks"] += 1
-        by_agent[ag]["cost"]  += e.get("cost_usd", 0.0)
-        tok = e.get("tokens", {})
-        by_agent[ag]["tokens"] += tok.get("input", 0) + tok.get("output", 0)
-
-        mdl = e.get("model", "unknown")
+        ag  = e.get("agent") or "unknown"
+        mdl = e.get("model") or "unknown"
+        cost = e.get("cost_usd", 0.0)
+        tok  = e.get("tokens", {})
+        by_agent.setdefault(ag,  {"tasks": 0, "cost": 0.0, "tokens": 0})
         by_model.setdefault(mdl, {"tasks": 0, "cost": 0.0})
+        by_agent[ag]["tasks"]  += 1
+        by_agent[ag]["cost"]   += cost
+        by_agent[ag]["tokens"] += tok.get("input", 0) + tok.get("output", 0)
         by_model[mdl]["tasks"] += 1
-        by_model[mdl]["cost"]  += e.get("cost_usd", 0.0)
+        by_model[mdl]["cost"]  += cost
 
-    config = ctx.obj["config"]
-    rtk_stats: dict = {}
-    rtk_mgr = RTKManager(binary_path=config.rtk.binary_path)
-    if rtk_mgr.is_installed():
-        rtk_stats = rtk_mgr.get_stats("global") or {}
-
-    rtk_tokens_saved = rtk_stats.get("tokens_saved_estimate", rtk_stats.get("saved_chars", 0))
-    rtk_runs  = rtk_stats.get("runs", 0)
-    rtk_ratio = rtk_stats.get("compression_ratio", 0.0)
-    rtk_cost_saved = rtk_tokens_saved * 0.000003
-
-    SONNET_PRICE = 0.000003
-    estimated_all_sonnet = total_in * SONNET_PRICE
-    saved_by_routing = max(0.0, estimated_all_sonnet - total_cost)
-
-    total_saved      = saved_by_cache + rtk_cost_saved + saved_by_routing
-    estimated_direct = total_cost + total_saved
-    savings_pct      = (total_saved / estimated_direct * 100) if estimated_direct > 0 else 0.0
-
-    scored = [e for e in completed if e.get("automation_score") is not None]
-    avg_automation = (
-        sum(e.get("automation_score", 0) for e in scored) / len(scored) if scored else 0.0
-    )
-    total_manual_removed = sum(e.get("manual_steps_removed", 0) for e in completed)
-    automation_pct = avg_automation * 100
+    period_label = f"last {days}d" if days else "all time"
 
     if as_json:
         click.echo(json.dumps({
             "period_days": days or "all",
-            "tasks": {"total": total_tasks, "completed": len(completed), "errors": len(errors)},
-            "tokens": {"input": total_in, "output": total_out, "total": total_in + total_out},
+            "tasks": {"completed": len(completed), "errors": len(errors)},
+            "tokens": {"input": total_in, "output": total_out},
+            "cost": {
+                "actual_usd":              round(total_cost, 4),
+                "saved_by_cache_usd":      round(saved_by_cache, 4),
+                "saved_by_routing_usd":    round(saved_by_routing, 4),
+                "saved_by_rtk_usd":        round(saved_by_rtk, 4),
+                "saved_by_headroom_usd":   round(saved_by_headroom, 4),
+                "routing_baseline_model":  _BASELINE_MODEL,
+                "routing_tasks":           routing_tasks,
+            },
+            "cache_hits": cache_hits,
+            "fallback_triggered": fallback_used,
+            "free_executor_tasks": free_exec_tasks,
             "automation": {
                 "avg_score": round(avg_automation, 3),
-                "avg_pct": round(automation_pct, 1),
-                "manual_steps_removed": total_manual_removed,
-                "tasks_with_score": len(scored),
+                "manual_steps_removed": manual_removed,
             },
-            "cost": {
-                "actual_usd":           round(total_cost, 4),
-                "estimated_direct_usd": round(estimated_direct, 4),
-                "saved_total_usd":      round(total_saved, 4),
-                "saved_pct":            round(savings_pct, 1),
-                "saved_by_cache_usd":   round(saved_by_cache, 4),
-                "saved_by_rtk_usd":     round(rtk_cost_saved, 4),
-                "saved_by_routing_usd": round(saved_by_routing, 4),
-            },
-            "rtk": rtk_stats,
-            "cache_hits": cache_hits,
+            "rtk_tokens_saved": rtk_tokens,
+            "headroom_tokens_saved": hdroom_tokens,
             "by_agent": by_agent,
             "by_model": by_model,
         }, indent=2))
         return
 
-    period_label = f"last {days}d" if days else "all time"
-    click.echo(f"\n{'═' * 60}")
+    W = 60
+    click.echo(f"\n{'═' * W}")
     click.echo(f"  CodeOps Savings Report  ({period_label})")
-    click.echo(f"{'═' * 60}")
-    click.echo(
-        f"\n  Tasks           {len(completed):>8} completed  {len(errors):>4} errors"
-    )
+    click.echo(f"{'═' * W}")
+    click.echo(f"\n  Tasks       {len(completed):>5} completed   {len(errors):>4} errors")
     if scored:
-        click.echo(
-            f"  Automation      {automation_pct:>7.0f}% avg  "
-            f"{total_manual_removed:>6} manual steps removed"
-        )
-    click.echo(f"  Tokens          {total_in + total_out:>8,}  ({total_in:,} in / {total_out:,} out)")
-    click.echo(f"  Duration        {total_duration_ms / 1000:>8.1f}s total")
-    click.echo(f"\n  {'Metric':<30}  {'Value':>12}")
-    click.echo(f"  {'─' * 44}")
-    click.echo(f"  {'Actual cost':<30}  ${total_cost:>11.4f}")
-    click.echo(f"  {'Estimated without CodeOps':<30}  ${estimated_direct:>11.4f}")
-    click.echo(f"  {'─' * 44}")
-    click.echo(f"  {'Saved by RTK':<30}  ${rtk_cost_saved:>11.4f}  ({rtk_tokens_saved:,} tokens, {rtk_ratio:.0f}% avg)")
-    click.echo(f"  {'Saved by cache':<30}  ${saved_by_cache:>11.4f}  ({cache_hits} cache hits)")
-    click.echo(f"  {'Saved by model routing':<30}  ${saved_by_routing:>11.4f}")
-    click.echo(f"  {'─' * 44}")
-    click.echo(f"  {'Total saved':<30}  ${total_saved:>11.4f}  ({savings_pct:.0f}%)")
+        click.echo(f"  Automation  {avg_automation*100:>5.0f}% avg · {manual_removed} manual steps removed")
+    click.echo(f"  Tokens      {total_in+total_out:>8,}  ({total_in:,} in / {total_out:,} out)")
+    click.echo(f"  Duration    {total_duration_ms/1000:>8.1f}s total")
+
+    click.echo(f"\n  ── Actual spend {'─'*42}")
+    click.echo(f"  {'Actual cost (telemetry)':<38}  ${total_cost:>8.4f}")
+
+    click.echo(f"\n  ── Measurable savings (from telemetry) {'─'*20}")
+    click.echo(f"  {'Cheaper model routing':<38}  ${saved_by_routing:>8.4f}  ({routing_tasks} tasks vs {_BASELINE_MODEL})")
+    click.echo(f"  {'Cache hits':<38}  ${saved_by_cache:>8.4f}  ({cache_hits} hits)")
+    if rtk_tokens > 0:
+        click.echo(f"  {'RTK token compression':<38}  {rtk_tokens:>9,} tok  (≈${saved_by_rtk:.4f})")
+    if hdroom_tokens > 0:
+        click.echo(f"  {'Headroom compression':<38}  {hdroom_tokens:>9,} tok  (≈${saved_by_headroom:.4f})")
+    if fallback_used > 0:
+        click.echo(f"  {'Billing fallback triggered':<38}  {fallback_used:>9} times")
+    if free_exec_tasks > 0:
+        click.echo(f"  {'Free executor tasks (zen/wrangler)':<38}  {free_exec_tasks:>9} tasks  ($0 API cost)")
 
     if by_agent:
         click.echo(f"\n  By agent")
@@ -271,10 +297,7 @@ def savings(ctx: click.Context, days: int, as_json: bool) -> None:
             short = mdl[-28:] if len(mdl) > 28 else mdl
             click.echo(f"  {'  ' + short:<30}  ${stats['cost']:>8.4f}  ({stats['tasks']} tasks)")
 
-    if rtk_runs > 0:
-        click.echo(f"\n  RTK — {rtk_runs} commands tracked, {rtk_ratio:.0f}% avg compression")
-
-    click.echo(f"\n{'═' * 60}\n")
+    click.echo(f"\n{'═' * W}\n")
 
 
 # ── balance ───────────────────────────────────────────────────────────────────

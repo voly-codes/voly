@@ -64,7 +64,10 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     def a2a(self) -> Any:
         if self._a2a_orchestrator is None:
             from codeops.a2a import create_a2a_orchestrator
-            self._a2a_orchestrator = create_a2a_orchestrator(self.config.a2a.federation_url)
+            self._a2a_orchestrator = create_a2a_orchestrator(
+                self.config.a2a.federation_url,
+                token=self.config.a2a.token,
+            )
         return self._a2a_orchestrator
 
     @property
@@ -257,6 +260,12 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
             route, analysis, task_type = self._stage_route(task, context, force_model, force_agent)
 
+            # Auto A2A dispatch for complex multi-capability tasks
+            if not delegate_to_a2a and self._should_dispatch_a2a(analysis):
+                a2a_auto_result = self._stage_a2a_auto(task, analysis, agui_session_id, started, task_id)
+                if a2a_auto_result is not None:
+                    return a2a_auto_result
+
             spend_result = self._stage_spend_check(route, task_id, analysis, agui_session_id, started)
             if spend_result is not None:
                 return spend_result
@@ -331,7 +340,6 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
                 duration_ms=duration,
                 event=ev,
                 injected_skills=injected_skills,
-                dspy_used=dspy_used,
                 dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else "",
                 **dspy_fields,
             )

@@ -13,46 +13,71 @@
 </p>
 
 <p align="center">
-  AI Agent Control Plane · DSPy Optimization · FinOps · Context Compression · A2A · AG-UI · Cloudflare AI Gateway
+  AI Agent Control Plane · Billing Fallback Chain · DSPy Optimization · FinOps · A2A · AG-UI · Cloudflare AI Gateway
 </p>
 
-> **🌐 [English version](README.en.md)**
+# CodeOps — Control Plane для AI-агентов
 
-# CodeOps — FinOps + Automation Control Plane for AI Agents
+> **CodeOps оборачивает Claude Code, Zen, Cursor, Codex и другие AI-агенты, чтобы запускать их дешевле, безопаснее и с полной измеримостью.**
 
-> **CodeOps оборачивает Claude Code, Cursor, Codex, OpenCode и другие AI-агенты, чтобы запускать их дешевле, безопаснее и с полной измеримостью.**
+CodeOps — не ещё один AI-агент. Это **control plane** между разработчиком и агентами:
 
-CodeOps — это не ещё один AI-агент. Это **control plane** между разработчиком, CLI/CI и агентами:
-
-- маршрутизирует задачи по агентам, моделям и executor-ам;
+- маршрутизирует задачи по executor-ам с автоматическим billing fallback chain;
 - контролирует расходы через Cloudflare AI Gateway, spend limits и cost policy;
 - снижает расход токенов через RTK, Headroom, cache и model routing;
 - собирает telemetry по каждому запуску;
-- поддерживает DSPy как optional optimization layer для prompt/program optimization;
-- остаётся project-agnostic: целевой проект передаётся через `--cwd`, а не зашивается в CodeOps.
+- поддерживает DSPy как optional optimization layer;
+- остаётся project-agnostic — целевой проект передаётся через `--cwd` или `CODEOPS_PROJECT_CWD`.
 
-## Метрики ценности
+## Как это работает
 
-| Цель | Как CodeOps помогает |
-|---|---|
-| Сократить расходы | RTK, Headroom, cache, cheaper model routing, spend limits |
-| Автоматизировать рутину | workflows, predefined agents, executor orchestration |
-| Контролировать AI-затраты | telemetry, cost per task, cost per agent, daily budget |
-| Управлять рисками | DLP, rate limits, fallback, budget stops, approval gates |
-| Масштабировать на команду | shared gateway, shared policies, shared metrics |
-| Улучшать качество ответов | optional DSPy programs with shadow/active rollout |
+Есть два независимых пути выполнения задачи:
+
+```text
+Developer / Web UI / CLI / CI
+         ↓
+   CodeOps Entry Point
+         ↓
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+PIPELINE   EXECUTOR
+  PATH       PATH
+(text/     (file-
+inference) capable)
+    │         │
+    │         ├─ DSPy TaskPlanner  (optional)
+    │         ├─ executor.run(task, cwd)
+    │         └─ Billing Fallback Chain:
+    │              claude-code → wrangler → zen
+    │
+    ├─ ROUTE → MEMORY → RTK → SKILL
+    ├─ HEADROOM → DSPY* → MODEL_CALL
+    └─ AIGateway.chat()
+         DLP → Cache → Rate limit → Spend limit → Provider
+```
+
+**`AIGateway.chat()`** — единственная точка выхода к моделям. DSPy, InferenceManager и все рантаймы идут через него. Сохраняются cache, DLP, spend limits, fallback и telemetry.
+
+**Smart dispatch** (`POST /api/run`): когда `executor=pipeline` и задача требует генерации кода, сервер автоматически переключается на `executor=claude-code` с `cwd` из конфига или `CODEOPS_PROJECT_CWD`.
 
 ## Быстрый старт
 
 ```bash
 git clone https://github.com/codeops-org/codeops.git
 cd codeops
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-cp .env.example .env  # добавь API ключи при необходимости
+cp .env.example .env   # добавь API ключи
 codeops init
 codeops status
+```
+
+Запуск web UI:
+
+```bash
+codeops serve          # backend на :7860
+cd ui && npm install && npm run dev   # UI на :5173
 ```
 
 Для DSPy:
@@ -62,178 +87,182 @@ pip install -e ".[dspy,dev]"
 codeops dspy status
 ```
 
-Для executor-ов с доступом к файлам:
+## Billing Fallback Chain
+
+Ключевой механизм: если у текущего executor-а кончаются деньги, `AgentRunner` автоматически переходит к следующему.
+
+```
+claude-code  →  wrangler  →  zen
+(Anthropic)    (CF Workers)  (free)
+```
+
+`ExecutorResult.billing_error = True` → следующий executor в цепочке.
+
+Все три executor-а умеют **писать файлы** в `--cwd`. Text-only executor-а (`deepseek`, `workers-ai`) в цепочку не входят.
+
+## Executors
+
+| Executor | Запись файлов | Billing | Позиция в цепочке |
+|---|---|---|---|
+| `claude-code` | да — Claude CLI | Anthropic | 1-й |
+| `wrangler` | да — LocalPatchApplier | CF Workers AI | 2-й |
+| `zen` | да — opencode CLI | free / subscription | 3-й (last resort) |
+| `cursor` | да — Cursor Agent | Cursor | standalone |
+| `opencode` | да — OpenCode CLI | opencode.ai | standalone |
+| `deepseek` | нет — text only | DeepSeek API | вне цепочки |
+| `mimo` | нет — text only | MiMo API | вне цепочки |
+
+Пример запуска:
 
 ```bash
-pip install -e ".[cursor]"   # если используешь Cursor executor
-codeops run "review this repository" --agent reviewer --executor cursor --cwd /path/to/project
+codeops run "implement auth refactor" \
+  --executor claude-code \
+  --cwd /path/to/target-project
 ```
 
-## Как это работает
+Для автоматического выбора executor-а и routing — используй Web UI или `codeops match`.
 
-```text
-Developer / CLI / CI / Scheduler
-        ↓
-CodeOps CLI
-        ↓
-Pipeline
-        ↓
-Agent Router + Cost Policy
-        ↓
-Memory → RTK → Headroom
-        ↓
-Inference Runtime
-        ├─ Classic Prompt Runtime
-        └─ DSPy Runtime (optional: off | shadow | active)
-        ↓
-AI Gateway
-        ├─ DLP
-        ├─ Cache
-        ├─ Rate limits
-        ├─ Spend limits
-        └─ Provider fallback
-        ↓
-Claude / GPT / Gemini / DeepSeek / MiMo / OpenCode
-        ↓
-Telemetry → .codeops/events/ + optional CF Pipelines / R2
-```
+## WranglerExecutor + CF Worker
 
-`AIGateway.chat()` остаётся единственной точкой выхода к моделям. Даже DSPy идёт через gateway adapter, поэтому сохраняются cache, DLP, spend limits, fallback и telemetry.
-
-## Основные команды
+`wrangler` executor вызывает локальный CF Workers AI через `wrangler dev`, применяет ответ к файлам через `LocalPatchApplier`.
 
 ```bash
-codeops run <task>              # запустить задачу через pipeline
-codeops match <task>            # подобрать агента, модель, provider, tools
-codeops compare <task>          # прямой API vs CodeOps pipeline
-codeops savings                 # отчёт об экономии
-codeops scan                    # сканировать проект
-codeops status                  # статус компонентов
+# Запустить Worker перед использованием wrangler executor:
+cd cf-workers/agent && wrangler dev
 ```
 
-## Агенты, модели и скиллы
+CF Worker (`cf-workers/agent/src/infer.ts`) маршрутизирует inference через:
+1. CF AI Gateway route schema (`CF_ACCOUNT_ID` + `CF_AIG_TOKEN`) — `POST /infer`
+2. `env.AI.run()` direct binding — fallback если gateway не настроен
 
-```bash
-codeops registry agents         # список агентов
-codeops registry skills         # список скиллов
-codeops model list              # модели и цены
-codeops model route <task>      # модель для задачи
-codeops catalog sync            # sync OpenCode Zen models
-codeops catalog match <task>    # подобрать model/executor по catalog rules
-```
+Модель по умолчанию: `@cf/moonshotai/kimi-k2.7-code`
 
-## Бюджет, gateway и telemetry
+## Web UI
 
-```bash
-codeops ai-gateway status
-codeops ai-gateway metrics
-codeops ai-gateway flush-cache
-codeops spend summary
-codeops telemetry status
-codeops telemetry test --dry-run
-```
+Svelte 5 SPA с hash-routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`.
 
-## DSPy optimizer layer
+| Компонент | Назначение |
+|---|---|
+| `RunPanel.svelte` | Запуск задачи: executor, agent, model, cwd, SSE stream |
+| `RunParams.svelte` | Параметры запуска с hints по executor-ам |
+| `RunResult.svelte` | Результат: content, billing_fallback badge, cost |
+| `TaskSidebar.svelte` | История задач с поиском и фильтром |
+| `PipelineInspector.svelte` | Стадии pipeline, token flow, DSPy metadata |
+| `WorkReport.svelte` | Файлы созданные/изменённые/удалённые |
+| `GatewayPage.svelte` | AI Gateway dashboard |
+| `TelemetryPage.svelte` | Аналитика расходов |
+| `DSPyPage.svelte` | DSPy программы и lifecycle |
 
-DSPy подключается как optional слой между `HEADROOM_COMPRESS` и `AI Gateway` через `Inference Runtime`.
+`RunPanel` при загрузке автоматически подставляет `cwd` из `GET /api/status` → `default_cwd` (берётся из `CODEOPS_PROJECT_CWD` или `codeops.yaml`).
 
-Режимы:
+## DSPy — optional optimization layer
+
+DSPy подключается между стадиями `HEADROOM_COMPRESS` и `AI Gateway` в pipeline, и как `TaskPlanner` перед executor-ом.
 
 | Mode | Поведение |
 |---|---|
-| `off` | DSPy полностью выключен |
-| `shadow` | DSPy запускается для наблюдения, но ответ пользователю остаётся classic runtime |
-| `active` | DSPy-результат может заменить classic response для разрешённых агентов |
-
-Команды:
+| `off` | DSPy выключен |
+| `shadow` | DSPy запускается параллельно для наблюдения; ответ — classic |
+| `active` | DSPy-результат заменяет classic response для разрешённых агентов |
 
 ```bash
 codeops dspy status
 codeops dspy dataset build
 codeops dspy compile --agent reviewer
-codeops dspy eval --agent reviewer
-codeops dspy programs
 codeops dspy promote code-review.v2 --tag production
-```
-
-Важно: `shadow` может выполнять и DSPy-вызов, и classic-вызов для одной задачи. Используй его как staged rollout перед `active`.
-
-## Executors
-
-Executor — это runtime, который может реально работать с файлами в `--cwd`.
-
-| Executor | Назначение | Требования |
-|---|---|---|
-| `cursor` | Реализация кода, multi-file edits | `CURSOR_API_KEY`, `cursor-sdk` |
-| `opencode` | OpenCode CLI/API fallback | opencode / `OPENCODE_API_KEY` |
-| `claude-code` | Claude CLI | `ANTHROPIC_API_KEY`, `claude` CLI |
-| `deepseek` | дешёвые текстовые задачи | `DEEPSEEK_API_KEY` |
-| `zen` | анализ/review/planning через OpenCode Zen | `OPENCODE_API_KEY` |
-| `mimo` | batch/text tasks | `MIMO_API_KEY` |
-
-Пример:
-
-```bash
-codeops run "implement auth refactor" \
-  --agent developer \
-  --executor cursor \
-  --cwd /path/to/target-project
 ```
 
 ## Конфигурация
 
-Минимальный `codeops.yaml`:
-
 ```yaml
-default_model: claude-sonnet
+# codeops.yaml
 default_agent: claude
+default_cwd: ""             # путь к целевому проекту (или задай CODEOPS_PROJECT_CWD)
 
 ai_gateway:
-  enabled: true
   provider: cloudflare
-  account_id: "${CLOUDFLARE_ACCOUNT_ID}"
-  gateway_id: "${CLOUDFLARE_AI_GATEWAY_ID}"
-  api_token: "${CLOUDFLARE_API_TOKEN}"
-  caching:
-    enabled: true
-  spend_limits:
-    enabled: true
-    daily_budget_usd: 20
+  cloudflare_account_id: "${CF_ACCOUNT_ID}"
+  cloudflare_gateway_id: "${CF_GATEWAY_ID}"
+  cache_enabled: true
+  spend_limit_usd_per_day: 20.0
+
+cost_policy:
+  max_task_cost_usd: 2.0
 
 dspy:
   enabled: false
   mode: shadow
-  agents:
-    - reviewer
-    - documenter
-    - architect
 ```
 
-Runtime state не должен попадать в git:
+Ключевые env vars:
 
-```text
-.codeops/events/
-.codeops/dspy/datasets/
-.codeops/dspy/programs/
+```env
+ANTHROPIC_API_KEY=sk-ant-...       # claude-code executor
+OPENCODE_API_KEY=...               # zen / opencode executor
+CF_ACCOUNT_ID=...                  # CF AI Gateway + CF Worker
+CF_GATEWAY_ID=default
+CF_AIG_TOKEN=...                   # от CF Dashboard → AI Gateway → Settings
+CODEOPS_PROJECT_CWD=/path/to/proj  # default cwd для executor-а и UI
+```
+
+## Основные команды
+
+```bash
+codeops run <task>              # запустить задачу через pipeline
+codeops run <task> --executor claude-code --cwd /path/to/project
+codeops match <task>            # подобрать агента / executor / модель
+codeops compare <task>          # прямой API vs CodeOps pipeline
+codeops status                  # статус компонентов
+codeops savings                 # отчёт об экономии
+codeops serve                   # запустить backend на :7860
+codeops ui                      # открыть UI в браузере
+
+codeops registry agents         # список агентов
+codeops registry skills         # список скиллов
+codeops model list              # модели и цены
+codeops ai-gateway status       # статус AI Gateway
+codeops spend status            # текущий дневной spend
+codeops dspy status             # DSPy programs + режим
 ```
 
 ## CI
 
-В репозитории есть GitHub Actions smoke gate:
+GitHub Actions smoke gate:
 
-- base install на Python 3.*;
-- import без DSPy extra;
-- DSPy extra smoke test;
-- runtime smoke tests.
+- base install Python 3.10 / 3.11 / 3.12
+- import smoke без DSPy extra
+- DSPy extra install smoke
+- `pytest tests/test_dspy_runtime_smoke.py`
 
-Полный historical test suite можно включать отдельно после стабилизации старых тестов.
+```bash
+pytest tests/test_dspy_runtime_smoke.py   # обязательно после изменений
+pytest tests/ -q                          # полный прогон
+```
+
+## Не коммитить
+
+```
+.codeops/events/
+.codeops/dspy/datasets/
+.codeops/dspy/programs/
+.codeops/reports/
+.venv/
+ui/node_modules/
+codeops/web/static/assets/
+```
 
 ## Документация
 
 | Файл | Назначение |
 |---|---|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | текущая архитектура CodeOps |
-| [CLAUDE.md](CLAUDE.md) | инструкции для AI-агентов в этом репозитории |
-| [docs/executors.md](docs/executors.md) | executor runtime guide |
-| [docs/catalog-supervisor.md](docs/catalog-supervisor.md) | catalog routing и model planning |
-| [docs/dspy.md](docs/dspy.md) | DSPy integration guide |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Высокоуровневая схема: pipeline, executor, gateway |
+| [docs/backend/pipeline.md](docs/backend/pipeline.md) | Pipeline стадии, AgentRouter, smart dispatch |
+| [docs/backend/executors.md](docs/backend/executors.md) | Executor-ы, billing fallback chain, WranglerExecutor |
+| [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, CF route schema, провайдеры |
+| [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
+| [docs/backend/config.md](docs/backend/config.md) | codeops.yaml, env vars, CodeOpsConfig |
+| [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE events, CF Worker /infer |
+| [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 стек, структура ui/, dev/build |
+| [docs/frontend/components.md](docs/frontend/components.md) | Компоненты, props, executor order |
+| [docs/frontend/api-client.md](docs/frontend/api-client.md) | SSE вызовы, event format, billing_fallback в UI |
+| [CLAUDE.md](CLAUDE.md) | Инструкции для AI-агентов в этом репозитории |

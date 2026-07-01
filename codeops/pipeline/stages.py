@@ -52,6 +52,115 @@ class _PipelineStageMixin:
             )
         return None
 
+    def _should_dispatch_a2a(self, analysis: Any) -> bool:
+        if not self.config.a2a.enabled or not getattr(self.config.a2a, 'auto_dispatch', True):
+            return False
+        flags = sum([
+            bool(getattr(analysis, 'requires_code_gen', False)),
+            bool(getattr(analysis, 'requires_review', False)),
+            bool(getattr(analysis, 'requires_testing', False)),
+            bool(getattr(analysis, 'requires_deployment', False)),
+        ])
+        min_flags = getattr(self.config.a2a, 'min_flags_for_dispatch', 2)
+        return flags >= min_flags or getattr(analysis, 'complexity', '') == 'high'
+
+    def _stage_a2a_auto(
+        self,
+        task: str,
+        analysis: Any,
+        agui_session_id: str | None,
+        started: float,
+        task_id: str,
+    ) -> Any | None:
+        import time as _time
+        from codeops.a2a.decomposer import TaskDecomposer
+        from codeops.a2a.merger import ResultMerger
+        from codeops.a2a.report import A2AReport
+        from codeops.pipeline.types import PipelineResult, PipelineStage
+        from codeops.router import RouteDecision
+
+        decomposer = TaskDecomposer()
+        subtasks = decomposer.decompose(task, analysis)
+        if len(subtasks) < 2:
+            return None
+
+        self._fire(PipelineStage.A2A_DISCOVER, subtasks=subtasks)  # type: ignore[attr-defined]
+        timeout = getattr(self.config.a2a, 'task_timeout_seconds', 120.0)  # type: ignore[attr-defined]
+        a2a_tasks = self.a2a.dispatch_parallel(subtasks, timeout_seconds=timeout)  # type: ignore[attr-defined]
+        self._fire(PipelineStage.A2A_DELEGATE, a2a_tasks=a2a_tasks)  # type: ignore[attr-defined]
+
+        # Poll until all tasks complete or timeout
+        import logging as _logging
+        _poll_log = _logging.getLogger('codeops.pipeline')
+        poll_deadline = _time.monotonic() + timeout
+        poll_interval = 3.0
+        from codeops.a2a import TaskState as _TaskState
+        terminal = {_TaskState.COMPLETED, _TaskState.FAILED, _TaskState.CANCELLED}
+        while _time.monotonic() < poll_deadline:
+            pending = [t for t in a2a_tasks if t.state not in terminal]
+            if not pending:
+                break
+            _poll_log.debug("A2A polling: %d tasks pending", len(pending))
+            _time.sleep(poll_interval)
+            for t in pending:
+                updated = self.a2a.collect_results(t)  # type: ignore[attr-defined]
+                _poll_log.debug("A2A poll task_id=%s agent=%s state=%s",
+                                t.id, t.metadata.get('agent'), updated.state)
+        else:
+            _poll_log.warning("A2A polling timed out after %.0fs", timeout)
+
+        merged = ResultMerger().merge(task, a2a_tasks)
+        duration_ms = (_time.monotonic() - started) * 1000
+
+        # Build and save report
+        reports_dir = getattr(self.config.telemetry, 'events_dir', '.codeops/events')  # type: ignore[attr-defined]
+        report = A2AReport.from_a2a_tasks(task_id, task, a2a_tasks, merged, duration_ms)
+        try:
+            saved = report.save(__import__('pathlib').Path(reports_dir).parent)
+            import logging; logging.getLogger('codeops.pipeline').info('A2A report saved: %s', saved)
+        except Exception as e:
+            import logging; logging.getLogger('codeops.pipeline').warning('A2A report save failed: %s', e)
+
+        agents_used = [t.metadata.get('agent', 'unknown') for t in a2a_tasks]
+        route = RouteDecision(agent='a2a', model='multi-agent', provider='a2a', routing_score=0.9)
+
+        # Create a fake InferenceResponse-like object for PipelineResult
+        class _FakeUsage:
+            input_tokens = 0
+            output_tokens = 0
+        class _FakeResponse:
+            content = merged
+            model = 'a2a'
+            usage = _FakeUsage()
+
+        # Emit telemetry event
+        from codeops.telemetry import TaskEvent, emit_event_from_config
+        ev = TaskEvent(
+            task_id=task_id,
+            agent='a2a',
+            status='completed',
+            model='multi-agent',
+            executor='a2a',
+            duration_ms=duration_ms,
+            a2a_dispatched=True,
+            a2a_subtask_count=len(subtasks),
+            a2a_agents_used=agents_used,
+            task_prompt=task[:2000],
+            result=merged[:8000],
+        )
+        emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]
+
+        return PipelineResult(
+            success=True,
+            stage=PipelineStage.DONE,
+            response=_FakeResponse(),
+            route=route,
+            a2a_tasks=a2a_tasks,
+            agui_session_id=agui_session_id or '',
+            duration_ms=duration_ms,
+            event=ev,
+        )
+
     # ── Route ─────────────────────────────────────────────────────────────────
 
     def _stage_route(
@@ -315,6 +424,7 @@ class _PipelineStageMixin:
 
     def _extract_dspy_fields(self, dspy_result: Any) -> dict[str, Any]:
         return {
+            "dspy_used":            dspy_result.dspy_used if dspy_result else False,
             "dspy_program_id":      dspy_result.program_id if dspy_result else None,
             "dspy_program_version": dspy_result.program_version if dspy_result else None,
             "dspy_program_tag":     dspy_result.program_tag if dspy_result else None,

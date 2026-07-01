@@ -3,6 +3,13 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-01-01",
 
+  "services": [
+    {
+      "binding": "AGENT_WORKER",
+      "service": "codeops-agent"
+    }
+  ],
+
   "d1_databases": [
     {
       "binding": "DB",

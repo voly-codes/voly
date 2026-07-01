@@ -282,13 +282,30 @@ Wrangler dev Worker для WranglerExecutor.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /health` | availability + `ai_configured` status |
+| `GET /health` | availability + `pipeline_configured` / `a2a_callback_configured` |
 | `POST /infer` | CF AI Gateway route schema → FILE blocks → LocalPatchApplier |
-| `POST /pipeline` | proxy to CodeOps runner |
-| `POST /a2a` | A2A federation |
+| `POST /agents/:name/run` | run task via pipeline runner (or `/infer` fallback) + A2A callback |
+| `/mcp` | MCP agent tools |
 
 `infer.ts`: пробует CF AI Gateway (`CF_ACCOUNT_ID`+`CF_AIG_TOKEN` → `dynamic/ai_route`),
 fallback на `env.AI.run()`.
+
+**A2A callback:** после `/agents/:name/run` worker вызывает `completeA2ATask()` → federation
+`POST /tasks/:id/complete`. Worker-to-worker fetch на `*.workers.dev` блокируется (CF error 1042);
+используется **service binding** `A2A_FEDERATION` → `codeops-a2a` (см. `wrangler.jsonc`).
+
+### `cf-workers/a2a/` — A2A federation hub
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /tasks` | create task (+ optional queue dispatch) |
+| `GET /tasks/:id` | task status |
+| `POST /tasks/:id/complete` | agent callback |
+| queue consumer | `AGENT_WORKER` service binding → `codeops-agent` `/agents/:name/run` |
+
+Secrets: `API_TOKEN`, `AGENT_WORKER_TOKEN` (must match agent `API_TOKEN`),
+`AGENT_WORKER_URL` (fallback if binding missing). Agent secrets: `A2A_FEDERATION_TOKEN`
+(must match federation `API_TOKEN`), `PIPELINE_RUNNER_URL` + `PIPELINE_RUNNER_TOKEN`.
 
 ---
 

@@ -2,6 +2,7 @@ export interface Env {
   PIPELINE_RUNNER_URL?: string;
   PIPELINE_RUNNER_TOKEN?: string;
   API_TOKEN?: string;
+  A2A_FEDERATION?: Fetcher;
   A2A_FEDERATION_URL?: string;
   A2A_FEDERATION_TOKEN?: string;
   // Workers AI binding — available when [ai] is declared in wrangler.jsonc
@@ -33,10 +34,22 @@ export async function callPipelineRunner(
   params: PipelineRunRequest,
 ): Promise<PipelineRunResponse> {
   const base = (env.PIPELINE_RUNNER_URL ?? "").replace(/\/$/, "");
+
+  // No PIPELINE_RUNNER_URL → execute directly via CF AI Gateway (no tunnel needed)
   if (!base) {
+    const { handleInfer } = await import("./infer");
+    const req = new Request("https://internal/infer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ task: params.task }),
+    });
+    const resp = await handleInfer(req, env);
+    const data = await resp.json<{ success: boolean; content: string; error?: string }>();
     return {
-      success: false,
-      error: "PIPELINE_RUNNER_URL not configured — run `codeops serve` locally and set tunnel URL",
+      success: data.success,
+      response: data.content,
+      error: data.error,
+      agent: params.agent,
     };
   }
 
@@ -64,17 +77,30 @@ export async function completeA2ATask(
   taskId: string,
   result: PipelineRunResponse,
 ): Promise<void> {
-  const base = (env.A2A_FEDERATION_URL ?? "").replace(/\/$/, "");
-  if (!base || !taskId) return;
-
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const token = env.A2A_FEDERATION_TOKEN ?? env.API_TOKEN;
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (!taskId) return;
+  if (!env.A2A_FEDERATION && !(env.A2A_FEDERATION_URL ?? "").replace(/\/$/, "")) return;
 
   const path = result.success ? `/tasks/${taskId}/complete` : `/tasks/${taskId}/fail`;
   const body = result.success
     ? { result: result.response ?? "" }
     : { error: result.error ?? "pipeline failed" };
 
-  await fetch(`${base}${path}`, { method: "POST", headers, body: JSON.stringify(body) });
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = env.A2A_FEDERATION_TOKEN ?? env.API_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const init: RequestInit = { method: "POST", headers, body: JSON.stringify(body) };
+
+  try {
+    const res = env.A2A_FEDERATION
+      ? await env.A2A_FEDERATION.fetch(new Request(`https://a2a.internal${path}`, init))
+      : await fetch(`${(env.A2A_FEDERATION_URL ?? "").replace(/\/$/, "")}${path}`, init);
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(`completeA2ATask ${path} → HTTP ${res.status}: ${detail.slice(0, 500)}`);
+    }
+  } catch (err) {
+    console.error(`completeA2ATask ${path} → fetch failed:`, err);
+  }
 }

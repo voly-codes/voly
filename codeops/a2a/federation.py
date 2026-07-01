@@ -5,11 +5,14 @@ FederationClient — HTTP client for A2A federation Worker (D1 + Queues).
 from __future__ import annotations
 
 import json
+import logging
 import os
 import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 USER_AGENT = "CodeOps/0.1 (+https://github.com/codeops)"
 
@@ -43,15 +46,20 @@ class FederationClient:
     ) -> Any:
         url = f"{self.base_url}{path}"
         data = json.dumps(body).encode("utf-8") if body is not None else None
+        logger.debug("A2A federation %s %s body=%s", method, url, body)
         req = urllib.request.Request(url, data=data, headers=self._headers(), method=method)
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 raw = resp.read().decode("utf-8")
-                return json.loads(raw) if raw else {}
+                result = json.loads(raw) if raw else {}
+                logger.debug("A2A federation %s %s → %s", method, path, result)
+                return result
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
+            logger.error("A2A federation %s %s → HTTP %s: %s", method, url, exc.code, detail)
             raise FederationClientError(f"HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
+            logger.error("A2A federation %s %s → URLError: %s", method, url, exc.reason)
             raise FederationClientError(str(exc.reason)) from exc
 
     def health(self) -> dict[str, Any]:
@@ -150,7 +158,7 @@ def resolve_federation_url(config_url: str = "") -> str:
 
 
 def resolve_federation_token() -> str:
-    for key in ("CF_WORKER_A2A_TOKEN", "CLOUDFLARE_API_TOKEN"):
+    for key in ("CODEOPS_A2A_TOKEN", "CF_WORKER_A2A_TOKEN"):
         token = os.environ.get(key, "").strip()
         if token:
             return token

@@ -23,6 +23,8 @@ app.get("/health", (c) =>
     status: "ok",
     service: "codeops-agent",
     pipeline_configured: Boolean(c.env.PIPELINE_RUNNER_URL),
+    a2a_callback_configured: Boolean(c.env.A2A_FEDERATION ?? c.env.A2A_FEDERATION_URL),
+    a2a_callback_token_configured: Boolean(c.env.A2A_FEDERATION_TOKEN ?? c.env.API_TOKEN),
     ai_configured: Boolean(c.env.AI),
     mcp: "/mcp",
   }),
