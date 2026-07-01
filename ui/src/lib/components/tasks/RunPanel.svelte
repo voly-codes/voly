@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
-  import { runTask, fetchAgents, fetchModels } from '../../api/client.js'
+  import { runTask, fetchAgents, fetchModels, fetchStatus } from '../../api/client.js'
   import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunResult from './RunResult.svelte'
@@ -37,6 +37,13 @@
   onMount(async () => {
     try { agents = await fetchAgents() } catch {}
     await loadModels()
+    // Pre-fill cwd from server config (CODEOPS_PROJECT_CWD / default_cwd in codeops.yaml)
+    if (!cwd) {
+      try {
+        const st = await fetchStatus()
+        if (st?.default_cwd) cwd = st.default_cwd
+      } catch {}
+    }
   })
 
   async function loadModels() {

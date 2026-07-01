@@ -44,10 +44,17 @@ def get_status(request: Request) -> dict[str, Any]:
         cfg_info["spend_url"] = bool(
             getattr(getattr(s.config, "spend", None), "remote_url", "")
         )
+    default_cwd = ""
+    if s.config:
+        default_cwd = (
+            getattr(s.config, "default_cwd", "")
+            or os.environ.get("CODEOPS_PROJECT_CWD", "")
+        )
     return {
         "version": "0.1.0",
         "tasks_count": len(events),
         "events_dir": str(s.ev_dir),
+        "default_cwd": default_cwd,
         "cf": cfg_info,
     }
 
