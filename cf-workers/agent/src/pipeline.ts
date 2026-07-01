@@ -4,6 +4,13 @@ export interface Env {
   API_TOKEN?: string;
   A2A_FEDERATION_URL?: string;
   A2A_FEDERATION_TOKEN?: string;
+  // Workers AI binding — available when [ai] is declared in wrangler.jsonc
+  AI?: Ai;
+  // CF AI Gateway — set these to route /infer calls through the gateway route schema
+  // instead of env.AI.run() directly. Configure routes in CF Dashboard → AI Gateway.
+  CF_ACCOUNT_ID?: string;
+  CF_GATEWAY_ID?: string;
+  CF_AIG_TOKEN?: string;
 }
 
 export interface PipelineRunRequest {

@@ -98,6 +98,7 @@ def list_program_ids() -> list[str]:
 
 def _load_builtins() -> None:
     builtin_modules = [
+        "codeops.dspy.programs.task_planner",
         "codeops.dspy.programs.reviewer",
         "codeops.dspy.programs.architect",
         "codeops.dspy.programs.documenter",

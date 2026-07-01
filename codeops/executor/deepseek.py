@@ -18,7 +18,7 @@ from __future__ import annotations
 import os
 import time
 
-from codeops.executor.base import Executor, ExecutorResult
+from codeops.executor.base import Executor, ExecutorResult, _is_billing_error
 from codeops.telemetry import _estimate_cost
 
 
@@ -87,4 +87,8 @@ class DeepSeekExecutor(Executor):
             )
         except Exception as e:
             duration_ms = (time.monotonic() - started) * 1000
-            return ExecutorResult(success=False, error=str(e), duration_ms=duration_ms)
+            err = str(e)
+            return ExecutorResult(
+                success=False, error=err, duration_ms=duration_ms,
+                billing_error=_is_billing_error(err),
+            )

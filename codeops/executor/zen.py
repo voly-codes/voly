@@ -15,16 +15,41 @@ import shutil
 import subprocess
 import time
 
-from codeops.executor.base import Executor, ExecutorResult, _extract_cli_error, _oc_event_error
+from codeops.executor.base import Executor, ExecutorResult, _extract_cli_error, _is_billing_error, _oc_event_error
 from codeops.telemetry import _estimate_cost
 
 logger = logging.getLogger(__name__)
 
+# Models tried in order when a billing error is detected.
+# Priority order:
+#   1. OpenCode Zen free tier (opencode.ai pays, no user billing)
+#   2. OpenCode Zen paid cheap models (opencode subscription)
+#   3. User's own provider API keys (separate billing from Anthropic)
+_FREE_MODEL_SEQUENCE: tuple[str, ...] = (
+    # OpenCode free tier — zero cost
+    "deepseek-v4-flash-free",
+    "qwen3.6-plus-free",
+    "mimo-v2.5-free",
+    "nemotron-3-ultra-free",
+    "big-pickle",
+    "north-mini-code-free",
+    # Other provider APIs — uses user's own keys (OPENAI_API_KEY, DEEPSEEK_API_KEY)
+    # opencode CLI routes these to the respective APIs, separate from Anthropic billing.
+    "openai/gpt-4o-mini",
+    "deepseek/deepseek-chat",
+)
+
 
 class ZenExecutor(Executor):
-    """File-capable coding agent via OpenCode Zen CLI + API."""
+    """File-capable coding agent via OpenCode Zen CLI + API.
 
-    DEFAULT_MODEL = "claude-sonnet-4-6"
+    When the configured model fails with a billing error (e.g. Anthropic credits
+    exhausted), automatically retries with the next model in _FREE_MODEL_SEQUENCE
+    until one succeeds or all are exhausted.
+    """
+
+    # Start with a free model — claude-sonnet-4-6 routes through Anthropic billing.
+    DEFAULT_MODEL = "deepseek-v4-flash-free"
 
     def __init__(
         self,
@@ -54,6 +79,16 @@ class ZenExecutor(Executor):
             return self._run_cli(task, cwd=cwd, max_turns=max_turns, timeout=timeout)
         return self._run_api(task, system=system, timeout=timeout)
 
+    def _models_to_try(self) -> list[str]:
+        """Return ordered list of models to attempt: configured model first, then free fallbacks."""
+        seen: set[str] = set()
+        result: list[str] = []
+        for m in (self._model, *_FREE_MODEL_SEQUENCE):
+            if m and m not in seen:
+                seen.add(m)
+                result.append(m)
+        return result
+
     def _run_cli(
         self,
         task: str,
@@ -61,16 +96,42 @@ class ZenExecutor(Executor):
         max_turns: int = 20,
         timeout: int = 600,
     ) -> ExecutorResult:
-        """Agentic execution via `opencode run` with file access."""
-        model_id = self._model
-        if model_id and "/" not in model_id:
-            model_id = f"opencode/{model_id}"
-        cmd = ["opencode", "run", "--format", "json"]
-        if model_id:
-            cmd += ["-m", model_id]
-        cmd.append(task)
+        """Agentic execution via `opencode run` with file access.
 
-        logger.info("zen._run_cli cmd=%s cwd=%s", cmd, cwd)
+        Tries each model in sequence. On billing error, moves to the next free model.
+        """
+        last_result: ExecutorResult | None = None
+
+        for model in self._models_to_try():
+            model_id = model if "/" in model else f"opencode/{model}"
+            result = self._run_cli_one(task, model_id=model_id, cwd=cwd, max_turns=max_turns, timeout=timeout)
+            last_result = result
+
+            if result.success:
+                return result
+            if not result.billing_error:
+                # Non-billing failure (timeout, parse error, etc.) — don't iterate models
+                return result
+            logger.warning(
+                "zen._run_cli: billing error with model=%s, trying next free model", model
+            )
+
+        # All models exhausted — return last result (billing_error=True so chain can continue)
+        assert last_result is not None
+        return last_result
+
+    def _run_cli_one(
+        self,
+        task: str,
+        model_id: str,
+        cwd: str | None = None,
+        max_turns: int = 20,
+        timeout: int = 600,
+    ) -> ExecutorResult:
+        """Single attempt with one model. Returns ExecutorResult with billing_error set."""
+        cmd = ["opencode", "run", "--format", "json", "-m", model_id, task]
+
+        logger.info("zen._run_cli_one model=%s cwd=%s", model_id, cwd)
         started = time.monotonic()
         try:
             proc = subprocess.run(
@@ -80,23 +141,24 @@ class ZenExecutor(Executor):
             duration_ms = (time.monotonic() - started) * 1000
 
             logger.info(
-                "zen._run_cli returncode=%d stdout=%r stderr=%r",
-                proc.returncode,
+                "zen._run_cli_one returncode=%d model=%s stdout=%r stderr=%r",
+                proc.returncode, model_id,
                 proc.stdout[:1000] if proc.stdout else "",
                 proc.stderr[:500] if proc.stderr else "",
             )
 
             if proc.returncode != 0:
                 error = _extract_cli_error(proc.stdout, proc.stderr, proc.returncode)
-                logger.warning("zen._run_cli failed: %s", error)
+                logger.warning("zen._run_cli_one failed model=%s: %s", model_id, error)
                 return ExecutorResult(
                     success=False,
                     error=error,
                     duration_ms=duration_ms,
-                    metadata={"mode": "cli", "model": self._model, "provider": "opencode-zen"},
+                    billing_error=_is_billing_error(error),
+                    metadata={"mode": "cli", "model": model_id, "provider": "opencode-zen"},
                 )
 
-            return self._parse_json_events(proc.stdout, proc.stderr, duration_ms)
+            return self._parse_json_events(proc.stdout, proc.stderr, duration_ms, model_id=model_id)
         except subprocess.TimeoutExpired:
             return ExecutorResult(
                 success=False,
@@ -104,7 +166,7 @@ class ZenExecutor(Executor):
                 duration_ms=(time.monotonic() - started) * 1000,
             )
 
-    def _parse_json_events(self, stdout: str, stderr: str, duration_ms: float) -> ExecutorResult:
+    def _parse_json_events(self, stdout: str, stderr: str, duration_ms: float, *, model_id: str = "") -> ExecutorResult:
         """Parse NDJSON event stream from `opencode run --format json`."""
         import json
         import re
@@ -169,17 +231,20 @@ class ZenExecutor(Executor):
             elif t == "session":
                 session_id = session_id or ev.get("id", "")
 
+        used_model = model_id or self._model
         logger.info(
-            "zen._parse_json_events: text_parts=%d error_parts=%d in_tok=%d out_tok=%d",
-            len(text_parts), len(error_parts), in_tok, out_tok,
+            "zen._parse_json_events: text_parts=%d error_parts=%d in_tok=%d out_tok=%d model=%s",
+            len(text_parts), len(error_parts), in_tok, out_tok, used_model,
         )
 
         if error_parts and not text_parts:
+            joined_error = "\n".join(error_parts)
             return ExecutorResult(
                 success=False,
-                error="\n".join(error_parts),
+                error=joined_error,
                 duration_ms=duration_ms,
-                metadata={"mode": "cli", "model": self._model, "provider": "opencode-zen"},
+                billing_error=_is_billing_error(joined_error),
+                metadata={"mode": "cli", "model": used_model, "provider": "opencode-zen"},
             )
 
         if not text_parts:
@@ -188,7 +253,7 @@ class ZenExecutor(Executor):
             text_parts = [fallback]
 
         if not cost and (in_tok or out_tok):
-            cost = _estimate_cost(self._model, in_tok, out_tok)
+            cost = _estimate_cost(used_model, in_tok, out_tok)
 
         return ExecutorResult(
             success=True,
@@ -199,7 +264,7 @@ class ZenExecutor(Executor):
             duration_ms=duration_ms,
             num_turns=num_turns or 1,
             session_id=session_id,
-            metadata={"mode": "cli", "model": self._model, "provider": "opencode-zen"},
+            metadata={"mode": "cli", "model": used_model, "provider": "opencode-zen"},
         )
 
     def _run_api(

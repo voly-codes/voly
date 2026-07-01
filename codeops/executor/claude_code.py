@@ -19,7 +19,11 @@ import shutil
 import subprocess
 import time
 
-from codeops.executor.base import Executor, ExecutorResult
+import logging
+
+from codeops.executor.base import Executor, ExecutorResult, _is_billing_error
+
+_log = logging.getLogger("codeops.executor.claude_code")
 
 
 class ClaudeCodeExecutor(Executor):
@@ -51,11 +55,25 @@ class ClaudeCodeExecutor(Executor):
             "--output-format", "json",
             "--allowed-tools", tools_arg,
             "--max-turns", str(max_turns),
-            task,
         ]
+
+        # Explicitly grant access to cwd so claude doesn't deny file operations.
+        # Without this, claude may ask for permission interactively (no TTY → exit 1).
+        # "--" ends option parsing so --add-dir (variadic) doesn't consume the task string.
+        if cwd:
+            cmd += ["--add-dir", cwd]
+
+        cmd += ["--", task]
 
         env = {**os.environ}
         started = time.monotonic()
+
+        _log.info(
+            "[CLAUDE] cmd=%s cwd=%r max_turns=%d",
+            " ".join(cmd[:5]) + " ...",
+            cwd,
+            max_turns,
+        )
 
         try:
             proc = subprocess.run(
@@ -69,22 +87,47 @@ class ClaudeCodeExecutor(Executor):
             duration_ms = (time.monotonic() - started) * 1000
 
             if proc.returncode != 0:
+                # stdout may contain JSON with is_error=true and a real error message —
+                # try to parse it first before falling back to generic message.
+                if proc.stdout.strip():
+                    try:
+                        parsed = self._parse_output(proc.stdout, proc.stderr, duration_ms)
+                        _log.warning(
+                            "[CLAUDE] exit=%d stdout_json=ok is_error=%s error=%r billing=%s",
+                            proc.returncode, not parsed.success,
+                            (parsed.error or "")[:200], parsed.billing_error,
+                        )
+                        return parsed
+                    except Exception:
+                        pass
+
+                err = proc.stderr or proc.stdout or f"claude exited with code {proc.returncode}"
+                _log.warning(
+                    "[CLAUDE] exit=%d stderr=%r stdout=%r",
+                    proc.returncode,
+                    (proc.stderr or "")[:400],
+                    (proc.stdout or "")[:400],
+                )
                 return ExecutorResult(
                     success=False,
-                    error=proc.stderr or f"claude exited with code {proc.returncode}",
+                    error=err[:2000],
                     duration_ms=duration_ms,
+                    billing_error=_is_billing_error(err),
                 )
 
+            _log.info("[CLAUDE] exit=0 duration_ms=%.0f stdout_len=%d", duration_ms, len(proc.stdout))
             return self._parse_output(proc.stdout, proc.stderr, duration_ms)
 
         except subprocess.TimeoutExpired:
             duration_ms = (time.monotonic() - started) * 1000
+            _log.error("[CLAUDE] timeout after %ds cwd=%r", timeout, cwd)
             return ExecutorResult(
                 success=False,
                 error=f"Timeout after {timeout}s",
                 duration_ms=duration_ms,
             )
         except FileNotFoundError:
+            _log.error("[CLAUDE] binary not found: %s", self._bin)
             return ExecutorResult(
                 success=False,
                 error=f"claude CLI not found at: {self._bin}",
@@ -115,10 +158,14 @@ class ClaudeCodeExecutor(Executor):
                 input_tokens += model_data.get("input_tokens", 0)
                 output_tokens += model_data.get("output_tokens", 0)
 
+        error_text = data.get("api_error_status", "") if is_error else ""
+        # claude CLI may embed billing errors in result text when is_error=True
+        billing = is_error and _is_billing_error(error_text or result_text or stderr)
+
         return ExecutorResult(
             success=not is_error,
             output=result_text,
-            error=data.get("api_error_status", "") if is_error else "",
+            error=error_text,
             cost_usd=data.get("total_cost_usd", 0.0) or 0.0,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
@@ -130,4 +177,5 @@ class ClaudeCodeExecutor(Executor):
                 "terminal_reason": data.get("terminal_reason"),
                 "subtype": data.get("subtype"),
             },
+            billing_error=billing,
         )

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { buildBuiltinAgents } from "./definitions";
+import { handleInfer } from "./infer";
 import type { Env } from "./pipeline";
 import { callPipelineRunner, completeA2ATask } from "./pipeline";
 import { CodeOpsMcpAgent } from "./mcp-agent";
@@ -22,9 +23,17 @@ app.get("/health", (c) =>
     status: "ok",
     service: "codeops-agent",
     pipeline_configured: Boolean(c.env.PIPELINE_RUNNER_URL),
+    ai_configured: Boolean(c.env.AI),
     mcp: "/mcp",
   }),
 );
+
+// Workers AI inference — accepts task + optional local context, returns code blocks.
+// The Python WranglerExecutor calls this and passes the response to LocalPatchApplier.
+app.post("/infer", async (c) => {
+  if (!authorize(c)) return c.json({ error: "Unauthorized" }, 401);
+  return handleInfer(c.req.raw, c.env);
+});
 
 app.get("/agents", (c) => {
   const baseUrl = new URL(c.req.url).origin;

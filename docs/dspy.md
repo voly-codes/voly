@@ -1,5 +1,11 @@
 # DSPy Integration
 
+> **Актуальный документ:** [`docs/backend/dspy.md`](backend/dspy.md)
+> Этот файл содержит базовую информацию; полное описание включая TaskPlannerProgram
+> и интеграцию с executor path — в `docs/backend/dspy.md`.
+
+---
+
 DSPy is an optional optimizer layer for CodeOps. It improves structured LLM behavior by compiling programs against datasets and metrics, but it does not replace the CodeOps pipeline.
 
 ## Position in the architecture

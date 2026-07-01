@@ -2,366 +2,332 @@
 
 ## Текущая архитектура
 
-CodeOps — project-agnostic control plane для AI-агентов. Он не содержит логики конкретного продукта: целевой проект передаётся через `--cwd`, а CodeOps отвечает за orchestration, routing, cost control, optimization и telemetry.
+CodeOps — project-agnostic control plane для AI-агентов. Целевой проект передаётся
+через `--cwd`; CodeOps отвечает за orchestration, routing, cost control, optimization и telemetry.
+
+Есть **два независимых пути** выполнения задачи:
 
 ```text
-Developer / UI / CI / Scheduler
+Developer / UI / CI
       │
       ▼
-┌─────────────────────────────────────────────────────────────┐
-│ CLI (codeops/cli/main.py)                                   │
-│ init · run · compare · scan · match · status · workflow     │
-│ registry · model · ai-gateway · memory · a2a · rtk          │
-│ headroom · mcp · config · catalog · spend · telemetry · dspy│
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ AG-UI Gateway (codeops/agui/)                               │
-│ SSE streaming · run_started/finished · tool events          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Pipeline (codeops/pipeline/core.py)                         │
-│                                                             │
-│ INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE →  │
-│ MEMORY_RETRIEVE → RTK_FILTER → SKILL_INJECT →              │
-│ HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL →       │
-│ MEMORY_STORE → AGUI_DONE → DONE / ERROR → emit TaskEvent   │
-│                                                             │
-│ Returns: PipelineResult { response, route, analysis, event }│
-└──────────────┬──────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Agent Router + Cost Policy                                  │
-│ analyze_task → TaskAnalysis                                 │
-│ route → RouteDecision { agent, model, provider, tools }     │
-│ budget_status / cheaper model routing / per-task cost cap   │
-└──────────────┬──────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Context Optimization                                        │
-│ MemoryStore.search → RTK_FILTER → Headroom compression      │
-└──────────────┬──────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Inference Runtime (codeops/inference/runtime.py)            │
-│                                                             │
-│ ClassicRuntime ─────────────┐                               │
-│ DSPyRuntime (optional) ─────┼──→ AIGateway.chat()           │
-│                             │                               │
-│ DSPy mode: off | shadow | active                            │
-│ shadow: logs DSPy result but returns classic response        │
-│ active: DSPy response may replace classic for opted agents   │
-└──────────────┬──────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ AI Gateway (codeops/ai_gateway/)                            │
-│ DLP scan → Cache check → Rate limit → Spend limit → Fallback│
-│ Cloudflare AI Gateway providers + direct provider adapters  │
-└──────────────┬──────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Providers                                                   │
-│ Anthropic · OpenAI · Google · DeepSeek · MiMo · OpenCode Zen│
-└──────────────┬──────────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Telemetry                                                   │
-│ TaskEvent → .codeops/events/ + optional CF Pipelines / R2   │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│ Entry points                                                    │
+│ CLI (codeops run ...) · POST /api/run · codeops runner          │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+          ▼                         ▼
+┌─────────────────┐       ┌──────────────────────────────────────┐
+│ PIPELINE PATH   │       │ EXECUTOR PATH                        │
+│ (text / inference)      │ (file-capable agents)                │
+│                 │       │                                      │
+│ Pipeline.run()  │       │ AgentRunner.run()                    │
+│   ↓ ROUTE       │       │   ↓ _dspy_plan_task()  (optional)    │
+│   ↓ MEMORY      │       │   ↓ executor.run(refined_task, cwd)  │
+│   ↓ RTK         │       │   ↓ BILLING FALLBACK CHAIN:          │
+│   ↓ SKILL       │       │     claude-code → wrangler → zen     │
+│   ↓ HEADROOM    │       │   ↓ _dspy_store_example()            │
+│   ↓ DSPY*       │       │   ↓ WorkReport (git diff)            │
+│   ↓ MODEL_CALL  │       │   ↓ emit TaskEvent                   │
+│   ↓ MEMORY_STORE│       └──────────────────────────────────────┘
+│   ↓ TaskEvent   │
+└────────┬────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────┐
+│ AIGateway.chat()  (единственный выход к моделям) │
+│ DLP → Cache → Rate limit → Spend limit → Provider │
+│ Cloudflare AI Gateway · Direct adapters           │
+└──────────────────────────────────────────────────┘
 ```
+
+**Smart dispatch** (`codeops/web/routes/run.py`): когда `POST /api/run` получает
+`executor=pipeline` и задача требует code gen (`requires_code_gen=True`) — автоматически
+переключается на executor path с `executor=claude-code`.
 
 ---
 
 ## Design principles
 
-1. **CodeOps stays project-agnostic.** Product-specific missions, paths and prompts do not live in the core package.
-2. **AIGateway remains the single model exit.** DSPy and future runtimes must go through the gateway to keep DLP/cache/spend/fallback.
-3. **Optimization is layered, not hardcoded.** RTK, Headroom and DSPy are independent layers with clear fallback.
-4. **Shadow before active.** New optimizer behavior should be observed in telemetry before it affects user-visible responses.
-5. **Runtime state is not source code.** `.codeops/events/`, datasets and compiled DSPy programs are generated artifacts.
+1. **CodeOps stays project-agnostic.** Никакой product-specific логики в `codeops/`.
+2. **AIGateway — единственный выход к моделям.** DSPy, InferenceManager, все рантаймы идут через него.
+3. **Optimization is layered.** RTK, Headroom и DSPy независимы с явным fallback.
+4. **Shadow before active.** Новое поведение оптимизатора — сначала shadow, потом active.
+5. **Runtime state is not source.** `.codeops/events/`, datasets, compiled programs — генерируемые артефакты.
+6. **Billing fallback chain.** При ошибке биллинга executor автоматически заменяется: `claude-code → wrangler → zen`.
+
+---
+
+## Pipeline path (text / inference)
+
+`codeops/pipeline/core.py:Pipeline.run()` — для text-only задач.
+
+### Стадии
+
+| Stage | Метод | Что делает |
+|---|---|---|
+| `INIT` | — | setup |
+| `AGUI_START` | `_stage_agui_start` | AG-UI SSE session |
+| `A2A_DISCOVER` | `_stage_a2a` | A2A federation |
+| `A2A_DELEGATE` | `_stage_a2a` | делегирование подзадач |
+| `ROUTE` | `_stage_route` | AgentRouter → RouteDecision |
+| `MEMORY_RETRIEVE` | `_stage_memory_retrieve` | MemoryStore.search |
+| `RTK_FILTER` | `_stage_rtk` | RTK token stats |
+| `SKILL_INJECT` | `_stage_skill_inject` | inject skill into system prompt |
+| `HEADROOM_COMPRESS` | — | context compression |
+| `DSPY_PROGRAM_CALL` | — | DSPyRunner.run() если enabled |
+| `MODEL_CALL` | — | AIGateway.chat() |
+| `MEMORY_STORE` | `_stage_memory_store` | persist result |
+| `AGUI_DONE` | `_stage_agui_done` | close AG-UI stream |
+| `DONE` / `ERROR` | — | final + emit TaskEvent |
+
+### PipelineResult
+
+```python
+@dataclass
+class PipelineResult:
+    success: bool
+    stage: PipelineStage
+    duration_ms: float
+    response: GatewayResponse | None
+    route: RouteDecision | None
+    error: str | None
+    injected_skills: list[str]
+    tokens_saved_by_rtk: int
+    tokens_saved_by_headroom: int
+    dspy_used: bool
+    dspy_mode: str
+    a2a_tasks: list[A2ATask]
+```
+
+---
+
+## Executor path (file-capable agents)
+
+`codeops/runner/agent_runner.py:AgentRunner.run()` — для задач с записью файлов.
+
+### Billing fallback chain
+
+```
+claude-code  →  wrangler  →  zen
+(Anthropic)    (CF Workers)  (free)
+```
+
+`ExecutorResult.billing_error = True` → следующий executor в цепочке.
+Только file-capable executors. Text-only (deepseek, workers-ai) — не в цепочке.
+
+### DSPy в executor path
+
+```
+task
+  ↓ _dspy_plan_task()  (если dspy.enabled)
+    → TaskPlannerProgram.ChainOfThought → refined_task + success_criteria
+  ↓ executor.run(refined_task, cwd)
+  ↓ _dspy_store_example()  → datasets_dir/task_planner/*.jsonl
+```
+
+### Chain logs
+
+```
+codeops.chain logger:
+[CHAIN:START]            — первая попытка
+[CHAIN:DSPY_PLAN]        — DSPy отрефайнил задачу
+[CHAIN:RESULT]           — результат + billing_error
+[CHAIN:BILLING_FALLBACK] — переключение executor
+[CHAIN:FALLBACK_RESULT]  — результат fallback
+[CHAIN:DSPY_STORE]       — сохранение примера
+```
+
+### Executor table
+
+| Executor | File writes | Billing | Chain position |
+|---|---|---|---|
+| `claude-code` | да — Claude CLI | Anthropic | 1st |
+| `wrangler` | да — LocalPatchApplier | CF Workers AI | 2nd |
+| `zen` | да — opencode CLI | free | 3rd (last resort) |
+| `cursor` | да — Cursor Agent | Cursor | standalone |
+| `opencode` | да — OpenCode CLI | opencode.ai | standalone |
+| `deepseek` | нет — text only | DeepSeek API | NOT in chain |
+| `mimo` | нет — text only | MiMo API | NOT in chain |
 
 ---
 
 ## Key modules
 
-### `codeops/pipeline/` — central orchestrator
+### `codeops/pipeline/` — central orchestrator (text path)
 
-`Pipeline.run(task)` wires together routing, context, inference and telemetry. It emits `PipelineStage` hooks so UI/AG-UI/debug tools can observe execution. Hook errors are logged at DEBUG level and never propagate.
-
-`run()` (~140 lines in `core.py`) delegates to stage methods and mixins:
+`Pipeline.run()` → stage methods + mixins. Не содержит product logic.
 
 | Method | Responsibility |
 |---|---|
-| `_stage_agui_start` | initialise AG-UI session |
-| `_stage_a2a` | A2A delegation; returns `PipelineResult` if delegated |
-| `_stage_route` | routing + cost policy; returns `(route, analysis, task_type)` |
-| `_stage_spend_check` | pre-call spend limit; returns `PipelineResult` if blocked |
-| `_stage_memory_retrieve` | memory search → context messages |
+| `_stage_agui_start` | AG-UI session init |
+| `_stage_a2a` | A2A delegation |
+| `_stage_route` | routing + cost policy |
+| `_stage_spend_check` | pre-call spend limit |
+| `_stage_memory_retrieve` | memory search |
 | `_stage_rtk` | RTK stats |
-| `_stage_skill_inject` | match skills for task/agent, inject into system prompt |
-| `_check_gateway_errors` | DLP / rate / spend errors after model call |
-| `_build_model_response` | `ModelResponse` from gateway dict |
-| `_stage_memory_store` | persist task result to memory |
-| `_stage_agui_done` | stream response to AG-UI |
-| `_extract_dspy_fields` | unpack DSPy metadata from `DSPyResult` |
-| `_emit_task_event` | build and emit `TaskEvent` to telemetry |
+| `_stage_skill_inject` | match+inject skills |
+| `_stage_memory_store` | persist result |
+| `_stage_agui_done` | stream to AG-UI |
+| `_emit_task_event` | telemetry |
 
-Important `PipelineStage` values:
+### `codeops/runner/agent_runner.py` — executor path
 
-| Stage | Purpose |
-|---|---|
-| `ROUTE` | selected agent/model/provider/tools |
-| `MEMORY_RETRIEVE` | memory hits injected into context |
-| `RTK_FILTER` | command output/context reduction |
-| `SKILL_INJECT` | skill matching and system prompt injection |
-| `HEADROOM_COMPRESS` | context compression boundary |
-| `DSPY_PROGRAM_CALL` | DSPy optimizer boundary when enabled |
-| `MODEL_CALL` | user-visible LLM response produced |
-| `DONE` / `ERROR` | final status |
+`AgentRunner.run()` orchestrates: DSPy plan → executor → billing fallback → git diff → telemetry.
+
+```python
+BILLING_FALLBACK_CHAIN = ["claude-code", "wrangler", "zen"]
+EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepseek", "zen", "wrangler"})
+```
+
+### `codeops/executor/` — file-capable runtimes
+
+| Executor | File | Purpose |
+|---|---|---|
+| `base.py` | — | `Executor`, `ExecutorResult`, `billing_error`, `_is_billing_error()` |
+| `claude_code.py` | ClaudeCodeExecutor | запускает `claude` CLI |
+| `wrangler.py` | WranglerExecutor | POST /infer → LocalPatchApplier |
+| `patch.py` | LocalPatchApplier | парсит FILE blocks + unified diffs → пишет на диск |
+| `zen.py` | ZenExecutor | opencode CLI, free tier |
+| `cursor.py` | CursorExecutor | Cursor Agent |
+| `opencode.py` | OpenCodeExecutor | OpenCode CLI/API |
+| `deepseek.py` | DeepSeekExecutor | text only |
 
 ### `codeops/inference/runtime.py` — runtime selection
 
-Inference is separated from Pipeline so CodeOps can support multiple LLM execution modes:
-
 | Runtime | Role |
 |---|---|
-| `ClassicRuntime` | direct prompt/messages call through `AIGateway.chat()` |
-| `DSPyRuntime` | optional DSPy program call through `DSPyRunner` |
-| `InferenceManager` | chooses runtime and falls back to classic when needed |
-
-This keeps Pipeline stable while allowing future runtimes such as Responses API, LangGraph or Semantic Kernel.
+| `ClassicRuntime` | прямой вызов через `AIGateway.chat()` |
+| `DSPyRuntime` | optional DSPy program → `DSPyRunner` → `AIGateway.chat()` |
+| `InferenceManager` | выбирает runtime, fallback на classic |
 
 ### `codeops/dspy/` — DSPy optimizer layer
 
-DSPy is optional. It is installed with:
-
-```bash
-pip install -e ".[dspy]"
-```
-
-Core files:
+Опциональный слой. Установка: `pip install -e ".[dspy]"`.
+Два места интеграции: Pipeline (DSPyRuntime) и AgentRunner (TaskPlannerProgram).
 
 | File | Purpose |
 |---|---|
-| `adapter.py` | `CodeOpsDSPyLM`, DSPy LM adapter over `AIGateway.chat()` |
-| `runner.py` | `DSPyRunner`, integration point used by `InferenceManager` |
-| `signatures.py` | structured DSPy signatures |
-| `modules.py` | DSPy modules with forward/optimize methods |
-| `programs/` | program registry and per-program factories |
-| `compiler.py` | dataset loading and program compilation |
-| `store.py` | versioned compiled program storage |
-| `versioning.py` | tags such as `candidate` / `production` |
+| `adapter.py` | `CodeOpsDSPyLM` — DSPy LM через `AIGateway.chat()` |
+| `runner.py` | `DSPyRunner` — интеграция с InferenceManager |
+| `programs/task_planner.py` | TaskPlannerProgram — executor path planning |
+| `programs/reviewer.py` | code-review program |
+| `programs/architect.py` | architecture-analysis program |
+| `programs/bugfixer.py` | bug-analysis program |
+| `programs/documenter.py` | generate-docs program |
+| `programs/router.py` | task-routing program |
+| `signatures.py` | typed DSPy signatures |
+| `compiler.py` | dataset loading + compile |
+| `store.py` | versioned program storage |
+| `versioning.py` | tags: candidate / production |
 | `metrics.py` | optimizer metrics |
-
-DSPy config:
-
-```yaml
-dspy:
-  enabled: false
-  mode: shadow       # off | shadow | active
-  optimizer: bootstrap_fewshot
-  min_examples: 20
-  compile_budget: small
-  routing_mode: shadow
-  agents:
-    - reviewer
-    - documenter
-    - architect
-  active_tag: production
-  shadow_tag: candidate
-  program_overrides: {}
-```
-
-Rollout model:
-
-```text
-off → shadow → candidate program → eval → promote production → active
-```
 
 ### `codeops/ai_gateway/` — model gateway
 
-`AIGateway.chat()` is the single gateway to external model providers. It applies middleware on every call:
+`AIGateway.chat()` — единственный выход к провайдерам.
 
-1. DLP scan
-2. Cache check
-3. Rate limit
-4. Spend limit
-5. Provider call with fallback
-6. Metrics/cost recording (`_calculate_cost` delegates to `telemetry._estimate_cost` — single source of truth for pricing rates)
+Middleware stack: DLP → Cache → Rate limit → Spend limit → Provider call.
 
-Supported provider groups:
-
-| Provider group | Path |
+| Provider group | Routing |
 |---|---|
 | Anthropic / OpenAI / Google / DeepSeek | Cloudflare AI Gateway |
-| MiMo | Direct OpenAI/Anthropic-compatible API |
-| OpenCode Zen / GO | Direct OpenCode endpoints |
-| Cursor | Executor layer, not gateway text call |
-
-### `codeops/executor/` — file-capable agents
-
-Executors are used when a task must actually inspect or modify files in `--cwd`.
-
-| Executor | Purpose |
-|---|---|
-| `cursor` | multi-file implementation via Cursor Agent |
-| `opencode` | OpenCode CLI/API execution |
-| `claude-code` | Claude CLI execution |
-| `deepseek` | low-cost text/code generation |
-| `zen` | readonly analysis/review/planning |
-| `mimo` | batch/text tasks |
-
-### `codeops/catalog/` — model catalog and routing support
-
-Catalog stores OpenCode Zen model metadata and helps choose executor/model combinations for tasks. It is now a generic model planning component, not tied to any product-specific combat missions.
-
-| File | Purpose |
-|---|---|
-| `types.py` | catalog and plan dataclasses |
-| `zen_sync.py` | sync model metadata from OpenCode Zen |
-| `store.py` | local cache under `.codeops/catalog/` |
-| `routing.py` | task matching / executor-model selection |
-| `supervisor.py` | supervised planning helpers |
-| `client.py` | optional Cloudflare Worker client |
-| `multi_agent.py` | parallel/sequential task orchestration (in `codeops/executor/`) |
-
-### `codeops/telemetry.py` — task telemetry
-
-`TaskEvent` is emitted for each pipeline/executor run.
-
-Important fields:
-
-```python
-@dataclass
-class TaskEvent:
-    task_id: str
-    agent: str
-    status: str
-    tokens: TokenMetrics
-    gateway: GatewayMetrics
-    skill_ids: list[str]
-    routing_score: float
-    cost_usd: float
-    duration_ms: float
-    model: str
-    provider: str
-    executor: str
-    task_type: str | None
-    dspy_enabled: bool
-    dspy_mode: str | None
-    dspy_program_id: str | None
-    dspy_program_version: int | None
-    dspy_program_tag: str | None
-    dspy_optimizer: str | None
-    dspy_dataset: str | None
-    dspy_compile_id: str | None
-    dspy_score: float | None
-    dspy_shadow_delta: float | None
-```
-
-Local fallback path:
-
-```text
-.codeops/events/<task_id>.json
-```
-
-Optional remote destinations:
-
-- CF Pipelines ingest endpoint;
-- R2 telemetry upload;
-- spend tracking Durable Object/client.
-
-### `ui/` — web dashboard
-
-CodeOps ships a Svelte 5 web frontend under `ui/src/` supporting hash-based routing (`#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`) with deep-link to specific tasks (`#/tasks/<id>`).
-
-| Component | Purpose |
-|---|---|
-| `App.svelte` | main layout: nav, hash router, keyboard shortcuts (1-4 tab switching), drawer triggers |
-| `layout/AppHeader.svelte` | brand, task/cost stats, dark mode toggle |
-| `tasks/TaskSidebar.svelte` | task list with search, sort (date/cost/duration), status filter |
-| `tasks/PipelineInspector.svelte` | task detail: pipeline stages, token flow, work report, gateway/DSPy/metadata |
-| `tasks/CostPanel.svelte` | summary cards, by-agent/by-model breakdown, selected task detail |
-| `tasks/RunPanel.svelte` | task runner: parameters grid (RunParams), streaming result (RunResult), pinned input |
-| `gateway/GatewayPage.svelte` | AI Gateway dashboard: cache, rate, spend, fallback, DLP, errors, provider/model breakdowns |
-| `telemetry/TelemetryPage.svelte` | spending analytics: daily cost/token bar charts, top agents/models by spend (30d window) |
-| `dspy/DSPyPage.svelte` | DSPy optimizer: config status, programs list, lifecycle guide |
-| `cf/CFPage.svelte` / `MarketplacePage.svelte` | Cloudflare workers status and skill marketplace drawers |
-| `shared/Drawer.svelte` | reusable slide-out panel (Svelte 5 `{@render children}`) |
-| `shared/Modal.svelte` / `shared/Toast.svelte` | centered modal with Escape/backdrop; toast notifications (success/error/warning/info) |
-| `shared/Spinner.svelte` / `shared/Skeleton.svelte` | loading spinner; shimmer placeholder for card/row states |
-
-**Stores** (`src/lib/stores/` — Svelte 5 runes with `$state`):
-
-| Store | Purpose |
-|---|---|
-| `themeStore.svelte.ts` | dark mode with `localStorage` persistence and `prefers-color-scheme` detection |
-| `tasksStore.svelte.ts` | task list, selected, summary, refresh, SSE stream merge, deep-link task loading |
-| `routerStore.svelte.ts` | hash-based routing: `#/<page>` navigation, `#/tasks/<id>` task deep-link, `hashchange` listener |
-| `uiStore.svelte.ts` | drawer/modal open state |
-| `toastStore.svelte.ts` | toast notification queue with auto-dismiss |
-| `utils/format.js` | shared formatters: `fmtTokens`, `fmtDur`, `fmtRel`, `calcPct`, `statusRu` |
-| `utils/keyboard.js` | global keyboard shortcut registration with input-focus detection |
-
-The UI is served by `codeops serve` (FastAPI + static files under `codeops/web/`).
+| MiMo | Direct (CUSTOM) |
+| OpenCode Zen / GO | Direct (CUSTOM) |
+| Workers AI | CF AI Gateway `/compat` или `env.AI.run()` |
+| Executors | bypass gateway — запускают субпроцессы |
 
 ### `codeops/web/` — backend API
 
 | File | Purpose |
 |---|---|
-| `server.py` | FastAPI app with CORS, health/liveness, all routers |
-| `routes/tasks.py` | GET `/api/tasks`, `/api/tasks/{id}`, `/api/tasks/stats/summary`, SSE `/api/tasks/stream` |
-| `routes/run.py` | POST `/api/run` — SSE streaming task execution |
-| `routes/registry.py` | GET `/api/registry/agents`, `/api/registry/models`, `/api/registry/skills` |
-| `routes/marketplace.py` | skill marketplace: list, search, install |
-| `routes/cf.py` | Cloudflare workers status, spend summary |
+| `server.py` | FastAPI app, CORS, health |
+| `routes/run.py` | POST `/api/run` — SSE + smart dispatch + context gather |
+| `routes/tasks.py` | GET `/api/tasks`, SSE stream |
+| `routes/registry.py` | agents, models, skills |
+| `routes/gateway.py` | gateway status |
+| `routes/telemetry.py` | spending analytics |
 | `routes/dspy.py` | DSPy status |
-| `routes/gateway.py` | GET `/api/gateway/status` — AI Gateway config + metrics (`to_dict()`) |
-| `routes/telemetry.py` | GET `/api/telemetry/summary?days=30` — daily cost/token aggregation, top agents/models |
+| `routes/cf.py` | CF workers status |
+
+### `ui/` — Svelte 5 web dashboard
+
+Hash-based routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`.
+
+| Component | Purpose |
+|---|---|
+| `App.svelte` | nav, hash router, keyboard shortcuts |
+| `tasks/RunPanel.svelte` | task runner: executor selector, SSE stream |
+| `tasks/RunParams.svelte` | parameters: executor, agent, model, cwd |
+| `tasks/RunResult.svelte` | result: content, billing_fallback badge, cost |
+| `tasks/TaskSidebar.svelte` | task list, search, filter |
+| `tasks/PipelineInspector.svelte` | pipeline stages, token flow, DSPy metadata |
+| `tasks/CostPanel.svelte` | spend summary cards |
+| `tasks/WorkReport.svelte` | files created/changed/deleted |
+| `gateway/GatewayPage.svelte` | AI Gateway dashboard |
+| `telemetry/TelemetryPage.svelte` | spending analytics |
+| `dspy/DSPyPage.svelte` | DSPy programs + lifecycle |
+
+### `codeops/telemetry.py` — task telemetry
+
+`TaskEvent` — эмитируется для каждого pipeline/executor запуска.
+`_COST_RATES` — единственный источник правды для pricing rates.
+
+Destinations: `.codeops/events/<task_id>.json` + optional CF Pipelines / R2.
+
+### `cf-workers/agent/` — CF Worker
+
+Wrangler dev Worker для WranglerExecutor.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | availability + `ai_configured` status |
+| `POST /infer` | CF AI Gateway route schema → FILE blocks → LocalPatchApplier |
+| `POST /pipeline` | proxy to CodeOps runner |
+| `POST /a2a` | A2A federation |
+
+`infer.ts`: пробует CF AI Gateway (`CF_ACCOUNT_ID`+`CF_AIG_TOKEN` → `dynamic/ai_route`),
+fallback на `env.AI.run()`.
 
 ---
 
 ## CI and release hygiene
 
-The repository includes a smoke-test GitHub Actions workflow:
+GitHub Actions smoke gate:
+- base install на Python 3.10 / 3.11 / 3.12
+- import smoke без DSPy extra
+- DSPy extra install smoke
+- runtime smoke tests (`pytest tests/test_dspy_runtime_smoke.py`)
 
-- base install on Python 3.10 / 3.11 / 3.12;
-- import smoke test without DSPy extra;
-- DSPy extra install smoke test;
-- runtime smoke tests.
-
-Full historical tests can be re-enabled as a stricter job once older integration tests are stabilized.
-
-Generated runtime state should stay out of git:
-
-```text
+Не коммитить:
+```
 .codeops/events/
 .codeops/dspy/datasets/
 .codeops/dspy/programs/
+.codeops/reports/
 ```
 
 ---
 
 ## Documentation map
 
-| File | Purpose |
-|---|---|
-| `README.md` | quick start and product positioning |
-| `CLAUDE.md` | agent instructions for this repository |
-| `docs/executors.md` | executor runtime guide |
-| `docs/catalog-supervisor.md` | catalog/model planning guide |
-| `docs/dspy.md` | DSPy integration guide |
-| `docs/ai-gateway.md` | AI Gateway: DLP, cache, rate/spend limits, fallback |
-| `docs/workflows.md` | workflow engine and human approval gates |
-| `docs/skills.md` | skill registry and marketplace |
-| `docs/project-scanner.md` | project scanner and profile detection |
-| `docs/ARCHITECTURE.md` | this architecture document |
+```
+CLAUDE.md                   ← agent instructions, skill references, doc navigation
+docs/ARCHITECTURE.md        ← этот файл — высокоуровневая схема
+docs/backend/
+  pipeline.md               ← Pipeline stages, AgentRouter, smart dispatch
+  executors.md              ← Executors, billing fallback chain, WranglerExecutor
+  ai-gateway.md             ← AIGateway middleware, CF route schema, providers
+  dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
+  config.md                 ← env vars, codeops.yaml, CodeOpsConfig
+  api.md                    ← FastAPI endpoints, SSE events
+docs/frontend/
+  overview.md               ← Svelte 5 stack, ui/ structure, dev/build
+  components.md             ← component catalog, props, executor order
+  api-client.md             ← SSE calls, event formats, billing_fallback in UI
+docs/catalog-supervisor.md  ← Catalog, model metadata, Supervisor planning
+docs/skills.md              ← SkillRegistry, sources, auto-generation
+docs/workflows.md           ← WorkflowEngine, human approval gates [prototype]
+docs/project-scanner.md     ← ProjectScanner, ProjectProfile [prototype]
+```

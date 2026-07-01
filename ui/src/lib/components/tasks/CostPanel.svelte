@@ -104,9 +104,15 @@
         <div class="detail-row"><span class="dr-label">Стоимость</span><span class="dr-val accent">${(task.cost_usd ?? 0).toFixed(6)}</span></div>
         <div class="detail-row"><span class="dr-label">Токены вход</span><span class="dr-val">{fmtTokens(task.tokens?.input)}</span></div>
         <div class="detail-row"><span class="dr-label">Токены выход</span><span class="dr-val">{fmtTokens(task.tokens?.output)}</span></div>
-        <div class="detail-row"><span class="dr-label">RTK экономия</span><span class="dr-val saved">{fmtTokens(task.tokens?.saved_rtk)}</span></div>
-        <div class="detail-row"><span class="dr-label">Headroom экон.</span><span class="dr-val saved">{fmtTokens(task.tokens?.saved_headroom)}</span></div>
-        <div class="detail-row"><span class="dr-label">Кэш</span><span class="dr-val">{task.gateway?.cache_hit ? 'да' : 'нет'}</span></div>
+        {#if (task.tokens?.saved_rtk ?? 0) > 0}
+          <div class="detail-row"><span class="dr-label">RTK экономия</span><span class="dr-val saved">{fmtTokens(task.tokens.saved_rtk)}</span></div>
+        {/if}
+        {#if (task.tokens?.saved_headroom ?? 0) > 0}
+          <div class="detail-row"><span class="dr-label">Headroom экон.</span><span class="dr-val saved">{fmtTokens(task.tokens.saved_headroom)}</span></div>
+        {/if}
+        {#if task.executor === 'pipeline'}
+          <div class="detail-row"><span class="dr-label">Кэш</span><span class="dr-val">{task.gateway?.cache_hit ? 'да' : 'нет'}</span></div>
+        {/if}
         <div class="detail-row"><span class="dr-label">Длительность</span><span class="dr-val">{fmtDur(task.duration_ms)}</span></div>
         {#if task.automation_score != null}<div class="detail-row"><span class="dr-label">Автоматизация</span><span class="dr-val">{(task.automation_score * 100).toFixed(0)}%</span></div>{/if}
       </div>

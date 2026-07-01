@@ -1,5 +1,11 @@
 # AI Gateway
 
+> **Актуальный документ:** [`docs/backend/ai-gateway.md`](backend/ai-gateway.md)
+> Этот файл содержит базовую информацию; полное описание включая CF AI Gateway
+> route schema, CF_AIG_TOKEN, WranglerExecutor — в `docs/backend/ai-gateway.md`.
+
+---
+
 ## Зачем нужен Gateway
 
 AI Gateway — единая точка входа для всех LLM-запросов агентов. Все вызовы в CodeOps идут только через него: `Pipeline` никогда не обращается к провайдерам напрямую.

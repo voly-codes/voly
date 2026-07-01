@@ -219,6 +219,7 @@ class CodeOpsConfig:
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     default_model: str = "claude-sonnet"
     default_agent: str = "claude"
+    default_cwd: str = ""   # CODEOPS_PROJECT_CWD or codeops.yaml: default_cwd
 
     def get_model_config(self, name: str | None = None) -> ModelConfig:
         name = name or self.default_model
@@ -477,6 +478,9 @@ def _parse_config(raw: dict) -> CodeOpsConfig:
 
     config.default_model = raw.get("default_model", "claude-sonnet")
     config.default_agent = raw.get("default_agent", "claude")
+    config.default_cwd = os.path.expanduser(
+        raw.get("default_cwd", "") or os.environ.get("CODEOPS_PROJECT_CWD", "")
+    )
 
     if "workflow" in raw:
         w = raw["workflow"]

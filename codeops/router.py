@@ -169,7 +169,15 @@ class AgentRouter:
                 break
 
         analysis.requires_code_gen = any(
-            w in t for w in ["напиши", "создай", "добавь", "реализуй", "implement", "create", "build", "add"]
+            w in t for w in [
+                # Russian imperatives and infinitives
+                "напиши", "написать", "создай", "создать", "добавь", "добавить",
+                "реализуй", "реализовать", "сделай", "сделать", "измени", "изменить",
+                "исправь", "исправить", "мигрируй", "мигрировать", "рефактор",
+                # English
+                "implement", "create", "build", "add", "write", "generate", "fix", "refactor",
+                "migrate", "update", "modify", "edit",
+            ]
         )
         analysis.requires_review    = any(w in t for w in ["review", "провер", "check", "audit"])
         analysis.requires_deployment = any(w in t for w in ["deploy", "release", "деплой", "релиз"])

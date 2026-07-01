@@ -167,6 +167,10 @@ class TaskEvent:
     result: str | None = None           # LLM output text (capped at 8000 chars)
     stage_log: list[dict] = field(default_factory=list)  # [{stage, elapsed_ms}]
     report: dict | None = None          # WorkReport.to_dict() — mini work summary
+    # Billing fallback chain log: present only when fallback was triggered.
+    # Each entry: {executor, model, status, duration_ms, error}
+    # status: "success" | "billing_error" | "not_available" | "skipped" | "failed"
+    chain_timelog: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

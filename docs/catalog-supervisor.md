@@ -91,8 +91,8 @@ codeops catalog plan <plan-id>
 
 | Gateway | Typical executor | Endpoint | File changes |
 |---|---|---|---|
-| OpenCode GO | `opencode` | `OPENCODE_BASE_URL` | yes, when used through file-capable flow |
-| OpenCode Zen | `zen` | `OPENCODE_ZEN_BASE_URL` | no, text-only analysis/review |
+| OpenCode GO | `opencode` | `OPENCODE_BASE_URL` | yes, file-capable |
+| OpenCode Zen | `zen` | `OPENCODE_ZEN_BASE_URL` | **yes** — `zen` is file-capable and is the last executor in `BILLING_FALLBACK_CHAIN` (`claude-code → wrangler → zen`) |
 
 Environment:
 

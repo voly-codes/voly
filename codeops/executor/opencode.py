@@ -16,14 +16,35 @@ import shutil
 import subprocess
 import time
 
-from codeops.executor.base import Executor, ExecutorResult, _extract_cli_error
+import logging
+
+from codeops.executor.base import Executor, ExecutorResult, _extract_cli_error, _is_billing_error, _oc_event_error
 from codeops.telemetry import _estimate_cost
+
+_log = logging.getLogger(__name__)
+
+# Models tried via opencode-go when a billing error is detected.
+# 1. OpenCode free tier, 2. User's own provider keys (OPENAI/DEEPSEEK).
+_GO_FREE_MODEL_SEQUENCE: tuple[str, ...] = (
+    "deepseek-v4-flash-free",
+    "qwen3.6-plus-free",
+    "mimo-v2.5-free",
+    "nemotron-3-ultra-free",
+    "big-pickle",
+    "north-mini-code-free",
+    # Uses OPENAI_API_KEY / DEEPSEEK_API_KEY from environment
+    "openai/gpt-4o-mini",
+    "deepseek/deepseek-chat",
+)
 
 
 class OpenCodeExecutor(Executor):
-    """Agentic code executor via OpenCode Go CLI or API."""
+    """Agentic code executor via OpenCode Go CLI or API.
 
-    DEFAULT_MODEL = "deepseek-v4-flash"
+    On billing error, automatically retries with free models from _GO_FREE_MODEL_SEQUENCE.
+    """
+
+    DEFAULT_MODEL = "deepseek-v4-flash-free"
 
     def __init__(
         self,
@@ -41,6 +62,16 @@ class OpenCodeExecutor(Executor):
     @property
     def name(self) -> str:
         return "opencode"
+
+    def _models_to_try(self) -> list[str]:
+        """Return ordered model list: configured model first, then free fallbacks."""
+        seen: set[str] = set()
+        result: list[str] = []
+        for m in (self._model, *_GO_FREE_MODEL_SEQUENCE):
+            if m and m not in seen:
+                seen.add(m)
+                result.append(m)
+        return result
 
     def run(
         self,
@@ -62,15 +93,33 @@ class OpenCodeExecutor(Executor):
         max_turns: int = 20,
         timeout: int = 600,
     ) -> ExecutorResult:
-        """Run via opencode CLI: `opencode run --format json -m provider/model <message>`."""
-        model_id = self._model
-        if model_id and "/" not in model_id:
-            model_id = f"opencode-go/{model_id}"
-        cmd = ["opencode", "run", "--format", "json"]
-        if model_id:
-            cmd += ["-m", model_id]
-        cmd.append(task)
+        """Run via opencode CLI with free model fallback on billing error."""
+        last_result: ExecutorResult | None = None
 
+        for model in self._models_to_try():
+            model_id = model if "/" in model else f"opencode-go/{model}"
+            result = self._run_cli_one(task, model_id=model_id, cwd=cwd, timeout=timeout)
+            last_result = result
+
+            if result.success:
+                return result
+            if not result.billing_error:
+                return result
+            _log.warning("opencode._run_cli: billing error with model=%s, trying next", model)
+
+        assert last_result is not None
+        return last_result
+
+    def _run_cli_one(
+        self,
+        task: str,
+        model_id: str,
+        cwd: str | None = None,
+        timeout: int = 600,
+    ) -> ExecutorResult:
+        cmd = ["opencode", "run", "--format", "json", "-m", model_id, task]
+
+        _log.info("opencode._run_cli_one model=%s cwd=%s", model_id, cwd)
         started = time.monotonic()
         try:
             proc = subprocess.run(
@@ -85,14 +134,16 @@ class OpenCodeExecutor(Executor):
 
             if proc.returncode != 0:
                 error = _extract_cli_error(proc.stdout, proc.stderr, proc.returncode)
+                _log.warning("opencode._run_cli_one failed model=%s: %s", model_id, error)
                 return ExecutorResult(
                     success=False,
                     error=error,
                     duration_ms=duration_ms,
-                    metadata={"mode": "cli", "model": self._model, "provider": "opencode-go"},
+                    billing_error=_is_billing_error(error),
+                    metadata={"mode": "cli", "model": model_id, "provider": "opencode-go"},
                 )
 
-            return self._parse_json_events(proc.stdout, proc.stderr, duration_ms)
+            return self._parse_json_events(proc.stdout, proc.stderr, duration_ms, model_id=model_id)
 
         except subprocess.TimeoutExpired:
             duration_ms = (time.monotonic() - started) * 1000
@@ -151,16 +202,16 @@ class OpenCodeExecutor(Executor):
             duration_ms = (time.monotonic() - started) * 1000
             return ExecutorResult(success=False, error=str(e), duration_ms=duration_ms)
 
-    def _parse_json_events(self, stdout: str, stderr: str, duration_ms: float) -> ExecutorResult:
+    def _parse_json_events(self, stdout: str, stderr: str, duration_ms: float, *, model_id: str = "") -> ExecutorResult:
         """Parse NDJSON event stream from `opencode run --format json`."""
         import json
         import re
-        from codeops.executor.base import _oc_event_error
 
         text_parts: list[str] = []
         error_parts: list[str] = []
         input_tokens = output_tokens = cost = num_turns = 0
         session_id = ""
+        used_model = model_id or self._model
 
         for line in stdout.splitlines():
             line = line.strip()
@@ -208,18 +259,20 @@ class OpenCodeExecutor(Executor):
                 session_id = session_id or ev.get("id", "")
 
         if error_parts and not text_parts:
+            joined_error = "\n".join(error_parts)
             return ExecutorResult(
                 success=False,
-                error="\n".join(error_parts),
+                error=joined_error,
                 duration_ms=duration_ms,
-                metadata={"mode": "cli", "model": self._model, "provider": "opencode-go"},
+                billing_error=_is_billing_error(joined_error),
+                metadata={"mode": "cli", "model": used_model, "provider": "opencode-go"},
             )
 
         if not text_parts:
             text_parts = [re.sub(r'\x1b\[[0-9;]*m', '', stdout).strip()]
 
         if not cost and (input_tokens or output_tokens):
-            cost = _estimate_cost(self._model, input_tokens, output_tokens)
+            cost = _estimate_cost(used_model, input_tokens, output_tokens)
 
         return ExecutorResult(
             success=True,
@@ -230,5 +283,5 @@ class OpenCodeExecutor(Executor):
             duration_ms=duration_ms,
             num_turns=num_turns or 1,
             session_id=session_id,
-            metadata={"mode": "cli", "model": self._model, "provider": "opencode-go"},
+            metadata={"mode": "cli", "model": used_model, "provider": "opencode-go"},
         )

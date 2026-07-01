@@ -38,6 +38,27 @@ class ExecutorResult:
     session_id: str = ""
     metadata: dict = field(default_factory=dict)
     report: WorkReport | None = None
+    billing_error: bool = False
+    # Set True when executor service is unreachable (e.g. wrangler dev not running).
+    # AgentRunner treats this like billing_error: skip to next in BILLING_FALLBACK_CHAIN.
+    not_available: bool = False
+
+
+_BILLING_PATTERNS = (
+    # Anthropic
+    "credit balance is too low", "credit_balance_too_low", "insufficient credits",
+    # DeepSeek
+    "insufficient balance",
+    # OpenAI
+    "exceeded your current quota", "insufficient_quota",
+    # Generic HTTP
+    "402", "payment required", "billing",
+)
+
+
+def _is_billing_error(error: str) -> bool:
+    low = error.lower()
+    return any(p in low for p in _BILLING_PATTERNS)
 
 
 def _oc_event_error(ev: dict) -> str | None:

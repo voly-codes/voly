@@ -1,0 +1,180 @@
+# Executors — Backend Reference
+
+Executor — runtime, который **реально работает с файлами** в целевом проекте.
+Pipeline/AIGateway — только text-only inference. Executor = инструмент записи в диск.
+
+All executors inherit from `codeops/executor/base.py:Executor` and return `ExecutorResult`.
+
+---
+
+## Billing fallback chain
+
+When a paid executor returns a billing error, `AgentRunner` automatically walks:
+
+```
+claude-code  →  wrangler  →  zen
+```
+
+- `claude-code` — Anthropic account runs out of credits
+- `wrangler` — CF Workers AI via local wrangler dev (separate CF billing)
+- `zen` — opencode.ai Zen models (free tier / subscription)
+
+Detection: `ExecutorResult.billing_error = True` — set when error text matches:
+`"credit balance is too low"`, `"insufficient credits"`, `"402"`, etc.
+(`_BILLING_PATTERNS` in `codeops/executor/base.py`)
+
+Only file-writing executors are in the chain. `deepseek`/`workers-ai` are text-only and cannot apply file changes — they must NOT appear here.
+
+---
+
+## Executor table
+
+| Executor | File writes | Billing | Fallback position |
+|---|---|---|---|
+| `claude-code` | yes — Claude CLI | Anthropic | 1st in chain |
+| `wrangler` | yes — LocalPatchApplier | Cloudflare Workers AI | 2nd in chain |
+| `zen` | yes — opencode CLI | free / opencode subscription | 3rd (last resort) |
+| `cursor` | yes — Cursor Agent IDE | Cursor | standalone |
+| `opencode` | yes — OpenCode CLI | opencode.ai | standalone |
+| `deepseek` | no — text only | DeepSeek API | NOT in chain |
+| `mimo` | no — text only | MiMo API | NOT in chain |
+
+---
+
+## ClaudeCodeExecutor (`codeops/executor/claude_code.py`)
+
+Runs `claude` CLI as a subprocess. Detects billing errors in stdout/stderr.
+
+```python
+result = executor.run(task, cwd="/path/to/project", max_turns=30, timeout=300)
+# result.billing_error = True → triggers fallback to wrangler
+```
+
+Env: `ANTHROPIC_API_KEY`
+
+---
+
+## WranglerExecutor (`codeops/executor/wrangler.py`)
+
+Calls CF Workers AI through a local `wrangler dev` Worker, then applies the response
+to local files using `LocalPatchApplier`.
+
+**How it works:**
+1. `is_available()` — GET `http://127.0.0.1:8787/health` with 2s timeout
+2. Gather local code context via `_gather_context()` (grep relevant files)
+3. POST `/infer` → CF Worker calls AI model → returns FILE blocks
+4. `LocalPatchApplier(cwd).apply(response)` — writes files to disk
+
+```bash
+# Start the worker before using wrangler executor:
+cd cf-workers/agent && wrangler dev
+```
+
+Env: `WRANGLER_DEV_URL` (default `http://127.0.0.1:8787`), `WRANGLER_AI_MODEL`, `WRANGLER_DEV_TOKEN`
+
+The CF Worker (`cf-workers/agent/src/infer.ts`) routes inference through:
+1. CF AI Gateway `/compat` endpoint (if `CF_ACCOUNT_ID` + `CF_AIG_TOKEN` set) — uses route schema from CF Dashboard
+2. `env.AI.run()` direct binding — fallback when gateway not configured
+
+Default model: `@cf/moonshotai/kimi-k2.7-code`
+
+---
+
+## LocalPatchApplier (`codeops/executor/patch.py`)
+
+Parses LLM response and writes files to disk. Supports two formats:
+
+**FILE blocks** (primary format):
+```
+### FILE: path/relative/to/cwd.ext
+```lang
+...complete file content...
+```
+```
+
+**Unified diffs** (secondary):
+```
+--- a/path.py
++++ b/path.py
+@@ -10,4 +10,6 @@
+```
+
+Security: path traversal check — `full_path.startswith(cwd + os.sep)` required.
+
+Returns `PatchResult` with `.applied` list and `.summary()` method.
+
+---
+
+## ZenExecutor (`codeops/executor/zen.py`)
+
+Uses opencode CLI with Zen models (free tier). File-capable via CLI.
+Used as the final fallback in the billing chain — always available without paid credits.
+
+Env: `OPENCODE_API_KEY` (optional for free Zen tier)
+
+---
+
+## AgentRunner billing fallback (`codeops/runner/agent_runner.py`)
+
+```python
+BILLING_FALLBACK_CHAIN = ["claude-code", "wrangler", "zen"]
+
+# In AgentRunner.run():
+if result.billing_error and executor_name in BILLING_FALLBACK_CHAIN:
+    for fallback_name in chain[start_idx:]:
+        # try next executor
+        # logs: [CHAIN:BILLING_FALLBACK] claude-code → wrangler  reason=...
+        if not result.billing_error:
+            break
+```
+
+Chain logs (see `logging.getLogger("codeops.chain")`):
+- `[CHAIN:START]` — first executor attempt
+- `[CHAIN:RESULT]` — result + billing_error status
+- `[CHAIN:BILLING_FALLBACK]` — billing error detected, switching
+- `[CHAIN:FALLBACK_RESULT]` — fallback result
+- `[CHAIN:DSPY_PLAN]` — DSPy refined the task before execution
+
+---
+
+## DSPy + executor path
+
+When `dspy.enabled = true` and `dspy.mode != "off"`, `AgentRunner` runs the
+`task_planner` DSPy program **before** the executor:
+
+```
+task → DSPy TaskPlanner (ChainOfThought) → refined_task + success_criteria
+     → executor.run(refined_task, cwd=...)
+     → result stored as example in dspy.datasets_dir/task_planner/
+```
+
+This creates (task, result) pairs for later `dspy.BootstrapFewShot` optimization.
+See `docs/backend/dspy.md` for details.
+
+---
+
+## Smart dispatch (web UI)
+
+`codeops/web/routes/run.py` auto-promotes `executor="pipeline"` to `executor="claude-code"`
+when the task requires code generation:
+
+```
+POST /api/run  executor=pipeline
+   ↓ _needs_executor() → requires_code_gen = True
+   ↓
+executor=claude-code, cwd = req.cwd || config.default_cwd || CODEOPS_PROJECT_CWD
+   ↓ AgentRunner → billing fallback chain if needed
+```
+
+Set `CODEOPS_PROJECT_CWD=/path/to/project` or `default_cwd` in `codeops.yaml` so
+the web UI knows where to write files.
+
+---
+
+## Adding a new executor
+
+1. Create `codeops/executor/my_exec.py` — inherit `Executor`, return `ExecutorResult`
+2. Set `billing_error=True` when error indicates billing failure
+3. Add to `EXECUTOR_NAMES` and `_build_executor()` factory in `agent_runner.py`
+4. If file-capable and has its own billing: add to `BILLING_FALLBACK_CHAIN` in correct order
+5. Update this doc and `docs/ARCHITECTURE.md`

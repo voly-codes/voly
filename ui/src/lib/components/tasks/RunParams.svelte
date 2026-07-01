@@ -7,12 +7,15 @@
   let { executor = $bindable('pipeline'), agent = $bindable(''), model = $bindable(''), cwd = $bindable(''), executors = [], agents = [], models = [], running = false } = $props()
 
   const executorHints = {
-    pipeline:    'AI Gateway — cache, DLP, spend control',
-    cursor:      'Cursor Agent IDE — reads/writes files directly',
-    'claude-code': 'Claude Code CLI — reads/writes files directly',
-    opencode:    'OpenCode Go CLI/API — file-capable agent',
-    deepseek:    'DeepSeek API — text/code generation only',
-        zen:         'OpenCode Zen — curated models, file-capable via CLI',
+    pipeline:           'AI Gateway — cache, DLP, spend control (text only)',
+    'claude-code':      'Claude Code CLI — reads/writes files · billing fallback → wrangler → zen',
+    wrangler:           'CF Workers AI via wrangler dev — writes files via LocalPatchApplier',
+    zen:                'OpenCode Zen — free tier, file-capable via opencode CLI',
+    cursor:             'Cursor Agent IDE — reads/writes files directly',
+    opencode:           'OpenCode Go CLI/API — file-capable agent',
+    deepseek:           'DeepSeek API — text/code generation only',
+    'workers-ai':       'CF Workers AI REST — text only, no file writes',
+    'cloudflare-dynamic': 'CF AI Gateway dynamic routing — text only',
   }
 </script>
 
@@ -69,30 +72,19 @@
       <span class="param-hint">{model || 'auto — router picks'}</span>
     </div>
 
-    {#if executor !== 'pipeline'}
-      <div class="param">
-        <label class="param-label" for="run-cwd">
-          <FolderIcon size="12" strokeWidth="2" />
-          Working dir
-        </label>
-        <input
-          id="run-cwd"
-          placeholder={typeof window !== 'undefined' ? '~' : '/'}
-          bind:value={cwd}
-          disabled={running}
-        />
-        <span class="param-hint">Absolute path for executor</span>
-      </div>
-    {:else}
-      <div class="param disabled">
-        <label class="param-label">
-          <FolderIcon size="12" strokeWidth="2" />
-          Working dir
-        </label>
-        <div class="param-disabled-text">handled by pipeline</div>
-        <span class="param-hint">&nbsp;</span>
-      </div>
-    {/if}
+    <div class="param">
+      <label class="param-label" for="run-cwd">
+        <FolderIcon size="12" strokeWidth="2" />
+        Working dir
+      </label>
+      <input
+        id="run-cwd"
+        placeholder="/path/to/project"
+        bind:value={cwd}
+        disabled={running}
+      />
+      <span class="param-hint">{cwd ? 'executor writes here' : 'leave empty for text-only'}</span>
+    </div>
   </div>
 </div>
 

@@ -8,10 +8,13 @@ Agent Runner — запуск IDE-агентов как подпроцессов
 
 from __future__ import annotations
 
+import logging
 import subprocess
 import time
 from dataclasses import dataclass
 from typing import Any, Callable
+
+_chain_log = logging.getLogger("codeops.chain")
 
 from codeops.automation import compute_automation_metrics
 from codeops.config import CodeOpsConfig
@@ -91,8 +94,19 @@ def _build_work_report(output: str, before: dict[str, str], after: dict[str, str
     )
 
 EXECUTOR_NAMES = frozenset({
-    "cursor", "claude-code", "mimo", "opencode", "deepseek", "zen",
+    "cursor", "claude-code", "mimo", "opencode", "deepseek", "zen", "wrangler",
 })
+
+# When a paid executor fails with a billing error, try the next one in order.
+# Only file-writing executors are listed — text-only providers (deepseek, workers-ai)
+# cannot apply code changes and must not appear here.
+#
+# Chain:
+#   claude-code  — Anthropic (billed to Anthropic account)
+#   wrangler     — CF Workers AI via wrangler dev (billed to CF account, separate billing)
+#   opencode     — OpenCode Go (opencode.ai/zen/go); starts with deepseek-v4-flash-free
+#   zen          — OpenCode Zen (opencode.ai/zen); tries all free models in sequence
+BILLING_FALLBACK_CHAIN: list[str] = ["claude-code", "wrangler", "opencode", "zen"]
 
 EXECUTOR_ALIASES: dict[str, str] = {
     "claude": "claude-code",
@@ -112,6 +126,89 @@ DEFAULT_AGENT_EXECUTOR: dict[str, str] = {
     "product-analyst": "zen",
     "claude": "claude-code",
 }
+
+
+def _dspy_plan_task(
+    task: str,
+    config: "CodeOpsConfig",
+) -> "tuple[str, dict]":
+    """
+    Use DSPy TaskPlannerProgram to refine the task before sending to executor.
+
+    Returns (refined_task, plan_dict). On any failure returns original task unchanged.
+    The plan_dict contains: refined_task, success_criteria, estimated_complexity.
+    """
+    from codeops.dspy.programs.registry import get_registry
+    from codeops.dspy.adapter import CodeOpsDSPyLM
+    from codeops.ai_gateway import AIGateway
+
+    registry = get_registry()
+    program_def = registry.get("task_planner")
+    if program_def is None:
+        return task, {}
+
+    import dspy
+
+    gateway = AIGateway(config)
+    lm = CodeOpsDSPyLM(
+        gateway=gateway,
+        model=getattr(config.dspy, "model", "") or "",
+        provider="",
+        agent="developer",
+        max_tokens=1024,
+        temperature=0.3,
+    )
+    dspy.configure(lm=lm)
+
+    module = program_def.factory()
+    prediction = module(task=task, project_context="CodeOps project")
+
+    refined  = getattr(prediction, "refined_task", "") or task
+    criteria = getattr(prediction, "success_criteria", "") or ""
+    complexity = getattr(prediction, "estimated_complexity", "") or ""
+
+    if refined and refined.strip() and refined.strip() != task.strip():
+        plan = {"refined_task": refined, "success_criteria": criteria, "estimated_complexity": complexity}
+        _chain_log.info(
+            "[CHAIN:DSPY_PLAN] complexity=%s criteria_lines=%d refined=%r",
+            complexity, criteria.count("\n") + 1, refined[:80],
+        )
+        return refined, plan
+
+    return task, {}
+
+
+def _dspy_store_example(
+    original_task: str,
+    refined_task: str,
+    result: "ExecutorResult",
+    config: "CodeOpsConfig",
+) -> None:
+    """Persist a (task, result) example for DSPy teleprompter optimization."""
+    import json
+    import os
+
+    datasets_dir = os.path.join(
+        config.dspy.datasets_dir,
+        "task_planner",
+    )
+    os.makedirs(datasets_dir, exist_ok=True)
+
+    example = {
+        "task": original_task,
+        "refined_task": refined_task,
+        "success": result.success,
+        "output_len": len(result.output or ""),
+        "cost_usd": result.cost_usd,
+    }
+
+    # Append to JSONL
+    import time as _time
+    fname = os.path.join(datasets_dir, f"{int(_time.time())}.jsonl")
+    with open(fname, "w") as f:
+        f.write(json.dumps(example) + "\n")
+
+    _chain_log.debug("[CHAIN:DSPY_STORE] saved example to %s", fname)
 
 
 def resolve_executor(agent: str, config: CodeOpsConfig) -> tuple[str, str]:
@@ -177,6 +274,9 @@ def _build_executor(executor_name: str, model: str | None = None) -> Executor:
         "zen": lambda: __import__(
             "codeops.executor.zen", fromlist=["ZenExecutor"]
         ).ZenExecutor(**kwargs),
+        "wrangler": lambda: __import__(
+            "codeops.executor.wrangler", fromlist=["WranglerExecutor"]
+        ).WranglerExecutor(),
     }
     if executor_name not in factories:
         valid = ", ".join(sorted(factories))
@@ -230,16 +330,121 @@ class AgentRunner:
         task_id = new_task_id()
 
         executor = _build_executor(executor_name, model or None)
+        _chain_log.info(
+            "[CHAIN:START] task=%r executor=%s cwd=%r",
+            task[:80], executor_name, cwd or "(empty)",
+        )
+
+        # DSPy task planning stage: refine the task before handing to executor.
+        # Active only when dspy.enabled and the task_planner program exists in registry.
+        effective_task = task
+        dspy_plan_result: dict[str, Any] | None = None
+        dspy_cfg = getattr(self.config, "dspy", None)
+        if dspy_cfg and getattr(dspy_cfg, "enabled", False) and getattr(dspy_cfg, "mode", "off") != "off":
+            try:
+                effective_task, dspy_plan_result = _dspy_plan_task(task, self.config)
+            except Exception as exc:
+                logging.getLogger("codeops.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
+
         git_before = _git_porcelain(cwd)
         t0 = time.monotonic()
         result = executor.run(
-            task,
+            effective_task,
             cwd=cwd,
             max_turns=max_turns,
             timeout=timeout,
         )
         if result.duration_ms <= 0:
             result.duration_ms = (time.monotonic() - t0) * 1000
+
+        _chain_log.info(
+            "[CHAIN:RESULT] executor=%s success=%s billing_error=%s duration_ms=%.0f error=%r",
+            executor_name, result.success, result.billing_error,
+            result.duration_ms, (result.error or "")[:120],
+        )
+
+        # Chain timelog: records each executor attempt for UI display.
+        def _chain_status(r: ExecutorResult) -> str:
+            if r.success:
+                return "success"
+            if r.billing_error:
+                return "billing_error"
+            if r.not_available:
+                return "not_available"
+            return "failed"
+
+        chain_timelog: list[dict[str, Any]] = [{
+            "executor": executor_name,
+            "model": result.metadata.get("model", "") if result.metadata else "",
+            "status": _chain_status(result),
+            "duration_ms": round(result.duration_ms),
+            "error": (result.error or "")[:200],
+        }]
+
+        # Billing/availability fallback: walk the chain when current executor can't run the task.
+        # Triggers on billing_error (no credits) OR not_available (service not running).
+        _should_fallback = (result.billing_error or result.not_available) and executor_name in BILLING_FALLBACK_CHAIN
+        if _should_fallback:
+            chain = BILLING_FALLBACK_CHAIN
+            start_idx = chain.index(executor_name) + 1
+            first_fallback_from = executor_name
+            for fallback_name in chain[start_idx:]:
+                fallback_executor = _build_executor(fallback_name)
+
+                # Pre-check: skip executors that are already known to be unavailable
+                if hasattr(fallback_executor, "is_available") and not fallback_executor.is_available():
+                    _chain_log.warning(
+                        "[CHAIN:SKIP] %s not available — trying next in chain",
+                        fallback_name,
+                    )
+                    chain_timelog.append({
+                        "executor": fallback_name,
+                        "model": "",
+                        "status": "skipped",
+                        "duration_ms": 0,
+                        "error": "service not running",
+                    })
+                    continue
+
+                reason = "billing" if result.billing_error else "not_available"
+                _chain_log.warning(
+                    "[CHAIN:BILLING_FALLBACK] %s → %s  reason=%s  detail=%r",
+                    executor_name, fallback_name, reason, (result.error or "")[:120],
+                )
+                fallback_executor = _build_executor(fallback_name)
+                fb_t0 = time.monotonic()
+                fb_result = fallback_executor.run(effective_task, cwd=cwd, max_turns=max_turns, timeout=timeout)
+                if fb_result.duration_ms <= 0:
+                    fb_result.duration_ms = (time.monotonic() - fb_t0) * 1000
+                fb_result.metadata["billing_fallback_from"] = first_fallback_from
+                fb_result.metadata["billing_fallback_to"] = fallback_name
+                executor_name = fallback_name
+                result = fb_result
+                chain_timelog.append({
+                    "executor": fallback_name,
+                    "model": result.metadata.get("model", "") if result.metadata else "",
+                    "status": _chain_status(result),
+                    "duration_ms": round(result.duration_ms),
+                    "error": (result.error or "")[:200],
+                })
+                _chain_log.info(
+                    "[CHAIN:FALLBACK_RESULT] executor=%s success=%s billing_error=%s not_available=%s duration_ms=%.0f",
+                    executor_name, result.success, result.billing_error,
+                    result.not_available, result.duration_ms,
+                )
+                if not result.billing_error and not result.not_available:
+                    break
+
+        # Store chain timelog only if fallback actually happened (>1 entry)
+        if len(chain_timelog) > 1:
+            result.metadata["chain_timelog"] = chain_timelog
+
+        # DSPy example collection: store (task, result) for later optimization.
+        if dspy_plan_result is not None and result.output:
+            try:
+                _dspy_store_example(task, effective_task, result, self.config)
+            except Exception as exc:
+                logging.getLogger("codeops.chain").debug("[CHAIN:DSPY_STORE] error=%s", exc)
 
         git_after = _git_porcelain(cwd)
         work_report = _build_work_report(result.output or "", git_before, git_after)
@@ -279,6 +484,7 @@ class AgentRunner:
             task_prompt=task[:2000] if task else None,
             result=result.output[:8000] if result.output else None,
             report=work_report.to_dict() if work_report else None,
+            chain_timelog=chain_timelog if len(chain_timelog) > 1 else [],
         ), self.config)
 
         return RunnerResult(

@@ -117,6 +117,7 @@ async def stream_tasks(request: Request) -> StreamingResponse:
     seen: dict[str, float] = {}
 
     async def generator():
+        nonlocal seen
         try:
             while True:
                 if await request.is_disconnected():
