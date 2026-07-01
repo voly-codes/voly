@@ -11,7 +11,7 @@
   import { fmtTokens } from '../../utils/format.js'
 
   let gw = $state(null)
-  let health = $state<{ providers: Record<string, {healthy: boolean, reason: string}>, healthy: string[] } | null>(null)
+  let health = $state(null)
   let loading = $state(true)
   let error = $state(null)
 
