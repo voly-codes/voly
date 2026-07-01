@@ -283,6 +283,16 @@ app.post("/tasks/:id/complete", async (c) => {
   const existing = await loadTask(c.env.DB, id);
   if (!existing) return c.json({ error: "Not found" }, 404);
 
+  if (existing.state === "completed") {
+    return c.json({
+      ok: true,
+      task_id: id,
+      state: "completed",
+      noop: true,
+      result: String(existing.result ?? ""),
+    });
+  }
+
   const body = await c.req.json<{ result: string }>();
   await saveTask(c.env.DB, {
     id,
@@ -341,8 +351,12 @@ async function processQueueMessage(env: Env, message: QueueMessage): Promise<voi
   const existing = await loadTask(env.DB, message.task_id);
   if (!existing) return;
 
-  if (existing.state === "submitted") {
-    await saveTask(env.DB, {
+  const state = String(existing.state);
+  if (state !== "submitted") {
+    return;
+  }
+
+  await saveTask(env.DB, {
       id: message.task_id,
       agent_name: message.agent_name,
       title: message.title,
@@ -354,7 +368,6 @@ async function processQueueMessage(env: Env, message: QueueMessage): Promise<voi
       },
       created_at: Number(existing.created_at),
     });
-  }
 
   const agentBase = (env.AGENT_WORKER_URL ?? "").replace(/\/$/, "");
   if (!env.AGENT_WORKER && !agentBase) return;

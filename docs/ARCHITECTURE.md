@@ -70,8 +70,8 @@ Developer / UI / CI
 |---|---|---|
 | `INIT` | — | setup |
 | `AGUI_START` | `_stage_agui_start` | AG-UI SSE session |
-| `A2A_DISCOVER` | `_stage_a2a` | A2A federation |
-| `A2A_DELEGATE` | `_stage_a2a` | делегирование подзадач |
+| `A2A_DISCOVER` | `_stage_a2a` / `_stage_a2a_auto` | A2A federation + auto-decompose |
+| `A2A_DELEGATE` | `_stage_a2a` / `_stage_a2a_auto` | делегирование подзадач |
 | `ROUTE` | `_stage_route` | AgentRouter → RouteDecision |
 | `MEMORY_RETRIEVE` | `_stage_memory_retrieve` | MemoryStore.search |
 | `RTK_FILTER` | `_stage_rtk` | RTK token stats |
@@ -288,7 +288,11 @@ Wrangler dev Worker для WranglerExecutor.
 | `/mcp` | MCP agent tools |
 
 `infer.ts`: пробует CF AI Gateway (`CF_ACCOUNT_ID`+`CF_AIG_TOKEN` → `dynamic/ai_route`),
-fallback на `env.AI.run()`.
+fallback на `env.AI.run()`. Agent role (`developer`, `reviewer`, …) injected into system prompt.
+
+**Recursion guard:** A2A subtasks via `pipeline_server` set `CODEOPS_A2A_NESTED=1` and
+`a2a_parent_task_id` — pipeline skips `_stage_a2a_auto` to prevent nested re-dispatch.
+See `docs/backend/a2a.md`.
 
 **A2A callback:** после `/agents/:name/run` worker вызывает `completeA2ATask()` → federation
 `POST /tasks/:id/complete`. Worker-to-worker fetch на `*.workers.dev` блокируется (CF error 1042);
@@ -300,8 +304,8 @@ fallback на `env.AI.run()`.
 |---|---|
 | `POST /tasks` | create task (+ optional queue dispatch) |
 | `GET /tasks/:id` | task status |
-| `POST /tasks/:id/complete` | agent callback |
-| queue consumer | `AGENT_WORKER` service binding → `codeops-agent` `/agents/:name/run` |
+| `POST /tasks/:id/complete` | agent callback (**idempotent** — no-op if already completed) |
+| queue consumer | `AGENT_WORKER` service binding → `codeops-agent` `/agents/:name/run` (skips non-`submitted`) |
 
 Secrets: `API_TOKEN`, `AGENT_WORKER_TOKEN` (must match agent `API_TOKEN`),
 `AGENT_WORKER_URL` (fallback if binding missing). Agent secrets: `A2A_FEDERATION_TOKEN`

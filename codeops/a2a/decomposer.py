@@ -15,6 +15,28 @@ class Subtask:
 
 
 class TaskDecomposer:
+    CONTEXT_AGENTS = frozenset({"reviewer", "tester", "devops"})
+
+    @staticmethod
+    def inject_prior_context(
+        description: str,
+        prior: list[tuple[str, str]],
+        *,
+        max_chars: int = 8000,
+    ) -> str:
+        """Append prior subtask outputs for dependent reviewer/tester/devops agents."""
+        if not prior:
+            return description
+        blocks = [description, "", "## Prior subtask results"]
+        for agent, text in prior:
+            snippet = (text or "").strip()
+            if not snippet:
+                continue
+            if len(snippet) > max_chars:
+                snippet = snippet[:max_chars] + "\n...(truncated)"
+            blocks.append(f"### {agent}\n{snippet}")
+        return "\n".join(blocks).strip()
+
     def decompose(self, task: str, analysis: Any) -> list[Subtask]:
         code_gen = analysis.requires_code_gen
         review = analysis.requires_review
@@ -46,20 +68,20 @@ class TaskDecomposer:
         if code_gen and review and testing:
             return [
                 Subtask(f"Implement: {task}", "developer"),
-                Subtask("Write tests", "tester", depends_on=[0]),
-                Subtask("Review code and tests", "reviewer", depends_on=[0]),
+                Subtask("Write tests for the implementation above", "tester", depends_on=[0]),
+                Subtask("Review code and tests using developer and tester context", "reviewer", depends_on=[0, 1]),
             ]
 
         if code_gen and review:
             return [
                 Subtask(f"Implement: {task}", "developer"),
-                Subtask("Review implementation", "reviewer", depends_on=[0]),
+                Subtask("Review implementation using developer context", "reviewer", depends_on=[0]),
             ]
 
         if code_gen and testing:
             return [
                 Subtask(f"Implement: {task}", "developer"),
-                Subtask("Write tests", "tester", depends_on=[0]),
+                Subtask("Write tests using developer implementation context", "tester", depends_on=[0]),
             ]
 
         if code_gen and deployment:
@@ -77,7 +99,7 @@ class TaskDecomposer:
         return [
             Subtask(f"Design architecture for: {task}", "architect"),
             Subtask(f"Implement: {task}", "developer", depends_on=[0]),
-            Subtask("Write tests", "tester", depends_on=[0]),
-            Subtask("Review code and tests", "reviewer", depends_on=[0]),
-            Subtask("Prepare deployment", "devops", depends_on=[0, 1]),
+            Subtask("Write tests using developer implementation context", "tester", depends_on=[1]),
+            Subtask("Review code and tests using prior agent context", "reviewer", depends_on=[1, 2]),
+            Subtask("Prepare deployment using implementation context", "devops", depends_on=[1]),
         ]

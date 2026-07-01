@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { buildBuiltinAgents } from "./definitions";
 import { handleInfer } from "./infer";
 import type { Env } from "./pipeline";
-import { callPipelineRunner, completeA2ATask } from "./pipeline";
+import { callPipelineRunner, completeA2ATask, getA2ATaskState } from "./pipeline";
 import { CodeOpsMcpAgent } from "./mcp-agent";
 
 function authorize(c: { req: { header: (name: string) => string | undefined }; env: Env }): boolean {
@@ -61,6 +61,19 @@ app.post("/agents/:name/run", async (c) => {
   const agentName = c.req.param("name");
   const body = await c.req.json<{ task: string; cwd?: string; task_id?: string }>();
   if (!body.task) return c.json({ error: "task required" }, 400);
+
+  if (body.task_id) {
+    const state = await getA2ATaskState(c.env, body.task_id);
+    if (state === "completed" || state === "failed") {
+      return c.json({
+        agent: agentName,
+        success: state === "completed",
+        skipped: true,
+        state,
+        error: state === "failed" ? "task already failed" : undefined,
+      });
+    }
+  }
 
   const result = await callPipelineRunner(c.env, {
     agent: agentName,

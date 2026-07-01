@@ -30,6 +30,23 @@ def _authorized(headers: dict[str, str], token: str) -> bool:
     return False
 
 
+def _is_nested_a2a_request(body: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
+    """Detect A2A subtask runs that must not re-enter auto-dispatch."""
+    a2a_parent = str(body.get("a2a_parent_task_id", "")).strip()
+    task_id = str(body.get("task_id", "")).strip()
+    nested = (
+        bool(a2a_parent)
+        or bool(task_id)
+        or os.environ.get("CODEOPS_A2A_NESTED") == "1"
+    )
+    context: dict[str, Any] = {}
+    if a2a_parent:
+        context["a2a_parent_task_id"] = a2a_parent
+    elif task_id:
+        context["a2a_parent_task_id"] = task_id
+    return nested, context
+
+
 def create_pipeline_handler(config: CodeOpsConfig, token: str = "", default_cwd: str = ""):
     class PipelineHandler(BaseHTTPRequestHandler):
         def log_message(self, fmt: str, *args: Any) -> None:
@@ -75,6 +92,11 @@ def create_pipeline_handler(config: CodeOpsConfig, token: str = "", default_cwd:
                 self._json_response(400, {"error": "task required"})
                 return
 
+            nested, context = _is_nested_a2a_request(body)
+            prev_nested = os.environ.get("CODEOPS_A2A_NESTED")
+            if nested:
+                os.environ["CODEOPS_A2A_NESTED"] = "1"
+
             from codeops.pipeline import Pipeline
 
             pipeline = Pipeline(config)
@@ -82,7 +104,12 @@ def create_pipeline_handler(config: CodeOpsConfig, token: str = "", default_cwd:
                 os.chdir(cwd)
             try:
                 pipeline.setup_environment()
-                result = pipeline.run(task, agent=agent)
+                result = pipeline.run(
+                    task,
+                    force_agent=agent,
+                    delegate_to_a2a=False,
+                    context=context or None,
+                )
                 payload = {
                     "success": result.success,
                     "response": result.response.content if result.response else "",
@@ -96,6 +123,11 @@ def create_pipeline_handler(config: CodeOpsConfig, token: str = "", default_cwd:
                 self._json_response(500, {"success": False, "error": str(exc), "agent": agent})
             finally:
                 pipeline.shutdown()
+                if nested:
+                    if prev_nested is None:
+                        os.environ.pop("CODEOPS_A2A_NESTED", None)
+                    else:
+                        os.environ["CODEOPS_A2A_NESTED"] = prev_nested
 
         def log_request(self, code: int | str = "-", size: int | str = "-") -> None:
             pass

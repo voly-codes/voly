@@ -41,7 +41,7 @@ export async function callPipelineRunner(
     const req = new Request("https://internal/infer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ task: params.task }),
+      body: JSON.stringify({ task: params.task, agent: params.agent }),
     });
     const resp = await handleInfer(req, env);
     const data = await resp.json<{ success: boolean; content: string; error?: string }>();
@@ -61,7 +61,13 @@ export async function callPipelineRunner(
   const res = await fetch(`${base}/run`, {
     method: "POST",
     headers,
-    body: JSON.stringify(params),
+    body: JSON.stringify({
+      agent: params.agent,
+      task: params.task,
+      cwd: params.cwd,
+      task_id: params.task_id,
+      a2a_parent_task_id: params.task_id,
+    }),
   });
 
   const text = await res.text();
@@ -69,6 +75,33 @@ export async function callPipelineRunner(
     return JSON.parse(text) as PipelineRunResponse;
   } catch {
     return { success: res.ok, response: text, error: res.ok ? undefined : text };
+  }
+}
+
+export async function getA2ATaskState(
+  env: Env,
+  taskId: string,
+): Promise<string | null> {
+  if (!taskId) return null;
+  if (!env.A2A_FEDERATION && !(env.A2A_FEDERATION_URL ?? "").replace(/\/$/, "")) return null;
+
+  const headers: Record<string, string> = { Accept: "application/json" };
+  const token = env.A2A_FEDERATION_TOKEN ?? env.API_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const path = `/tasks/${taskId}`;
+  const init: RequestInit = { method: "GET", headers };
+
+  try {
+    const res = env.A2A_FEDERATION
+      ? await env.A2A_FEDERATION.fetch(new Request(`https://a2a.internal${path}`, init))
+      : await fetch(`${(env.A2A_FEDERATION_URL ?? "").replace(/\/$/, "")}${path}`, init);
+
+    if (!res.ok) return null;
+    const data = await res.json<{ state?: string }>();
+    return data.state ?? null;
+  } catch {
+    return null;
   }
 }
 

@@ -363,5 +363,17 @@ codeops run "implement auth module, write pytest tests, and do security review"
 
 # tests pass
 pytest tests/test_a2a_decomposer.py tests/test_a2a_auto_dispatch.py -v
-pytest tests/test_dspy_runtime_smoke.py -q
+pytest tests/test_a2a_p0.py tests/test_dspy_runtime_smoke.py -q
 ```
+
+---
+
+## P0 fixes (2026-07-01) — implemented
+
+| Fix | Status |
+|---|---|
+| Recursion guard (`CODEOPS_A2A_NESTED`, `a2a_parent_task_id`) | done |
+| Agent role via `force_agent` + CF infer prompt | done |
+| Context handoff between dependency waves | done |
+| Idempotent complete + queue/agent re-execute guards | done |
+| `docs/backend/a2a.md` | done |

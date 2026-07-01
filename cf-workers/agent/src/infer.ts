@@ -29,6 +29,8 @@ import type { Env } from "./pipeline";
 
 export interface InferRequest {
   task: string;
+  /** Agent role name (developer, reviewer, ...) — injected into system prompt. */
+  agent?: string;
   /** Pre-gathered local context (file snippets, grep hits). */
   context?: string;
   /** Override model. Default: "dynamic/ai_route" (uses CF route schema). */
@@ -65,6 +67,15 @@ const FILE_SYSTEM_PROMPT = `You are a senior software engineer. When asked to cr
 5. After the FILE blocks, write a brief summary of what was changed and why.`;
 
 
+function buildSystemPrompt(agent?: string, custom?: string): string {
+  if (custom) return custom;
+  const role = agent
+    ? `You are the ${agent} agent. Act according to your specialized role.\n\n`
+    : "";
+  return role + FILE_SYSTEM_PROMPT;
+}
+
+
 export async function handleInfer(request: Request, env: Env): Promise<Response> {
   let body: InferRequest;
   try {
@@ -77,7 +88,7 @@ export async function handleInfer(request: Request, env: Env): Promise<Response>
   }
 
   const model = body.model ?? DYNAMIC_ROUTE;
-  const systemPrompt = body.system ?? FILE_SYSTEM_PROMPT;
+  const systemPrompt = buildSystemPrompt(body.agent, body.system);
   const userContent = body.context ? `${body.task}\n\n${body.context}` : body.task;
 
   const messages = [

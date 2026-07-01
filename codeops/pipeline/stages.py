@@ -52,7 +52,9 @@ class _PipelineStageMixin:
             )
         return None
 
-    def _should_dispatch_a2a(self, analysis: Any) -> bool:
+    def _should_dispatch_a2a(self, analysis: Any, *, nested: bool = False) -> bool:
+        if nested:
+            return False
         if not self.config.a2a.enabled or not getattr(self.config.a2a, 'auto_dispatch', True):
             return False
         flags = sum([
@@ -71,7 +73,11 @@ class _PipelineStageMixin:
         agui_session_id: str | None,
         started: float,
         task_id: str,
+        *,
+        nested: bool = False,
     ) -> Any | None:
+        if nested:
+            return None
         import time as _time
         from codeops.a2a.decomposer import TaskDecomposer
         from codeops.a2a.merger import ResultMerger

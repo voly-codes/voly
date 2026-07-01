@@ -400,15 +400,17 @@ class A2AOrchestrator:
     def dispatch_parallel(self, subtasks: list, timeout_seconds: float = 120.0) -> list:
         '''
         Dispatch subtasks to A2A agents, respecting depends_on ordering.
-        Uses threading for parallel execution of independent subtasks.
+        Runs independent subtasks in parallel per wave; injects prior wave
+        results into dependent subtask descriptions before dispatch.
         Returns list of A2ATask objects in the same order as subtasks.
         '''
-        from codeops.a2a.decomposer import Subtask
+        from codeops.a2a.decomposer import Subtask, TaskDecomposer
 
-        results = [None] * len(subtasks)
-        errors = [None] * len(subtasks)
+        results: list[A2ATask | None] = [None] * len(subtasks)
+        decomposer = TaskDecomposer()
+        terminal = {TaskState.COMPLETED, TaskState.FAILED, TaskState.CANCELLED}
 
-        def run_subtask(i, subtask):
+        def run_subtask(i: int, subtask: Subtask) -> None:
             logger.info("dispatch_parallel[%d]: agent=%s", i, subtask.agent)
             try:
                 a2a_task = self.create_task(
@@ -427,24 +429,71 @@ class A2AOrchestrator:
                 a2a_task.metadata['error'] = str(e)
                 a2a_task.state = TaskState.FAILED
                 results[i] = a2a_task
-                errors[i] = str(e)
 
-        # Group by dependency level: 0=no deps, 1=depends on level 0, etc.
-        # Simple approach: run no-dep subtasks in parallel, then wait, then next wave
-        no_deps = [i for i, s in enumerate(subtasks) if not s.depends_on]
-        has_deps = [i for i, s in enumerate(subtasks) if s.depends_on]
+        def _task_result(task: A2ATask | None) -> str:
+            if not task:
+                return ""
+            return (task.result or task.metadata.get("partial_result") or "").strip()
 
-        threads = [threading.Thread(target=run_subtask, args=(i, subtasks[i])) for i in no_deps]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join(timeout=timeout_seconds)
+        def _wait_wave(indices: list[int], deadline: float) -> None:
+            while time.monotonic() < deadline:
+                pending = [
+                    i for i in indices
+                    if results[i] is not None and results[i].state not in terminal
+                ]
+                if not pending:
+                    return
+                for i in pending:
+                    results[i] = self.collect_results(results[i])  # type: ignore[arg-type]
+                time.sleep(2.0)
 
-        # Run dependent subtasks sequentially after
-        for i in has_deps:
-            run_subtask(i, subtasks[i])
+        levels = self._dependency_levels(subtasks)
+        wave_deadline = time.monotonic() + timeout_seconds
+
+        for level_indices in levels:
+            wave_items: list[tuple[int, Subtask]] = []
+            for i in level_indices:
+                subtask = subtasks[i]
+                prior: list[tuple[str, str]] = []
+                for dep_idx in subtask.depends_on:
+                    dep_task = results[dep_idx]
+                    dep_agent = subtasks[dep_idx].agent
+                    prior.append((dep_agent, _task_result(dep_task)))
+                if subtask.agent in decomposer.CONTEXT_AGENTS or subtask.depends_on:
+                    desc = decomposer.inject_prior_context(subtask.description, prior)
+                else:
+                    desc = subtask.description
+                wave_items.append((i, Subtask(desc, subtask.agent, subtask.depends_on)))
+
+            threads = [
+                threading.Thread(target=run_subtask, args=(i, sub))
+                for i, sub in wave_items
+            ]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join(timeout=max(0.0, wave_deadline - time.monotonic()))
+
+            _wait_wave(level_indices, wave_deadline)
 
         return [r for r in results if r is not None]
+
+    @staticmethod
+    def _dependency_levels(subtasks: list) -> list[list[int]]:
+        """Group subtask indices into waves by dependency depth."""
+        depths: list[int] = []
+        for i, sub in enumerate(subtasks):
+            if not sub.depends_on:
+                depths.append(0)
+            else:
+                depths.append(1 + max(depths[d] for d in sub.depends_on if d < i))
+        if not depths:
+            return []
+        max_depth = max(depths)
+        return [
+            [i for i, d in enumerate(depths) if d == level]
+            for level in range(max_depth + 1)
+        ]
 
     def execute_workflow(self, tasks: list[A2ATask], parallel: bool = False) -> list[A2ATask]:
         results: list[A2ATask] = []

@@ -229,6 +229,14 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
     # ── Main run ──────────────────────────────────────────────────────────────
 
+    def _is_a2a_nested(self, context: dict[str, Any]) -> bool:
+        """True when this run is an A2A subtask — skip auto-dispatch to avoid recursion."""
+        import os
+
+        if os.environ.get("CODEOPS_A2A_NESTED") == "1":
+            return True
+        return bool(context.get("a2a_parent_task_id"))
+
     def run(
         self,
         task: str,
@@ -260,9 +268,16 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
             route, analysis, task_type = self._stage_route(task, context, force_model, force_agent)
 
-            # Auto A2A dispatch for complex multi-capability tasks
-            if not delegate_to_a2a and self._should_dispatch_a2a(analysis):
-                a2a_auto_result = self._stage_a2a_auto(task, analysis, agui_session_id, started, task_id)
+            # Auto A2A dispatch for complex multi-capability tasks (skip when nested subtask)
+            a2a_nested = self._is_a2a_nested(context)
+            if (
+                not delegate_to_a2a
+                and not a2a_nested
+                and self._should_dispatch_a2a(analysis, nested=a2a_nested)
+            ):
+                a2a_auto_result = self._stage_a2a_auto(
+                    task, analysis, agui_session_id, started, task_id, nested=a2a_nested
+                )
                 if a2a_auto_result is not None:
                     return a2a_auto_result
 
