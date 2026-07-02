@@ -178,6 +178,11 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
             {"id": t.id, "state": t.state.value, "agent": t.metadata.get("routed_to", "")}
             for t in result.a2a_tasks
         ]
+    ev = result.event
+    if ev is not None and getattr(ev, "a2a_dispatched", False):
+        out["a2a_dispatched"] = True
+        out["a2a_agents_used"] = ev.a2a_agents_used
+        out["a2a_assignments"] = ev.a2a_assignments
     return out
 
 
@@ -226,6 +231,30 @@ def _needs_executor(task: str, config: Any) -> bool:
     return analysis.requires_code_gen
 
 
+def _would_dispatch_a2a(task: str, config: Any) -> bool:
+    """True when the pipeline would auto-dispatch this task to the multi-agent path.
+
+    Complex, multi-capability tasks stay in the pipeline (lead orchestrator + sub-agents)
+    instead of being promoted to the single-executor claude-code path.
+    """
+    if config is None:  # --factory mode injects no config → load defaults
+        from codeops.config import load_config
+        config = load_config()
+    a2a = getattr(config, "a2a", None)
+    if not a2a or not getattr(a2a, "enabled", False) or not getattr(a2a, "auto_dispatch", True):
+        return False
+    from codeops.router import AgentRouter
+    analysis = AgentRouter(config).analyze_task(task)
+    flags = sum([
+        bool(analysis.requires_code_gen),
+        bool(analysis.requires_review),
+        bool(analysis.requires_testing),
+        bool(analysis.requires_deployment),
+    ])
+    min_flags = getattr(a2a, "min_flags_for_dispatch", 2)
+    return flags >= min_flags or getattr(analysis, "complexity", "") == "high"
+
+
 # ── Main endpoint ─────────────────────────────────────────────────────────────
 
 @router.post("/api/run")
@@ -246,7 +275,17 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                 or ""
             )
             try:
-                if await loop.run_in_executor(_THREAD_POOL, _needs_executor, req.task, config):
+                multiagent = await loop.run_in_executor(
+                    _THREAD_POOL, _would_dispatch_a2a, req.task, config
+                )
+                needs_exec = await loop.run_in_executor(_THREAD_POOL, _needs_executor, req.task, config)
+                if multiagent:
+                    _log.info(
+                        "[DISPATCH] pipeline → multi-agent (A2A local)  task=%r  "
+                        "reason=complex_multi_capability",
+                        req.task[:60],
+                    )
+                elif needs_exec:
                     effective_req = req.model_copy(update={
                         "executor": "claude-code",
                         "cwd": effective_cwd,

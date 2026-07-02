@@ -71,7 +71,7 @@ Developer / UI / CI
 | `INIT` | — | setup |
 | `AGUI_START` | `_stage_agui_start` | AG-UI SSE session |
 | `A2A_DISCOVER` | `_stage_a2a` / `_stage_a2a_auto` | A2A federation + auto-decompose |
-| `A2A_DELEGATE` | `_stage_a2a` / `_stage_a2a_auto` | делегирование подзадач |
+| `A2A_DELEGATE` | `_stage_a2a_auto` → `_run_multiagent_local` | lead назначает тир+скилы, суб-агенты через AIGateway (`a2a.execution_mode=local`) |
 | `ROUTE` | `_stage_route` | AgentRouter → RouteDecision |
 | `MEMORY_RETRIEVE` | `_stage_memory_retrieve` | MemoryStore.search |
 | `RTK_FILTER` | `_stage_rtk` | RTK token stats |
@@ -235,6 +235,7 @@ Middleware stack: DLP → Cache → Rate limit → Spend limit → Provider call
 | Anthropic / OpenAI / Google / DeepSeek | Cloudflare AI Gateway |
 | MiMo | Direct (CUSTOM) |
 | OpenCode Zen / GO | Direct (CUSTOM) |
+| OmniRoute | Direct (CUSTOM, opt-in) — self-hosted OpenAI-compat gateway |
 | Workers AI | CF AI Gateway `/compat` или `env.AI.run()` |
 | Executors | bypass gateway — запускают субпроцессы |
 

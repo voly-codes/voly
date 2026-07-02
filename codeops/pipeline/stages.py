@@ -91,6 +91,12 @@ class _PipelineStageMixin:
             return None
 
         self._fire(PipelineStage.A2A_DISCOVER, subtasks=subtasks)  # type: ignore[attr-defined]
+
+        # Local mode: a strong lead orchestrator assigns model tier + skills per
+        # sub-agent, then each runs in-process via AIGateway.chat(). No federation.
+        if getattr(self.config.a2a, 'execution_mode', 'local') == 'local':
+            return self._run_multiagent_local(task, subtasks, agui_session_id, started, task_id)
+
         timeout = getattr(self.config.a2a, 'task_timeout_seconds', 120.0)  # type: ignore[attr-defined]
         a2a_tasks = self.a2a.dispatch_parallel(subtasks, timeout_seconds=timeout)  # type: ignore[attr-defined]
         self._fire(PipelineStage.A2A_DELEGATE, a2a_tasks=a2a_tasks)  # type: ignore[attr-defined]
@@ -165,6 +171,107 @@ class _PipelineStageMixin:
             agui_session_id=agui_session_id or '',
             duration_ms=duration_ms,
             event=ev,
+        )
+
+    def _run_multiagent_local(
+        self,
+        task: str,
+        subtasks: list[Any],
+        agui_session_id: str | None,
+        started: float,
+        task_id: str,
+    ) -> Any | None:
+        """Lead orchestrator assigns model tier + skills per sub-agent; run in-process."""
+        import time as _time
+
+        from codeops.a2a.multiagent import LeadOrchestrator, merge_report, run_local
+        from codeops.pipeline.types import PipelineResult, PipelineStage
+        from codeops.router import RouteDecision
+        from codeops.telemetry import GatewayMetrics, TaskEvent, TokenMetrics, emit_event_from_config
+
+        lead = LeadOrchestrator(
+            gateway=self.gateway,  # type: ignore[attr-defined]
+            skill_matcher=self.match_skills_for_task,  # type: ignore[attr-defined]
+            lead_model=getattr(self.config.a2a, 'lead_model', ''),  # type: ignore[attr-defined]
+        )
+        assignments = lead.assign(task, subtasks)
+        self._fire(PipelineStage.A2A_DELEGATE, a2a_tasks=assignments)  # type: ignore[attr-defined]
+
+        # Savings on the multi-agent path: deterministic (temp=0) → gateway cache
+        # hits on repeat; semantic memory injected/stored per sub-agent; optional
+        # Headroom compression when the proxy is running.
+        memory = self.memory if self.config.memory.enabled else None  # type: ignore[attr-defined]
+        run_local(
+            task, assignments, self.gateway, self.match_skills_for_task,  # type: ignore[attr-defined]
+            memory=memory, headroom=getattr(self, 'headroom_mgr', None),
+        )
+
+        merged = merge_report(task, assignments)
+        duration_ms = (_time.monotonic() - started) * 1000
+        total_in = sum(a.input_tokens for a in assignments)
+        total_out = sum(a.output_tokens for a in assignments)
+        total_cost = sum(a.cost_usd for a in assignments)
+        total_saved = sum(a.saved_tokens for a in assignments)
+        cache_hits = sum(1 for a in assignments if a.cache_hit)
+        mem_hits = sum(a.mem_hits for a in assignments)
+        skill_ids = sorted({s for a in assignments for s in a.skills})
+        agents_used = [a.role for a in assignments]
+
+        # Reflect multi-agent activity in the UI stage panel instead of defaults.
+        self._fire(PipelineStage.MEMORY_RETRIEVE, hits=[{}] * mem_hits)  # type: ignore[attr-defined]
+        self._fire(PipelineStage.SKILL_INJECT, skill_ids=skill_ids, injected=len(skill_ids))  # type: ignore[attr-defined]
+        self._fire(PipelineStage.HEADROOM_COMPRESS, messages=[], tokens_saved=total_saved)  # type: ignore[attr-defined]
+
+        self._metrics.total_tasks += 1  # type: ignore[attr-defined]
+        self._metrics.total_tokens_in += total_in  # type: ignore[attr-defined]
+        self._metrics.total_tokens_out += total_out  # type: ignore[attr-defined]
+        self._metrics.total_tokens_saved_headroom += total_saved  # type: ignore[attr-defined]
+        self._fire(PipelineStage.DONE)  # type: ignore[attr-defined]
+
+        ev = TaskEvent(
+            task_id=task_id,
+            agent='a2a-local',
+            status='completed' if any(a.ok for a in assignments) else 'failed',
+            tokens=TokenMetrics(input=total_in, output=total_out, saved_headroom=total_saved),
+            # Aggregate gateway view: cache hit only when the whole chain was cached.
+            gateway=GatewayMetrics(cache_hit=bool(assignments) and cache_hits == len(assignments)),
+            cost_usd=total_cost,
+            duration_ms=duration_ms,
+            model='multi-agent',
+            provider='a2a-local',
+            executor='a2a-local',
+            skill_ids=skill_ids,
+            memory_hits=mem_hits,
+            a2a_dispatched=True,
+            a2a_subtask_count=len(assignments),
+            a2a_agents_used=agents_used,
+            a2a_assignments=[a.to_event_dict() for a in assignments],
+            task_prompt=task[:2000],
+            result=merged[:8000],
+        )
+        emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]
+
+        route = RouteDecision(agent='a2a-local', model='multi-agent', provider='a2a-local', routing_score=0.9)
+
+        class _FakeUsage:
+            input_tokens = total_in
+            output_tokens = total_out
+        class _FakeResponse:
+            content = merged
+            model = 'multi-agent'
+            usage = _FakeUsage()
+
+        return PipelineResult(
+            success=any(a.ok for a in assignments),
+            stage=PipelineStage.DONE,
+            response=_FakeResponse(),
+            route=route,
+            agui_session_id=agui_session_id or '',
+            duration_ms=duration_ms,
+            event=ev,
+            injected_skills=skill_ids,
+            memory_hits=[{}] * mem_hits,
+            tokens_saved_by_headroom=total_saved,
         )
 
     # ── Route ─────────────────────────────────────────────────────────────────
@@ -454,6 +561,7 @@ class _PipelineStageMixin:
         task: str,
         injected_skills: list[str] | None = None,
         headroom_saved: int = 0,
+        memory_hits: int = 0,
     ) -> tuple[Any, str, float]:
         from codeops.automation import compute_automation_metrics
         from codeops.cost_policy import budget_status
@@ -503,6 +611,7 @@ class _PipelineStageMixin:
                 dlp_blocked=False,
             ),
             skill_ids=skill_ids,
+            memory_hits=memory_hits,
             routing_score=route.routing_score,
             cost_usd=cost_usd,
             duration_ms=duration,

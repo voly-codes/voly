@@ -284,6 +284,88 @@ class _GatewayProvidersMixin:
             },
         }
 
+    def _call_omniroute(
+        self,
+        messages: list[dict[str, Any]],
+        model: str,
+        max_tokens: int,
+        temperature: float,
+        system: str | None,
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """OmniRoute — self-hosted OpenAI-compat AI gateway (237+ providers, free tiers).
+
+        OmniRoute exposes one OpenAI-compatible endpoint and does its own
+        provider routing / auto-fallback / compression behind it, so CodeOps
+        treats it as a single upstream. Opt-in: not in the default fallback
+        chains — select it explicitly (provider `omniroute`).
+
+        Env:
+          OMNIROUTE_BASE_URL   default http://localhost:20128  (running instance)
+          OMNIROUTE_API_KEY    optional Bearer token, if the instance requires auth
+          OMNIROUTE_COMBO      optional routing strategy → sent as X-Omni-Combo header
+          model                "auto" triggers OmniRoute's auto-combo routing
+        """
+        base = os.environ.get("OMNIROUTE_BASE_URL", "http://localhost:20128").rstrip("/")
+        # _call_openai-style URL is <base>/v1/chat/completions; accept a base that
+        # already includes the /v1 suffix and normalise it away.
+        if base.endswith("/v1"):
+            base = base[:-3]
+        key = os.environ.get("OMNIROUTE_API_KEY", "")
+
+        hdrs: dict[str, str] = {
+            "Content-Type": "application/json",
+            "User-Agent": "CodeOps/0.1 Python-urllib",
+        }
+        if key:
+            hdrs["Authorization"] = f"Bearer {key}"
+        combo = os.environ.get("OMNIROUTE_COMBO", "")
+        if combo:
+            hdrs["X-Omni-Combo"] = combo
+
+        msgs = list(messages)
+        if system:
+            msgs.insert(0, {"role": "system", "content": system})
+        body: dict[str, Any] = {
+            "model": model,
+            "messages": msgs,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        if tools:
+            body["tools"] = tools
+
+        url = f"{base}/v1/chat/completions"
+        _log.info("OmniRoute routing: %s → %s", model, url)
+        req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=hdrs, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=120.0) as resp:
+                data = json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            body_text = e.read().decode(errors="replace")
+            try:
+                msg = json.loads(body_text).get("error", {}).get("message", body_text)
+            except Exception:
+                msg = body_text
+            raise RuntimeError(f"OmniRoute {e.code}: {msg}") from e
+        except urllib.error.URLError as e:
+            raise RuntimeError(
+                f"OmniRoute unreachable at {base} ({e.reason}). "
+                f"Start it (`omniroute` / docker) or set OMNIROUTE_BASE_URL."
+            ) from e
+
+        choice = (data.get("choices") or [{}])[0]
+        return {
+            "content": choice.get("message", {}).get("content", ""),
+            "model": data.get("model", model),
+            "usage": {
+                "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
+                "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
+                "total_tokens":  data.get("usage", {}).get("total_tokens", 0),
+            },
+        }
+
     # ── _direct_call: builds headers and dispatches to a format adapter ──────────
 
     def _direct_call(
@@ -352,6 +434,9 @@ class _GatewayProvidersMixin:
 
             if provider_name == "cloudflare-dynamic":
                 return self._call_cloudflare_dynamic(messages, model, max_tokens, temperature, system, tools=tools)
+
+            if provider_name == "omniroute":
+                return self._call_omniroute(messages, model, max_tokens, temperature, system, tools=tools)
 
             return {"error": f"Unsupported provider: {provider_name}", "content": ""}
 

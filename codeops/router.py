@@ -53,6 +53,9 @@ _PROVIDER_MODELS: dict[str, tuple[str, str]] = {
     # Workers AI: default to fast Llama 4 Scout (131K ctx, tested 2026-06-30)
     "workers-ai":          ("@cf/meta/llama-4-scout-17b-16e-instruct", "workers-ai"),
     "cloudflare-dynamic":  ("dynamic/ai_route", "cloudflare-dynamic"),
+    # OmniRoute: self-hosted OpenAI-compat gateway; "auto" = its auto-combo routing.
+    # Opt-in only — not injected into _TASK_PROVIDERS default chains.
+    "omniroute":           ("auto", "omniroute"),
 }
 
 # Workers AI models by task type (all tested working via CF API)

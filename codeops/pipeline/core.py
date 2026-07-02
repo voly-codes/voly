@@ -124,6 +124,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
             gw.cache.enabled = self.config.ai_gateway.cache_enabled
             gw.cache.ttl_seconds = self.config.ai_gateway.cache_ttl_seconds
             gw.cache.max_entries = self.config.ai_gateway.cache_max_entries
+            gw.cache.persist_dir = getattr(self.config.ai_gateway, "cache_persist_dir", "")
             gw.rate_limit.enabled = self.config.ai_gateway.rate_limits_enabled
             gw.rate_limit.requests_per_minute = self.config.ai_gateway.rate_requests_per_minute
             gw.spend_limit.enabled = self.config.ai_gateway.spend_limits_enabled
@@ -337,6 +338,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
                 task_id, route, response, gw_result, rtk_stats, task_type, dspy_result, duration, task,
                 injected_skills=injected_skills,
                 headroom_saved=headroom_saved,
+                memory_hits=len(memory_messages),
             )
             self._metrics.total_tokens_saved_rtk += rtk_stats.get("total_saved", 0)
             self._metrics.total_tokens_saved_headroom += headroom_saved

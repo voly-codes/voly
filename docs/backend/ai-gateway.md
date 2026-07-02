@@ -35,8 +35,24 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 | `mimo` | no | yes (CUSTOM) |
 | `opencode-zen` | no | yes (CUSTOM) |
 | `opencode-go` | no | yes (CUSTOM) |
+| `omniroute` | no | yes (CUSTOM, opt-in) |
 
 Переключение `GatewayProvider.CLOUDFLARE` vs `CUSTOM` — в `codeops/ai_gateway/`.
+
+### OmniRoute (opt-in upstream)
+
+`omniroute` — self-hosted OpenAI-совместимый gateway (237+ провайдеров, free tiers,
+auto-fallback, компрессия). CodeOps видит его как **один** upstream и делегирует всю
+маршрутизацию/фолбэк самому OmniRoute (`_call_omniroute` → `<base>/v1/chat/completions`).
+
+- **Opt-in:** не входит в default `_TASK_PROVIDERS`-цепочки; выбирается явно
+  (provider `omniroute`), чтобы незапущенный локальный gateway не попадал в fallback.
+- **Модель `auto`** запускает auto-combo роутинг OmniRoute.
+- **Cost:** считается по фактической модели, которую вернул OmniRoute (`data.model`);
+  при free-tier роутинге → $0. Отдельной ставки под провайдер в `_COST_RATES` нет.
+
+Env: `OMNIROUTE_BASE_URL` (default `http://localhost:20128`), `OMNIROUTE_API_KEY`
+(опц.), `OMNIROUTE_COMBO` (опц. → заголовок `X-Omni-Combo`).
 
 ---
 

@@ -217,63 +217,65 @@
       </div>
     </div>
 
-    <!-- Providers breakdown -->
-    {#if Object.keys(gw.metrics?.by_provider ?? {}).length}
-      <section class="breakdown-section">
-        <div class="section-title">По провайдерам</div>
-        <div class="bar-list">
-          {#each Object.entries(gw.metrics.by_provider) as [prov, count]}
-            {@const pct = gw.metrics.total_requests ? Math.round((count / gw.metrics.total_requests) * 100) : 0}
-            <div class="bar-row">
-              <span class="bar-label">{prov}</span>
-              <div class="bar-track">
-                <div class="bar-fill blue" style:width="{pct}%"></div>
+    <!-- Providers + Models breakdown — two blocks side by side -->
+    <div class="breakdown-blocks">
+      {#if Object.keys(gw.metrics?.by_provider ?? {}).length}
+        <section class="breakdown-section">
+          <div class="section-title">По провайдерам</div>
+          <div class="bar-list">
+            {#each Object.entries(gw.metrics.by_provider) as [prov, count]}
+              {@const pct = gw.metrics.total_requests ? Math.round((count / gw.metrics.total_requests) * 100) : 0}
+              <div class="bar-row">
+                <span class="bar-label">{prov}</span>
+                <div class="bar-track">
+                  <div class="bar-fill blue" style:width="{pct}%"></div>
+                </div>
+                <span class="bar-val">{count}</span>
               </div>
-              <span class="bar-val">{count}</span>
-            </div>
-          {/each}
-        </div>
-      </section>
-    {/if}
+            {/each}
+          </div>
+        </section>
+      {/if}
 
-    <!-- Models breakdown -->
-    {#if Object.keys(gw.metrics?.by_model ?? {}).length}
-      <section class="breakdown-section">
-        <div class="section-title">По моделям</div>
-        <div class="bar-list">
-          {#each Object.entries(gw.metrics.by_model) as [model, count]}
-            {@const pct = gw.metrics.total_requests ? Math.round((count / gw.metrics.total_requests) * 100) : 0}
-            <div class="bar-row">
-              <span class="bar-label">{model}</span>
-              <div class="bar-track">
-                <div class="bar-fill purple" style:width="{pct}%"></div>
+      {#if Object.keys(gw.metrics?.by_model ?? {}).length}
+        <section class="breakdown-section">
+          <div class="section-title">По моделям</div>
+          <div class="bar-list">
+            {#each Object.entries(gw.metrics.by_model) as [model, count]}
+              {@const pct = gw.metrics.total_requests ? Math.round((count / gw.metrics.total_requests) * 100) : 0}
+              <div class="bar-row">
+                <span class="bar-label">{model}</span>
+                <div class="bar-track">
+                  <div class="bar-fill purple" style:width="{pct}%"></div>
+                </div>
+                <span class="bar-val">{count}</span>
               </div>
-              <span class="bar-val">{count}</span>
-            </div>
-          {/each}
-        </div>
-      </section>
-    {/if}
+            {/each}
+          </div>
+        </section>
+      {/if}
 
-    <!-- Provider Health -->
-    {#if health}
-      <section class="breakdown-section">
-        <div class="breakdown-title">Провайдеры — состояние ключей</div>
-        <div class="health-grid">
-          {#each Object.entries(health.providers) as [prov, st]}
-            <div class="health-row" class:healthy={st.healthy} class:unhealthy={!st.healthy}>
-              <span class="health-dot" class:ok={st.healthy} class:err={!st.healthy}></span>
-              <span class="health-name">{prov}</span>
-              <span class="health-reason">{st.reason}</span>
-            </div>
-          {/each}
-        </div>
-        <div class="health-hint">
-          Маршрутизатор обходит нездоровые провайдеры автоматически. Порядок приоритета:
-          anthropic → workers-ai → deepseek → opencode-zen → mimo → google → openai
-        </div>
-      </section>
-    {/if}
+      <!-- Provider Health — third block, tiles / bricks -->
+      {#if health}
+        <section class="breakdown-section">
+          <div class="section-title">Провайдеры — состояние ключей</div>
+          <div class="health-bricks">
+            {#each Object.entries(health.providers) as [prov, st]}
+              <div class="health-brick" class:healthy={st.healthy} class:unhealthy={!st.healthy}>
+                <div class="brick-head">
+                  <span class="health-dot" class:ok={st.healthy} class:err={!st.healthy}></span>
+                  <span class="brick-name">{prov}</span>
+                </div>
+                <span class="brick-reason">{st.reason}</span>
+              </div>
+            {/each}
+          </div>
+          <div class="health-hint">
+            Маршрутизатор обходит нездоровые провайдеры автоматически.
+          </div>
+        </section>
+      {/if}
+    </div>
   {/if}
 </div>
 
@@ -496,11 +498,18 @@
     letter-spacing: 0.04em;
   }
 
+  .breakdown-blocks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 10px;
+  }
+
   .breakdown-section {
     padding: 12px 14px;
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
+    min-width: 0;
   }
 
   .section-title {
@@ -539,18 +548,27 @@
     flex-shrink: 0;
   }
 
-  .health-grid { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
-
-  .health-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    padding: 3px 6px;
-    border-radius: var(--radius-sm);
+  /* Provider health — tiles / bricks */
+  .health-bricks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
   }
-  .health-row.healthy  { background: color-mix(in srgb, var(--accent-green) 6%, transparent); }
-  .health-row.unhealthy { background: color-mix(in srgb, var(--accent-red)   6%, transparent); }
+
+  .health-brick {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    background: var(--bg-inset);
+  }
+  .health-brick.healthy   { border-color: color-mix(in srgb, var(--accent-green) 30%, transparent); background: color-mix(in srgb, var(--accent-green) 7%, transparent); }
+  .health-brick.unhealthy { border-color: color-mix(in srgb, var(--accent-red)   30%, transparent); background: color-mix(in srgb, var(--accent-red)   7%, transparent); }
+
+  .brick-head { display: flex; align-items: center; gap: 6px; }
 
   .health-dot {
     width: 7px; height: 7px;
@@ -560,14 +578,16 @@
   .health-dot.ok  { background: var(--accent-green); }
   .health-dot.err { background: var(--accent-red); }
 
-  .health-name {
-    width: 140px;
-    flex-shrink: 0;
-    font-weight: 500;
+  .brick-name {
+    font-weight: 600;
     color: var(--text-primary);
     font-size: 11px;
+    font-family: var(--font-mono);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .health-reason { font-size: 10px; color: var(--text-muted); }
+  .brick-reason { font-size: 9px; color: var(--text-muted); line-height: 1.3; }
 
   .health-hint {
     margin-top: 8px;

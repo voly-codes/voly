@@ -140,6 +140,7 @@ class TaskEvent:
     tokens: TokenMetrics = field(default_factory=TokenMetrics)
     gateway: GatewayMetrics = field(default_factory=GatewayMetrics)
     skill_ids: list[str] = field(default_factory=list)
+    memory_hits: int = 0  # semantic-memory entries retrieved & injected for this task
     workflow: str | None = None
     routing_score: float = 0.0
     cost_usd: float = 0.0
@@ -176,6 +177,9 @@ class TaskEvent:
     a2a_dispatched: bool = False
     a2a_subtask_count: int = 0
     a2a_agents_used: list[str] = field(default_factory=list)
+    # Per-sub-agent assignment plan from the lead orchestrator:
+    # [{role, tier, model, provider, skills:[...], input_tokens, output_tokens, cost_usd, ok}]
+    a2a_assignments: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

@@ -54,8 +54,9 @@
       {
         id: 'memory', label: 'Извлечение памяти',
         hint: 'Ищет релевантный контекст из прошлых задач в семантической памяти (Vectorize + D1). Совпавшие фрагменты инжектируются в промпт.',
-        icon: DatabaseIcon, detail: t.skill_ids?.length ? `совпадений: ${t.skill_ids.length}` : 'нет совпадений',
-        meta: t.skill_ids?.join(', ') ?? '', ok: true,
+        icon: DatabaseIcon, detail: t.memory_hits ? `совпадений: ${t.memory_hits}` : 'нет совпадений',
+        meta: '', badge: t.memory_hits ? `+${t.memory_hits}` : null,
+        badgeColor: t.memory_hits ? 'var(--accent-blue)' : null, ok: true,
       },
       {
         id: 'rtk', label: 'RTK Фильтр',
@@ -156,6 +157,27 @@
           {#if task.result}
             <ExtrasSection title="Вывод" chip="{(task.tokens?.output ?? 0).toLocaleString()} tok" collapsible bind:expanded={outputExpanded}>
               <div class="text-block output-block">{task.result}</div>
+            </ExtrasSection>
+          {/if}
+
+          {#if task.a2a_dispatched && task.a2a_assignments?.length}
+            <ExtrasSection title="Мульти-агенты" chip="{task.a2a_assignments.length} ролей">
+              <div class="agents-list">
+                {#each task.a2a_assignments as a}
+                  <div class="agent-row">
+                    <div class="agent-dot" style="background:{a.ok ? 'var(--accent-green)' : 'var(--accent-red)'}"></div>
+                    <span class="agent-role">{a.role}</span>
+                    <span class="agent-tier tier-{a.tier}">{a.tier}</span>
+                    <span class="agent-model">{a.provider}/{a.model?.split('/').pop()}</span>
+                    {#if a.cache_hit}<span class="agent-badge cached">cached</span>{/if}
+                    {#if a.mem_hits}<span class="agent-badge mem">mem {a.mem_hits}</span>{/if}
+                    <div class="agent-skills">
+                      {#each a.skills ?? [] as s}<span class="agent-skill">{s}</span>{/each}
+                    </div>
+                    <span class="agent-cost">${(a.cost_usd ?? 0).toFixed(4)}</span>
+                  </div>
+                {/each}
+              </div>
             </ExtrasSection>
           {/if}
 
@@ -323,6 +345,30 @@
   }
 
   .extras-grid { display: flex; flex-direction: column; gap: 3px; }
+
+  /* Multi-agent assignments */
+  .agents-list { display: flex; flex-direction: column; gap: 5px; }
+  .agent-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .agent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .agent-role { font-size: 11px; font-weight: 600; color: var(--text-secondary); min-width: 66px; }
+  .agent-tier {
+    font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 1px 5px; border-radius: var(--radius-sm); border: 1px solid var(--border-default); color: var(--text-muted);
+  }
+  .agent-tier.tier-premium { color: var(--accent-purple); border-color: color-mix(in srgb, var(--accent-purple) 30%, transparent); background: color-mix(in srgb, var(--accent-purple) 10%, transparent); }
+  .agent-tier.tier-standard { color: var(--accent-teal); border-color: color-mix(in srgb, var(--accent-teal) 30%, transparent); background: color-mix(in srgb, var(--accent-teal) 10%, transparent); }
+  .agent-tier.tier-cheap { color: var(--accent-amber); border-color: color-mix(in srgb, var(--accent-amber) 30%, transparent); background: color-mix(in srgb, var(--accent-amber) 10%, transparent); }
+  .agent-model { font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); }
+  .agent-badge { font-size: 9px; font-weight: 600; padding: 0 5px; border-radius: var(--radius-sm); }
+  .agent-badge.cached { color: var(--accent-green); background: color-mix(in srgb, var(--accent-green) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-green) 30%, transparent); }
+  .agent-badge.mem { color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent); }
+  .agent-skills { display: flex; gap: 3px; flex-wrap: wrap; flex: 1; }
+  .agent-skill {
+    font-size: 9px; font-family: var(--font-mono); border-radius: var(--radius-sm); padding: 0 5px;
+    background: color-mix(in srgb, var(--accent-teal) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-teal) 30%, transparent); color: var(--accent-teal);
+  }
+  .agent-cost { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
 
   .extra-row {
     display: flex;

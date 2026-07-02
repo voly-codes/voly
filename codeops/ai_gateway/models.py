@@ -81,7 +81,16 @@ class CacheConfig:
     enabled: bool = True
     ttl_seconds: int = 3600
     max_entries: int = 1000
+    # When set, cache entries are also written to this directory as
+    # <key>.json so they survive across gateway instances and process
+    # restarts (the web path builds a fresh Pipeline/gateway per request,
+    # so an in-memory-only cache never hits on a repeat task).
+    persist_dir: str = ""
     _store: dict[str, tuple[float, str]] = field(default_factory=dict, repr=False)
+
+    def _path(self, key: str):
+        import pathlib
+        return pathlib.Path(self.persist_dir) / f"{key}.json"
 
     def get(self, key: str) -> str | None:
         if key in self._store:
@@ -89,16 +98,42 @@ class CacheConfig:
             if time.time() < expires_at:
                 return value
             del self._store[key]
+        if self.persist_dir:
+            p = self._path(key)
+            try:
+                if p.exists():
+                    import json
+                    expires_at, value = json.loads(p.read_text())
+                    if time.time() < expires_at:
+                        self._store[key] = (expires_at, value)  # warm in-memory
+                        return value
+                    p.unlink(missing_ok=True)
+            except (OSError, ValueError):
+                pass
         return None
 
     def set(self, key: str, value: str) -> None:
         if len(self._store) >= self.max_entries:
             oldest = min(self._store.keys(), key=lambda k: self._store[k][0])
             del self._store[oldest]
-        self._store[key] = (time.time() + self.ttl_seconds, value)
+        expires_at = time.time() + self.ttl_seconds
+        self._store[key] = (expires_at, value)
+        if self.persist_dir:
+            try:
+                import json
+                import pathlib
+                pathlib.Path(self.persist_dir).mkdir(parents=True, exist_ok=True)
+                self._path(key).write_text(json.dumps([expires_at, value]))
+            except OSError:
+                pass
 
     def invalidate(self, key: str) -> None:
         self._store.pop(key, None)
+        if self.persist_dir:
+            try:
+                self._path(key).unlink(missing_ok=True)
+            except OSError:
+                pass
 
     def flush(self) -> None:
         self._store.clear()

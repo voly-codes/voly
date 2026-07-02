@@ -38,6 +38,41 @@ INIT
 
 ---
 
+## Авто мульти-агентность (A2A)
+
+После `ROUTE` пайплайн проверяет `_should_dispatch_a2a(analysis)`. Если A2A включён
+и задача сложная/многокомпонентная (≥ `a2a.min_flags_for_dispatch` флагов из
+`requires_code_gen/review/testing/deployment`, либо `complexity == "high"`), задача
+уходит в мульти-агентный путь `_stage_a2a_auto` вместо одиночного `MODEL_CALL`.
+
+**`a2a.execution_mode` (по умолчанию `"local"`):**
+
+- **`local`** — `_run_multiagent_local`:
+  1. `TaskDecomposer` разбивает задачу на роли (architect → developer → tester →
+     reviewer → devops) с зависимостями.
+  2. **Lead-оркестратор** (`a2a/multiagent.py::LeadOrchestrator`) — сильная модель
+     (premium-тир или `a2a.lead_model`) оценивает задачу и назначает каждой роли
+     **тир модели** (`premium|standard|cheap`) и **скилы** (из registry). При сбое
+     LLM-lead — детерминированный fallback (`_ROLE_TIER` + top-скилы роли).
+  3. Тир → конкретная (model, provider) через `resolve_tier_model()`: реальный пул
+     `_PROVIDER_MODELS`, отфильтрованный `ProviderHealthChecker`
+     (strong = anthropic/cloudflare-dynamic, weak = workers-ai/deepseek/opencode-zen/
+     mimo/omniroute).
+  4. `run_local` исполняет суб-агентов **в процессе** через `AIGateway.chat()` в
+     порядке зависимостей, прокидывая результаты предыдущих ролей. Каждый агент — со
+     своей моделью, персоной и скилами.
+  5. Merge → `TaskEvent` с `a2a_dispatched=True`, `a2a_agents_used`,
+     `a2a_assignments` (роль/тир/модель/скилы/токены/стоимость).
+
+- **`federation`** — суб-задачи уходят на remote-агентов (`a2a.federation_url`)
+  через `dispatch_parallel` (старый путь).
+
+**Промоут в вебе:** `/api/run` с `executor=pipeline` для сложной задачи больше НЕ
+промоутится в `claude-code` — `_would_dispatch_a2a()` оставляет её в пайплайне.
+Простые код-задачи (1 флаг) по-прежнему идут в `claude-code` executor.
+
+---
+
 ## PipelineResult
 
 ```python

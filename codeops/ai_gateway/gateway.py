@@ -88,7 +88,10 @@ class AIGateway(_GatewayProvidersMixin):
             cached = self.cache.get(cache_key)
             if cached:
                 self.metrics.record_cache_hit()
-                return json.loads(cached)
+                data = json.loads(cached)
+                if isinstance(data, dict):
+                    data["cache_hit"] = True
+                return data
         self.metrics.record_cache_miss()
 
         if self.rate_limit.enabled and self.metrics.requests_in_last_minute() >= self.rate_limit.requests_per_minute:

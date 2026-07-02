@@ -89,6 +89,13 @@ class A2AConfig:
     auto_dispatch: bool = True
     min_flags_for_dispatch: int = 2
     task_timeout_seconds: float = 120.0
+    # "local"  → sub-agents run in-process via AIGateway.chat() with per-role
+    #            model tier + skills assigned by the lead orchestrator.
+    # "federation" → dispatch sub-tasks to remote A2A agents (federation_url).
+    execution_mode: str = "local"
+    # Model used by the lead orchestrator to assign tiers/skills. Empty → resolve
+    # a strong (premium) provider from the healthy pool automatically.
+    lead_model: str = ""
 
 
 @dataclass
@@ -143,6 +150,9 @@ class AIGatewayConfig:
     cache_enabled: bool = True
     cache_ttl_seconds: int = 3600
     cache_max_entries: int = 1000
+    # Persist the response cache to disk so repeat tasks hit across requests /
+    # restarts (each web /api/run builds a fresh gateway). Empty → in-memory only.
+    cache_persist_dir: str = ".codeops/gateway_cache"
     rate_limits_enabled: bool = True
     rate_requests_per_minute: int = 60
     spend_limits_enabled: bool = True

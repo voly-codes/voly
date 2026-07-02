@@ -1,5 +1,5 @@
 <script>
-  import { CpuIcon, ClockIcon, BookOpenIcon, LinkIcon } from '../../icons.js'
+  import { CpuIcon, ClockIcon, BookOpenIcon, LinkIcon, LayersIcon } from '../../icons.js'
 
   let { result } = $props()
 
@@ -73,6 +73,40 @@
             {/if}
             {#if i < result.chain_timelog.length - 1}
               <span class="chain-arrow">→</span>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  {#if result.a2a_dispatched && result.a2a_assignments?.length}
+    <div class="agents-panel">
+      <div class="agents-header">
+        <LayersIcon size="11" strokeWidth="2" />
+        <span>Multi-agent · {result.a2a_assignments.length} agents</span>
+      </div>
+      <div class="agents-list">
+        {#each result.a2a_assignments as a}
+          <div class="agent-row">
+            <div class="agent-dot" style="background:{a.ok ? 'var(--accent-green)' : 'var(--accent-red)'}"></div>
+            <span class="agent-role">{a.role}</span>
+            <span class="agent-tier tier-{a.tier}">{a.tier}</span>
+            <span class="agent-model">{a.provider}/{a.model?.split('/').pop()}</span>
+            {#if a.cache_hit}
+              <span class="agent-badge cached">cached</span>
+            {/if}
+            {#if a.mem_hits}
+              <span class="agent-badge mem">mem {a.mem_hits}</span>
+            {/if}
+            <div class="agent-skills">
+              {#each a.skills ?? [] as s}
+                <span class="agent-skill">{s}</span>
+              {/each}
+            </div>
+            <span class="agent-tokens">{a.input_tokens}+{a.output_tokens}</span>
+            {#if a.cost_usd}
+              <span class="agent-cost">${a.cost_usd.toFixed(4)}</span>
             {/if}
           </div>
         {/each}
@@ -212,6 +246,130 @@
     font-size: 10px;
     color: var(--text-muted);
     margin: 0 1px;
+  }
+
+  .agents-panel {
+    border-bottom: 1px solid var(--border-muted);
+    padding: 6px 10px;
+  }
+
+  .agents-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .agents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .agent-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .agent-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .agent-role {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 68px;
+  }
+
+  .agent-tier {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    color: var(--text-muted);
+  }
+  .agent-tier.tier-premium {
+    color: var(--accent-purple);
+    border-color: color-mix(in srgb, var(--accent-purple) 30%, transparent);
+    background: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+  }
+  .agent-tier.tier-standard {
+    color: var(--accent-teal);
+    border-color: color-mix(in srgb, var(--accent-teal) 30%, transparent);
+    background: color-mix(in srgb, var(--accent-teal) 10%, transparent);
+  }
+  .agent-tier.tier-cheap {
+    color: var(--accent-amber);
+    border-color: color-mix(in srgb, var(--accent-amber) 30%, transparent);
+    background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
+  }
+
+  .agent-model {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+
+  .agent-badge {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 0 5px;
+    border-radius: var(--radius-sm);
+  }
+  .agent-badge.cached {
+    color: var(--accent-green);
+    background: color-mix(in srgb, var(--accent-green) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-green) 30%, transparent);
+  }
+  .agent-badge.mem {
+    color: var(--accent-blue, var(--accent-purple));
+    background: color-mix(in srgb, var(--accent-purple) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent);
+  }
+
+  .agent-skills {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .agent-skill {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    background: color-mix(in srgb, var(--accent-teal) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-teal) 30%, transparent);
+    color: var(--accent-teal);
+    border-radius: var(--radius-sm);
+    padding: 0 5px;
+  }
+
+  .agent-tokens {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .agent-cost {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 52px;
+    text-align: right;
   }
 
   .injected-skills {

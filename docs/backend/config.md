@@ -61,6 +61,7 @@ ai_gateway:
   cloudflare_account_id: ""
   cloudflare_gateway_id: default
   cache_enabled: true
+  cache_persist_dir: .codeops/gateway_cache  # disk-кэш ответов; пусто → только in-memory
   rate_limit_rpm: 60
   spend_limit_usd_per_day: 10.0
 
@@ -74,6 +75,14 @@ dspy:
   model: claude-sonnet-4-6
   programs_dir: .codeops/dspy/programs
   datasets_dir: .codeops/dspy/datasets
+
+a2a:
+  enabled: true
+  auto_dispatch: true          # авто мульти-агентность для сложных задач
+  min_flags_for_dispatch: 2    # порог capability-флагов (code_gen/review/testing/deployment)
+  execution_mode: local        # local (lead + суб-агенты in-process) | federation (remote)
+  lead_model: ""               # модель lead-оркестратора; пусто → premium из здорового пула
+  federation_url: ""           # только для execution_mode=federation
 
 rtk:
   enabled: true
