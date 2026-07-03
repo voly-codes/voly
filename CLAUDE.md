@@ -17,6 +17,42 @@ VOLY project-agnostic — нет product-specific логики в `voly/`.
 
 ---
 
+## Стратегическая архитектура — читай ПЕРВЫМ
+
+VOLY = два слоя с разной ценностью (истина: `docs/plans/voly-roadmap-and-monetization.md`):
+
+- **Слой A — model gateway / routing / fallback между провайдерами моделей.** Конкурирует с OmniRoute / LiteLLM / OpenRouter — зрелая, занятая ниша. **Стабилизируется по минимуму и делегируется внешнему gateway** (VOLY уже умеет OmniRoute как upstream). НЕ источник денег и уникальности — не догонять по ширине провайдеров.
+- **Слой B — оркестрация над file-capable CLI-агентами.** Executor chain (агенты пишут файлы в проект), billing fallback между CLI, мульти-агентная декомпозиция (тир модели на роль), project-agnostic executor path, телеметрия стоимости задач. **Это уникальность продукта + фундамент монетизации — сюда весь фокус развития.**
+
+**Инвариант №1:** `AIGateway.chat()` — единственный выход к моделям. Через него идут pipeline, DSPy, суб-агенты, рантаймы — тогда кэш, DLP, spend limits, fallback и телеметрия достаются любому компоненту бесплатно. Никогда не вызывай провайдера в обход gateway (кроме executor-ов — это отдельный path).
+
+**Монетизация (open-core):** бесплатное открытое ядро (оркестрация, executor chain, billing fallback, мульти-агент, локальный запуск) + платные Team tier (командный хостед control plane: общий дашборд расходов, org spend limits, SSO, аудит) и managed federation (хостинг A2A-хаба). Платят за хостинг и командную обвязку, НЕ за фичи ядра. Лицензия — **чистая Apache 2.0**; не сливать с проектами под ограничительными лицензиями (урок Multica).
+
+---
+
+## Планы (истина) и текущий статус — читай ПЕРЕД планированием работы
+
+| Документ | Назначение |
+|---|---|
+| `docs/plans/voly-roadmap-and-monetization.md` | Стратегия, этапы 0–7, монетизация — **ИСТИНА**, правит остальные |
+| `docs/plans/voly-implementation-plan.md` | Чеклист внедрения с чекбоксами и прогрессом по этапам |
+| `docs/plans/codeops-project-assessment.md` | Риски R1–R7 (P0: R1 семантика кэша, R2 тесты отказов, R4 billing-детекция) |
+| `docs/plans/omniroute-analysis-for-voly.md` | Что переносим из OmniRoute — **принципы, не код**; при копировании — MIT-атрибуция |
+
+**Уже сделано:**
+- Синхрон доков: порты `7788` (web UI = `voly ui`) / `9202` (pipeline = `voly serve`), `a2a.enabled=true`.
+- Переименование проекта `codeops → voly`: пакет-директория, env-переменные `CODEOPS_* → VOLY_*` (`VOLY_PROJECT_CWD`, `VOLY_A2A_NESTED`, `VOLY_A2A_TOKEN`, …).
+- **Семантический классификатор billing-ошибок** `voly/ai_gateway/error_classifier.py` (порт из OmniRoute): отделяет transient rate-limit (429) от terminal quota-exhausted; `_is_billing_error` в `voly/executor/base.py` делегирует туда. Тесты: `tests/test_error_classifier.py`.
+
+**Ближайший фокус (ядро прежде монетизации — этап 1 roadmap):**
+1. Подключить `is_empty_content_response` guard на уровне `AIGateway.chat()` (пробросить `stop_reason`/`finish_reason`). Функция уже есть в `error_classifier.py`, но НЕ вызывается — пустой ответ при `max_tokens`/`tool_use` не должен считаться сбоем и триггерить ложный fallback.
+2. Пересмотреть ключ кэша **executor path** — включить снимок состояния проекта (git hash / хэш затронутых файлов), иначе баги кэша код-задач (риск R1). Задокументировать границы валидности кэша.
+3. Таймауты на subprocess-executor-ах; retry-aware стоимость в TaskEvent / `_COST_RATES`.
+
+**Не делать без явного запроса:** свой workflow-движок, Temporal (при необходимости — DBOS/Restate), ранний marketplace, наращивание периферии до стабилизации ядра B.
+
+---
+
 ## Скилы — читай ПЕРЕД началом работы
 
 | Скил | Когда использовать |
@@ -78,9 +114,9 @@ docs/
 | Рефакторинг 3+ файлов | `claude-code` | нужен контекст |
 
 ```bash
-# Запуск через VOLY runner
-voly run "<задача>" --executor zen --cwd /home/lanies/git/voly
-voly run "<задача>" --executor claude-code --cwd /home/lanies/git/voly
+# Запуск через VOLY runner (этот репозиторий: /home/lanies/git/codeops/voly)
+voly run "<задача>" --executor zen --cwd /home/lanies/git/codeops/voly
+voly run "<задача>" --executor claude-code --cwd /home/lanies/git/codeops/voly
 ```
 
 ---
@@ -177,7 +213,7 @@ pytest tests/ -q                          # полный прогон
 | Base install imports DSPy | Проверь top-level `import dspy` вне lazy paths |
 | Pipeline bypasses gateway | Убедись что runtime использует `AIGateway.chat()` |
 | Executor не пишет файлы | Проверь `--cwd` и credentials executor |
-| Billing fallback не срабатывает | Проверь `billing_error=True` в ExecutorResult |
+| Billing fallback не срабатывает | Детекция в `voly/ai_gateway/error_classifier.py` (`_is_billing_error` делегирует туда); rate-limit 429 НЕ считается billing — только quota-exhausted/account |
 | Smart dispatch не срабатывает | Установи `VOLY_PROJECT_CWD` или `default_cwd` в `voly.yaml` |
 | Wrangler executor недоступен | Запусти `cd cf-workers/agent && wrangler dev` |
 | CI fails with test collection | Проверь `pyproject.toml` pytest config |
