@@ -5,6 +5,6 @@ RTK Layer — управление Rust Token Killer для фильтрации
 на 60-90% перед передачей в модель.
 """
 
-from codeops.rtk.installer import RTKManager
+from voly.rtk.installer import RTKManager
 
 __all__ = ["RTKManager"]

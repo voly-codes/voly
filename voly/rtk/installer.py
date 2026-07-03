@@ -21,7 +21,7 @@ from typing import Optional
 
 RTK_DEFAULT_VERSION = "0.28.2"
 RTK_REPO = os.environ.get("RTK_REPO_URL", "https://github.com/rtk-ai/rtk")
-RTK_MANAGED_DIR = Path.home() / ".codeops" / "bin"
+RTK_MANAGED_DIR = Path.home() / ".voly" / "bin"
 
 
 class RTKManager:
@@ -47,7 +47,7 @@ class RTKManager:
         if auto_install:
             return self.install()
         raise FileNotFoundError(
-            "RTK not found. Install with 'codeops rtk install' "
+            "RTK not found. Install with 'voly rtk install' "
             "or download from https://github.com/rtk-ai/rtk/releases"
         )
 

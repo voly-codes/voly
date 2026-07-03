@@ -33,7 +33,6 @@ rtk/
 ui/node_modules/
 ui/dist/
 voly/web/static/
-codeops/web/static/
 
 # generated runtime artifacts
 .voly/a2a/
