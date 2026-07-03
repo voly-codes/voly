@@ -1,6 +1,6 @@
 # API Routes — Backend Reference
 
-FastAPI сервер: `voly/web/server.py`. Запуск: `voly serve` (порт 7860).
+FastAPI сервер: `voly/web/server.py`. Запуск: `voly ui` (порт 7788).
 
 ---
 

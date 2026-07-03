@@ -112,10 +112,10 @@ const { models } = await fetch('/api/models').then(r => r.json())
 
 ## CORS / proxy
 
-В development Vite проксирует `/api/*` на `http://localhost:7860`:
+В development Vite проксирует `/api/*` на `http://localhost:7788`:
 ```javascript
 // vite.config.js
-proxy: { '/api': 'http://localhost:7860' }
+proxy: { '/api': 'http://localhost:7788' }
 ```
 
-В production FastAPI сервирует SPA и API на одном порту (7860).
+В production FastAPI сервирует SPA и API на одном порту (7788).

@@ -30,7 +30,7 @@ Config (`voly.yaml` → `a2a`):
 
 | Field | Default | Meaning |
 |---|---|---|
-| `enabled` | `false` | Master switch |
+| `enabled` | `true` | Master switch |
 | `auto_dispatch` | `true` | Auto-decompose complex tasks |
 | `min_flags_for_dispatch` | `2` | Min capability flags to trigger |
 | `task_timeout_seconds` | `120` | Poll timeout per auto-dispatch run |

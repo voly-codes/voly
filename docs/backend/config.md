@@ -44,7 +44,7 @@ CODEOPS_PROJECT_CWD=/path/to/target/project
 # Можно также задать default_cwd в voly.yaml.
 
 CODEOPS_LOG_LEVEL=INFO
-CODEOPS_SERVER_PORT=7860
+CODEOPS_SERVER_PORT=7788
 CODEOPS_SERVER_HOST=0.0.0.0
 ```
 

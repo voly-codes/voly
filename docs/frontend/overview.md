@@ -60,7 +60,7 @@ npm install
 npm run dev       # http://localhost:5173
 ```
 
-Требует запущенного backend: `voly serve` (порт 7860).
+Требует запущенного backend: `voly ui` (порт 7788).
 
 ---
 
