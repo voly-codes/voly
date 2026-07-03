@@ -15,14 +15,10 @@
     "binding": "AI"
   },
 
-  // CF AI Gateway route schema — set these to use the route schema for /infer.
-  // Leave empty to fall back to env.AI.run() directly (AI binding above).
-  // CF_AIG_TOKEN: create at dash.cloudflare.com → AI Gateway → {gateway} → Settings → API tokens
-  "vars": {
-    "CF_ACCOUNT_ID": "",
-    "CF_GATEWAY_ID": "default",
-    "CF_AIG_TOKEN": ""
-  },
+  // CF AI Gateway route schema for /infer — provided as SECRETS (not vars) so the
+  // AIG token is never committed:
+  //   wrangler secret put CF_ACCOUNT_ID | CF_GATEWAY_ID | CF_AIG_TOKEN
+  // Leave unset to fall back to env.AI.run() directly (AI binding above).
 
   "durable_objects": {
     "bindings": [
