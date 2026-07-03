@@ -1,10 +1,10 @@
-"""Tests for CodeOps config module."""
+"""Tests for VOLY config module."""
 
 import tempfile
 from pathlib import Path
 
 from codeops.config import (
-    CodeOpsConfig,
+    VOLYConfig,
     RTKConfig,
     HeadroomConfig,
     MemoryConfig,
@@ -18,7 +18,7 @@ from codeops.config import (
 
 
 def test_default_config() -> None:
-    cfg = CodeOpsConfig()
+    cfg = VOLYConfig()
     assert cfg.default_model == "claude-sonnet"
     assert cfg.default_agent == "claude"
     assert cfg.rtk.enabled is True
@@ -88,7 +88,7 @@ agents:
 
 
 def test_get_model_config() -> None:
-    cfg = CodeOpsConfig()
+    cfg = VOLYConfig()
     model = cfg.get_model_config("claude-sonnet")
     assert model.provider == "anthropic"
     assert "claude-sonnet" in model.model

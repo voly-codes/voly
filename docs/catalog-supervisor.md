@@ -2,9 +2,9 @@
 
 > **Status:** implemented locally; optional Cloudflare Worker support is available.
 
-CodeOps **Catalog** stores model metadata and routing hints. The **Supervisor** layer uses that catalog to plan executor/model/skill combinations for multi-step work.
+VOLY **Catalog** stores model metadata and routing hints. The **Supervisor** layer uses that catalog to plan executor/model/skill combinations for multi-step work.
 
-This component is now generic and project-agnostic. Product-specific combat missions should live outside the CodeOps core repository.
+This component is now generic and project-agnostic. Product-specific combat missions should live outside the VOLY core repository.
 
 ---
 
@@ -45,7 +45,7 @@ Executor/model/skill plan
 Optional remote catalog:
 
 ```text
-CodeOps CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
+VOLY CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
 ```
 
 ---

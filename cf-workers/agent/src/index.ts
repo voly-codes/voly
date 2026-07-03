@@ -4,7 +4,7 @@ import { buildBuiltinAgents } from "./definitions";
 import { handleInfer } from "./infer";
 import type { Env } from "./pipeline";
 import { callPipelineRunner, completeA2ATask, getA2ATaskState } from "./pipeline";
-import { CodeOpsMcpAgent } from "./mcp-agent";
+import { VOLYMcpAgent } from "./mcp-agent";
 
 function authorize(c: { req: { header: (name: string) => string | undefined }; env: Env }): boolean {
   const required = c.env.API_TOKEN;
@@ -89,7 +89,7 @@ app.post("/agents/:name/run", async (c) => {
   return c.json({ agent: agentName, ...result });
 });
 
-const mcpHandler = CodeOpsMcpAgent.serve("/mcp", { binding: "CODEOPS_MCP_AGENT" });
+const mcpHandler = VOLYMcpAgent.serve("/mcp", { binding: "CODEOPS_MCP_AGENT" });
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {
@@ -101,4 +101,4 @@ export default {
   },
 };
 
-export { CodeOpsMcpAgent };
+export { VOLYMcpAgent };

@@ -16,7 +16,7 @@ dist/
 *.swo
 *~
 
-# CodeOps runtime state
+# VOLY runtime state
 .codeops/events/
 .codeops/dspy/datasets/
 .codeops/dspy/programs/
@@ -30,3 +30,8 @@ rtk/
 ui/node_modules/
 ui/dist/
 codeops/web/static/
+
+# generated runtime artifacts
+.codeops/a2a/
+.codeops/gateway_cache/
+docs.zip

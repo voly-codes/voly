@@ -1,4 +1,4 @@
-"""Tests for CodeOps Memory Store."""
+"""Tests for VOLY Memory Store."""
 
 import tempfile
 from pathlib import Path

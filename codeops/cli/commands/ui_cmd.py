@@ -1,4 +1,4 @@
-"""CLI command: codeops ui — start the CodeOps web dashboard."""
+"""CLI command: codeops ui — start the VOLY web dashboard."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def ui(
     do_build: bool,
     hot_reload: bool,
 ) -> None:
-    """Start CodeOps web dashboard (FastAPI + Svelte UI).
+    """Start VOLY web dashboard (FastAPI + Svelte UI).
 
     Production: codeops ui
     Development: codeops ui --dev  (requires Node.js + npm)
@@ -76,7 +76,7 @@ def ui(
     from codeops.web.server import create_app
 
     app = create_app(events_dir=ev_path, config=config)
-    click.echo(f"CodeOps UI: http://{host}:{port}")
+    click.echo(f"VOLY UI: http://{host}:{port}")
     click.echo("Press Ctrl+C to stop")
 
     if hot_reload:

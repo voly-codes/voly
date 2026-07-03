@@ -1,4 +1,4 @@
-"""HTTP client for CodeOps Catalog CF Worker (optional)."""
+"""HTTP client for VOLY Catalog CF Worker (optional)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-USER_AGENT = "CodeOps/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
 
 
 class CatalogClientError(Exception):

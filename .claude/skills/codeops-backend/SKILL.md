@@ -1,9 +1,9 @@
 ---
 name: codeops-backend
-description: Guide for working on CodeOps Python backend — pipeline, executors, AI gateway, DSPy, config, API routes. Use this skill for any backend changes.
+description: Guide for working on VOLY Python backend — pipeline, executors, AI gateway, DSPy, config, API routes. Use this skill for any backend changes.
 ---
 
-# CodeOps Backend Development Skill
+# VOLY Backend Development Skill
 
 ## Before writing any code — read
 
@@ -68,7 +68,7 @@ register_program(MyProgram())  # в конце модуля
 
 ```bash
 # Smoke test (всегда после изменений)
-python -c "import codeops.pipeline, codeops.inference; from codeops.config import CodeOpsConfig; assert CodeOpsConfig().dspy.enabled is False"
+python -c "import codeops.pipeline, codeops.inference; from codeops.config import VOLYConfig; assert VOLYConfig().dspy.enabled is False"
 pytest tests/test_dspy_runtime_smoke.py -q
 
 # Весь тест-сюит

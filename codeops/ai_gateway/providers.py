@@ -243,7 +243,7 @@ class _GatewayProvidersMixin:
         aig_token = os.environ.get("CF_AIG_TOKEN", token)
         hdrs: dict[str, str] = {
             "Content-Type": "application/json",
-            "User-Agent": "CodeOps/0.1 Python-urllib",
+            "User-Agent": "VOLY/0.1 Python-urllib",
         }
         if aig_token:
             hdrs["cf-aig-authorization"] = f"Bearer {aig_token}"
@@ -297,7 +297,7 @@ class _GatewayProvidersMixin:
         """OmniRoute — self-hosted OpenAI-compat AI gateway (237+ providers, free tiers).
 
         OmniRoute exposes one OpenAI-compatible endpoint and does its own
-        provider routing / auto-fallback / compression behind it, so CodeOps
+        provider routing / auto-fallback / compression behind it, so VOLY
         treats it as a single upstream. Opt-in: not in the default fallback
         chains — select it explicitly (provider `omniroute`).
 
@@ -316,7 +316,7 @@ class _GatewayProvidersMixin:
 
         hdrs: dict[str, str] = {
             "Content-Type": "application/json",
-            "User-Agent": "CodeOps/0.1 Python-urllib",
+            "User-Agent": "VOLY/0.1 Python-urllib",
         }
         if key:
             hdrs["Authorization"] = f"Bearer {key}"

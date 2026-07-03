@@ -42,7 +42,7 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 ### OmniRoute (opt-in upstream)
 
 `omniroute` — self-hosted OpenAI-совместимый gateway (237+ провайдеров, free tiers,
-auto-fallback, компрессия). CodeOps видит его как **один** upstream и делегирует всю
+auto-fallback, компрессия). VOLY видит его как **один** upstream и делегирует всю
 маршрутизацию/фолбэк самому OmniRoute (`_call_omniroute` → `<base>/v1/chat/completions`).
 
 - **Opt-in:** не входит в default `_TASK_PROVIDERS`-цепочки; выбирается явно

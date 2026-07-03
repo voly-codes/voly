@@ -13,7 +13,7 @@ from codeops.config import create_default_config
 @click.option("--force", is_flag=True, help="Overwrite existing config")
 @click.pass_context
 def init(ctx: click.Context, force: bool) -> None:
-    """Initialize CodeOps in the current project."""
+    """Initialize VOLY in the current project."""
     cfg_path = Path.cwd() / "codeops.yaml"
     if cfg_path.exists() and not force:
         click.echo(f"Config already exists: {cfg_path}")
@@ -21,7 +21,7 @@ def init(ctx: click.Context, force: bool) -> None:
         return
 
     create_default_config(cfg_path)
-    click.echo(f"CodeOps config created: {cfg_path}")
+    click.echo(f"VOLY config created: {cfg_path}")
 
     from codeops.rtk.installer import RTKManager
 
@@ -53,7 +53,7 @@ def init(ctx: click.Context, force: bool) -> None:
 @click.option("--agui/--no-agui", default=False, help="Enable/disable AG-UI gateway")
 @click.pass_context
 def setup(ctx: click.Context, rtk: bool, headroom: bool, a2a: bool, agui: bool) -> None:
-    """Set up all CodeOps components."""
+    """Set up all VOLY components."""
     config = ctx.obj["config"]
 
     if rtk and config.rtk.enabled:

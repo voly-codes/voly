@@ -8,7 +8,7 @@
 <header class="app-header">
   <div class="brand">
     <ActivityIcon size="16" strokeWidth="2" />
-    <span class="brand-name">CodeOps</span>
+    <span class="brand-name">VOLY</span>
   </div>
 
   <div class="header-stats">

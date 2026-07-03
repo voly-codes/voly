@@ -1,4 +1,4 @@
--- CF Pipelines SQL transform for CodeOps TaskEvent telemetry
+-- CF Pipelines SQL transform for VOLY TaskEvent telemetry
 -- Configure in wrangler pipelines / Cloudflare dashboard.
 -- Source stream: JSON array batches from emit_event() → send_to_pipeline()
 

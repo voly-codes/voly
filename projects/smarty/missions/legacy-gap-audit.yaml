@@ -31,7 +31,7 @@ tasks:
   label: 'cursor: prioritize missing modules report'
   task: "STEP 3/3 — Prioritized gap list + recommendations.\n\nReport: docs/reports/legacy-gap-audit.md\n\
     Project: {{SMARTY_PROJECT}}\n\nCOMPLETE the audit report with:\n  Section 3 —\
-    \ Top 20 missing/partial modules ranked P0/P1/P2\n  Section 4 — Suggested CodeOps\
+    \ Top 20 missing/partial modules ranked P0/P1/P2\n  Section 4 — Suggested VOLY\
     \ missions (name + 1-line scope)\n  Section 5 — Quick wins (small gaps, <1 day\
     \ each)\n\nUPDATE docs/reports/CURRENT_STATUS.md — add «Legacy migration gaps»\
     \ summary with link to legacy-gap-audit.md.\n\nCHECKLIST:\n✅ All major legacy\

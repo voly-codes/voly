@@ -6,7 +6,7 @@
 
 ---
 
-DSPy is an optional optimizer layer for CodeOps. It improves structured LLM behavior by compiling programs against datasets and metrics, but it does not replace the CodeOps pipeline.
+DSPy is an optional optimizer layer for VOLY. It improves structured LLM behavior by compiling programs against datasets and metrics, but it does not replace the VOLY pipeline.
 
 ## Position in the architecture
 
@@ -21,14 +21,14 @@ InferenceManager
        ↓
      DSPyRunner
        ↓
-     CodeOpsDSPyLM
+     VOLYDSPyLM
        ↓
 AIGateway.chat()
   ↓
 Provider
 ```
 
-Important rule: **DSPy must go through `AIGateway.chat()`** via `CodeOpsDSPyLM`. This preserves:
+Important rule: **DSPy must go through `AIGateway.chat()`** via `VOLYDSPyLM`. This preserves:
 
 - DLP;
 - cache;
@@ -39,7 +39,7 @@ Important rule: **DSPy must go through `AIGateway.chat()`** via `CodeOpsDSPyLM`.
 
 ## Installation
 
-Base CodeOps does not require DSPy.
+Base VOLY does not require DSPy.
 
 ```bash
 pip install -e ".[dev]"

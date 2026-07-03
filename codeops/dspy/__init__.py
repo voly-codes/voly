@@ -1,5 +1,5 @@
 """
-codeops.dspy — DSPy optimizer layer for CodeOps.
+codeops.dspy — DSPy optimizer layer for VOLY.
 
 Architecture:
     HEADROOM_COMPRESS
@@ -9,7 +9,7 @@ Architecture:
     AIGateway.chat      ← unchanged, remains the single exit to models
 
 DSPy does NOT replace AIGateway.  It wraps it:
-    CodeOpsDSPyLM (adapter.py) → AIGateway.chat()
+    VOLYDSPyLM (adapter.py) → AIGateway.chat()
 
 Usage:
     from codeops.dspy import DSPyRunner

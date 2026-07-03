@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { Env } from "./pipeline";
 import { callPipelineRunner } from "./pipeline";
 
-export class CodeOpsMcpAgent extends McpAgent<Env> {
+export class VOLYMcpAgent extends McpAgent<Env> {
   server = new McpServer({ name: "codeops-agent", version: "1.0.0" });
 
   async init() {
@@ -12,7 +12,7 @@ export class CodeOpsMcpAgent extends McpAgent<Env> {
       "run_task",
       {
         description:
-          "Execute a task via the local CodeOps pipeline (Cursor/Claude Code). Secrets and repo stay on the pipeline host.",
+          "Execute a task via the local VOLY pipeline (Cursor/Claude Code). Secrets and repo stay on the pipeline host.",
         inputSchema: {
           agent: z.string().describe("Agent role: developer, architect, reviewer, tester, bugfixer, devops, security"),
           task: z.string().describe("Task description"),

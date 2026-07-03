@@ -63,7 +63,7 @@
       <span class="section-title">Cloudflare Workers</span>
       <span class="section-sub">Зелёный — подключён, серый — не настроен</span>
     </div>
-    <p class="section-desc">Каждый воркер — отдельный Cloudflare Worker. Укажи URL в .env (напр. <code>CF_WORKER_MARKETPLACE_URL</code>) чтобы подключить его к CodeOps.</p>
+    <p class="section-desc">Каждый воркер — отдельный Cloudflare Worker. Укажи URL в .env (напр. <code>CF_WORKER_MARKETPLACE_URL</code>) чтобы подключить его к VOLY.</p>
 
     {#if loadingWorkers}
       <div class="loading-text">Загрузка…</div>

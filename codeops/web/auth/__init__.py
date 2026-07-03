@@ -1,4 +1,4 @@
-"""JWT authentication for the CodeOps FastAPI web UI."""
+"""JWT authentication for the VOLY FastAPI web UI."""
 
 from codeops.web.auth.dependencies import get_current_user, require_auth
 from codeops.web.auth.jwt import JWTAuth, TokenPayload, authenticate_user

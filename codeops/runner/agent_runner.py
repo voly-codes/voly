@@ -17,7 +17,7 @@ from typing import Any, Callable
 _chain_log = logging.getLogger("codeops.chain")
 
 from codeops.automation import compute_automation_metrics
-from codeops.config import CodeOpsConfig
+from codeops.config import VOLYConfig
 from codeops.cost_policy import budget_status, detect_task_type
 from codeops.executor.base import Executor, ExecutorResult, WorkReport
 from codeops.telemetry import TaskEvent, TokenMetrics, emit_event_from_config, new_task_id
@@ -130,7 +130,7 @@ DEFAULT_AGENT_EXECUTOR: dict[str, str] = {
 
 def _dspy_plan_task(
     task: str,
-    config: "CodeOpsConfig",
+    config: "VOLYConfig",
 ) -> "tuple[str, dict]":
     """
     Use DSPy TaskPlannerProgram to refine the task before sending to executor.
@@ -139,7 +139,7 @@ def _dspy_plan_task(
     The plan_dict contains: refined_task, success_criteria, estimated_complexity.
     """
     from codeops.dspy.programs.registry import get_registry
-    from codeops.dspy.adapter import CodeOpsDSPyLM
+    from codeops.dspy.adapter import VOLYDSPyLM
     from codeops.ai_gateway import AIGateway
 
     registry = get_registry()
@@ -150,7 +150,7 @@ def _dspy_plan_task(
     import dspy
 
     gateway = AIGateway(config)
-    lm = CodeOpsDSPyLM(
+    lm = VOLYDSPyLM(
         gateway=gateway,
         model=getattr(config.dspy, "model", "") or "",
         provider="",
@@ -161,7 +161,7 @@ def _dspy_plan_task(
     dspy.configure(lm=lm)
 
     module = program_def.factory()
-    prediction = module(task=task, project_context="CodeOps project")
+    prediction = module(task=task, project_context="VOLY project")
 
     refined  = getattr(prediction, "refined_task", "") or task
     criteria = getattr(prediction, "success_criteria", "") or ""
@@ -182,7 +182,7 @@ def _dspy_store_example(
     original_task: str,
     refined_task: str,
     result: "ExecutorResult",
-    config: "CodeOpsConfig",
+    config: "VOLYConfig",
 ) -> None:
     """Persist a (task, result) example for DSPy teleprompter optimization."""
     import json
@@ -211,7 +211,7 @@ def _dspy_store_example(
     _chain_log.debug("[CHAIN:DSPY_STORE] saved example to %s", fname)
 
 
-def resolve_executor(agent: str, config: CodeOpsConfig) -> tuple[str, str]:
+def resolve_executor(agent: str, config: VOLYConfig) -> tuple[str, str]:
     """
     Разрешает имя агента/executor в (executor_name, agent_role).
 
@@ -298,7 +298,7 @@ class RunnerResult:
 
 
 class AgentRunner:
-    def __init__(self, config: CodeOpsConfig):
+    def __init__(self, config: VOLYConfig):
         self.config = config
 
     def setup_rtk(self) -> None:

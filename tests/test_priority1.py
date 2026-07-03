@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from codeops.automation import compute_automation_metrics
-from codeops.config import CodeOpsConfig, CostPolicyConfig
+from codeops.config import VOLYConfig, CostPolicyConfig
 from codeops.cost_policy import (
     apply_cost_policy,
     budget_status,
@@ -33,7 +33,7 @@ def test_detect_task_type_none() -> None:
 
 
 def test_apply_cost_policy_switches_model() -> None:
-    config = CodeOpsConfig(
+    config = VOLYConfig(
         cost_policy=CostPolicyConfig(
             enabled=True,
             prefer_cheaper_model_for=["docs"],
@@ -48,14 +48,14 @@ def test_apply_cost_policy_switches_model() -> None:
 
 
 def test_apply_cost_policy_disabled() -> None:
-    config = CodeOpsConfig(cost_policy=CostPolicyConfig(enabled=False))
+    config = VOLYConfig(cost_policy=CostPolicyConfig(enabled=False))
     route = RouteDecision(agent="developer", model="claude-sonnet", provider="anthropic")
     result = apply_cost_policy(route, "Write docs", config)
     assert result.model_override is None
 
 
 def test_budget_exceeded() -> None:
-    config = CodeOpsConfig(
+    config = VOLYConfig(
         cost_policy=CostPolicyConfig(
             enabled=True,
             max_task_cost_usd=0.5,
@@ -92,14 +92,14 @@ def test_compute_automation_pipeline() -> None:
 
 
 def test_resolve_executor_direct() -> None:
-    config = CodeOpsConfig()
+    config = VOLYConfig()
     executor, role = resolve_executor("cursor", config)
     assert executor == "cursor"
     assert role == "cursor"
 
 
 def test_resolve_executor_alias() -> None:
-    config = CodeOpsConfig()
+    config = VOLYConfig()
     executor, role = resolve_executor("codex", config)
     assert executor == "claude-code"
     assert role == "codex"
@@ -108,7 +108,7 @@ def test_resolve_executor_alias() -> None:
 def test_resolve_executor_from_config() -> None:
     from codeops.config import AgentConfig
 
-    config = CodeOpsConfig(
+    config = VOLYConfig(
         agents={"developer": AgentConfig(name="developer", executor="opencode")},
     )
     executor, role = resolve_executor("developer", config)
@@ -120,7 +120,7 @@ def test_agent_runner_emits_telemetry(tmp_path, monkeypatch: pytest.MonkeyPatch)
     from codeops.config import RTKConfig
     from codeops.runner.agent_runner import AgentRunner
 
-    config = CodeOpsConfig(rtk=RTKConfig(enabled=False))
+    config = VOLYConfig(rtk=RTKConfig(enabled=False))
     mock_result = ExecutorResult(
         success=True,
         output="done",

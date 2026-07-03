@@ -27,8 +27,8 @@ jobs:
           python - <<'PY'
           import codeops.pipeline
           import codeops.inference
-          from codeops.config import CodeOpsConfig
-          cfg = CodeOpsConfig()
+          from codeops.config import VOLYConfig
+          cfg = VOLYConfig()
           assert cfg.dspy.enabled is False
           print("base import ok")
           PY

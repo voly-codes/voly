@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "codeops"
 version = "0.1.0"
-description = "CodeOps — централизованная платформа управления AI-агентами для разработки ПО"
+description = "VOLY — централизованная платформа управления AI-агентами для разработки ПО"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 keywords = ["ai", "agent", "orchestration", "llm", "context", "optimization"]

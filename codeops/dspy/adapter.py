@@ -1,5 +1,5 @@
 """
-DSPy LM adapter — routes DSPy model calls through CodeOps AIGateway.
+DSPy LM adapter — routes DSPy model calls through VOLY AIGateway.
 
 Why: DSPy must NOT bypass AIGateway. Routing through it preserves:
   - Cloudflare cache (semantic + exact)
@@ -59,12 +59,12 @@ def _build_openai_response(content: str, model_name: str, usage: dict[str, int])
 _BaseLM = dspy.BaseLM if _DSPY_AVAILABLE else object
 
 
-class CodeOpsDSPyLM(_BaseLM):  # type: ignore[misc]
+class VOLYDSPyLM(_BaseLM):  # type: ignore[misc]
     """
-    DSPy 3.x-compatible LM adapter backed by CodeOps AIGateway.
+    DSPy 3.x-compatible LM adapter backed by VOLY AIGateway.
 
     Usage:
-        lm = CodeOpsDSPyLM(gateway, model="claude-sonnet-4-6", provider="anthropic", agent="reviewer")
+        lm = VOLYDSPyLM(gateway, model="claude-sonnet-4-6", provider="anthropic", agent="reviewer")
         dspy.configure(lm=lm)
     """
 
@@ -118,7 +118,7 @@ class CodeOpsDSPyLM(_BaseLM):  # type: ignore[misc]
         )
 
         if result.get("error"):
-            raise RuntimeError(f"CodeOpsDSPyLM gateway error: {result['error']}")
+            raise RuntimeError(f"VOLYDSPyLM gateway error: {result['error']}")
 
         content = result.get("content", "")
         raw = result.get("usage", {})
@@ -130,4 +130,4 @@ class CodeOpsDSPyLM(_BaseLM):  # type: ignore[misc]
         return _build_openai_response(content, self.model, usage)
 
     def __repr__(self) -> str:
-        return f"CodeOpsDSPyLM(model={self.model!r}, agent={self.agent!r})"
+        return f"VOLYDSPyLM(model={self.model!r}, agent={self.agent!r})"

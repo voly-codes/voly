@@ -134,7 +134,7 @@
         <div class="skill-card">
           <div class="skill-top">
             <span class="skill-source" style:color={sourceColor(skill.source)}
-              title="builtin = core CodeOps skills · marketplace = community · project = from your docs · organization = team-provided · generated = auto-created">
+              title="builtin = core VOLY skills · marketplace = community · project = from your docs · organization = team-provided · generated = auto-created">
               {skill.source ?? 'marketplace'}
             </span>
             {#if skill.status && skill.status !== 'active'}

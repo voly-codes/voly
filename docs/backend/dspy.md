@@ -81,12 +81,12 @@ task → _dspy_plan_task() → refined_task → executor.run() → result
 
 ## DSPy adapter (`codeops/dspy/adapter.py`)
 
-`CodeOpsDSPyLM` — адаптер между DSPy и CodeOps AIGateway. Реализует DSPy `BaseLM`
+`VOLYDSPyLM` — адаптер между DSPy и VOLY AIGateway. Реализует DSPy `BaseLM`
 интерфейс. Все DSPy-вызовы идут через `gateway.chat()` — сохраняется cache, DLP,
 rate limits, spend limits.
 
 ```python
-lm = CodeOpsDSPyLM(gateway=gateway, model="claude-sonnet-4-6", provider="anthropic")
+lm = VOLYDSPyLM(gateway=gateway, model="claude-sonnet-4-6", provider="anthropic")
 dspy.configure(lm=lm)
 ```
 

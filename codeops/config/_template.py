@@ -3,7 +3,7 @@
 from pathlib import Path
 
 _DEFAULT_YAML = """\
-# CodeOps Configuration
+# VOLY Configuration
 # =====================
 
 default_model: claude-sonnet

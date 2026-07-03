@@ -1,4 +1,4 @@
-"""Smarty CRM Next — CodeOps CLI (thin entry point).
+"""Smarty CRM Next — VOLY CLI (thin entry point).
 
 Mission definitions: projects/smarty/missions/*.yaml
 Analytical tasks:      projects/smarty/tasks/*.yaml
@@ -41,7 +41,7 @@ def _analytical_tasks() -> dict[str, list[dict[str, str]]]:
 
 @click.group()
 def smarty() -> None:
-    """Smarty CRM Next — CodeOps tasks and combat missions."""
+    """Smarty CRM Next — VOLY tasks and combat missions."""
     pass
 
 

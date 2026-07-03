@@ -1,9 +1,9 @@
 ---
 name: codeops-frontend
-description: Guide for working on CodeOps Svelte 5 UI — components, API client, styling. Use this skill for any frontend changes in ui/.
+description: Guide for working on VOLY Svelte 5 UI — components, API client, styling. Use this skill for any frontend changes in ui/.
 ---
 
-# CodeOps Frontend Development Skill
+# VOLY Frontend Development Skill
 
 ## Before writing any code — read
 

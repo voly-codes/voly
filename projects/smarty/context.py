@@ -1,4 +1,4 @@
-"""Shared paths and template tokens for Smarty CodeOps missions and tasks."""
+"""Shared paths and template tokens for Smarty VOLY missions and tasks."""
 from __future__ import annotations
 
 import os

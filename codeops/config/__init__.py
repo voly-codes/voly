@@ -1,10 +1,10 @@
 """
-CodeOps configuration package.
+VOLY configuration package.
 
 Public API — all names importable as `from codeops.config import <name>`:
 
   Dataclasses:
-    ModelConfig, AgentConfig, CodeOpsConfig,
+    ModelConfig, AgentConfig, VOLYConfig,
     RTKConfig, HeadroomConfig, MemoryConfig, A2AConfig, AGUIConfig,
     SpendConfig, WorkflowConfig, RegistryConfig, ScannerConfig,
     AIGatewayConfig, MCPConfig, TelemetryConfig, DSPyConfig, CostPolicyConfig
@@ -25,7 +25,7 @@ from codeops.config._types import (
     AGUIConfig,
     AIGatewayConfig,
     AgentConfig,
-    CodeOpsConfig,
+    VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
     HeadroomConfig,
@@ -47,7 +47,7 @@ __all__ = [
     # dataclasses
     "ModelConfig",
     "AgentConfig",
-    "CodeOpsConfig",
+    "VOLYConfig",
     "RTKConfig",
     "HeadroomConfig",
     "MemoryConfig",

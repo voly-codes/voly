@@ -1,6 +1,6 @@
 # Config & Env — Backend Reference
 
-Конфиг загружается из `codeops.yaml` + `.env`. Класс: `codeops/config.py:CodeOpsConfig`.
+Конфиг загружается из `codeops.yaml` + `.env`. Класс: `codeops/config.py:VOLYConfig`.
 
 Приоритет: `.env` > `codeops.yaml` > defaults в коде.
 
@@ -36,7 +36,7 @@ CLOUDFLARE_D1_DATABASE_ID=...
 CLOUDFLARE_R2_BUCKET=...
 ```
 
-### CodeOps control
+### VOLY control
 
 ```env
 CODEOPS_PROJECT_CWD=/path/to/target/project
@@ -103,7 +103,7 @@ agents:
 
 ---
 
-## CodeOpsConfig — важные поля
+## VOLYConfig — важные поля
 
 ```python
 config.default_cwd           # из codeops.yaml default_cwd или CODEOPS_PROJECT_CWD

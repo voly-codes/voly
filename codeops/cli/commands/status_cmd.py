@@ -8,7 +8,7 @@ import click
 @click.command()
 @click.pass_context
 def status(ctx: click.Context) -> None:
-    """Show status of all CodeOps components."""
+    """Show status of all VOLY components."""
     from codeops.pipeline import Pipeline
     from codeops.telemetry import resolve_pipeline_endpoint
 
@@ -16,7 +16,7 @@ def status(ctx: click.Context) -> None:
     pipeline = Pipeline(config)
     pipeline.setup_environment()
 
-    click.echo("CodeOps Status")
+    click.echo("VOLY Status")
     click.echo("=" * 40)
 
     click.echo("\n[RTK]")

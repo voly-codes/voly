@@ -1,9 +1,9 @@
-# CodeOps — Architecture
+# VOLY — Architecture
 
 ## Текущая архитектура
 
-CodeOps — project-agnostic control plane для AI-агентов. Целевой проект передаётся
-через `--cwd`; CodeOps отвечает за orchestration, routing, cost control, optimization и telemetry.
+VOLY — project-agnostic control plane для AI-агентов. Целевой проект передаётся
+через `--cwd`; VOLY отвечает за orchestration, routing, cost control, optimization и telemetry.
 
 Есть **два независимых пути** выполнения задачи:
 
@@ -51,7 +51,7 @@ Developer / UI / CI
 
 ## Design principles
 
-1. **CodeOps stays project-agnostic.** Никакой product-specific логики в `codeops/`.
+1. **VOLY stays project-agnostic.** Никакой product-specific логики в `codeops/`.
 2. **AIGateway — единственный выход к моделям.** DSPy, InferenceManager, все рантаймы идут через него.
 3. **Optimization is layered.** RTK, Headroom и DSPy независимы с явным fallback.
 4. **Shadow before active.** Новое поведение оптимизатора — сначала shadow, потом active.
@@ -210,7 +210,7 @@ EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepse
 
 | File | Purpose |
 |---|---|
-| `adapter.py` | `CodeOpsDSPyLM` — DSPy LM через `AIGateway.chat()` |
+| `adapter.py` | `VOLYDSPyLM` — DSPy LM через `AIGateway.chat()` |
 | `runner.py` | `DSPyRunner` — интеграция с InferenceManager |
 | `programs/task_planner.py` | TaskPlannerProgram — executor path planning |
 | `programs/reviewer.py` | code-review program |
@@ -342,7 +342,7 @@ docs/backend/
   executors.md              ← Executors, billing fallback chain, WranglerExecutor
   ai-gateway.md             ← AIGateway middleware, CF route schema, providers
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
-  config.md                 ← env vars, codeops.yaml, CodeOpsConfig
+  config.md                 ← env vars, codeops.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events
 docs/frontend/
   overview.md               ← Svelte 5 stack, ui/ structure, dev/build

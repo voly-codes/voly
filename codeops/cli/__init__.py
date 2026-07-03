@@ -1,4 +1,4 @@
-"""CLI entry point for CodeOps."""
+"""CLI entry point for VOLY."""
 
 from codeops.cli.main import main
 

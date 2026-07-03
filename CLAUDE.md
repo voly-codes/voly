@@ -1,10 +1,10 @@
-# CodeOps — Agent Instructions
+# VOLY — Agent Instructions
 
-> **Project:** CodeOps — AI control plane для запуска агентов, управления стоимостью, маршрутизации задач и оркестрации.
+> **Project:** VOLY — AI control plane для запуска агентов, управления стоимостью, маршрутизации задач и оркестрации.
 
 ## Цель проекта
 
-CodeOps маршрутизирует задачи разработчика к нужному AI-агенту, управляет billing fallback chain, собирает телеметрию и предоставляет web UI + REST API.
+VOLY маршрутизирует задачи разработчика к нужному AI-агенту, управляет billing fallback chain, собирает телеметрию и предоставляет web UI + REST API.
 
 **Ключевые компоненты:**
 - **Billing fallback chain:** `claude-code → wrangler (CF Workers AI) → zen (бесплатно)` — автоматически при ошибке биллинга
@@ -13,7 +13,7 @@ CodeOps маршрутизирует задачи разработчика к н
 - **CF AI Gateway route schema:** `/infer` endpoint в CF Worker маршрутизирует через CF Dashboard роут схему
 - **Local context:** перед executor собирает релевантные файлы проекта через grep
 
-CodeOps project-agnostic — нет product-specific логики в `codeops/`.
+VOLY project-agnostic — нет product-specific логики в `codeops/`.
 
 ---
 
@@ -37,7 +37,7 @@ docs/
     executors.md     ← Все executors, billing fallback chain, WranglerExecutor
     ai-gateway.md    ← AIGateway, CF route schema, провайдеры, env vars
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter
-    config.md        ← codeops.yaml, env vars, CodeOpsConfig поля
+    config.md        ← codeops.yaml, env vars, VOLYConfig поля
     api.md           ← FastAPI endpoints, SSE events, CF Worker /infer
   frontend/
     overview.md      ← Svelte 5 стек, структура ui/, dev/build
@@ -78,7 +78,7 @@ docs/
 | Рефакторинг 3+ файлов | `claude-code` | нужен контекст |
 
 ```bash
-# Запуск через CodeOps runner
+# Запуск через VOLY runner
 codeops run "<задача>" --executor zen --cwd /home/lanies/git/codeops
 codeops run "<задача>" --executor claude-code --cwd /home/lanies/git/codeops
 ```
@@ -109,7 +109,7 @@ Optional: `pip install -e ".[dspy,dev]"` или `pip install -e ".[cursor,dev]"`
 
 Smoke checks:
 ```bash
-python -c "import codeops.pipeline, codeops.inference; from codeops.config import CodeOpsConfig; assert CodeOpsConfig().dspy.enabled is False"
+python -c "import codeops.pipeline, codeops.inference; from codeops.config import VOLYConfig; assert VOLYConfig().dspy.enabled is False"
 pytest tests/test_dspy_runtime_smoke.py
 ```
 

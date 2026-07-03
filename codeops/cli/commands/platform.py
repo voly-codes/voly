@@ -431,7 +431,7 @@ def ai_gateway_flush(ctx: click.Context) -> None:
 
 
 @ai_gateway.command("test")
-@click.option("--message", "-m", default="Hello, what is CodeOps?")
+@click.option("--message", "-m", default="Hello, what is VOLY?")
 @click.option("--provider", "-p", default="anthropic")
 @click.option("--model", "-M", default="claude-sonnet-4-5-20250929")
 @click.pass_context

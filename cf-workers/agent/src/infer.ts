@@ -122,7 +122,7 @@ async function _callViaGateway(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "cf-aig-authorization": `Bearer ${aigToken}`,
-    "User-Agent": "CodeOps-Worker/0.1",
+    "User-Agent": "VOLY-Worker/0.1",
   };
 
   try {

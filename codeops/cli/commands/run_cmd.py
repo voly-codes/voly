@@ -36,7 +36,7 @@ def run(
     a2a_delegate: bool,
     output_json: bool,
 ) -> None:
-    """Run a task through the CodeOps pipeline."""
+    """Run a task through the VOLY pipeline."""
     if executor:
         _run_with_executor(task, executor, cwd, max_turns, output_json, ctx)
         return

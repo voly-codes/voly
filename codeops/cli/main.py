@@ -1,5 +1,5 @@
 """
-CodeOps CLI entry point.
+VOLY CLI entry point.
 
 Subcommands live in codeops.cli.commands.*
 """
@@ -43,7 +43,7 @@ from codeops.cli.commands import (
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="CodeOps")
+@click.version_option(version="0.1.0", prog_name="VOLY")
 @click.option("--config", "-c", default=None, help="Path to codeops.yaml")
 @click.pass_context
 def main(ctx: click.Context, config: str | None) -> None:

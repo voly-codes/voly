@@ -1,7 +1,7 @@
 """
-Dataclass definitions for all CodeOps configuration sections.
+Dataclass definitions for all VOLY configuration sections.
 
-_DEFAULT_MODELS is defined at the bottom because CodeOpsConfig.get_model_config()
+_DEFAULT_MODELS is defined at the bottom because VOLYConfig.get_model_config()
 references it at call time (not at class-definition time), which avoids a
 circular import with any module that imports ModelConfig first.
 """
@@ -231,7 +231,7 @@ class DSPyConfig:
 
 
 @dataclass
-class CodeOpsConfig:
+class VOLYConfig:
     models: dict[str, ModelConfig] = field(default_factory=dict)
     agents: dict[str, AgentConfig] = field(default_factory=dict)
     rtk: RTKConfig = field(default_factory=RTKConfig)

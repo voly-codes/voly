@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codeops.config import CodeOpsConfig, TelemetryConfig
+from codeops.config import VOLYConfig, TelemetryConfig
 from codeops.telemetry import (
     TaskEvent,
     TokenMetrics,
@@ -114,7 +114,7 @@ def test_emit_event_pipeline_failure_still_writes_local(tmp_path: Path, monkeypa
 
 
 def test_emit_event_from_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    config = CodeOpsConfig(
+    config = VOLYConfig(
         telemetry=TelemetryConfig(
             events_dir=str(tmp_path),
             pipeline_url="https://pipe.example.com/ingest",

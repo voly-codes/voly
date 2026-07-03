@@ -10,7 +10,7 @@ import urllib.request
 
 from codeops.catalog.types import CatalogModel
 
-USER_AGENT = "CodeOps/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
 
 FREE_MODEL_IDS = frozenset({
     "big-pickle",

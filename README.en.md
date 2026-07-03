@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/codeops-logo.png" alt="CodeOps" width="720">
+  <img src="docs/assets/codeops-logo.png" alt="VOLY" width="720">
 </p>
 
 <p align="center">
@@ -18,22 +18,22 @@
 
 > **🌐 [Русская версия](README.md)**
 
-# CodeOps — FinOps + Automation Control Plane for AI Agents
+# VOLY — FinOps + Automation Control Plane for AI Agents
 
-> **CodeOps wraps Claude Code, Cursor, Codex, OpenCode and other AI agents to run them cheaper, safer, and with full measurability.**
+> **VOLY wraps Claude Code, Cursor, Codex, OpenCode and other AI agents to run them cheaper, safer, and with full measurability.**
 
-CodeOps is not yet another AI agent. It is a **control plane** between the developer, CLI/CI, and agents:
+VOLY is not yet another AI agent. It is a **control plane** between the developer, CLI/CI, and agents:
 
 - routes tasks across agents, models, and executors;
 - controls costs through Cloudflare AI Gateway, spend limits, and cost policy;
 - reduces token consumption via RTK, Headroom, cache, and model routing;
 - collects telemetry on every run;
 - supports DSPy as an optional optimization layer for prompt/program optimization;
-- stays project-agnostic: target projects are passed via `--cwd`, never hardcoded in CodeOps.
+- stays project-agnostic: target projects are passed via `--cwd`, never hardcoded in VOLY.
 
 ## Value metrics
 
-| Goal | How CodeOps helps |
+| Goal | How VOLY helps |
 |---|---|
 | Cut costs | RTK, Headroom, cache, cheaper model routing, spend limits |
 | Automate routine | workflows, predefined agents, executor orchestration |
@@ -72,7 +72,7 @@ codeops run "review this repository" --agent reviewer --executor cursor --cwd /p
 ```text
 Developer / CLI / CI / Scheduler
         ↓
-CodeOps CLI
+VOLY CLI
         ↓
 Pipeline
         ↓
@@ -103,7 +103,7 @@ Telemetry → .codeops/events/ + optional CF Pipelines / R2
 ```bash
 codeops run <task>              # run a task through the pipeline
 codeops match <task>            # match agent, model, provider, tools
-codeops compare <task>          # direct API vs CodeOps pipeline
+codeops compare <task>          # direct API vs VOLY pipeline
 codeops savings                 # savings report
 codeops scan                    # scan project
 codeops status                  # component status
@@ -226,7 +226,7 @@ Full historical test suite can be enabled separately after stabilizing legacy te
 
 | File | Purpose |
 |---|---|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | current CodeOps architecture |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | current VOLY architecture |
 | [CLAUDE.md](CLAUDE.md) | instructions for AI agents in this repo |
 | [docs/executors.md](docs/executors.md) | executor runtime guide |
 | [docs/catalog-supervisor.md](docs/catalog-supervisor.md) | catalog routing and model planning |

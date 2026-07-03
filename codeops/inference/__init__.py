@@ -1,4 +1,4 @@
-"""Inference runtime abstraction for CodeOps."""
+"""Inference runtime abstraction for VOLY."""
 
 from __future__ import annotations
 

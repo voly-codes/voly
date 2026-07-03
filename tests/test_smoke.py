@@ -63,10 +63,10 @@ def test_import_telemetry() -> None:
 
 
 def test_import_config() -> None:
-    from codeops.config import load_config, CodeOpsConfig
+    from codeops.config import load_config, VOLYConfig
 
     cfg = load_config()
-    assert isinstance(cfg, CodeOpsConfig)
+    assert isinstance(cfg, VOLYConfig)
 
 
 # ---------------------------------------------------------------------------

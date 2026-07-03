@@ -13,7 +13,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from codeops.config import CodeOpsConfig
+from codeops.config import VOLYConfig
 
 _log = logging.getLogger("codeops.router")
 
@@ -98,8 +98,8 @@ _ROUTING_RULES: list[tuple[str, str, str, list[str]]] = [
 
 
 class AgentRouter:
-    def __init__(self, config: CodeOpsConfig | None = None):
-        self.config = config or CodeOpsConfig()
+    def __init__(self, config: VOLYConfig | None = None):
+        self.config = config or VOLYConfig()
 
     def route(self, task: str, context: dict[str, Any] | None = None) -> RouteDecision:
         from codeops.ai_gateway.health import get_checker

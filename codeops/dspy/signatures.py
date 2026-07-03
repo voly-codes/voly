@@ -1,5 +1,5 @@
 """
-DSPy Signatures for CodeOps agents.
+DSPy Signatures for VOLY agents.
 
 Each Signature is a typed contract: InputField(s) → OutputField(s).
 DSPy uses these to generate prompts and validate structured outputs.
@@ -31,12 +31,12 @@ def _require_dspy() -> None:
 # ---------------------------------------------------------------------------
 
 def build_route_task_signature() -> type:
-    """DSPy Signature: route a developer task to the best CodeOps agent."""
+    """DSPy Signature: route a developer task to the best VOLY agent."""
     _require_dspy()
     import dspy
 
     class RouteTask(dspy.Signature):
-        """Route a developer task to the best CodeOps agent, model and tools.
+        """Route a developer task to the best VOLY agent, model and tools.
 
         Consider the task description and project context carefully.
         Return the most appropriate agent role and complexity assessment.

@@ -1,5 +1,5 @@
 """
-DSPy metrics for CodeOps.
+DSPy metrics for VOLY.
 
 Metrics are used during compilation (optimization) to evaluate
 program quality on a dataset. Each agent has its own metric function.

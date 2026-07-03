@@ -28,7 +28,7 @@
     "bindings": [
       {
         "name": "CODEOPS_MCP_AGENT",
-        "class_name": "CodeOpsMcpAgent"
+        "class_name": "VOLYMcpAgent"
       }
     ]
   },
@@ -36,7 +36,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["CodeOpsMcpAgent"]
+      "new_sqlite_classes": ["VOLYMcpAgent"]
     }
   ]
 }

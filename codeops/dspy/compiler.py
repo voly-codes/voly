@@ -1,5 +1,5 @@
 """
-DSPy Compiler — builds optimized programs for CodeOps agents.
+DSPy Compiler — builds optimized programs for VOLY agents.
 
 Flow:
     1. Load dataset from .codeops/dspy/datasets/<agent>.jsonl

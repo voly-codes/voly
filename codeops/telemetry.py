@@ -22,7 +22,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-USER_AGENT = "CodeOps/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
 
 # Оценка стоимости по провайдеру/модели: (input_usd_per_1k, output_usd_per_1k)
 _COST_RATES: dict[str, tuple[float, float]] = {
@@ -317,7 +317,7 @@ def emit_event(
 
 
 def emit_event_from_config(event: TaskEvent, config: Any | None = None) -> Path | None:
-    """emit_event с настройками из CodeOpsConfig.telemetry."""
+    """emit_event с настройками из VOLYConfig.telemetry."""
     if config is None:
         return emit_event(event)
 

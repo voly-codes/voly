@@ -118,7 +118,7 @@ class BaseProgram:
             system_prompt = config.get("system_prompt", "")
             if system_prompt:
                 parts.append(system_prompt[:300])
-        return "\n".join(parts) or "CodeOps project"
+        return "\n".join(parts) or "VOLY project"
 
     @staticmethod
     def _extract_stack_trace(messages: list[dict[str, Any]]) -> str:

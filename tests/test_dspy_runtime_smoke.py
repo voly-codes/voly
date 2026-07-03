@@ -8,16 +8,16 @@ def test_inference_import_without_dspy_extra() -> None:
 
 
 def test_default_config_keeps_dspy_disabled() -> None:
-    from codeops.config import CodeOpsConfig
+    from codeops.config import VOLYConfig
 
-    cfg = CodeOpsConfig()
+    cfg = VOLYConfig()
 
     assert cfg.dspy.enabled is False
     assert cfg.dspy.mode == "shadow"
 
 
 def test_inference_manager_falls_back_to_classic_when_dspy_missing() -> None:
-    from codeops.config import CodeOpsConfig
+    from codeops.config import VOLYConfig
     from codeops.inference import InferenceManager
     from codeops.router import RouteDecision
 
@@ -29,7 +29,7 @@ def test_inference_manager_falls_back_to_classic_when_dspy_missing() -> None:
                 "model": kwargs["model"],
             }
 
-    cfg = CodeOpsConfig()
+    cfg = VOLYConfig()
     route = RouteDecision(agent="documenter", model="gpt-4o-mini", provider="openai")
     manager = InferenceManager(cfg, FakeGateway(), dspy_runner=None)
 

@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock
 
-from codeops.config import CodeOpsConfig
+from codeops.config import VOLYConfig
 from codeops.pipeline_server import create_pipeline_handler
 
 
 def _make_handler(token: str = ""):
-    config = CodeOpsConfig()
+    config = VOLYConfig()
     handler_class = create_pipeline_handler(config, token=token)
     handler = handler_class.__new__(handler_class)
     handler.headers = {}

@@ -7,7 +7,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from codeops.config import CodeOpsConfig
+from codeops.config import VOLYConfig
 from codeops.router import RouteDecision
 
 TASK_TYPE_PATTERNS: dict[str, list[str]] = {
@@ -58,7 +58,7 @@ def detect_task_type(task: str) -> str | None:
 def apply_cost_policy(
     route: RouteDecision,
     task: str,
-    config: CodeOpsConfig,
+    config: VOLYConfig,
 ) -> CostPolicyResult:
     """Подбирает более дешёвую модель для подходящих типов задач."""
     policy = config.cost_policy
@@ -82,14 +82,14 @@ def apply_cost_policy(
     )
 
 
-def is_budget_exceeded(cost_usd: float, config: CodeOpsConfig) -> bool:
+def is_budget_exceeded(cost_usd: float, config: VOLYConfig) -> bool:
     policy = config.cost_policy
     if not policy.enabled or not policy.stop_on_budget_exceeded:
         return False
     return cost_usd > policy.max_task_cost_usd
 
 
-def budget_status(cost_usd: float, config: CodeOpsConfig) -> str:
+def budget_status(cost_usd: float, config: VOLYConfig) -> str:
     """Return TaskEvent status — completed or budget_exceeded."""
     if is_budget_exceeded(cost_usd, config):
         return "budget_exceeded"

@@ -16,7 +16,7 @@ import click
 @click.option("--runs", "-n", default=1, help="Number of runs to average")
 @click.pass_context
 def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None:
-    """Compare token usage: direct API call vs CodeOps pipeline."""
+    """Compare token usage: direct API call vs VOLY pipeline."""
     import time
     from codeops.pipeline import Pipeline
     from codeops.telemetry import _estimate_cost
@@ -63,7 +63,7 @@ def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None
     d_ms  = sum(r["ms"]  for r in direct_results) / runs
     d_cost = _estimate_cost(resolved_model, d_in, d_out)
 
-    click.echo("Running via CodeOps pipeline...")
+    click.echo("Running via VOLY pipeline...")
     pipeline_results = []
     for _ in range(runs):
         t0 = time.monotonic()
@@ -99,7 +99,7 @@ def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None
 
     click.echo()
     click.echo("=" * 62)
-    click.echo(f"  {'Metric':<28}  {'Direct':>10}  {'CodeOps':>10}  {'Delta':>8}")
+    click.echo(f"  {'Metric':<28}  {'Direct':>10}  {'VOLY':>10}  {'Delta':>8}")
     click.echo("  " + "─" * 58)
     click.echo(f"  {'Tokens IN':<28}  {d_in:>10,}  {p_in:>10,}  {overhead_in:>+8,}")
     click.echo(f"  {'Tokens OUT':<28}  {d_out:>10,}  {p_out:>10,}  {p_out - d_out:>+8,}")
@@ -120,9 +120,9 @@ def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None
     click.echo("=" * 62)
 
     if net_delta > 0:
-        click.echo(f"\n  CodeOps adds +{net_delta:,} net tokens vs direct call.")
+        click.echo(f"\n  VOLY adds +{net_delta:,} net tokens vs direct call.")
     elif net_delta < 0:
-        click.echo(f"\n  CodeOps SAVES {-net_delta:,} net tokens vs direct (RTK/cache working).")
+        click.echo(f"\n  VOLY SAVES {-net_delta:,} net tokens vs direct (RTK/cache working).")
     else:
         click.echo("\n  No net token difference.")
 
@@ -261,7 +261,7 @@ def savings(ctx: click.Context, days: int, as_json: bool) -> None:
 
     W = 60
     click.echo(f"\n{'═' * W}")
-    click.echo(f"  CodeOps Savings Report  ({period_label})")
+    click.echo(f"  VOLY Savings Report  ({period_label})")
     click.echo(f"{'═' * W}")
     click.echo(f"\n  Tasks       {len(completed):>5} completed   {len(errors):>4} errors")
     if scored:

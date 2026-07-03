@@ -1,4 +1,4 @@
--- CodeOps Catalog — agents & models (synced from OpenCode Zen)
+-- VOLY Catalog — agents & models (synced from OpenCode Zen)
 CREATE TABLE IF NOT EXISTS models (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

@@ -120,7 +120,7 @@ def dspy_dataset() -> None:
               help="Minimum routing_score to include in dataset")
 @click.pass_context
 def dataset_build(ctx: click.Context, agent: str | None, from_events: str | None, min_score: float) -> None:
-    """Build JSONL training datasets from CodeOps telemetry events."""
+    """Build JSONL training datasets from VOLY telemetry events."""
     config = ctx.obj["config"]
     cfg = config.dspy
 

@@ -192,7 +192,7 @@ class DSPyRunner:
     # ------------------------------------------------------------------
 
     def _get_lm(self, model: str, provider: str, agent: str) -> Any:
-        """Return cached CodeOpsDSPyLM instance.
+        """Return cached VOLYDSPyLM instance.
 
         Uses config.dspy.model/provider if set — avoids routing model's provider
         (which may have no balance). Falls back to route model/provider only when
@@ -209,10 +209,10 @@ class DSPyRunner:
 
         key = (effective_model, effective_provider, agent)
         if key not in self._lm_cache:
-            from codeops.dspy.adapter import CodeOpsDSPyLM
+            from codeops.dspy.adapter import VOLYDSPyLM
 
             mc = self.config.get_model_config(effective_model)
-            self._lm_cache[key] = CodeOpsDSPyLM(
+            self._lm_cache[key] = VOLYDSPyLM(
                 gateway=self.gateway,
                 model=mc.model or effective_model,
                 provider=effective_provider,

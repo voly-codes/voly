@@ -1,4 +1,4 @@
--- CodeOps Marketplace — D1 schema (fresh install)
+-- VOLY Marketplace — D1 schema (fresh install)
 -- For existing installs run: wrangler d1 execute codeops --file=migrate/001_add_content.sql --remote
 
 CREATE TABLE IF NOT EXISTS skills (

@@ -1,4 +1,4 @@
-"""CodeOps FastAPI server — creates app and wires routers."""
+"""VOLY FastAPI server — creates app and wires routers."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import pathlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from codeops.config import CodeOpsConfig
+    from codeops.config import VOLYConfig
 
 try:
     from fastapi import FastAPI
@@ -62,7 +62,7 @@ def _configure_logging() -> None:
 
 def create_app(
     events_dir: pathlib.Path | None = None,
-    config: "CodeOpsConfig | None" = None,
+    config: "VOLYConfig | None" = None,
 ) -> "FastAPI":
     if not HAS_FASTAPI:
         raise ImportError("Install UI dependencies: pip install 'codeops[ui]'")
@@ -75,7 +75,7 @@ def create_app(
     from codeops.web.deps import AppState
     from codeops.web.routes import cf, dspy, marketplace, registry, run, tasks, gateway, telemetry
 
-    app = FastAPI(title="CodeOps UI", version="0.1.0", docs_url="/api/docs")
+    app = FastAPI(title="VOLY UI", version="0.1.0", docs_url="/api/docs")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

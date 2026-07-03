@@ -1,5 +1,5 @@
 """
-MarketplaceClient — HTTP client for CodeOps Skill Marketplace (Cloudflare Worker).
+MarketplaceClient — HTTP client for VOLY Skill Marketplace (Cloudflare Worker).
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ class MarketplaceError(Exception):
 
 
 class MarketplaceClient:
-    USER_AGENT = "CodeOps/0.1 (+https://github.com/codeops)"
+    USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
 
     def __init__(self, base_url: str, timeout: int = 30):
         self.base_url = base_url.rstrip("/")

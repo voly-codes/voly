@@ -1,1 +1,1 @@
-"""CodeOps web UI — FastAPI server + Svelte frontend."""
+"""VOLY web UI — FastAPI server + Svelte frontend."""

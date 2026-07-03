@@ -1,4 +1,4 @@
-"""Shared app state and dependency helpers for CodeOps web routes."""
+"""Shared app state and dependency helpers for VOLY web routes."""
 
 from __future__ import annotations
 
@@ -8,13 +8,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from codeops.config import CodeOpsConfig
+    from codeops.config import VOLYConfig
 
 
 @dataclass
 class AppState:
     ev_dir: pathlib.Path
-    config: "CodeOpsConfig | None" = None
+    config: "VOLYConfig | None" = None
 
     def marketplace_url(self) -> str:
         if self.config:

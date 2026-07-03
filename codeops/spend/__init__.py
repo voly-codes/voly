@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from codeops.config import CodeOpsConfig
+    from codeops.config import VOLYConfig
     from codeops.telemetry import TaskEvent
 
 
-def record_task_spend(event: TaskEvent, config: CodeOpsConfig) -> None:
+def record_task_spend(event: TaskEvent, config: VOLYConfig) -> None:
     spend_cfg = getattr(config, "spend", None)
     if spend_cfg is None or not spend_cfg.enabled or not spend_cfg.remote_url:
         return
@@ -33,7 +33,7 @@ def record_task_spend(event: TaskEvent, config: CodeOpsConfig) -> None:
         pass
 
 
-def check_agent_spend_limit(agent: str, config: CodeOpsConfig) -> dict[str, Any] | None:
+def check_agent_spend_limit(agent: str, config: VOLYConfig) -> dict[str, Any] | None:
     spend_cfg = getattr(config, "spend", None)
     if spend_cfg is None or not spend_cfg.enabled or not spend_cfg.remote_url:
         return None

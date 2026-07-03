@@ -1,4 +1,4 @@
-"""Parse raw YAML dict into a CodeOpsConfig instance."""
+"""Parse raw YAML dict into a VOLYConfig instance."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from codeops.config._types import (
     AGUIConfig,
     AIGatewayConfig,
     AgentConfig,
-    CodeOpsConfig,
+    VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
     HeadroomConfig,
@@ -26,8 +26,8 @@ from codeops.config._types import (
 )
 
 
-def _parse_config(raw: dict) -> CodeOpsConfig:
-    config = CodeOpsConfig()
+def _parse_config(raw: dict) -> VOLYConfig:
+    config = VOLYConfig()
 
     if "models" in raw:
         config.models = {

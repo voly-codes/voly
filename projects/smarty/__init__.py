@@ -1,5 +1,5 @@
 """
-Smarty CRM Next — project-specific CodeOps plugin.
+Smarty CRM Next — project-specific VOLY plugin.
 
 Register in your local shell alias or wrapper script:
 

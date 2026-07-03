@@ -1,6 +1,6 @@
 # Frontend Overview
 
-UI для CodeOps — Svelte 5 SPA в `ui/`. FastAPI сервирует его из `codeops/web/static/`
+UI для VOLY — Svelte 5 SPA в `ui/`. FastAPI сервирует его из `codeops/web/static/`
 (built assets). В development — Vite dev server на `localhost:5173`.
 
 ---

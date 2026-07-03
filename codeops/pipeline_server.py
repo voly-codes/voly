@@ -1,5 +1,5 @@
 """
-Pipeline HTTP server — exposes CodeOps pipeline to CF agent workers.
+Pipeline HTTP server — exposes VOLY pipeline to CF agent workers.
 
 Secrets (API keys) and git repo stay on this host.
 Expose via cloudflared tunnel: cloudflared tunnel --url http://127.0.0.1:9202
@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import urlparse
 
-from codeops.config import CodeOpsConfig
+from codeops.config import VOLYConfig
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ def _is_nested_a2a_request(body: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
     return nested, context
 
 
-def create_pipeline_handler(config: CodeOpsConfig, token: str = "", default_cwd: str = ""):
+def create_pipeline_handler(config: VOLYConfig, token: str = "", default_cwd: str = ""):
     class PipelineHandler(BaseHTTPRequestHandler):
         def log_message(self, fmt: str, *args: Any) -> None:
             logger.info("%s - %s", self.address_string(), fmt % args)
@@ -136,7 +136,7 @@ def create_pipeline_handler(config: CodeOpsConfig, token: str = "", default_cwd:
 
 
 def run_pipeline_server(
-    config: CodeOpsConfig,
+    config: VOLYConfig,
     *,
     host: str = "127.0.0.1",
     port: int = 9202,

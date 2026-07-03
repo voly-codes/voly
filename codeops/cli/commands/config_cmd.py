@@ -11,7 +11,7 @@ import click
 @click.option("--export", "export_path", default=None, help="Export config to file")
 @click.pass_context
 def config_cmd(ctx: click.Context, show: bool, path: bool, export_path: str | None) -> None:
-    """Show or export CodeOps configuration."""
+    """Show or export VOLY configuration."""
     config = ctx.obj["config"]
     cfg_path = ctx.obj.get("config_path") or "codeops.yaml"
 

@@ -1,4 +1,4 @@
-"""Built-in model registry — used by CodeOpsConfig.get_model_config() as fallback."""
+"""Built-in model registry — used by VOLYConfig.get_model_config() as fallback."""
 
 from codeops.config._types import ModelConfig
 

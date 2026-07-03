@@ -1,5 +1,5 @@
 """
-DSPy Modules for CodeOps agents.
+DSPy Modules for VOLY agents.
 
 Each Module wraps a Signature with a reasoning strategy:
   - Predict:        direct answer
@@ -53,7 +53,7 @@ def build_module(agent: str, strategy: str | None = None) -> Any:
     Build a DSPy Module for the given agent.
 
     Args:
-        agent:    CodeOps agent name (reviewer, documenter, architect, bugfixer, …)
+        agent:    VOLY agent name (reviewer, documenter, architect, bugfixer, …)
         strategy: override strategy (predict | chain_of_thought)
 
     Returns:
@@ -79,13 +79,13 @@ def build_module(agent: str, strategy: str | None = None) -> Any:
         return dspy.Predict(sig)
 
 
-class CodeOpsModule:
+class VOLYModule:
     """
     Thin wrapper around a DSPy Module that carries agent metadata
     and exposes a uniform call interface for the DSPyRunner.
 
     Attributes:
-        agent:   CodeOps agent name
+        agent:   VOLY agent name
         module:  underlying dspy.Module (Predict / ChainOfThought)
     """
 
@@ -99,4 +99,4 @@ class CodeOpsModule:
         return self.module(**kwargs)
 
     def __repr__(self) -> str:
-        return f"CodeOpsModule(agent={self.agent!r}, module={self.module!r})"
+        return f"VOLYModule(agent={self.agent!r}, module={self.module!r})"

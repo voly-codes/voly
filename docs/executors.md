@@ -1,8 +1,8 @@
-# CodeOps Executors
+# VOLY Executors
 
 Executor — runtime, который **реально работает с файлами** в целевом проекте через `--cwd`. Это отличается от обычного text-only LLM вызова через Pipeline/AI Gateway.
 
-CodeOps остаётся project-agnostic: executor получает задачу и рабочую директорию, но не содержит логики конкретного продукта.
+VOLY остаётся project-agnostic: executor получает задачу и рабочую директорию, но не содержит логики конкретного продукта.
 
 ---
 
@@ -39,7 +39,7 @@ codeops run "review the auth module and propose a minimal refactor" \
   --cwd /path/to/target-project
 ```
 
-`--cwd` всегда указывает на целевой проект, а не обязательно на репозиторий CodeOps.
+`--cwd` всегда указывает на целевой проект, а не обязательно на репозиторий VOLY.
 
 ---
 

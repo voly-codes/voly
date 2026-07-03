@@ -1,6 +1,6 @@
-"""Tests for CodeOps agent router."""
+"""Tests for VOLY agent router."""
 
-from codeops.config import CodeOpsConfig
+from codeops.config import VOLYConfig
 from codeops.router import AgentRouter, RouteDecision, TaskAnalysis
 
 
@@ -55,7 +55,7 @@ def test_analyze_simple_task() -> None:
 
 
 def test_route_with_config_override() -> None:
-    config = CodeOpsConfig()
+    config = VOLYConfig()
     config.default_agent = "my-custom-agent"
     router = AgentRouter(config)
     result = router.route("Какая-то незнакомая задача без ключевых слов")

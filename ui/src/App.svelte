@@ -96,7 +96,7 @@
 
   {#if tasksStore.error && router.page === 'tasks'}
     <div class="error-banner">
-      Нет соединения с CodeOps API: {tasksStore.error}
+      Нет соединения с VOLY API: {tasksStore.error}
       <button onclick={() => { tasksStore.refresh(); toast.info('Refreshing...') }}>Повторить</button>
     </div>
   {/if}

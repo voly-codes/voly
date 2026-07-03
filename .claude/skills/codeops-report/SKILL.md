@@ -1,9 +1,9 @@
 ---
 name: codeops-report
-description: Create a task completion report after finishing any CodeOps task. Shows what changed, which files were modified, test results, doc updates, and open items.
+description: Create a task completion report after finishing any VOLY task. Shows what changed, which files were modified, test results, doc updates, and open items.
 ---
 
-# CodeOps Report Skill
+# VOLY Report Skill
 
 Создай отчёт о завершённой задаче. Сохрани в `.codeops/reports/`.
 

@@ -1,9 +1,9 @@
 ---
 name: codeops-plan
-description: Create an action plan for a CodeOps task, classify complexity, decide which agents to spawn (zen for simple tasks, claude-code for complex), and prepare the execution with doc-update requirements.
+description: Create an action plan for a VOLY task, classify complexity, decide which agents to spawn (zen for simple tasks, claude-code for complex), and prepare the execution with doc-update requirements.
 ---
 
-# CodeOps Plan Skill
+# VOLY Plan Skill
 
 Используй этот скил чтобы:
 1. Оценить задачу
@@ -99,7 +99,7 @@ API               → docs/backend/api.md
 
 ## Шаг 4 — Запуск агентов
 
-### Через CodeOps runner (рекомендуется)
+### Через VOLY runner (рекомендуется)
 
 ```bash
 # Простая задача — zen (бесплатно)

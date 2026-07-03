@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from codeops.config._types import CodeOpsConfig, DEFAULT_CONFIG_FILENAME
+from codeops.config._types import VOLYConfig, DEFAULT_CONFIG_FILENAME
 from codeops.config._parser import _parse_config
 
 
@@ -26,7 +26,7 @@ def _find_config_path(start_dir: Path | None = None) -> Path | None:
 def _load_dotenv(start_dir: Path | None = None) -> None:
     """Load .env file(s) into os.environ (only sets vars that aren't already set).
 
-    Loads in order: CodeOps package root .env first (always), then walks up from
+    Loads in order: VOLY package root .env first (always), then walks up from
     start_dir/cwd to merge project-level .env. First loaded value wins.
     """
     def _apply(env_file: Path) -> None:
@@ -41,7 +41,7 @@ def _load_dotenv(start_dir: Path | None = None) -> None:
                 if key and key not in os.environ:
                     os.environ[key] = value
 
-    # Always load CodeOps package root .env first (contains API credentials)
+    # Always load VOLY package root .env first (contains API credentials)
     package_root = Path(__file__).parent.parent.parent
     pkg_env = package_root / ".env"
     if pkg_env.exists():
@@ -60,7 +60,7 @@ def _load_dotenv(start_dir: Path | None = None) -> None:
         current = parent
 
 
-def load_config(config_path: str | Path | None = None) -> CodeOpsConfig:
+def load_config(config_path: str | Path | None = None) -> VOLYConfig:
     if config_path:
         path = Path(config_path)
     else:
@@ -74,4 +74,4 @@ def load_config(config_path: str | Path | None = None) -> CodeOpsConfig:
             raw = yaml.safe_load(f) or {}
         return _parse_config(raw)
 
-    return CodeOpsConfig()
+    return VOLYConfig()
