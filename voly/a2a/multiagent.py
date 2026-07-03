@@ -110,10 +110,10 @@ class Assignment:
 def _excluded_providers() -> set[str]:
     """Providers to skip when resolving a tier (e.g. out of credits).
 
-    Set via CODEOPS_A2A_EXCLUDE_PROVIDERS="anthropic,openai" (comma-separated).
+    Set via VOLY_A2A_EXCLUDE_PROVIDERS="anthropic,openai" (comma-separated).
     """
     import os
-    raw = os.environ.get("CODEOPS_A2A_EXCLUDE_PROVIDERS", "")
+    raw = os.environ.get("VOLY_A2A_EXCLUDE_PROVIDERS", "")
     return {p.strip() for p in raw.split(",") if p.strip()}
 
 

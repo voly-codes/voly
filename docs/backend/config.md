@@ -39,13 +39,13 @@ CLOUDFLARE_R2_BUCKET=...
 ### VOLY control
 
 ```env
-CODEOPS_PROJECT_CWD=/path/to/target/project
+VOLY_PROJECT_CWD=/path/to/target/project
 # Если задан — executor использует его как cwd по умолчанию.
 # Можно также задать default_cwd в voly.yaml.
 
-CODEOPS_LOG_LEVEL=INFO
-CODEOPS_SERVER_PORT=7788
-CODEOPS_SERVER_HOST=0.0.0.0
+VOLY_LOG_LEVEL=INFO
+VOLY_SERVER_PORT=7788
+VOLY_SERVER_HOST=0.0.0.0
 ```
 
 ---
@@ -54,7 +54,7 @@ CODEOPS_SERVER_HOST=0.0.0.0
 
 ```yaml
 default_agent: cursor
-default_cwd: ""          # path для executor по умолчанию (overrides CODEOPS_PROJECT_CWD)
+default_cwd: ""          # path для executor по умолчанию (overrides VOLY_PROJECT_CWD)
 
 ai_gateway:
   provider: cloudflare   # cloudflare | custom
@@ -106,7 +106,7 @@ agents:
 ## VOLYConfig — важные поля
 
 ```python
-config.default_cwd           # из voly.yaml default_cwd или CODEOPS_PROJECT_CWD
+config.default_cwd           # из voly.yaml default_cwd или VOLY_PROJECT_CWD
 config.dspy.enabled          # bool
 config.dspy.mode             # "off" | "shadow" | "active"
 config.dspy.datasets_dir     # путь для сохранения (task, result) примеров

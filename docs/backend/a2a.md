@@ -46,7 +46,7 @@ auto-dispatch would re-decompose every subtask into more subtasks (infinite recu
 **Skipped when any of:**
 
 - `delegate_to_a2a=False` (always set by pipeline server for subtasks)
-- `CODEOPS_A2A_NESTED=1` env var (set by pipeline server during subtask runs)
+- `VOLY_A2A_NESTED=1` env var (set by pipeline server during subtask runs)
 - `context["a2a_parent_task_id"]` present (from `task_id` / `a2a_parent_task_id` in POST body)
 
 CF agent worker passes `a2a_parent_task_id: task_id` in `/run` requests.
@@ -116,7 +116,7 @@ Web UI: `a2a_delegate` on `/api/run` maps to `delegate_to_a2a`.
 
 | Var | Used by |
 |---|---|
-| `CODEOPS_A2A_NESTED` | Pipeline — skip auto-dispatch for subtasks |
+| `VOLY_A2A_NESTED` | Pipeline — skip auto-dispatch for subtasks |
 | `PIPELINE_RUNNER_URL` | CF agent worker → local pipeline server |
 | `PIPELINE_RUNNER_TOKEN` | Auth for pipeline server |
 | `A2A_FEDERATION_URL` / `A2A_FEDERATION_TOKEN` | Federation callbacks |

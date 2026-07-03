@@ -158,7 +158,7 @@ def resolve_federation_url(config_url: str = "") -> str:
 
 
 def resolve_federation_token() -> str:
-    for key in ("CODEOPS_A2A_TOKEN", "CF_WORKER_A2A_TOKEN"):
+    for key in ("VOLY_A2A_TOKEN", "CF_WORKER_A2A_TOKEN"):
         token = os.environ.get(key, "").strip()
         if token:
             return token

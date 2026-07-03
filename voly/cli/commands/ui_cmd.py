@@ -102,7 +102,7 @@ def _start_dev(ui_dir: pathlib.Path, api_port: int) -> None:
         subprocess.run(["npm", "install"], cwd=ui_dir, check=True)
 
     env = os.environ.copy()
-    env["CODEOPS_UI_API_PORT"] = str(api_port)
+    env["VOLY_UI_API_PORT"] = str(api_port)
 
     click.echo(f"Vite dev server: http://127.0.0.1:5173")
     click.echo(f"API proxy target: http://127.0.0.1:{api_port}")

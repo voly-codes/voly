@@ -234,7 +234,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
         """True when this run is an A2A subtask — skip auto-dispatch to avoid recursion."""
         import os
 
-        if os.environ.get("CODEOPS_A2A_NESTED") == "1":
+        if os.environ.get("VOLY_A2A_NESTED") == "1":
             return True
         return bool(context.get("a2a_parent_task_id"))
 

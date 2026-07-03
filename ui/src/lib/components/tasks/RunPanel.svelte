@@ -37,7 +37,7 @@
   onMount(async () => {
     try { agents = await fetchAgents() } catch {}
     await loadModels()
-    // Pre-fill cwd from server config (CODEOPS_PROJECT_CWD / default_cwd in voly.yaml)
+    // Pre-fill cwd from server config (VOLY_PROJECT_CWD / default_cwd in voly.yaml)
     if (!cwd) {
       try {
         const st = await fetchStatus()

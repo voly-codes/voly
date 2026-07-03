@@ -27,7 +27,7 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "CODEOPS_MCP_AGENT",
+        "name": "VOLY_MCP_AGENT",
         "class_name": "VOLYMcpAgent"
       }
     ]

@@ -89,7 +89,7 @@ app.post("/agents/:name/run", async (c) => {
   return c.json({ agent: agentName, ...result });
 });
 
-const mcpHandler = VOLYMcpAgent.serve("/mcp", { binding: "CODEOPS_MCP_AGENT" });
+const mcpHandler = VOLYMcpAgent.serve("/mcp", { binding: "VOLY_MCP_AGENT" });
 
 export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {

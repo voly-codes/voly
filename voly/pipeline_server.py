@@ -37,7 +37,7 @@ def _is_nested_a2a_request(body: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
     nested = (
         bool(a2a_parent)
         or bool(task_id)
-        or os.environ.get("CODEOPS_A2A_NESTED") == "1"
+        or os.environ.get("VOLY_A2A_NESTED") == "1"
     )
     context: dict[str, Any] = {}
     if a2a_parent:
@@ -93,9 +93,9 @@ def create_pipeline_handler(config: VOLYConfig, token: str = "", default_cwd: st
                 return
 
             nested, context = _is_nested_a2a_request(body)
-            prev_nested = os.environ.get("CODEOPS_A2A_NESTED")
+            prev_nested = os.environ.get("VOLY_A2A_NESTED")
             if nested:
-                os.environ["CODEOPS_A2A_NESTED"] = "1"
+                os.environ["VOLY_A2A_NESTED"] = "1"
 
             from voly.pipeline import Pipeline
 
@@ -125,9 +125,9 @@ def create_pipeline_handler(config: VOLYConfig, token: str = "", default_cwd: st
                 pipeline.shutdown()
                 if nested:
                     if prev_nested is None:
-                        os.environ.pop("CODEOPS_A2A_NESTED", None)
+                        os.environ.pop("VOLY_A2A_NESTED", None)
                     else:
-                        os.environ["CODEOPS_A2A_NESTED"] = prev_nested
+                        os.environ["VOLY_A2A_NESTED"] = prev_nested
 
         def log_request(self, code: int | str = "-", size: int | str = "-") -> None:
             pass

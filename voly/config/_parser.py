@@ -125,7 +125,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
                 break
 
     if not config.a2a.token:
-        config.a2a.token = os.environ.get("CODEOPS_A2A_TOKEN", "").strip()
+        config.a2a.token = os.environ.get("VOLY_A2A_TOKEN", "").strip()
 
     if "agui" in raw:
         g = raw["agui"]
@@ -163,7 +163,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
     config.default_model = raw.get("default_model", "claude-sonnet")
     config.default_agent = raw.get("default_agent", "claude")
     config.default_cwd = os.path.expanduser(
-        raw.get("default_cwd", "") or os.environ.get("CODEOPS_PROJECT_CWD", "")
+        raw.get("default_cwd", "") or os.environ.get("VOLY_PROJECT_CWD", "")
     )
 
     if "workflow" in raw:

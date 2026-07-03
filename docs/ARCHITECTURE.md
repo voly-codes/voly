@@ -291,7 +291,7 @@ Wrangler dev Worker для WranglerExecutor.
 `infer.ts`: пробует CF AI Gateway (`CF_ACCOUNT_ID`+`CF_AIG_TOKEN` → `dynamic/ai_route`),
 fallback на `env.AI.run()`. Agent role (`developer`, `reviewer`, …) injected into system prompt.
 
-**Recursion guard:** A2A subtasks via `pipeline_server` set `CODEOPS_A2A_NESTED=1` and
+**Recursion guard:** A2A subtasks via `pipeline_server` set `VOLY_A2A_NESTED=1` and
 `a2a_parent_task_id` — pipeline skips `_stage_a2a_auto` to prevent nested re-dispatch.
 See `docs/backend/a2a.md`.
 

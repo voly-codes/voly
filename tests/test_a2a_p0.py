@@ -77,15 +77,15 @@ def test_is_a2a_nested_env_and_context() -> None:
     assert pipeline._is_a2a_nested({"a2a_parent_task_id": "x"}) is True
     assert pipeline._is_a2a_nested({}) is False
 
-    prev = os.environ.get("CODEOPS_A2A_NESTED")
-    os.environ["CODEOPS_A2A_NESTED"] = "1"
+    prev = os.environ.get("VOLY_A2A_NESTED")
+    os.environ["VOLY_A2A_NESTED"] = "1"
     try:
         assert pipeline._is_a2a_nested({}) is True
     finally:
         if prev is None:
-            os.environ.pop("CODEOPS_A2A_NESTED", None)
+            os.environ.pop("VOLY_A2A_NESTED", None)
         else:
-            os.environ["CODEOPS_A2A_NESTED"] = prev
+            os.environ["VOLY_A2A_NESTED"] = prev
 
 
 def test_dispatch_parallel_injects_prior_results() -> None:

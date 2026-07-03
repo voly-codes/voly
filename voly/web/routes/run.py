@@ -271,7 +271,7 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             effective_cwd = (
                 req.cwd
                 or getattr(config, "default_cwd", "")
-                or os.environ.get("CODEOPS_PROJECT_CWD", "")
+                or os.environ.get("VOLY_PROJECT_CWD", "")
                 or ""
             )
             try:
@@ -292,7 +292,7 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                     })
                     _log.info(
                         "[DISPATCH] pipeline → claude-code  task=%r  cwd=%r  "
-                        "(set CODEOPS_PROJECT_CWD or cwd field to target project)",
+                        "(set VOLY_PROJECT_CWD or cwd field to target project)",
                         req.task[:60], effective_cwd or "(empty — will use server cwd)",
                     )
                 else:

@@ -28,7 +28,7 @@ data: {"type": "error", "error": "..."}
 
 **Smart dispatch:** если `executor="pipeline"` и задача требует code gen,
 автоматически промоутится в `executor="claude-code"` с `cwd` из `config.default_cwd`
-или `CODEOPS_PROJECT_CWD` env var.
+или `VOLY_PROJECT_CWD` env var.
 
 Логи: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FALLBACK]`
 
@@ -60,7 +60,7 @@ data: {"type": "update", "task": {...}}
 }
 ```
 
-`default_cwd` — путь из `voly.yaml` (`default_cwd`) или env `CODEOPS_PROJECT_CWD`. Пустая строка если не задан. Используется UI (RunPanel) для авто-заполнения поля cwd при загрузке.
+`default_cwd` — путь из `voly.yaml` (`default_cwd`) или env `VOLY_PROJECT_CWD`. Пустая строка если не задан. Используется UI (RunPanel) для авто-заполнения поля cwd при загрузке.
 
 ---
 

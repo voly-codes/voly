@@ -250,7 +250,7 @@ class VOLYConfig:
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     default_model: str = "claude-sonnet"
     default_agent: str = "claude"
-    default_cwd: str = ""   # CODEOPS_PROJECT_CWD or voly.yaml: default_cwd
+    default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd
 
     def get_model_config(self, name: str | None = None) -> ModelConfig:
         from voly.config._defaults import _DEFAULT_MODELS

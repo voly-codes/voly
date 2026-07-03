@@ -19,7 +19,7 @@ claude-code → wrangler → zen → cursor → opencode → pipeline → deepse
 
 **Events:** SSE stream от `POST /api/run` — типы: `start`, `done`, `error`
 
-**Auto-fill cwd:** при монтировании компонента, если поле `cwd` пустое, запрашивает `GET /api/status` и подставляет `default_cwd` (из `voly.yaml` или `CODEOPS_PROJECT_CWD`).
+**Auto-fill cwd:** при монтировании компонента, если поле `cwd` пустое, запрашивает `GET /api/status` и подставляет `default_cwd` (из `voly.yaml` или `VOLY_PROJECT_CWD`).
 
 ---
 

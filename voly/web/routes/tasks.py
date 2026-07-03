@@ -48,7 +48,7 @@ def get_status(request: Request) -> dict[str, Any]:
     if s.config:
         default_cwd = (
             getattr(s.config, "default_cwd", "")
-            or os.environ.get("CODEOPS_PROJECT_CWD", "")
+            or os.environ.get("VOLY_PROJECT_CWD", "")
         )
     return {
         "version": "0.1.0",

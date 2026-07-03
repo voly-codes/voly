@@ -178,6 +178,6 @@ pytest tests/ -q                          # полный прогон
 | Pipeline bypasses gateway | Убедись что runtime использует `AIGateway.chat()` |
 | Executor не пишет файлы | Проверь `--cwd` и credentials executor |
 | Billing fallback не срабатывает | Проверь `billing_error=True` в ExecutorResult |
-| Smart dispatch не срабатывает | Установи `CODEOPS_PROJECT_CWD` или `default_cwd` в `voly.yaml` |
+| Smart dispatch не срабатывает | Установи `VOLY_PROJECT_CWD` или `default_cwd` в `voly.yaml` |
 | Wrangler executor недоступен | Запусти `cd cf-workers/agent && wrangler dev` |
 | CI fails with test collection | Проверь `pyproject.toml` pytest config |

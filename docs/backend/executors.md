@@ -162,11 +162,11 @@ when the task requires code generation:
 POST /api/run  executor=pipeline
    ↓ _needs_executor() → requires_code_gen = True
    ↓
-executor=claude-code, cwd = req.cwd || config.default_cwd || CODEOPS_PROJECT_CWD
+executor=claude-code, cwd = req.cwd || config.default_cwd || VOLY_PROJECT_CWD
    ↓ AgentRunner → billing fallback chain if needed
 ```
 
-Set `CODEOPS_PROJECT_CWD=/path/to/project` or `default_cwd` in `voly.yaml` so
+Set `VOLY_PROJECT_CWD=/path/to/project` or `default_cwd` in `voly.yaml` so
 the web UI knows where to write files.
 
 ---
