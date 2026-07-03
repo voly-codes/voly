@@ -44,21 +44,17 @@ class ExecutorResult:
     not_available: bool = False
 
 
-_BILLING_PATTERNS = (
-    # Anthropic
-    "credit balance is too low", "credit_balance_too_low", "insufficient credits",
-    # DeepSeek
-    "insufficient balance",
-    # OpenAI
-    "exceeded your current quota", "insufficient_quota",
-    # Generic HTTP
-    "402", "payment required", "billing",
-)
-
-
 def _is_billing_error(error: str) -> bool:
-    low = error.lower()
-    return any(p in low for p in _BILLING_PATTERNS)
+    """True when the error means the provider is out of budget/quota.
+
+    Delegates to the semantic classifier (voly.ai_gateway.error_classifier),
+    which fires only for terminal quota/account states — a transient HTTP 429
+    rate-limit is deliberately NOT treated as a billing error, so the runner
+    won't skip to the next executor for a simple per-minute throttle.
+    """
+    from voly.ai_gateway.error_classifier import is_terminal_billing_error
+
+    return is_terminal_billing_error(error)
 
 
 def _oc_event_error(ev: dict) -> str | None:
