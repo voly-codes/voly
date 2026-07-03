@@ -48,6 +48,9 @@ class _GatewayProvidersMixin:
                 b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
             ),
             "model": data.get("model", model),
+            # Propagated so AIGateway can tell a fake-success empty from a legit
+            # terminal stop (max_tokens / tool_use) — see is_empty_content_response.
+            "stop_reason": data.get("stop_reason", ""),
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("input_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("output_tokens", 0),
@@ -87,6 +90,7 @@ class _GatewayProvidersMixin:
         return {
             "content": choice["message"].get("content", ""),
             "model": data.get("model", model),
+            "stop_reason": choice.get("finish_reason", ""),
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
@@ -133,6 +137,7 @@ class _GatewayProvidersMixin:
         return {
             "content": text,
             "model": model,
+            "stop_reason": candidates[0].get("finishReason", ""),
             "usage": {
                 "input_tokens":  meta.get("promptTokenCount", 0),
                 "output_tokens": meta.get("candidatesTokenCount", 0),
@@ -191,17 +196,21 @@ class _GatewayProvidersMixin:
         if "choices" in result_obj:
             # OpenAI-compat format; reasoning models put thinking in reasoning_content,
             # actual answer in content (content may be null if max_tokens hit during thinking)
-            msg     = (result_obj.get("choices") or [{}])[0].get("message", {})
+            choice0 = (result_obj.get("choices") or [{}])[0]
+            msg     = choice0.get("message", {})
             content = msg.get("content") or ""   # don't use reasoning_content as answer
             usage_  = result_obj.get("usage", {})
+            stop    = choice0.get("finish_reason", "")
         else:
-            # Classic Workers AI format
+            # Classic Workers AI format (no finish reason surfaced)
             content = result_obj.get("response", "")
             usage_  = result_obj.get("usage", {})
+            stop    = ""
 
         return {
             "content": content,
             "model": model,
+            "stop_reason": stop,
             "usage": {
                 "input_tokens":  usage_.get("prompt_tokens", 0),
                 "output_tokens": usage_.get("completion_tokens", 0),
@@ -277,6 +286,7 @@ class _GatewayProvidersMixin:
         return {
             "content": choice.get("message", {}).get("content", ""),
             "model": data.get("model", dyn_model),
+            "stop_reason": choice.get("finish_reason", ""),
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
@@ -359,6 +369,7 @@ class _GatewayProvidersMixin:
         return {
             "content": choice.get("message", {}).get("content", ""),
             "model": data.get("model", model),
+            "stop_reason": choice.get("finish_reason", ""),
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("completion_tokens", 0),

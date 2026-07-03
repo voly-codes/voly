@@ -14,6 +14,7 @@ from .models import (
     RateLimit, SpendLimit, CacheConfig, FallbackChain, DLPConfig, GatewayMetrics,
 )
 from .providers import _GatewayProvidersMixin
+from .error_classifier import is_empty_content_response
 from voly.telemetry import _estimate_cost as _telemetry_estimate_cost
 
 _log = logging.getLogger("voly.ai_gateway")
@@ -106,6 +107,7 @@ class AIGateway(_GatewayProvidersMixin):
             result = self._gateway_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools, **kwargs)
         else:
             result = self._direct_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools)
+            result = self._empty_content_error(result) or result
             if result.get("error") and self.fallback.enabled and self.fallback.chain:
                 result = self._direct_fallback(result, messages, max_tokens, temperature, system, tools, **kwargs)
 
@@ -117,6 +119,33 @@ class AIGateway(_GatewayProvidersMixin):
             self.cache.set(cache_key, json.dumps(result))
 
         return result
+
+    # ── Empty-content guard ──────────────────────────────────────────────────────
+
+    @staticmethod
+    def _empty_content_error(result: dict[str, Any]) -> dict[str, Any] | None:
+        """Turn a fake-success empty response into a synthetic error, else None.
+
+        A provider can return HTTP 200 with no usable content (``content: ""``).
+        That is a silent failure the caller would otherwise surface as a blank
+        answer. Converting it to an error routes it through the normal
+        model-fallback machinery. Legit empty completions — a terminal
+        ``stop_reason`` of ``max_tokens`` / ``tool_use`` (Claude) or
+        ``length`` / ``tool_calls`` (OpenAI), carried by the propagated
+        ``stop_reason`` — pass through untouched and must NOT trigger fallback.
+
+        This is a *model-level* fallback signal only: ``empty_content`` is not a
+        terminal billing state, so it never skips an executor down the billing
+        chain (that stays owned by error_classifier's TERMINAL_BILLING_TYPES).
+        """
+        if result.get("error") or not is_empty_content_response(result):
+            return None
+        return {
+            "error": "empty_content: provider returned no usable content",
+            "content": "",
+            "empty_content": True,
+            "stop_reason": result.get("stop_reason", ""),
+        }
 
     # ── Gateway call with fallback chain (CF-routed providers) ───────────────────
 
@@ -144,6 +173,7 @@ class AIGateway(_GatewayProvidersMixin):
 
             try:
                 result = self._single_call(messages, mdl, prov, max_tokens, temperature, system, tools=tools, **kwargs)
+                result = self._empty_content_error(result) or result
                 if not result.get("error"):
                     if attempt > 0:
                         result["fallback_used"]     = True
@@ -233,6 +263,7 @@ class AIGateway(_GatewayProvidersMixin):
                     fb = self._single_call(messages, fb_model, fb_prov, max_tokens, temperature, system, tools=tools, **kwargs)
                 else:
                     fb = self._direct_call(messages, fb_model, fb_prov, max_tokens, temperature, system, tools=tools)
+                fb = self._empty_content_error(fb) or fb
                 if not fb.get("error"):
                     _log.info("Fallback succeeded: provider=%s model=%s", fb_prov, fb_model)
                     fb["fallback_used"]     = True

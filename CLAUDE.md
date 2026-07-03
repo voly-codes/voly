@@ -43,11 +43,11 @@ VOLY = два слоя с разной ценностью (истина: `docs/p
 - Синхрон доков: порты `7788` (web UI = `voly ui`) / `9202` (pipeline = `voly serve`), `a2a.enabled=true`.
 - Переименование проекта `codeops → voly`: пакет-директория, env-переменные `CODEOPS_* → VOLY_*` (`VOLY_PROJECT_CWD`, `VOLY_A2A_NESTED`, `VOLY_A2A_TOKEN`, …).
 - **Семантический классификатор billing-ошибок** `voly/ai_gateway/error_classifier.py` (порт из OmniRoute): отделяет transient rate-limit (429) от terminal quota-exhausted; `_is_billing_error` в `voly/executor/base.py` делегирует туда. Тесты: `tests/test_error_classifier.py`.
+- **Empty-content guard подключён** на уровне `AIGateway`: провайдер-адаптеры (`providers.py`) пробрасывают `stop_reason`, `_empty_content_error` в `gateway.py` конвертирует фейк-успех (HTTP 200 без контента) в синтетическую ошибку → model fallback; легитимный пустой (`max_tokens`/`tool_use`/`length`/`tool_calls`) не триггерит fallback. Это model-level, не billing. Тесты: `tests/test_ai_gateway.py`, `tests/test_error_classifier.py`; doc: `docs/backend/ai-gateway.md`.
 
 **Ближайший фокус (ядро прежде монетизации — этап 1 roadmap):**
-1. Подключить `is_empty_content_response` guard на уровне `AIGateway.chat()` (пробросить `stop_reason`/`finish_reason`). Функция уже есть в `error_classifier.py`, но НЕ вызывается — пустой ответ при `max_tokens`/`tool_use` не должен считаться сбоем и триггерить ложный fallback.
-2. Пересмотреть ключ кэша **executor path** — включить снимок состояния проекта (git hash / хэш затронутых файлов), иначе баги кэша код-задач (риск R1). Задокументировать границы валидности кэша.
-3. Таймауты на subprocess-executor-ах; retry-aware стоимость в TaskEvent / `_COST_RATES`.
+1. Пересмотреть ключ кэша **executor path** — включить снимок состояния проекта (git hash / хэш затронутых файлов), иначе баги кэша код-задач (риск R1). Задокументировать границы валидности кэша.
+2. Таймауты на subprocess-executor-ах; retry-aware стоимость в TaskEvent / `_COST_RATES`.
 
 **Не делать без явного запроса:** свой workflow-движок, Temporal (при необходимости — DBOS/Restate), ранний marketplace, наращивание периферии до стабилизации ядра B.
 

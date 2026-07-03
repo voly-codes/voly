@@ -109,3 +109,23 @@ def test_empty_content_not_flagged_when_tool_calls_present():
 def test_non_dict_body_is_not_empty_content():
     assert is_empty_content_response("plain string") is False
     assert is_empty_content_response(None) is False
+
+
+# ─── Normalized VOLY result shape ({"content": <str>, "stop_reason": <str>}) ──
+def test_normalized_empty_content_is_flagged():
+    # AIGateway providers return a flat {"content": <str>, "stop_reason": ...}.
+    assert is_empty_content_response({"content": "", "stop_reason": ""}) is True
+    assert is_empty_content_response({"content": "", "stop_reason": "end_turn"}) is True
+    assert is_empty_content_response({"content": None}) is True
+
+
+def test_normalized_non_empty_content_is_not_flagged():
+    assert is_empty_content_response({"content": "hello", "stop_reason": ""}) is False
+
+
+def test_normalized_empty_content_with_terminal_stop_is_not_flagged():
+    # Empty + a legit terminal stop is a valid completion, not a fake success.
+    assert is_empty_content_response({"content": "", "stop_reason": "max_tokens"}) is False
+    assert is_empty_content_response({"content": "", "stop_reason": "tool_use"}) is False
+    assert is_empty_content_response({"content": "", "stop_reason": "length"}) is False
+    assert is_empty_content_response({"content": "", "stop_reason": "tool_calls"}) is False
