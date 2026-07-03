@@ -1,5 +1,5 @@
 ---
-name: codeops-plan
+name: voly-plan
 description: Create an action plan for a VOLY task, classify complexity, decide which agents to spawn (zen for simple tasks, claude-code for complex), and prepare the execution with doc-update requirements.
 ---
 
@@ -9,7 +9,7 @@ description: Create an action plan for a VOLY task, classify complexity, decide 
 1. Оценить задачу
 2. Выбрать нужных агентов (zen для простых, claude-code для сложных)
 3. Создать пошаговый план
-4. Запустить агентов через `codeops runner`
+4. Запустить агентов через `voly runner`
 
 ---
 
@@ -25,7 +25,7 @@ Config / env      → docs/backend/config.md
 API               → docs/backend/api.md
 ```
 
-Также прочитай: `CLAUDE.md` (правила проекта) и `codeops.yaml` (текущий конфиг).
+Также прочитай: `CLAUDE.md` (правила проекта) и `voly.yaml` (текущий конфиг).
 
 ---
 
@@ -79,11 +79,11 @@ API               → docs/backend/api.md
 2. Изменить <файл>: <что именно>
 3. Обновить docs/<backend|frontend>/<doc.md>: <что добавить>
 4. Запустить smoke test: `pytest tests/test_dspy_runtime_smoke.py -q`
-5. Создать отчёт: /codeops-report
+5. Создать отчёт: /voly-report
 
 ## Файлы которые будут изменены
-- codeops/executor/my_exec.py (создать)
-- codeops/runner/agent_runner.py (добавить в EXECUTOR_NAMES)
+- voly/executor/my_exec.py (создать)
+- voly/runner/agent_runner.py (добавить в EXECUTOR_NAMES)
 - docs/backend/executors.md (обновить)
 
 ## Doc requirements
@@ -103,14 +103,14 @@ API               → docs/backend/api.md
 
 ```bash
 # Простая задача — zen (бесплатно)
-codeops run "обнови docs/backend/executors.md — добавь раздел про MyExecutor" \
+voly run "обнови docs/backend/executors.md — добавь раздел про MyExecutor" \
   --executor zen \
-  --cwd /home/lanies/git/codeops
+  --cwd /home/lanies/git/voly
 
 # Сложная задача — claude-code
-codeops run "добавь новый WranglerV2Executor с поддержкой streaming" \
+voly run "добавь новый WranglerV2Executor с поддержкой streaming" \
   --executor claude-code \
-  --cwd /home/lanies/git/codeops \
+  --cwd /home/lanies/git/voly \
   --max-turns 40
 ```
 
@@ -118,17 +118,17 @@ codeops run "добавь новый WranglerV2Executor с поддержкой 
 
 ```bash
 # Несколько независимых задач параллельно
-codeops run "обнови docs/frontend/components.md" --executor zen &
-codeops run "обнови docs/backend/dspy.md" --executor zen &
-codeops run "реализуй новый executor" --executor claude-code --max-turns 30 &
+voly run "обнови docs/frontend/components.md" --executor zen &
+voly run "обнови docs/backend/dspy.md" --executor zen &
+voly run "реализуй новый executor" --executor claude-code --max-turns 30 &
 wait
 ```
 
 ### Через Web UI
 
-1. `codeops serve` → открыть http://localhost:7860
+1. `voly serve` → открыть http://localhost:7860
 2. Для простых задач: executor=zen, вставить задачу
-3. Для сложных: executor=claude-code, указать cwd=/home/lanies/git/codeops
+3. Для сложных: executor=claude-code, указать cwd=/home/lanies/git/voly
 
 ---
 
@@ -137,7 +137,7 @@ wait
 Каждый агент должен:
 1. Обновить docs если изменил поведение кода
 2. Запустить smoke tests
-3. Создать отчёт: `/codeops-report`
+3. Создать отчёт: `/voly-report`
 
 ---
 

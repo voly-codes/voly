@@ -3,7 +3,7 @@ requires = ["setuptools>=75", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codeops"
+name = "voly"
 version = "0.1.0"
 description = "VOLY — централизованная платформа управления AI-агентами для разработки ПО"
 requires-python = ">=3.10"
@@ -54,36 +54,36 @@ dev = [
     "mypy>=1.0.0",
 ]
 all = [
-    "codeops[proxy,semantic,cursor,dspy,ui,dev]",
+    "voly[proxy,semantic,cursor,dspy,ui,dev]",
 ]
 
 [project.scripts]
-codeops = "codeops.cli.main:main"
+voly = "voly.cli.main:main"
 
 [tool.setuptools]
 packages = [
-    "codeops",
-    "codeops.a2a",
-    "codeops.agui",
-    "codeops.ai_gateway",
-    "codeops.catalog",
-    "codeops.cli",
-    "codeops.cli.commands",
-    "codeops.dspy",
-    "codeops.dspy.programs",
-    "codeops.executor",
-    "codeops.headroom",
-    "codeops.inference",
-    "codeops.memory",
-    "codeops.models",
-    "codeops.registry",
-    "codeops.rtk",
-    "codeops.runner",
-    "codeops.scanner",
-    "codeops.spend",
-    "codeops.tools",
-    "codeops.web",
-    "codeops.workflow",
+    "voly",
+    "voly.a2a",
+    "voly.agui",
+    "voly.ai_gateway",
+    "voly.catalog",
+    "voly.cli",
+    "voly.cli.commands",
+    "voly.dspy",
+    "voly.dspy.programs",
+    "voly.executor",
+    "voly.headroom",
+    "voly.inference",
+    "voly.memory",
+    "voly.models",
+    "voly.registry",
+    "voly.rtk",
+    "voly.runner",
+    "voly.scanner",
+    "voly.spend",
+    "voly.tools",
+    "voly.web",
+    "voly.workflow",
 ]
 
 [tool.ruff]
@@ -95,7 +95,7 @@ select = ["E", "W", "F", "I", "B", "C4", "UP"]
 ignore = ["E501", "B008"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["codeops"]
+known-first-party = ["voly"]
 
 [tool.ruff.format]
 quote-style = "double"

@@ -1,15 +1,15 @@
 """
 VOLY CLI entry point.
 
-Subcommands live in codeops.cli.commands.*
+Subcommands live in voly.cli.commands.*
 """
 
 from __future__ import annotations
 
 import click
 
-from codeops.config import load_config
-from codeops.cli.commands import (
+from voly.config import load_config
+from voly.cli.commands import (
     a2a,
     agui,
     memory,
@@ -44,7 +44,7 @@ from codeops.cli.commands import (
 
 @click.group()
 @click.version_option(version="0.1.0", prog_name="VOLY")
-@click.option("--config", "-c", default=None, help="Path to codeops.yaml")
+@click.option("--config", "-c", default=None, help="Path to voly.yaml")
 @click.pass_context
 def main(ctx: click.Context, config: str | None) -> None:
     ctx.ensure_object(dict)

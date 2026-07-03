@@ -1,7 +1,7 @@
 """Tests for catalog routing and supervisor."""
 
-from codeops.catalog.routing import get_mission_plan, match_task, resolve_model
-from codeops.catalog.zen_sync import parse_zen_models_payload, _builtin_fallback_catalog
+from voly.catalog.routing import get_mission_plan, match_task, resolve_model
+from voly.catalog.zen_sync import parse_zen_models_payload, _builtin_fallback_catalog
 
 
 def test_parse_zen_models_payload():

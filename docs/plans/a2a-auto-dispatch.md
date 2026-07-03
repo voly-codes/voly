@@ -17,11 +17,11 @@ Every task — no matter how complex — runs as a single-agent call.
 
 ## Goal
 
-When `codeops run` receives a task that requires **2+ distinct capabilities** (e.g. implement +
+When `voly run` receives a task that requires **2+ distinct capabilities** (e.g. implement +
 test + review), the pipeline should automatically decompose it into subtasks, dispatch each to a
 specialized A2A agent, collect results, and merge them into a single `PipelineResult`.
 
-User experience: `codeops run "implement feature X, write tests, and do code review"` should
+User experience: `voly run "implement feature X, write tests, and do code review"` should
 produce output from 3 agents without any extra flags.
 
 ---
@@ -59,7 +59,7 @@ _stage_route()          ← TaskAnalysis already runs here
 
 ## Files to create / modify
 
-### 1. `codeops/a2a/decomposer.py`  ← NEW
+### 1. `voly/a2a/decomposer.py`  ← NEW
 
 ```python
 @dataclass
@@ -107,7 +107,7 @@ No decomposition (fall through to single agent) when:
 
 ---
 
-### 2. `codeops/a2a/merger.py`  ← NEW
+### 2. `voly/a2a/merger.py`  ← NEW
 
 ```python
 class ResultMerger:
@@ -129,7 +129,7 @@ class ResultMerger:
 
 ---
 
-### 3. `codeops/a2a/__init__.py`  ← MODIFY
+### 3. `voly/a2a/__init__.py`  ← MODIFY
 
 Add `dispatch_parallel(subtasks: list[Subtask]) -> list[A2ATask]` to
 `A2AOrchestrator`:
@@ -140,7 +140,7 @@ Add `dispatch_parallel(subtasks: list[Subtask]) -> list[A2ATask]` to
 
 ---
 
-### 4. `codeops/pipeline/stages.py`  ← MODIFY
+### 4. `voly/pipeline/stages.py`  ← MODIFY
 
 Add `_should_dispatch_a2a(analysis) -> bool` and `_stage_a2a_auto()`:
 
@@ -160,8 +160,8 @@ def _stage_a2a_auto(
     self, task: str, analysis: TaskAnalysis,
     agui_session_id: str | None, started: float
 ) -> PipelineResult | None:
-    from codeops.a2a.decomposer import TaskDecomposer
-    from codeops.a2a.merger import ResultMerger
+    from voly.a2a.decomposer import TaskDecomposer
+    from voly.a2a.merger import ResultMerger
 
     decomposer = TaskDecomposer()
     subtasks = decomposer.decompose(task, analysis)
@@ -185,7 +185,7 @@ def _stage_a2a_auto(
 
 ---
 
-### 5. `codeops/pipeline/core.py`  ← MODIFY
+### 5. `voly/pipeline/core.py`  ← MODIFY
 
 In `pipeline.run()`, after `_stage_route()`, add auto-dispatch check:
 
@@ -203,7 +203,7 @@ if self.config.a2a.enabled and not delegate_to_a2a:
 
 ---
 
-### 6. `codeops/config/_types.py`  ← MODIFY
+### 6. `voly/config/_types.py`  ← MODIFY
 
 Add to `A2AConfig`:
 ```python
@@ -214,7 +214,7 @@ task_timeout_seconds: float = 120.0 # per-subtask timeout
 
 ---
 
-### 7. `codeops/telemetry.py`  ← MODIFY
+### 7. `voly/telemetry.py`  ← MODIFY
 
 Add to `TaskEvent`:
 ```python
@@ -232,7 +232,7 @@ Document new `A2A_AUTO` stage in pipeline table.
 
 ---
 
-## A2AConfig extension (codeops.yaml)
+## A2AConfig extension (voly.yaml)
 
 ```yaml
 a2a:
@@ -267,14 +267,14 @@ tests/test_a2a_auto_dispatch.py
 
 Run in this order (each depends on the previous):
 
-1. `codeops/a2a/decomposer.py` — no deps, pure logic
-2. `codeops/a2a/merger.py` — no deps, pure logic
-3. `codeops/a2a/__init__.py` — add `dispatch_parallel` (uses decomposer types)
-4. `codeops/config/_types.py` — add A2AConfig fields
-5. `codeops/config/_parser.py` — parse new fields from YAML
-6. `codeops/pipeline/stages.py` — `_should_dispatch_a2a` + `_stage_a2a_auto`
-7. `codeops/pipeline/core.py` — wire auto-dispatch into `run()`
-8. `codeops/telemetry.py` — add `a2a_*` fields to TaskEvent
+1. `voly/a2a/decomposer.py` — no deps, pure logic
+2. `voly/a2a/merger.py` — no deps, pure logic
+3. `voly/a2a/__init__.py` — add `dispatch_parallel` (uses decomposer types)
+4. `voly/config/_types.py` — add A2AConfig fields
+5. `voly/config/_parser.py` — parse new fields from YAML
+6. `voly/pipeline/stages.py` — `_should_dispatch_a2a` + `_stage_a2a_auto`
+7. `voly/pipeline/core.py` — wire auto-dispatch into `run()`
+8. `voly/telemetry.py` — add `a2a_*` fields to TaskEvent
 9. `tests/test_a2a_decomposer.py` + `tests/test_a2a_auto_dispatch.py`
 10. `docs/backend/pipeline.md` + `docs/ARCHITECTURE.md`
 
@@ -306,19 +306,19 @@ Run in this order (each depends on the previous):
 
 ### Куда пишется
 
-- **Локально:** `.codeops/reports/a2a/<task_id>.json` (автоматически)
+- **Локально:** `.voly/reports/a2a/<task_id>.json` (автоматически)
 - **Telemetry event:** поле `report` в `TaskEvent` (уже существует как `dict | None`)
 - **CLI вывод:** после результата выводить краткую сводку:
   ```
   ── A2A Dispatch Report ──────────────────────
   Subtasks: 3  (architect + developer + tester)
   Duration: 14.8s  |  Cost: $0.00
-  Report:   .codeops/reports/a2a/<task_id>.json
+  Report:   .voly/reports/a2a/<task_id>.json
   ```
 
 ### Реализация
 
-**Новый файл:** `codeops/a2a/report.py`
+**Новый файл:** `voly/a2a/report.py`
 
 ```python
 @dataclass
@@ -341,7 +341,7 @@ class A2AReport:
 
 `_stage_a2a_auto()` создаёт `A2AReport`, сохраняет через `report.save()`, добавляет в `TaskEvent.report`.
 
-Добавить в список файлов для реализации: **`codeops/a2a/report.py`** (шаг 2.5, между merger и dispatch_parallel).
+Добавить в список файлов для реализации: **`voly/a2a/report.py`** (шаг 2.5, между merger и dispatch_parallel).
 
 ---
 
@@ -349,14 +349,14 @@ class A2AReport:
 
 ```bash
 # smoke: import passes
-python -c "from codeops.a2a.decomposer import TaskDecomposer; print('ok')"
+python -c "from voly.a2a.decomposer import TaskDecomposer; print('ok')"
 
 # simple task → no dispatch
-codeops run "fix the typo in README"
+voly run "fix the typo in README"
 # → single agent, no A2A stage in stage_log
 
 # complex task → auto dispatch
-codeops run "implement auth module, write pytest tests, and do security review"
+voly run "implement auth module, write pytest tests, and do security review"
 # → stage_log contains A2A_DISCOVER + A2A_DELEGATE
 # → result contains sections from developer + tester + security agents
 # → telemetry: a2a_dispatched=True, a2a_subtask_count=3

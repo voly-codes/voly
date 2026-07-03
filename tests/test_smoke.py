@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from codeops.cli.main import main
+from voly.cli.main import main
 
 
 # ---------------------------------------------------------------------------
@@ -21,49 +21,49 @@ from codeops.cli.main import main
 
 
 def test_import_a2a() -> None:
-    import codeops.a2a  # noqa: F401
+    import voly.a2a  # noqa: F401
 
 
 def test_import_agui() -> None:
-    import codeops.agui  # noqa: F401
+    import voly.agui  # noqa: F401
 
 
 def test_import_ai_gateway() -> None:
-    import codeops.ai_gateway  # noqa: F401
+    import voly.ai_gateway  # noqa: F401
 
 
 def test_import_memory() -> None:
-    import codeops.memory  # noqa: F401
+    import voly.memory  # noqa: F401
 
 
 def test_import_model_router() -> None:
-    import codeops.model_router  # noqa: F401
+    import voly.model_router  # noqa: F401
 
 
 def test_import_registry() -> None:
-    import codeops.registry  # noqa: F401
-    import codeops.registry.agents  # noqa: F401
-    import codeops.registry.skills  # noqa: F401
+    import voly.registry  # noqa: F401
+    import voly.registry.agents  # noqa: F401
+    import voly.registry.skills  # noqa: F401
 
 
 def test_import_scanner() -> None:
-    import codeops.scanner  # noqa: F401
+    import voly.scanner  # noqa: F401
 
 
 def test_import_workflow() -> None:
-    import codeops.workflow  # noqa: F401
+    import voly.workflow  # noqa: F401
 
 
 def test_import_pipeline() -> None:
-    import codeops.pipeline  # noqa: F401
+    import voly.pipeline  # noqa: F401
 
 
 def test_import_telemetry() -> None:
-    import codeops.telemetry  # noqa: F401
+    import voly.telemetry  # noqa: F401
 
 
 def test_import_config() -> None:
-    from codeops.config import load_config, VOLYConfig
+    from voly.config import load_config, VOLYConfig
 
     cfg = load_config()
     assert isinstance(cfg, VOLYConfig)
@@ -81,10 +81,10 @@ def runner() -> CliRunner:
 
 @pytest.fixture
 def tmp_config(tmp_path: Path) -> Path:
-    """Create a minimal codeops.yaml in a temp directory."""
-    from codeops.config import create_default_config
+    """Create a minimal voly.yaml in a temp directory."""
+    from voly.config import create_default_config
 
-    cfg_path = tmp_path / "codeops.yaml"
+    cfg_path = tmp_path / "voly.yaml"
     create_default_config(cfg_path)
     return cfg_path
 
@@ -92,7 +92,7 @@ def tmp_config(tmp_path: Path) -> Path:
 def test_cli_help(runner: CliRunner) -> None:
     result = runner.invoke(main, ["--help"])
     assert result.exit_code == 0
-    assert "codeops" in result.output.lower()
+    assert "voly" in result.output.lower()
 
 
 def test_cli_version(runner: CliRunner) -> None:
@@ -105,7 +105,7 @@ def test_cli_init(runner: CliRunner, tmp_path: Path) -> None:
     with runner.isolated_filesystem(temp_dir=tmp_path):
         result = runner.invoke(main, ["init", "--force"])
         assert result.exit_code == 0
-        assert "codeops.yaml" in result.output.lower() or "config" in result.output.lower()
+        assert "voly.yaml" in result.output.lower() or "config" in result.output.lower()
 
 
 def test_cli_init_no_overwrite(runner: CliRunner, tmp_config: Path) -> None:
@@ -215,21 +215,21 @@ def test_cli_config_show(runner: CliRunner, tmp_config: Path) -> None:
 def test_all_submodules_importable() -> None:
     """Verify every declared package can be imported — catches missing __init__.py."""
     packages = [
-        "codeops",
-        "codeops.cli",
-        "codeops.models",
-        "codeops.memory",
-        "codeops.tools",
-        "codeops.rtk",
-        "codeops.headroom",
-        "codeops.a2a",
-        "codeops.agui",
-        "codeops.ai_gateway",
-        "codeops.scanner",
-        "codeops.workflow",
-        "codeops.registry",
-        "codeops.model_router",
-        "codeops.pipeline",
+        "voly",
+        "voly.cli",
+        "voly.models",
+        "voly.memory",
+        "voly.tools",
+        "voly.rtk",
+        "voly.headroom",
+        "voly.a2a",
+        "voly.agui",
+        "voly.ai_gateway",
+        "voly.scanner",
+        "voly.workflow",
+        "voly.registry",
+        "voly.model_router",
+        "voly.pipeline",
     ]
     import importlib
 
@@ -246,7 +246,7 @@ def test_all_submodules_importable() -> None:
 
 
 def test_telemetry_event_roundtrip(tmp_path: Path) -> None:
-    from codeops.telemetry import (
+    from voly.telemetry import (
         GatewayMetrics,
         TaskEvent,
         TokenMetrics,
@@ -287,7 +287,7 @@ def test_telemetry_event_roundtrip(tmp_path: Path) -> None:
 
 
 def test_telemetry_cost_estimate() -> None:
-    from codeops.telemetry import _estimate_cost
+    from voly.telemetry import _estimate_cost
 
     # claude-sonnet-4-6: $3/$15 per 1M tokens
     cost = _estimate_cost("claude-sonnet-4-6", 1_000_000, 0)
@@ -302,7 +302,7 @@ def test_telemetry_cost_estimate() -> None:
 
 
 def test_telemetry_new_task_id_unique() -> None:
-    from codeops.telemetry import new_task_id
+    from voly.telemetry import new_task_id
 
     ids = {new_task_id() for _ in range(100)}
     assert len(ids) == 100  # all unique UUIDs

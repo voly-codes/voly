@@ -1,4 +1,4 @@
-"""CLI: codeops spend — persistent spend tracking."""
+"""CLI: voly spend — persistent spend tracking."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ def spend() -> None:
 @click.pass_context
 def spend_status(ctx: click.Context) -> None:
     """Show spend worker status."""
-    from codeops.spend.client import create_spend_client, resolve_spend_url
+    from voly.spend.client import create_spend_client, resolve_spend_url
 
     config = ctx.obj["config"]
     url = resolve_spend_url(config.spend.remote_url)
@@ -45,7 +45,7 @@ def spend_status(ctx: click.Context) -> None:
 @click.pass_context
 def spend_summary(ctx: click.Context, days: int) -> None:
     """Show spend summary by agent."""
-    from codeops.spend.client import create_spend_client, resolve_spend_url
+    from voly.spend.client import create_spend_client, resolve_spend_url
 
     config = ctx.obj["config"]
     url = resolve_spend_url(config.spend.remote_url)
@@ -67,7 +67,7 @@ def spend_summary(ctx: click.Context, days: int) -> None:
 @click.pass_context
 def spend_recent(ctx: click.Context, limit: int) -> None:
     """Show recent spend entries."""
-    from codeops.spend.client import create_spend_client, resolve_spend_url
+    from voly.spend.client import create_spend_client, resolve_spend_url
 
     config = ctx.obj["config"]
     client = create_spend_client(resolve_spend_url(config.spend.remote_url))

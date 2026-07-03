@@ -1,5 +1,5 @@
 # Combat mission: plane-home-dashboard
-# Run: python3 -m codeops.cli smarty combat run plane-home-dashboard --sequential
+# Run: python3 -m voly.cli smarty combat run plane-home-dashboard --sequential
 
 name: plane-home-dashboard
 description: 'CRM Workspace Dashboard: bento-виджеты под Smarty (pipeline, inbox,

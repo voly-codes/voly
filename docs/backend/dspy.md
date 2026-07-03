@@ -16,7 +16,7 @@ DSPy — опциональный слой оптимизации. Он може
 | `shadow` | DSPy запускается параллельно, результат логируется, но не возвращается пользователю |
 | `active` | DSPy-результат заменяет классический для агентов из `config.dspy.agents` |
 
-Проверить статус: `codeops dspy status`
+Проверить статус: `voly dspy status`
 
 ---
 
@@ -28,7 +28,7 @@ DSPy — опциональный слой оптимизации. Он може
 HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL
 ```
 
-`codeops/inference/runtime.py` вызывает `DSPyRunner.run()` перед финальным
+`voly/inference/runtime.py` вызывает `DSPyRunner.run()` перед финальным
 обращением к `AIGateway.chat()`. Работает для text-only задач через Pipeline.
 
 Программы: `reviewer`, `architect`, `bugfixer`, `documenter`, `router`.
@@ -42,7 +42,7 @@ task → _dspy_plan_task() → refined_task → executor.run() → result
                                               → datasets_dir/task_planner/
 ```
 
-`codeops/runner/agent_runner.py` вызывает `TaskPlannerProgram` перед запуском
+`voly/runner/agent_runner.py` вызывает `TaskPlannerProgram` перед запуском
 любого executor. Активно только если `dspy.enabled=true`.
 
 После выполнения сохраняет пример `(task, refined_task, result)` в JSONL для
@@ -50,7 +50,7 @@ task → _dspy_plan_task() → refined_task → executor.run() → result
 
 ---
 
-## TaskPlannerProgram (`codeops/dspy/programs/task_planner.py`)
+## TaskPlannerProgram (`voly/dspy/programs/task_planner.py`)
 
 **Сигнатура:**
 - Input: `task` (оригинальная задача), `project_context` (краткий контекст проекта)
@@ -79,7 +79,7 @@ task → _dspy_plan_task() → refined_task → executor.run() → result
 
 ---
 
-## DSPy adapter (`codeops/dspy/adapter.py`)
+## DSPy adapter (`voly/dspy/adapter.py`)
 
 `VOLYDSPyLM` — адаптер между DSPy и VOLY AIGateway. Реализует DSPy `BaseLM`
 интерфейс. Все DSPy-вызовы идут через `gateway.chat()` — сохраняется cache, DLP,
@@ -98,28 +98,28 @@ dspy.configure(lm=lm)
 оптимизации через телепромптеры:
 
 ```python
-from codeops.dspy.compiler import DSPyCompiler
+from voly.dspy.compiler import DSPyCompiler
 compiler = DSPyCompiler(config)
 compiler.compile("task_planner", optimizer="bootstrap", tag="v1")
 ```
 
 Compiled programs хранятся в `programs_dir/` — это **runtime artifacts**, не source.
-Не коммитить в git. Продвинуть в production: `codeops dspy status` → promote.
+Не коммитить в git. Продвинуть в production: `voly dspy status` → promote.
 
 ---
 
 ## Конфиг
 
 ```yaml
-# codeops.yaml
+# voly.yaml
 dspy:
   enabled: false          # true чтобы включить
   mode: shadow            # off | shadow | active
   model: llama-scout      # модель для DSPy inference (из секции models:)
   provider: workers-ai    # провайдер для DSPy; пустая строка = из model config
   agents: []              # empty = все агенты (в active mode)
-  programs_dir: .codeops/dspy/programs
-  datasets_dir: .codeops/dspy/datasets
+  programs_dir: .voly/dspy/programs
+  datasets_dir: .voly/dspy/datasets
   active_tag: production
   shadow_tag: candidate
 ```

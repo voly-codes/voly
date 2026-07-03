@@ -1,6 +1,6 @@
 """Tests for Model Router."""
 
-from codeops.model_router import (
+from voly.model_router import (
     ModelRouter,
     ModelInfo,
     TaskCategory,

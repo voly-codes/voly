@@ -42,7 +42,7 @@
 
   const workerHints = {
     spend:       'Tracks AI API spend per agent using Durable Objects. Provides daily breakdown and agent-level cost attribution.',
-    marketplace: 'Serves skill definitions from D1 + R2. Supports FTS and semantic search via Vectorize. Skills are installed from here into .codeops/skills/.',
+    marketplace: 'Serves skill definitions from D1 + R2. Supports FTS and semantic search via Vectorize. Skills are installed from here into .voly/skills/.',
     agui:        'AG-UI protocol gateway. Streams agent events (text deltas, tool calls, state updates) to the frontend in real time.',
     memory:      'Semantic memory store. Embeds task results via Workers AI and stores them in Vectorize + D1 for future context retrieval.',
     a2a:         'Agent-to-Agent federation layer. Discovers specialized sub-agents and delegates tasks to the best match.',
@@ -128,7 +128,7 @@
         <AlertCircleIcon size="14" strokeWidth="2" />
         <div>
           <div>{spend.hint ?? 'CF Spend Worker not configured'}</div>
-          <code class="env-hint">CF_WORKER_SPEND_URL=https://codeops-spend.*.workers.dev</code>
+          <code class="env-hint">CF_WORKER_SPEND_URL=https://voly-spend.*.workers.dev</code>
         </div>
       </div>
     {:else if spend}

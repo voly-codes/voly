@@ -1,4 +1,4 @@
-"""CLI command: codeops ui — start the VOLY web dashboard."""
+"""CLI command: voly ui — start the VOLY web dashboard."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import click
 @click.command("ui")
 @click.option("--host", default="127.0.0.1", show_default=True, help="Bind host")
 @click.option("--port", "-p", default=7788, show_default=True, help="HTTP port")
-@click.option("--events-dir", default=None, help="Path to .codeops/events/ directory")
+@click.option("--events-dir", default=None, help="Path to .voly/events/ directory")
 @click.option("--dev", is_flag=True, help="Start Vite dev server instead of production build")
 @click.option("--build", "do_build", is_flag=True, help="Build the Svelte app before serving")
 @click.option("--reload", "hot_reload", is_flag=True, help="Auto-reload server on code changes (dev)")
@@ -28,14 +28,14 @@ def ui(
 ) -> None:
     """Start VOLY web dashboard (FastAPI + Svelte UI).
 
-    Production: codeops ui
-    Development: codeops ui --dev  (requires Node.js + npm)
+    Production: voly ui
+    Development: voly ui --dev  (requires Node.js + npm)
     """
     try:
         import uvicorn
     except ImportError:
         click.echo("Missing dependencies. Install with:", err=True)
-        click.echo("  pip install 'codeops[ui]'", err=True)
+        click.echo("  pip install 'voly[ui]'", err=True)
         sys.exit(1)
 
     ui_dir = pathlib.Path(__file__).parents[3] / "ui"
@@ -64,8 +64,8 @@ def ui(
         click.echo(
             "Svelte app not built yet. Run:\n"
             "  cd ui && npm install && npm run build\n"
-            "Or use --build flag: codeops ui --build\n"
-            "Or run in dev mode: codeops ui --dev",
+            "Or use --build flag: voly ui --build\n"
+            "Or run in dev mode: voly ui --dev",
             err=True,
         )
         sys.exit(1)
@@ -73,7 +73,7 @@ def ui(
     ev_path = pathlib.Path(events_dir) if events_dir else None
     config = ctx.obj.get("config") if ctx.obj else None
 
-    from codeops.web.server import create_app
+    from voly.web.server import create_app
 
     app = create_app(events_dir=ev_path, config=config)
     click.echo(f"VOLY UI: http://{host}:{port}")
@@ -81,7 +81,7 @@ def ui(
 
     if hot_reload:
         uvicorn.run(
-            "codeops.web.server:_dev_app",
+            "voly.web.server:_dev_app",
             host=host, port=port, log_level="info", reload=True,
             reload_dirs=[str(pathlib.Path(__file__).parents[2])],
         )

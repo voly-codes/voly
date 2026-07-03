@@ -1,7 +1,7 @@
 """
 VOLY configuration package.
 
-Public API — all names importable as `from codeops.config import <name>`:
+Public API — all names importable as `from voly.config import <name>`:
 
   Dataclasses:
     ModelConfig, AgentConfig, VOLYConfig,
@@ -18,7 +18,7 @@ Public API — all names importable as `from codeops.config import <name>`:
 Internal modules (underscore-prefixed) are not part of the public API.
 """
 
-from codeops.config._types import (
+from voly.config._types import (
     DEFAULT_CONFIG_FILENAME,
     DEFAULT_PROXY_PORT,
     A2AConfig,
@@ -39,9 +39,9 @@ from codeops.config._types import (
     TelemetryConfig,
     WorkflowConfig,
 )
-from codeops.config._defaults import _DEFAULT_MODELS
-from codeops.config._loader import load_config
-from codeops.config._template import create_default_config
+from voly.config._defaults import _DEFAULT_MODELS
+from voly.config._loader import load_config
+from voly.config._template import create_default_config
 
 __all__ = [
     # dataclasses

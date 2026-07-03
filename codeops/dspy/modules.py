@@ -31,7 +31,7 @@ except ImportError:
 
 def _require_dspy() -> None:
     if not _DSPY_AVAILABLE:
-        raise ImportError("DSPy is not installed. Run: pip install codeops[dspy]")
+        raise ImportError("DSPy is not installed. Run: pip install voly[dspy]")
 
 
 # Default strategy per agent
@@ -61,7 +61,7 @@ def build_module(agent: str, strategy: str | None = None) -> Any:
     """
     _require_dspy()
     import dspy
-    from codeops.dspy.signatures import AGENT_SIGNATURES, ROUTING_SIGNATURE
+    from voly.dspy.signatures import AGENT_SIGNATURES, ROUTING_SIGNATURE
 
     if agent == "router":
         sig = ROUTING_SIGNATURE()

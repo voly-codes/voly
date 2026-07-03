@@ -1,5 +1,5 @@
 # Combat mission: smarty-assignments-section
-# Run: python3 -m codeops.cli smarty combat run smarty-assignments-section --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-assignments-section --sequential
 
 name: smarty-assignments-section
 description: 'P0: Поручения — /assignments routes, sidebar, list/kanban/card from

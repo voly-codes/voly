@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from codeops.dspy.runner import DSPyResult, DSPyRunner
+    from voly.dspy.runner import DSPyResult, DSPyRunner
 else:
     DSPyResult = Any
     DSPyRunner = Any

@@ -1,6 +1,6 @@
 """Tests for MCP Manager."""
 
-from codeops.tools.mcp import MCPManager, MCPServer, ToolInfo
+from voly.tools.mcp import MCPManager, MCPServer, ToolInfo
 
 
 def test_mcp_manager_builtins() -> None:

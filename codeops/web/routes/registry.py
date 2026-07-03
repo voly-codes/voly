@@ -84,7 +84,7 @@ _FALLBACK_MODELS = [
 @router.get("/api/registry/agents")
 def registry_agents() -> list[str]:
     try:
-        from codeops.registry.agents import AgentRegistry
+        from voly.registry.agents import AgentRegistry
         return AgentRegistry().list_names()
     except Exception:
         return _FALLBACK_AGENTS
@@ -95,7 +95,7 @@ def registry_models(executor: str = "pipeline") -> list[str]:
     if executor in _EXECUTOR_MODELS:
         return _EXECUTOR_MODELS[executor]
     try:
-        from codeops.telemetry import _COST_RATES
+        from voly.telemetry import _COST_RATES
         return list(_COST_RATES.keys())
     except Exception:
         return _FALLBACK_MODELS
@@ -104,7 +104,7 @@ def registry_models(executor: str = "pipeline") -> list[str]:
 @router.get("/api/registry/skills")
 def registry_skills(source: str = "", status: str = "active") -> list[dict[str, Any]]:
     try:
-        from codeops.registry.skills import SkillRegistry
+        from voly.registry.skills import SkillRegistry
         skills = SkillRegistry().search(source=source or None, status=status or None)
         return [s.to_dict() for s in skills]
     except Exception as exc:

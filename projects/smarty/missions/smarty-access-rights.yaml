@@ -1,5 +1,5 @@
 # Combat mission: smarty-access-rights
-# Run: python3 -m codeops.cli smarty combat run smarty-access-rights --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-access-rights --sequential
 
 name: smarty-access-rights
 description: 'P1: Access rights matrix at /settings/access-rights — roles × operations.'

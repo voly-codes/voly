@@ -1,5 +1,5 @@
 # Combat mission: smarty-custom-fields-advanced
-# Run: python3 -m codeops.cli smarty combat run smarty-custom-fields-advanced --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-custom-fields-advanced --sequential
 
 name: smarty-custom-fields-advanced
 description: 'P1: Advanced custom field types — TipTap, geo, amount, phone in editor

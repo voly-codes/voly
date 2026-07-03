@@ -171,8 +171,8 @@
               onclick={() => install(skill)}
               disabled={!!installing[skill.id] || !!installed[skill.id]}
               title={installed[skill.id]
-                ? 'Установлен в .codeops/skills/ — будет активен при следующем запуске pipeline'
-                : 'Скачать скил в .codeops/skills/ — после этого он будет автоматически добавляться в контекст агента'}
+                ? 'Установлен в .voly/skills/ — будет активен при следующем запуске pipeline'
+                : 'Скачать скил в .voly/skills/ — после этого он будет автоматически добавляться в контекст агента'}
             >
               {#if installed[skill.id]}
                 <CheckIcon size="11" strokeWidth="2.5" />

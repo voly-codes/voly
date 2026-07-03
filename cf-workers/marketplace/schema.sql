@@ -1,5 +1,5 @@
 -- VOLY Marketplace — D1 schema (fresh install)
--- For existing installs run: wrangler d1 execute codeops --file=migrate/001_add_content.sql --remote
+-- For existing installs run: wrangler d1 execute voly --file=migrate/001_add_content.sql --remote
 
 CREATE TABLE IF NOT EXISTS skills (
   id TEXT PRIMARY KEY,

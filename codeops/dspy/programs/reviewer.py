@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from codeops.dspy.programs.base import BaseProgram
-from codeops.dspy.programs.registry import register_program
+from voly.dspy.programs.base import BaseProgram
+from voly.dspy.programs.registry import register_program
 
 
 class ReviewProgram(BaseProgram):
@@ -17,13 +17,13 @@ class ReviewProgram(BaseProgram):
     def build(self) -> Any:
         self.ensure_dspy()
         import dspy
-        from codeops.dspy.signatures import build_review_code_signature
+        from voly.dspy.signatures import build_review_code_signature
 
         signature = build_review_code_signature()
         return dspy.ChainOfThought(signature)
 
     def get_metric(self) -> Any:
-        from codeops.dspy.metrics import review_metric
+        from voly.dspy.metrics import review_metric
 
         return review_metric
 

@@ -17,7 +17,7 @@ def cf_spend_summary(request: Request, days: int = 7) -> dict[str, Any]:
         return {"configured": False, "hint": "Set CF_WORKER_SPEND_URL to enable",
                 "total": 0, "agents": []}
     try:
-        from codeops.spend.client import SpendClient
+        from voly.spend.client import SpendClient
         data = SpendClient(url).summary(days=days)
         data["configured"] = True
     except Exception as exc:
@@ -26,7 +26,7 @@ def cf_spend_summary(request: Request, days: int = 7) -> dict[str, Any]:
     # The spend worker returns total/agents but no per-day series — attach a daily
     # breakdown from local telemetry so the "По дням" chart is populated.
     if not data.get("daily"):
-        from codeops.web.routes.telemetry import _load_events, aggregate
+        from voly.web.routes.telemetry import _load_events, aggregate
         agg = aggregate(_load_events(request.app.state.app.ev_dir), days)
         data["daily"] = [{"date": d["date"], "total": d["cost"]} for d in agg["daily"]]
     return data
@@ -54,7 +54,7 @@ def cf_workers_status(request: Request) -> dict[str, Any]:
 @router.get("/api/providers/health")
 def providers_health() -> dict[str, Any]:
     """Return health status for each LLM provider (key-presence check, ~1s TTL cache)."""
-    from codeops.ai_gateway.health import PROVIDER_PRIORITY, get_checker
+    from voly.ai_gateway.health import PROVIDER_PRIORITY, get_checker
     checker = get_checker()
     return {
         "providers": {

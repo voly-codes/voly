@@ -1,4 +1,4 @@
-"""Default codeops.yaml template written by `codeops init`."""
+"""Default voly.yaml template written by `voly init`."""
 
 from pathlib import Path
 
@@ -58,7 +58,7 @@ memory:
   enabled: false
   backend: hybrid
   remote_url: "${CF_WORKER_MEMORY_URL}"
-  db_path: ".codeops/memory.db"
+  db_path: ".voly/memory.db"
 
 a2a:
   enabled: true
@@ -93,8 +93,8 @@ workflow:
 
 registry:
   enabled: true
-  agents_path: ".codeops/agents"
-  skills_path: ".codeops/skills"
+  agents_path: ".voly/agents"
+  skills_path: ".voly/skills"
 
 scanner:
   enabled: true
@@ -138,13 +138,13 @@ cost_policy:
 
 telemetry:
   enabled: true
-  events_dir: ".codeops/events"
+  events_dir: ".voly/events"
   pipeline_url: "${CF_PIPELINE_TELEMETRY_ENDPOINT}"
   pipeline_enabled: true
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
-# DSPy optimizer layer (optional, requires: pip install codeops[dspy])
+# DSPy optimizer layer (optional, requires: pip install voly[dspy])
 # mode: off | shadow | active
 # shadow — runs in parallel, logs diff to telemetry, does NOT affect responses
 # active — replaces AIGateway.chat() for agents listed in `agents`

@@ -1,5 +1,5 @@
 # Combat mission: remove-tasks
-# Run: python3 -m codeops.cli smarty combat run remove-tasks --sequential
+# Run: python3 -m voly.cli smarty combat run remove-tasks --sequential
 
 name: remove-tasks
 description: 'Полное удаление модуля Tasks (ежедневник): миграция shared-компонентов

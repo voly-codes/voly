@@ -1,9 +1,9 @@
 """
 Agent Runner — запуск IDE-агентов как подпроцессов с RTK, бюджетом и телеметрией.
 
-    codeops runner cursor "implement auth"
-    codeops runner developer "fix login bug"
-    codeops runner claude-code "refactor api.ts"
+    voly runner cursor "implement auth"
+    voly runner developer "fix login bug"
+    voly runner claude-code "refactor api.ts"
 """
 
 from __future__ import annotations
@@ -14,13 +14,13 @@ import time
 from dataclasses import dataclass
 from typing import Any, Callable
 
-_chain_log = logging.getLogger("codeops.chain")
+_chain_log = logging.getLogger("voly.chain")
 
-from codeops.automation import compute_automation_metrics
-from codeops.config import VOLYConfig
-from codeops.cost_policy import budget_status, detect_task_type
-from codeops.executor.base import Executor, ExecutorResult, WorkReport
-from codeops.telemetry import TaskEvent, TokenMetrics, emit_event_from_config, new_task_id
+from voly.automation import compute_automation_metrics
+from voly.config import VOLYConfig
+from voly.cost_policy import budget_status, detect_task_type
+from voly.executor.base import Executor, ExecutorResult, WorkReport
+from voly.telemetry import TaskEvent, TokenMetrics, emit_event_from_config, new_task_id
 
 
 # ── Git helpers ───────────────────────────────────────────────────────────────
@@ -138,9 +138,9 @@ def _dspy_plan_task(
     Returns (refined_task, plan_dict). On any failure returns original task unchanged.
     The plan_dict contains: refined_task, success_criteria, estimated_complexity.
     """
-    from codeops.dspy.programs.registry import get_registry
-    from codeops.dspy.adapter import VOLYDSPyLM
-    from codeops.ai_gateway import AIGateway
+    from voly.dspy.programs.registry import get_registry
+    from voly.dspy.adapter import VOLYDSPyLM
+    from voly.ai_gateway import AIGateway
 
     registry = get_registry()
     program_def = registry.get("task_planner")
@@ -228,7 +228,7 @@ def resolve_executor(agent: str, config: VOLYConfig) -> tuple[str, str]:
         return agent_cfg.executor, key
 
     try:
-        from codeops.registry.agents import AgentRegistry
+        from voly.registry.agents import AgentRegistry
 
         reg = AgentRegistry()
         definition = reg.get(key)
@@ -257,25 +257,25 @@ def _build_executor(executor_name: str, model: str | None = None) -> Executor:
         kwargs["model"] = model
     factories: dict[str, Callable[[], Executor]] = {
         "cursor": lambda: __import__(
-            "codeops.executor.cursor", fromlist=["CursorExecutor"]
+            "voly.executor.cursor", fromlist=["CursorExecutor"]
         ).CursorExecutor(**kwargs),
         "claude-code": lambda: __import__(
-            "codeops.executor.claude_code", fromlist=["ClaudeCodeExecutor"]
+            "voly.executor.claude_code", fromlist=["ClaudeCodeExecutor"]
         ).ClaudeCodeExecutor(),
         "mimo": lambda: __import__(
-            "codeops.executor.mimo", fromlist=["MiMoExecutor"]
+            "voly.executor.mimo", fromlist=["MiMoExecutor"]
         ).MiMoExecutor(),
         "opencode": lambda: __import__(
-            "codeops.executor.opencode", fromlist=["OpenCodeExecutor"]
+            "voly.executor.opencode", fromlist=["OpenCodeExecutor"]
         ).OpenCodeExecutor(**kwargs),
         "deepseek": lambda: __import__(
-            "codeops.executor.deepseek", fromlist=["DeepSeekExecutor"]
+            "voly.executor.deepseek", fromlist=["DeepSeekExecutor"]
         ).DeepSeekExecutor(**kwargs),
         "zen": lambda: __import__(
-            "codeops.executor.zen", fromlist=["ZenExecutor"]
+            "voly.executor.zen", fromlist=["ZenExecutor"]
         ).ZenExecutor(**kwargs),
         "wrangler": lambda: __import__(
-            "codeops.executor.wrangler", fromlist=["WranglerExecutor"]
+            "voly.executor.wrangler", fromlist=["WranglerExecutor"]
         ).WranglerExecutor(),
     }
     if executor_name not in factories:
@@ -304,7 +304,7 @@ class AgentRunner:
     def setup_rtk(self) -> None:
         if not self.config.rtk.enabled:
             return
-        from codeops.rtk.installer import RTKManager
+        from voly.rtk.installer import RTKManager
 
         rtk = RTKManager(self.config.rtk.binary_path)
         if not rtk.is_installed() and self.config.rtk.auto_install:
@@ -344,7 +344,7 @@ class AgentRunner:
             try:
                 effective_task, dspy_plan_result = _dspy_plan_task(task, self.config)
             except Exception as exc:
-                logging.getLogger("codeops.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
+                logging.getLogger("voly.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
 
         git_before = _git_porcelain(cwd)
         t0 = time.monotonic()
@@ -444,7 +444,7 @@ class AgentRunner:
             try:
                 _dspy_store_example(task, effective_task, result, self.config)
             except Exception as exc:
-                logging.getLogger("codeops.chain").debug("[CHAIN:DSPY_STORE] error=%s", exc)
+                logging.getLogger("voly.chain").debug("[CHAIN:DSPY_STORE] error=%s", exc)
 
         git_after = _git_porcelain(cwd)
         work_report = _build_work_report(result.output or "", git_before, git_after)

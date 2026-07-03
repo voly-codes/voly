@@ -25,9 +25,9 @@ jobs:
       - name: Import smoke test without DSPy extra
         run: |
           python - <<'PY'
-          import codeops.pipeline
-          import codeops.inference
-          from codeops.config import VOLYConfig
+          import voly.pipeline
+          import voly.inference
+          from voly.config import VOLYConfig
           cfg = VOLYConfig()
           assert cfg.dspy.enabled is False
           print("base import ok")
@@ -55,9 +55,9 @@ jobs:
       - name: DSPy import smoke test
         run: |
           python - <<'PY'
-          import codeops.dspy
-          import codeops.dspy.programs
-          import codeops.inference
+          import voly.dspy
+          import voly.dspy.programs
+          import voly.inference
           print("dspy extra import ok")
           PY
 

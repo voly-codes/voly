@@ -1,8 +1,8 @@
 # Combat mission: vibe-migration-fixups
 # Хвосты LAN-131/132/133: IconButton icon=, Vibe input props, синтаксис после скриптов.
 # Run:
-#   cd /home/user1/smarty/smarty-code/codeops && source .env
-#   python3 -m codeops.cli smarty combat run vibe-migration-fixups --sequential
+#   cd /home/user1/smarty/smarty-code/voly && source .env
+#   python3 -m voly.cli smarty combat run vibe-migration-fixups --sequential
 
 name: vibe-migration-fixups
 description: >

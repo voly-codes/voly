@@ -54,7 +54,7 @@ pip install -e ".[dspy,dev]"
 Smoke check:
 
 ```bash
-codeops dspy status
+voly dspy status
 pytest tests/test_dspy_runtime_smoke.py
 ```
 
@@ -64,8 +64,8 @@ pytest tests/test_dspy_runtime_smoke.py
 dspy:
   enabled: false
   mode: shadow              # off | shadow | active
-  programs_dir: ".codeops/dspy/programs"
-  datasets_dir: ".codeops/dspy/datasets"
+  programs_dir: ".voly/dspy/programs"
+  datasets_dir: ".voly/dspy/datasets"
   optimizer: bootstrap_fewshot
   min_examples: 20
   compile_budget: small     # small | medium | large
@@ -99,12 +99,12 @@ Shadow mode may run both DSPy and classic LLM calls for a single task. Use it in
 ## CLI
 
 ```bash
-codeops dspy status
-codeops dspy dataset build
-codeops dspy compile --agent reviewer
-codeops dspy eval --agent reviewer
-codeops dspy programs
-codeops dspy promote code-review.v2 --tag production
+voly dspy status
+voly dspy dataset build
+voly dspy compile --agent reviewer
+voly dspy eval --agent reviewer
+voly dspy programs
+voly dspy promote code-review.v2 --tag production
 ```
 
 ## Program lifecycle
@@ -131,15 +131,15 @@ active rollout for selected agents
 
 | File | Purpose |
 |---|---|
-| `codeops/dspy/adapter.py` | DSPy LM adapter over `AIGateway.chat()` |
-| `codeops/dspy/runner.py` | Runtime entry point used by `DSPyRuntime` |
-| `codeops/dspy/signatures.py` | DSPy signatures |
-| `codeops/dspy/modules.py` | DSPy modules (forward/optimize methods) |
-| `codeops/dspy/programs/` | Program definitions and registry |
-| `codeops/dspy/compiler.py` | Dataset loading and compile pipeline |
-| `codeops/dspy/store.py` | Versioned compiled program storage |
-| `codeops/dspy/versioning.py` | Tags and metadata |
-| `codeops/dspy/metrics.py` | Optimizer metrics |
+| `voly/dspy/adapter.py` | DSPy LM adapter over `AIGateway.chat()` |
+| `voly/dspy/runner.py` | Runtime entry point used by `DSPyRuntime` |
+| `voly/dspy/signatures.py` | DSPy signatures |
+| `voly/dspy/modules.py` | DSPy modules (forward/optimize methods) |
+| `voly/dspy/programs/` | Program definitions and registry |
+| `voly/dspy/compiler.py` | Dataset loading and compile pipeline |
+| `voly/dspy/store.py` | Versioned compiled program storage |
+| `voly/dspy/versioning.py` | Tags and metadata |
+| `voly/dspy/metrics.py` | Optimizer metrics |
 
 ## Telemetry fields
 
@@ -172,7 +172,7 @@ DSPy metadata is attached to `TaskEvent` and `PipelineResult`:
 ## Development rules
 
 - Do not import DSPy at top-level in base runtime paths.
-- Keep base install working without `codeops[dspy]`.
+- Keep base install working without `voly[dspy]`.
 - Do not commit generated datasets or compiled programs by default.
 - Any new DSPy program should have a metric and a documented input/output contract.
 - Any user-visible behavior change must be represented in telemetry.

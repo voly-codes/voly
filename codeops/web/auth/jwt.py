@@ -10,7 +10,7 @@ from typing import Any
 
 import jwt
 
-from codeops.config import AuthConfig
+from voly.config import AuthConfig
 
 TOKEN_TYPE_ACCESS = "access"
 

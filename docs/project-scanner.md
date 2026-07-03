@@ -97,16 +97,16 @@ class ProjectProfile:
 
 ```bash
 # Сканировать текущую директорию
-codeops scan
+voly scan
 
 # Сканировать конкретный путь
-codeops scan /path/to/project
+voly scan /path/to/project
 
 # Вывод в JSON
-codeops scan --json
+voly scan --json
 
 # Только языки и фреймворки (быстрый режим)
-codeops scan --summary
+voly scan --summary
 ```
 
 ### Пример вывода
@@ -187,7 +187,7 @@ routing_score = base_score × language_match × framework_match × skill_coverag
 ### Добавить новый язык
 
 ```python
-from codeops.scanner import Scanner
+from voly.scanner import Scanner
 
 scanner = Scanner(".")
 scanner.add_language_pattern(
@@ -212,7 +212,7 @@ scanner.add_framework_pattern(
 ## Программный доступ
 
 ```python
-from codeops.scanner import Scanner
+from voly.scanner import Scanner
 
 scanner = Scanner("/path/to/project")
 profile = scanner.scan()
@@ -225,7 +225,7 @@ print(profile.recommended_skills)    # ["skill-nextjs", "skill-postgres"]
 # Экспорт в dict
 data = profile.to_dict()
 
-# Сохранить в .codeops/profile.json для кэширования
+# Сохранить в .voly/profile.json для кэширования
 profile.save()
 
 # Загрузить кэш без повторного сканирования

@@ -1,5 +1,5 @@
 # Combat mission: smarty-extbots-admin
-# Run: python3 -m codeops.cli smarty combat run smarty-extbots-admin --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-extbots-admin --sequential
 
 name: smarty-extbots-admin
 description: 'P2: ExtBots admin — /extbot list/card, ExtFlow texts, templates; features.bots

@@ -5,7 +5,7 @@ import type { Env } from "./pipeline";
 import { callPipelineRunner } from "./pipeline";
 
 export class VOLYMcpAgent extends McpAgent<Env> {
-  server = new McpServer({ name: "codeops-agent", version: "1.0.0" });
+  server = new McpServer({ name: "voly-agent", version: "1.0.0" });
 
   async init() {
     this.server.registerTool(

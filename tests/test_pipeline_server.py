@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock
 
-from codeops.config import VOLYConfig
-from codeops.pipeline_server import create_pipeline_handler
+from voly.config import VOLYConfig
+from voly.pipeline_server import create_pipeline_handler
 
 
 def _make_handler(token: str = ""):

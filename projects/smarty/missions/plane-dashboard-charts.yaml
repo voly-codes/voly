@@ -1,5 +1,5 @@
 # Combat mission: plane-dashboard-charts
-# Run: python3 -m codeops.cli smarty combat run plane-dashboard-charts --sequential
+# Run: python3 -m voly.cli smarty combat run plane-dashboard-charts --sequential
 
 name: plane-dashboard-charts
 description: 'Dashboard Plane charts: active-cycles → active sprints widget, all-issues

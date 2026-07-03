@@ -1,4 +1,4 @@
-"""CLI: codeops catalog — agent/model catalog from OpenCode Zen."""
+"""CLI: voly catalog — agent/model catalog from OpenCode Zen."""
 
 from __future__ import annotations
 
@@ -17,21 +17,21 @@ def catalog() -> None:
 @click.option("--push", is_flag=True, help="Push to CF catalog worker if CF_WORKER_CATALOG_URL set")
 @click.pass_context
 def catalog_sync(ctx: click.Context, push: bool) -> None:
-    """Sync models from OpenCode Zen API to .codeops/catalog/models.json."""
+    """Sync models from OpenCode Zen API to .voly/catalog/models.json."""
     from pathlib import Path
 
-    from codeops.catalog.supervisor import CombatSupervisor
+    from voly.catalog.supervisor import CombatSupervisor
 
     cwd = Path.cwd()
     project = cwd
-    codeops_root = cwd if (cwd / "codeops" / "codeops").is_dir() else cwd.parent
-    if (cwd / "codeops.yaml").is_file() or (cwd / "codeops" / "codeops.yaml").is_file():
-        codeops_root = cwd / "codeops" if (cwd / "codeops" / "codeops.yaml").is_file() else cwd
+    voly_root = cwd if (cwd / "voly" / "voly").is_dir() else cwd.parent
+    if (cwd / "voly.yaml").is_file() or (cwd / "voly" / "voly.yaml").is_file():
+        voly_root = cwd / "voly" if (cwd / "voly" / "voly.yaml").is_file() else cwd
 
-    sup = CombatSupervisor(str(project), codeops_root=Path(codeops_root))
+    sup = CombatSupervisor(str(project), voly_root=Path(voly_root))
     try:
         n = sup.sync_catalog(push_remote=push)
-        click.echo(f"Synced {n} models → {Path(codeops_root) / '.codeops/catalog/models.json'}")
+        click.echo(f"Synced {n} models → {Path(voly_root) / '.voly/catalog/models.json'}")
     except Exception as exc:
         click.echo(f"Sync failed: {exc}", err=True)
         raise SystemExit(1) from exc
@@ -42,7 +42,7 @@ def catalog_sync(ctx: click.Context, push: bool) -> None:
 @click.option("--json", "as_json", is_flag=True)
 def catalog_list(tier: str | None, as_json: bool) -> None:
     """List cached catalog models."""
-    from codeops.catalog.store import load_models
+    from voly.catalog.store import load_models
 
     models = load_models()
     if tier:
@@ -51,7 +51,7 @@ def catalog_list(tier: str | None, as_json: bool) -> None:
         click.echo(json.dumps([m.to_dict() for m in models], ensure_ascii=False, indent=2))
         return
     if not models:
-        click.echo("No models in cache. Run: codeops catalog sync")
+        click.echo("No models in cache. Run: voly catalog sync")
         return
     click.echo(f"{'ID':<28} {'Tier':<10} {'Provider':<12} Executors")
     click.echo("-" * 70)
@@ -65,7 +65,7 @@ def catalog_list(tier: str | None, as_json: bool) -> None:
 @click.option("--json", "as_json", is_flag=True)
 def catalog_match(task: str, as_json: bool) -> None:
     """Match task text to executor + model."""
-    from codeops.catalog.routing import match_task
+    from voly.catalog.routing import match_task
 
     executor, model = match_task(task)
     out = {"task": task, "executor": executor, "model": model}
@@ -80,7 +80,7 @@ def catalog_match(task: str, as_json: bool) -> None:
 @click.argument("mission_id")
 def catalog_plan(mission_id: str) -> None:
     """Show supervised routing plan for a combat mission."""
-    from codeops.catalog.routing import get_mission_plan
+    from voly.catalog.routing import get_mission_plan
 
     steps = get_mission_plan(mission_id)
     if not steps:

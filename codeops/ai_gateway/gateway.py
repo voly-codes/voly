@@ -14,9 +14,9 @@ from .models import (
     RateLimit, SpendLimit, CacheConfig, FallbackChain, DLPConfig, GatewayMetrics,
 )
 from .providers import _GatewayProvidersMixin
-from codeops.telemetry import _estimate_cost as _telemetry_estimate_cost
+from voly.telemetry import _estimate_cost as _telemetry_estimate_cost
 
-_log = logging.getLogger("codeops.ai_gateway")
+_log = logging.getLogger("voly.ai_gateway")
 
 # Providers natively supported by Cloudflare AI Gateway
 _CF_PROVIDERS = frozenset({"anthropic", "openai", "google-ai-studio", "deepseek"})
@@ -178,7 +178,7 @@ class AIGateway(_GatewayProvidersMixin):
         url = self.provider_url(provider_name)
         headers: dict[str, str] = {
             "Content-Type": "application/json",
-            "User-Agent": "codeops/0.1.0",
+            "User-Agent": "voly/0.1.0",
         }
         if self.api_token:
             headers["cf-aig-authorization"] = f"Bearer {self.api_token}"

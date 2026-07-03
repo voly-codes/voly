@@ -23,7 +23,7 @@ except ImportError:
 
 def _require_dspy() -> None:
     if not _DSPY_AVAILABLE:
-        raise ImportError("DSPy is not installed. Run: pip install codeops[dspy]")
+        raise ImportError("DSPy is not installed. Run: pip install voly[dspy]")
 
 
 # ---------------------------------------------------------------------------

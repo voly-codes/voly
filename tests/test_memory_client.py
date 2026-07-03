@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codeops.memory.client import (
+from voly.memory.client import (
     MemoryClient,
     create_memory_client,
     resolve_memory_url,

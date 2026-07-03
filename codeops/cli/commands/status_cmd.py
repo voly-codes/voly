@@ -1,4 +1,4 @@
-"""CLI command: codeops status."""
+"""CLI command: voly status."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ import click
 @click.pass_context
 def status(ctx: click.Context) -> None:
     """Show status of all VOLY components."""
-    from codeops.pipeline import Pipeline
-    from codeops.telemetry import resolve_pipeline_endpoint
+    from voly.pipeline import Pipeline
+    from voly.telemetry import resolve_pipeline_endpoint
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)

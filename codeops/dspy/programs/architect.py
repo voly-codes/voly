@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from codeops.dspy.programs.base import BaseProgram
-from codeops.dspy.programs.registry import register_program
+from voly.dspy.programs.base import BaseProgram
+from voly.dspy.programs.registry import register_program
 
 
 class ArchitectProgram(BaseProgram):
@@ -17,13 +17,13 @@ class ArchitectProgram(BaseProgram):
     def build(self) -> Any:
         self.ensure_dspy()
         import dspy
-        from codeops.dspy.signatures import build_architecture_analysis_signature
+        from voly.dspy.signatures import build_architecture_analysis_signature
 
         signature = build_architecture_analysis_signature()
         return dspy.ChainOfThought(signature)
 
     def get_metric(self) -> Any:
-        from codeops.dspy.metrics import architecture_metric
+        from voly.dspy.metrics import architecture_metric
 
         return architecture_metric
 

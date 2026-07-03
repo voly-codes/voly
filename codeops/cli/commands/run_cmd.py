@@ -1,4 +1,4 @@
-"""CLI command: codeops run."""
+"""CLI command: voly run."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def run(
         _run_with_executor(task, executor, cwd, max_turns, output_json, ctx)
         return
 
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -99,7 +99,7 @@ def _run_with_executor(
     output_json: bool,
     ctx: click.Context,
 ) -> None:
-    from codeops.runner.agent_runner import AgentRunner
+    from voly.runner.agent_runner import AgentRunner
 
     if not task:
         task = click.prompt("Task description")

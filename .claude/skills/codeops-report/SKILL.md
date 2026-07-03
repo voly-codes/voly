@@ -1,17 +1,17 @@
 ---
-name: codeops-report
+name: voly-report
 description: Create a task completion report after finishing any VOLY task. Shows what changed, which files were modified, test results, doc updates, and open items.
 ---
 
 # VOLY Report Skill
 
-Создай отчёт о завершённой задаче. Сохрани в `.codeops/reports/`.
+Создай отчёт о завершённой задаче. Сохрани в `.voly/reports/`.
 
 ---
 
 ## Формат отчёта
 
-Создай файл: `.codeops/reports/YYYY-MM-DD-<краткое-название>.md`
+Создай файл: `.voly/reports/YYYY-MM-DD-<краткое-название>.md`
 
 ```markdown
 # Report: <название задачи>
@@ -28,8 +28,8 @@ description: Create a task completion report after finishing any VOLY task. Show
 
 | File | Action | Description |
 |---|---|---|
-| codeops/executor/wrangler.py | created | WranglerExecutor — calls CF Workers AI |
-| codeops/runner/agent_runner.py | modified | Added wrangler to BILLING_FALLBACK_CHAIN |
+| voly/executor/wrangler.py | created | WranglerExecutor — calls CF Workers AI |
+| voly/runner/agent_runner.py | modified | Added wrangler to BILLING_FALLBACK_CHAIN |
 | docs/backend/executors.md | updated | Added WranglerExecutor section |
 
 ## What was added / changed
@@ -89,7 +89,7 @@ git status
 pytest tests/test_dspy_runtime_smoke.py -q
 
 # Создать директорию если нет
-mkdir -p .codeops/reports
+mkdir -p .voly/reports
 
 # Записать отчёт
 # Используй текущую дату из env: date +%Y-%m-%d
@@ -104,4 +104,4 @@ mkdir -p .codeops/reports
 3. Тесты должны быть запущены ДО создания отчёта
 4. Open items — честный список что осталось незакрытым
 5. Если задача провалилась — отчёт всё равно создаётся с `Status: failed` и объяснением
-6. Отчёты НЕ коммитятся (`.codeops/` в `.gitignore`)
+6. Отчёты НЕ коммитятся (`.voly/` в `.gitignore`)

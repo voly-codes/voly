@@ -13,7 +13,7 @@ Developer / UI / CI
       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ Entry points                                                    │
-│ CLI (codeops run ...) · POST /api/run · codeops runner          │
+│ CLI (voly run ...) · POST /api/run · voly runner          │
 └──────────────────────┬──────────────────────────────────────────┘
                        │
           ┌────────────┴────────────┐
@@ -43,7 +43,7 @@ Developer / UI / CI
 └──────────────────────────────────────────────────┘
 ```
 
-**Smart dispatch** (`codeops/web/routes/run.py`): когда `POST /api/run` получает
+**Smart dispatch** (`voly/web/routes/run.py`): когда `POST /api/run` получает
 `executor=pipeline` и задача требует code gen (`requires_code_gen=True`) — автоматически
 переключается на executor path с `executor=claude-code`.
 
@@ -51,18 +51,18 @@ Developer / UI / CI
 
 ## Design principles
 
-1. **VOLY stays project-agnostic.** Никакой product-specific логики в `codeops/`.
+1. **VOLY stays project-agnostic.** Никакой product-specific логики в `voly/`.
 2. **AIGateway — единственный выход к моделям.** DSPy, InferenceManager, все рантаймы идут через него.
 3. **Optimization is layered.** RTK, Headroom и DSPy независимы с явным fallback.
 4. **Shadow before active.** Новое поведение оптимизатора — сначала shadow, потом active.
-5. **Runtime state is not source.** `.codeops/events/`, datasets, compiled programs — генерируемые артефакты.
+5. **Runtime state is not source.** `.voly/events/`, datasets, compiled programs — генерируемые артефакты.
 6. **Billing fallback chain.** При ошибке биллинга executor автоматически заменяется: `claude-code → wrangler → zen`.
 
 ---
 
 ## Pipeline path (text / inference)
 
-`codeops/pipeline/core.py:Pipeline.run()` — для text-only задач.
+`voly/pipeline/core.py:Pipeline.run()` — для text-only задач.
 
 ### Стадии
 
@@ -106,7 +106,7 @@ class PipelineResult:
 
 ## Executor path (file-capable agents)
 
-`codeops/runner/agent_runner.py:AgentRunner.run()` — для задач с записью файлов.
+`voly/runner/agent_runner.py:AgentRunner.run()` — для задач с записью файлов.
 
 ### Billing fallback chain
 
@@ -131,7 +131,7 @@ task
 ### Chain logs
 
 ```
-codeops.chain logger:
+voly.chain logger:
 [CHAIN:START]            — первая попытка
 [CHAIN:DSPY_PLAN]        — DSPy отрефайнил задачу
 [CHAIN:RESULT]           — результат + billing_error
@@ -156,7 +156,7 @@ codeops.chain logger:
 
 ## Key modules
 
-### `codeops/pipeline/` — central orchestrator (text path)
+### `voly/pipeline/` — central orchestrator (text path)
 
 `Pipeline.run()` → stage methods + mixins. Не содержит product logic.
 
@@ -173,7 +173,7 @@ codeops.chain logger:
 | `_stage_agui_done` | stream to AG-UI |
 | `_emit_task_event` | telemetry |
 
-### `codeops/runner/agent_runner.py` — executor path
+### `voly/runner/agent_runner.py` — executor path
 
 `AgentRunner.run()` orchestrates: DSPy plan → executor → billing fallback → git diff → telemetry.
 
@@ -182,7 +182,7 @@ BILLING_FALLBACK_CHAIN = ["claude-code", "wrangler", "zen"]
 EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepseek", "zen", "wrangler"})
 ```
 
-### `codeops/executor/` — file-capable runtimes
+### `voly/executor/` — file-capable runtimes
 
 | Executor | File | Purpose |
 |---|---|---|
@@ -195,7 +195,7 @@ EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepse
 | `opencode.py` | OpenCodeExecutor | OpenCode CLI/API |
 | `deepseek.py` | DeepSeekExecutor | text only |
 
-### `codeops/inference/runtime.py` — runtime selection
+### `voly/inference/runtime.py` — runtime selection
 
 | Runtime | Role |
 |---|---|
@@ -203,7 +203,7 @@ EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepse
 | `DSPyRuntime` | optional DSPy program → `DSPyRunner` → `AIGateway.chat()` |
 | `InferenceManager` | выбирает runtime, fallback на classic |
 
-### `codeops/dspy/` — DSPy optimizer layer
+### `voly/dspy/` — DSPy optimizer layer
 
 Опциональный слой. Установка: `pip install -e ".[dspy]"`.
 Два места интеграции: Pipeline (DSPyRuntime) и AgentRunner (TaskPlannerProgram).
@@ -224,7 +224,7 @@ EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepse
 | `versioning.py` | tags: candidate / production |
 | `metrics.py` | optimizer metrics |
 
-### `codeops/ai_gateway/` — model gateway
+### `voly/ai_gateway/` — model gateway
 
 `AIGateway.chat()` — единственный выход к провайдерам.
 
@@ -239,7 +239,7 @@ Middleware stack: DLP → Cache → Rate limit → Spend limit → Provider call
 | Workers AI | CF AI Gateway `/compat` или `env.AI.run()` |
 | Executors | bypass gateway — запускают субпроцессы |
 
-### `codeops/web/` — backend API
+### `voly/web/` — backend API
 
 | File | Purpose |
 |---|---|
@@ -270,12 +270,12 @@ Hash-based routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`.
 | `telemetry/TelemetryPage.svelte` | spending analytics |
 | `dspy/DSPyPage.svelte` | DSPy programs + lifecycle |
 
-### `codeops/telemetry.py` — task telemetry
+### `voly/telemetry.py` — task telemetry
 
 `TaskEvent` — эмитируется для каждого pipeline/executor запуска.
 `_COST_RATES` — единственный источник правды для pricing rates.
 
-Destinations: `.codeops/events/<task_id>.json` + optional CF Pipelines / R2.
+Destinations: `.voly/events/<task_id>.json` + optional CF Pipelines / R2.
 
 ### `cf-workers/agent/` — CF Worker
 
@@ -297,7 +297,7 @@ See `docs/backend/a2a.md`.
 
 **A2A callback:** после `/agents/:name/run` worker вызывает `completeA2ATask()` → federation
 `POST /tasks/:id/complete`. Worker-to-worker fetch на `*.workers.dev` блокируется (CF error 1042);
-используется **service binding** `A2A_FEDERATION` → `codeops-a2a` (см. `wrangler.jsonc`).
+используется **service binding** `A2A_FEDERATION` → `voly-a2a` (см. `wrangler.jsonc`).
 
 ### `cf-workers/a2a/` — A2A federation hub
 
@@ -306,7 +306,7 @@ See `docs/backend/a2a.md`.
 | `POST /tasks` | create task (+ optional queue dispatch) |
 | `GET /tasks/:id` | task status |
 | `POST /tasks/:id/complete` | agent callback (**idempotent** — no-op if already completed) |
-| queue consumer | `AGENT_WORKER` service binding → `codeops-agent` `/agents/:name/run` (skips non-`submitted`) |
+| queue consumer | `AGENT_WORKER` service binding → `voly-agent` `/agents/:name/run` (skips non-`submitted`) |
 
 Secrets: `API_TOKEN`, `AGENT_WORKER_TOKEN` (must match agent `API_TOKEN`),
 `AGENT_WORKER_URL` (fallback if binding missing). Agent secrets: `A2A_FEDERATION_TOKEN`
@@ -324,10 +324,10 @@ GitHub Actions smoke gate:
 
 Не коммитить:
 ```
-.codeops/events/
-.codeops/dspy/datasets/
-.codeops/dspy/programs/
-.codeops/reports/
+.voly/events/
+.voly/dspy/datasets/
+.voly/dspy/programs/
+.voly/reports/
 ```
 
 ---
@@ -342,7 +342,7 @@ docs/backend/
   executors.md              ← Executors, billing fallback chain, WranglerExecutor
   ai-gateway.md             ← AIGateway middleware, CF route schema, providers
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
-  config.md                 ← env vars, codeops.yaml, VOLYConfig
+  config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events
 docs/frontend/
   overview.md               ← Svelte 5 stack, ui/ structure, dev/build

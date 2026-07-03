@@ -1,5 +1,5 @@
 # Combat mission: smarty-realtime-sockets
-# Run: python3 -m codeops.cli smarty combat run smarty-realtime-sockets --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-realtime-sockets --sequential
 
 name: smarty-realtime-sockets
 description: 'P1: Socket.IO client + TanStack Query invalidation for live updates.'

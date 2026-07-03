@@ -2,12 +2,12 @@
 DSPy CLI — manage DSPy optimizer programs, datasets, and evaluation.
 
 Commands:
-    codeops dspy status                     Show DSPy config and program inventory
-    codeops dspy dataset build              Build JSONL dataset from telemetry events
-    codeops dspy compile --agent reviewer   Compile optimized program for an agent
-    codeops dspy eval --agent reviewer      Evaluate compiled program on dataset
-    codeops dspy promote reviewer.v2        Promote a compiled program version to active
-    codeops dspy programs                   List all saved programs
+    voly dspy status                     Show DSPy config and program inventory
+    voly dspy dataset build              Build JSONL dataset from telemetry events
+    voly dspy compile --agent reviewer   Compile optimized program for an agent
+    voly dspy eval --agent reviewer      Evaluate compiled program on dataset
+    voly dspy promote reviewer.v2        Promote a compiled program version to active
+    voly dspy programs                   List all saved programs
 """
 
 from __future__ import annotations
@@ -62,13 +62,13 @@ def dspy_status(ctx: click.Context) -> None:
         click.echo(f"\n  dspy package:   installed (version {getattr(dspy, '__version__', '?')})")
     except ImportError:
         click.echo("\n  dspy package:   NOT installed")
-        click.echo("  Install with:   pip install codeops[dspy]  or  pip install dspy>=2.5.0")
+        click.echo("  Install with:   pip install voly[dspy]  or  pip install dspy>=2.5.0")
 
     # List programs
     try:
-        from codeops.dspy.store import DSPyProgramStore
-        from codeops.dspy.versioning import ProgramVersionManager
-        from codeops.dspy.programs import get_registry
+        from voly.dspy.store import DSPyProgramStore
+        from voly.dspy.versioning import ProgramVersionManager
+        from voly.dspy.programs import get_registry
 
         store = DSPyProgramStore(cfg.programs_dir)
         version_mgr = ProgramVersionManager(cfg.programs_dir)
@@ -100,7 +100,7 @@ def dspy_status(ctx: click.Context) -> None:
             lines = sum(1 for line in f.read_text(encoding="utf-8").splitlines() if line.strip() and not line.startswith("#"))
             click.echo(f"  {f.stem:20s}  {lines} examples")
     else:
-        click.echo("\nDatasets: (none — run `codeops dspy dataset build` first)")
+        click.echo("\nDatasets: (none — run `voly dspy dataset build` first)")
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ def dataset_build(ctx: click.Context, agent: str | None, from_events: str | None
     datasets_dir = Path(cfg.datasets_dir)
     datasets_dir.mkdir(parents=True, exist_ok=True)
 
-    from codeops.telemetry import load_events
+    from voly.telemetry import load_events
 
     events = load_events(events_dir)
     if not events:
@@ -184,7 +184,7 @@ def dataset_build(ctx: click.Context, agent: str | None, from_events: str | None
         )
         click.echo(f"  {ag:20s}  {len(records)} examples → {out_path}")
 
-    click.echo(f"\nDone. Run `codeops dspy compile --agent <agent>` to compile programs.")
+    click.echo(f"\nDone. Run `voly dspy compile --agent <agent>` to compile programs.")
 
 
 # ---------------------------------------------------------------------------
@@ -204,14 +204,14 @@ def dspy_compile(ctx: click.Context, agent: str, optimizer: str | None, budget: 
 
     if not cfg.enabled:
         raise click.ClickException(
-            "DSPy is disabled in config. Set dspy.enabled: true in codeops.yaml"
+            "DSPy is disabled in config. Set dspy.enabled: true in voly.yaml"
         )
 
     try:
         import dspy as _dspy  # noqa: F401
     except ImportError:
         raise click.ClickException(
-            "DSPy is not installed. Run: pip install codeops[dspy]  "
+            "DSPy is not installed. Run: pip install voly[dspy]  "
             "or: pip install 'dspy>=2.5.0'"
         )
 
@@ -219,8 +219,8 @@ def dspy_compile(ctx: click.Context, agent: str, optimizer: str | None, budget: 
     _budget = budget or cfg.compile_budget
     _min_examples = cfg.min_examples
 
-    from codeops.dspy.programs import get_registry
-    from codeops.dspy.versioning import ProgramVersionManager, ProgramVersionRecord
+    from voly.dspy.programs import get_registry
+    from voly.dspy.versioning import ProgramVersionManager, ProgramVersionRecord
 
     registry = get_registry()
     program_def = registry.get(agent) or registry.get_primary(agent)
@@ -237,8 +237,8 @@ def dspy_compile(ctx: click.Context, agent: str, optimizer: str | None, budget: 
     click.echo(f"  min_examples: {_min_examples}")
 
     try:
-        from codeops.dspy.compiler import compile_program
-        from codeops.dspy.store import DSPyProgramStore
+        from voly.dspy.compiler import compile_program
+        from voly.dspy.store import DSPyProgramStore
 
         compiled, n_examples = compile_program(
             program_id=program_id,
@@ -265,7 +265,7 @@ def dspy_compile(ctx: click.Context, agent: str, optimizer: str | None, budget: 
 
         click.echo(f"\nCompiled {n_examples} examples → {path}")
         click.echo(f"Tagged version v{version} as '{cfg.shadow_tag or 'candidate'}'")
-        click.echo("Run `codeops dspy programs` to inspect inventory.")
+        click.echo("Run `voly dspy programs` to inspect inventory.")
 
     except ValueError as exc:
         raise click.ClickException(str(exc))
@@ -289,11 +289,11 @@ def dspy_eval(ctx: click.Context, agent: str, version: int | None) -> None:
     try:
         import dspy as _dspy  # noqa: F401
     except ImportError:
-        raise click.ClickException("DSPy is not installed. Run: pip install codeops[dspy]")
+        raise click.ClickException("DSPy is not installed. Run: pip install voly[dspy]")
 
-    from codeops.dspy.compiler import load_dataset
-    from codeops.dspy.store import DSPyProgramStore
-    from codeops.dspy.programs import get_registry
+    from voly.dspy.compiler import load_dataset
+    from voly.dspy.store import DSPyProgramStore
+    from voly.dspy.programs import get_registry
 
     registry = get_registry()
     program_def = registry.get(agent) or registry.get_primary(agent)
@@ -312,7 +312,7 @@ def dspy_eval(ctx: click.Context, agent: str, version: int | None) -> None:
     )
     if not loaded:
         raise click.ClickException(
-            f"No compiled program found for {program_id}. Run: codeops dspy compile --agent {agent}"
+            f"No compiled program found for {program_id}. Run: voly dspy compile --agent {agent}"
         )
 
     dataset = load_dataset(cfg.datasets_dir, program_def.primary_agent)
@@ -350,9 +350,9 @@ def dspy_programs(ctx: click.Context) -> None:
     config = ctx.obj["config"]
     cfg = config.dspy
 
-    from codeops.dspy.store import DSPyProgramStore
-    from codeops.dspy.versioning import ProgramVersionManager
-    from codeops.dspy.programs import get_registry
+    from voly.dspy.store import DSPyProgramStore
+    from voly.dspy.versioning import ProgramVersionManager
+    from voly.dspy.programs import get_registry
 
     store = DSPyProgramStore(cfg.programs_dir)
     version_mgr = ProgramVersionManager(cfg.programs_dir)
@@ -362,7 +362,7 @@ def dspy_programs(ctx: click.Context) -> None:
 
     if not programs:
         click.echo("No compiled programs found.")
-        click.echo("Run: codeops dspy compile --agent <agent>")
+        click.echo("Run: voly dspy compile --agent <agent>")
         return
 
     index = version_mgr.list_programs()
@@ -407,9 +407,9 @@ def dspy_promote(ctx: click.Context, program_spec: str, tag: str) -> None:
     except ValueError:
         raise click.ClickException(f"Invalid version in spec: {program_spec}")
 
-    from codeops.dspy.programs import get_registry
-    from codeops.dspy.store import DSPyProgramStore
-    from codeops.dspy.versioning import ProgramVersionManager
+    from voly.dspy.programs import get_registry
+    from voly.dspy.store import DSPyProgramStore
+    from voly.dspy.versioning import ProgramVersionManager
 
     registry = get_registry()
     program_def = registry.get(name) or registry.get_primary(name)

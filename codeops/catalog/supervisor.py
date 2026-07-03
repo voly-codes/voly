@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from codeops.catalog.routing import get_mission_plan, resolve_model
-from codeops.catalog.types import MissionPlan, MissionStepSpec
-from codeops.catalog.zen_sync import fetch_zen_models
-from codeops.catalog.store import save_models
+from voly.catalog.routing import get_mission_plan, resolve_model
+from voly.catalog.types import MissionPlan, MissionStepSpec
+from voly.catalog.zen_sync import fetch_zen_models
+from voly.catalog.store import save_models
 
 SUPERVISOR_MODEL = "claude-opus-4-8"
 
@@ -15,16 +15,16 @@ SUPERVISOR_MODEL = "claude-opus-4-8"
 class CombatSupervisor:
     """Builds MissionPlan and skill-augmented system prompts for combat runs."""
 
-    def __init__(self, project_path: str, codeops_root: Path | None = None):
+    def __init__(self, project_path: str, voly_root: Path | None = None):
         self.project_path = Path(project_path)
-        self.codeops_root = codeops_root or Path(__file__).resolve().parents[2]
+        self.voly_root = voly_root or Path(__file__).resolve().parents[2]
 
     def sync_catalog(self, *, push_remote: bool = False) -> int:
         models = fetch_zen_models()
-        save_models(models, base=self.codeops_root)
+        save_models(models, base=self.voly_root)
         if push_remote:
             try:
-                from codeops.catalog.client import CatalogClient
+                from voly.catalog.client import CatalogClient
 
                 client = CatalogClient.from_env()
                 if client:
@@ -43,14 +43,14 @@ class CombatSupervisor:
             model = resolve_model(
                 spec.executor,
                 spec.model,
-                catalog_base=self.codeops_root,
+                catalog_base=self.voly_root,
                 prefer_free=prefer_free,
             )
             if spec.readonly and spec.free_fallback_model:
                 model = resolve_model(
                     spec.executor,
                     spec.free_fallback_model,
-                    catalog_base=self.codeops_root,
+                    catalog_base=self.voly_root,
                     prefer_free=True,
                 )
             resolved.append(
@@ -75,8 +75,8 @@ class CombatSupervisor:
         parts: list[str] = []
         search_dirs = [
             self.project_path / ".claude" / "skills",
-            self.codeops_root / ".codeops" / "skills",
-            self.codeops_root.parent / ".claude" / "skills",
+            self.voly_root / ".voly" / "skills",
+            self.voly_root.parent / ".claude" / "skills",
         ]
         for sid in skill_ids:
             found = False

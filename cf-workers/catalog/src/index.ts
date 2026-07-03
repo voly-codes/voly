@@ -30,7 +30,7 @@ function parseModel(row: ModelRow) {
 const app = new Hono<{ Bindings: Env }>();
 app.use("*", cors());
 
-app.get("/health", (c) => c.json({ ok: true, service: "codeops-catalog" }));
+app.get("/health", (c) => c.json({ ok: true, service: "voly-catalog" }));
 
 app.get("/models", async (c) => {
   const tier = c.req.query("tier");

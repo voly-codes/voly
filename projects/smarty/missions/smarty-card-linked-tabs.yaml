@@ -1,5 +1,5 @@
 # Combat mission: smarty-card-linked-tabs
-# Run: python3 -m codeops.cli smarty combat run smarty-card-linked-tabs --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-card-linked-tabs --sequential
 
 name: smarty-card-linked-tabs
 description: 'P0: Card linked-entity tabs on contact/deal/requisition/assignment detail

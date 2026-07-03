@@ -1,4 +1,4 @@
-"""Agent Runner CLI — codeops runner <agent> \"task\"."""
+"""Agent Runner CLI — voly runner <agent> \"task\"."""
 from __future__ import annotations
 
 import json
@@ -7,7 +7,7 @@ import sys
 
 import click
 
-from codeops.runner.agent_runner import AgentRunner, EXECUTOR_NAMES, resolve_executor
+from voly.runner.agent_runner import AgentRunner, EXECUTOR_NAMES, resolve_executor
 
 
 @click.command("runner")
@@ -34,13 +34,13 @@ def runner(
 
     Examples:
 
-      codeops runner cursor "migrate buttons to shared component"
+      voly runner cursor "migrate buttons to shared component"
 
-      codeops runner developer "fix login bug" --cwd /path/to/project
+      voly runner developer "fix login bug" --cwd /path/to/project
 
-      codeops runner claude-code "refactor api.ts"
+      voly runner claude-code "refactor api.ts"
 
-      codeops runner opencode "add unit tests"
+      voly runner opencode "add unit tests"
     """
     config = ctx.obj["config"]
     if not task:

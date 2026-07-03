@@ -13,9 +13,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from codeops.config import VOLYConfig
+from voly.config import VOLYConfig
 
-_log = logging.getLogger("codeops.router")
+_log = logging.getLogger("voly.router")
 
 
 @dataclass
@@ -102,7 +102,7 @@ class AgentRouter:
         self.config = config or VOLYConfig()
 
     def route(self, task: str, context: dict[str, Any] | None = None) -> RouteDecision:
-        from codeops.ai_gateway.health import get_checker
+        from voly.ai_gateway.health import get_checker
         context = context or {}
         analysis = self.analyze_task(task)
         checker = get_checker()
@@ -206,7 +206,7 @@ class AgentRouter:
     def _merge_with_config(self, decision: RouteDecision) -> RouteDecision:
         agent_cfg = self.config.get_agent_config(decision.agent)
         # Don't override the health-chosen model/provider via config model lookup —
-        # config model lookup is for named models in codeops.yaml only
+        # config model lookup is for named models in voly.yaml only
         tools = decision.tools if decision.tools else agent_cfg.tools
         return RouteDecision(
             agent=agent_cfg.name,

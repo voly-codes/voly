@@ -14,8 +14,8 @@ from __future__ import annotations
 import os
 import time
 
-from codeops.executor.base import Executor, ExecutorResult
-from codeops.telemetry import _estimate_cost
+from voly.executor.base import Executor, ExecutorResult
+from voly.telemetry import _estimate_cost
 
 
 class MiMoExecutor(Executor):

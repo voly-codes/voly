@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from codeops.config import create_default_config
+from voly.config import create_default_config
 
 
 @click.command()
@@ -14,7 +14,7 @@ from codeops.config import create_default_config
 @click.pass_context
 def init(ctx: click.Context, force: bool) -> None:
     """Initialize VOLY in the current project."""
-    cfg_path = Path.cwd() / "codeops.yaml"
+    cfg_path = Path.cwd() / "voly.yaml"
     if cfg_path.exists() and not force:
         click.echo(f"Config already exists: {cfg_path}")
         click.echo("Use --force to overwrite")
@@ -23,7 +23,7 @@ def init(ctx: click.Context, force: bool) -> None:
     create_default_config(cfg_path)
     click.echo(f"VOLY config created: {cfg_path}")
 
-    from codeops.rtk.installer import RTKManager
+    from voly.rtk.installer import RTKManager
 
     config = ctx.obj["config"]
     rtk_mgr = RTKManager(config.rtk.binary_path)
@@ -42,8 +42,8 @@ def init(ctx: click.Context, force: bool) -> None:
     except Exception as e:
         click.echo(f"  Hooks skipped: {e}")
 
-    click.echo("\nSetup complete. Edit codeops.yaml to configure models and agents.")
-    click.echo("Run 'codeops setup' to start all components.")
+    click.echo("\nSetup complete. Edit voly.yaml to configure models and agents.")
+    click.echo("Run 'voly setup' to start all components.")
 
 
 @click.command()
@@ -58,7 +58,7 @@ def setup(ctx: click.Context, rtk: bool, headroom: bool, a2a: bool, agui: bool) 
 
     if rtk and config.rtk.enabled:
         click.echo("[RTK] Setting up...")
-        from codeops.rtk.installer import RTKManager
+        from voly.rtk.installer import RTKManager
 
         rtk_mgr = RTKManager(config.rtk.binary_path)
         try:
@@ -75,7 +75,7 @@ def setup(ctx: click.Context, rtk: bool, headroom: bool, a2a: bool, agui: bool) 
 
     if headroom and config.headroom.enabled:
         click.echo("[Headroom] Setting up...")
-        from codeops.headroom.proxy import HeadroomManager
+        from voly.headroom.proxy import HeadroomManager
 
         hm = HeadroomManager(port=config.headroom.port)
         try:
@@ -86,7 +86,7 @@ def setup(ctx: click.Context, rtk: bool, headroom: bool, a2a: bool, agui: bool) 
 
     if a2a and config.a2a.enabled:
         click.echo("[A2A] Checking federation and remote agents...")
-        from codeops.a2a import create_a2a_orchestrator
+        from voly.a2a import create_a2a_orchestrator
 
         orch = create_a2a_orchestrator(config.a2a.federation_url)
         if config.a2a.federation_url:

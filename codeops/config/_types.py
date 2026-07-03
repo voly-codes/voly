@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-DEFAULT_CONFIG_FILENAME = "codeops.yaml"
+DEFAULT_CONFIG_FILENAME = "voly.yaml"
 DEFAULT_PROXY_PORT = 8787
 
 
@@ -72,7 +72,7 @@ class MemoryConfig:
     enabled: bool = False
     backend: str = "hybrid"
     remote_url: str = ""
-    db_path: str = ".codeops/memory.db"
+    db_path: str = ".voly/memory.db"
     embedding_model: str = "all-MiniLM-L6-v2"
     max_memories: int = 10000
 
@@ -122,14 +122,14 @@ class WorkflowConfig:
     max_retries: int = 3
     retry_delay_seconds: float = 5.0
     timeout_seconds: float = 300.0
-    checkpoint_dir: str = ".codeops/checkpoints"
+    checkpoint_dir: str = ".voly/checkpoints"
 
 
 @dataclass
 class RegistryConfig:
     enabled: bool = True
-    agents_path: str = ".codeops/agents"
-    skills_path: str = ".codeops/skills"
+    agents_path: str = ".voly/agents"
+    skills_path: str = ".voly/skills"
     marketplace_url: str = ""
 
 
@@ -152,7 +152,7 @@ class AIGatewayConfig:
     cache_max_entries: int = 1000
     # Persist the response cache to disk so repeat tasks hit across requests /
     # restarts (each web /api/run builds a fresh gateway). Empty → in-memory only.
-    cache_persist_dir: str = ".codeops/gateway_cache"
+    cache_persist_dir: str = ".voly/gateway_cache"
     rate_limits_enabled: bool = True
     rate_requests_per_minute: int = 60
     spend_limits_enabled: bool = True
@@ -175,7 +175,7 @@ class MCPConfig:
 @dataclass
 class TelemetryConfig:
     enabled: bool = True
-    events_dir: str = ".codeops/events"
+    events_dir: str = ".voly/events"
     pipeline_url: str = ""
     pipeline_enabled: bool = True
     pipeline_timeout_seconds: float = 5.0
@@ -191,8 +191,8 @@ class DSPyConfig:
     # shadow: runs in parallel, result logged but not returned to caller
     # active: DSPy result replaces AIGateway.chat() for opted-in agents
     mode: str = "shadow"
-    programs_dir: str = ".codeops/dspy/programs"
-    datasets_dir: str = ".codeops/dspy/datasets"
+    programs_dir: str = ".voly/dspy/programs"
+    datasets_dir: str = ".voly/dspy/datasets"
     optimizer: str = "bootstrap_fewshot"
     min_examples: int = 20
     # small | medium | large — controls compile budget (num trials / epochs)
@@ -250,10 +250,10 @@ class VOLYConfig:
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     default_model: str = "claude-sonnet"
     default_agent: str = "claude"
-    default_cwd: str = ""   # CODEOPS_PROJECT_CWD or codeops.yaml: default_cwd
+    default_cwd: str = ""   # CODEOPS_PROJECT_CWD or voly.yaml: default_cwd
 
     def get_model_config(self, name: str | None = None) -> ModelConfig:
-        from codeops.config._defaults import _DEFAULT_MODELS
+        from voly.config._defaults import _DEFAULT_MODELS
         name = name or self.default_model
         if name in self.models:
             return self.models[name]

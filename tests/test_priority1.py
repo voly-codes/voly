@@ -6,17 +6,17 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codeops.automation import compute_automation_metrics
-from codeops.config import VOLYConfig, CostPolicyConfig
-from codeops.cost_policy import (
+from voly.automation import compute_automation_metrics
+from voly.config import VOLYConfig, CostPolicyConfig
+from voly.cost_policy import (
     apply_cost_policy,
     budget_status,
     detect_task_type,
     is_budget_exceeded,
 )
-from codeops.executor.base import ExecutorResult
-from codeops.router import RouteDecision
-from codeops.runner.agent_runner import resolve_executor
+from voly.executor.base import ExecutorResult
+from voly.router import RouteDecision
+from voly.runner.agent_runner import resolve_executor
 
 
 def test_detect_task_type_docs() -> None:
@@ -106,7 +106,7 @@ def test_resolve_executor_alias() -> None:
 
 
 def test_resolve_executor_from_config() -> None:
-    from codeops.config import AgentConfig
+    from voly.config import AgentConfig
 
     config = VOLYConfig(
         agents={"developer": AgentConfig(name="developer", executor="opencode")},
@@ -117,8 +117,8 @@ def test_resolve_executor_from_config() -> None:
 
 
 def test_agent_runner_emits_telemetry(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from codeops.config import RTKConfig
-    from codeops.runner.agent_runner import AgentRunner
+    from voly.config import RTKConfig
+    from voly.runner.agent_runner import AgentRunner
 
     config = VOLYConfig(rtk=RTKConfig(enabled=False))
     mock_result = ExecutorResult(
@@ -140,10 +140,10 @@ def test_agent_runner_emits_telemetry(tmp_path, monkeypatch: pytest.MonkeyPatch)
         return tmp_path / "event.json"
 
     monkeypatch.setattr(
-        "codeops.runner.agent_runner._build_executor",
+        "voly.runner.agent_runner._build_executor",
         lambda name: mock_executor,
     )
-    monkeypatch.setattr("codeops.runner.agent_runner.emit_event_from_config", capture)
+    monkeypatch.setattr("voly.runner.agent_runner.emit_event_from_config", capture)
 
     runner = AgentRunner(config)
     result = runner.run("fix bug", "cursor", cwd=str(tmp_path))

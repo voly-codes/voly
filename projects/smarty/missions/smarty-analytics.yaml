@@ -1,5 +1,5 @@
 # Combat mission: smarty-analytics
-# Run: python3 -m codeops.cli smarty combat run smarty-analytics --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-analytics --sequential
 
 name: smarty-analytics
 description: 'Аналитика (Plane analytics/overview): /reports → /analytics, nav «Аналитика».

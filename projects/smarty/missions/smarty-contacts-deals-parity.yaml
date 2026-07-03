@@ -1,5 +1,5 @@
 # Combat mission: smarty-contacts-deals-parity
-# Run: python3 -m codeops.cli smarty combat run smarty-contacts-deals-parity --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-contacts-deals-parity --sequential
 
 name: smarty-contacts-deals-parity
 description: 'P1: Contacts/deals parity — GEO map kanban, marks filter, Gantt, archive,

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 
-from codeops.catalog.store import load_models
-from codeops.catalog.types import CatalogModel, MissionStepSpec
+from voly.catalog.store import load_models
+from voly.catalog.types import CatalogModel, MissionStepSpec
 
 FREE_REVIEW_MODEL = "deepseek-v4-flash-free"
 FREE_I18N_MODEL = "mimo-v2.5-free"

@@ -40,7 +40,7 @@ Gateway различает два уровня:
 2. **LLM провайдер** — конкретный сервис моделей: Anthropic, OpenAI, Google, DeepSeek, MiMo, OpenCode Zen/GO.
 
 ```python
-# codeops/ai_gateway/models.py
+# voly/ai_gateway/models.py
 class GatewayProvider(Enum):
     CLOUDFLARE = "cloudflare"
     CUSTOM = "custom"
@@ -80,7 +80,7 @@ CLOUDFLARE_AI_GATEWAY_ID
 CLOUDFLARE_API_TOKEN
 ```
 
-## Конфигурация в `codeops.yaml`
+## Конфигурация в `voly.yaml`
 
 ```yaml
 ai_gateway:
@@ -140,12 +140,12 @@ fallback:
 
 При каждой ошибке gateway переходит к следующему элементу цепочки. Метрика `fallbacks_used` увеличивается при каждом переключении.
 
-## Метрики (`codeops ai-gateway status`)
+## Метрики (`voly ai-gateway status`)
 
 ```
 AI Gateway: cloudflare
 Enabled: True
-Gateway: codeops-gateway
+Gateway: voly-gateway
 
 Cache:       {'enabled': True, 'ttl_seconds': 3600, 'max_entries': 1000}
 Rate limits: {'requests_per_minute': 60, 'enabled': True}
@@ -189,11 +189,11 @@ Metrics: {
 ## Программный доступ
 
 ```python
-from codeops.ai_gateway import AIGateway
+from voly.ai_gateway import AIGateway
 
 gw = AIGateway(
     account_id="...",
-    gateway_id="codeops-gateway",
+    gateway_id="voly-gateway",
     api_token="...",
 )
 

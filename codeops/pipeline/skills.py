@@ -18,7 +18,7 @@ class _SkillsMixin:
         3. Language / framework skills from the project profile (if scanner enabled).
         4. Keyword-level text match against skill name / description / tags / capabilities.
         """
-        from codeops.registry.skills import SkillSource
+        from voly.registry.skills import SkillSource
 
         profile = self.scan_project() if self.config.scanner.enabled else None  # type: ignore[attr-defined]
         skills: list[Any] = []

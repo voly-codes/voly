@@ -1,5 +1,5 @@
 # Combat mission: tasks-ts-fix
-# Run: python3 -m codeops.cli smarty combat run tasks-ts-fix --sequential
+# Run: python3 -m voly.cli smarty combat run tasks-ts-fix --sequential
 
 name: tasks-ts-fix
 description: Fix TypeScript errors in tasks module

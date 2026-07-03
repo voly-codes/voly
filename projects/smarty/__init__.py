@@ -4,7 +4,7 @@ Smarty CRM Next — project-specific VOLY plugin.
 Register in your local shell alias or wrapper script:
 
     import click
-    from codeops.cli.main import main
+    from voly.cli.main import main
     from projects.smarty.cli_commands import smarty
     main.add_command(smarty)
     main()

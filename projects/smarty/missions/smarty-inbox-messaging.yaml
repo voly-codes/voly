@@ -1,5 +1,5 @@
 # Combat mission: smarty-inbox-messaging
-# Run: python3 -m codeops.cli smarty combat run smarty-inbox-messaging --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-inbox-messaging --sequential
 
 name: smarty-inbox-messaging
 description: 'P0: Inbox — thread messages API, send/reply, two-pane messaging parity

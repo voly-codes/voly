@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from codeops.config import (
+from voly.config import (
     VOLYConfig,
     RTKConfig,
     HeadroomConfig,
@@ -29,7 +29,7 @@ def test_default_config() -> None:
 
 def test_create_default_config() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / "codeops.yaml"
+        path = Path(tmp) / "voly.yaml"
         create_default_config(path)
         assert path.exists()
         content = path.read_text()
@@ -43,7 +43,7 @@ def test_create_default_config() -> None:
 
 def test_load_config_from_file() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / "codeops.yaml"
+        path = Path(tmp) / "voly.yaml"
         path.write_text("""
 default_model: gpt-4o
 default_agent: my-agent

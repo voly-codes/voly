@@ -3,7 +3,7 @@ Pipeline HTTP server — exposes VOLY pipeline to CF agent workers.
 
 Secrets (API keys) and git repo stay on this host.
 Expose via cloudflared tunnel: cloudflared tunnel --url http://127.0.0.1:9202
-Then set PIPELINE_RUNNER_URL on the codeops-agent worker secret.
+Then set PIPELINE_RUNNER_URL on the voly-agent worker secret.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import urlparse
 
-from codeops.config import VOLYConfig
+from voly.config import VOLYConfig
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ def create_pipeline_handler(config: VOLYConfig, token: str = "", default_cwd: st
         def do_GET(self) -> None:
             path = urlparse(self.path).path
             if path == "/health":
-                self._json_response(200, {"status": "ok", "service": "codeops-pipeline"})
+                self._json_response(200, {"status": "ok", "service": "voly-pipeline"})
                 return
             self._json_response(404, {"error": "not found"})
 
@@ -97,7 +97,7 @@ def create_pipeline_handler(config: VOLYConfig, token: str = "", default_cwd: st
             if nested:
                 os.environ["CODEOPS_A2A_NESTED"] = "1"
 
-            from codeops.pipeline import Pipeline
+            from voly.pipeline import Pipeline
 
             pipeline = Pipeline(config)
             if cwd:

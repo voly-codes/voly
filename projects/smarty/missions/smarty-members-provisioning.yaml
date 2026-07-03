@@ -1,5 +1,5 @@
 # Combat mission: smarty-members-provisioning
-# Run: python3 -m codeops.cli smarty combat run smarty-members-provisioning --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-members-provisioning --sequential
 
 name: smarty-members-provisioning
 description: 'Members: Email/Phone/Link invite via POST /employees/invite + status

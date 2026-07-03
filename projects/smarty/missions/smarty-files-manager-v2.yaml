@@ -1,5 +1,5 @@
 # Combat mission: smarty-files-manager-v2
-# Run: python3 -m codeops.cli smarty combat run smarty-files-manager-v2 --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-files-manager-v2 --sequential
 
 name: smarty-files-manager-v2
 description: 'P1: Files — folder tree, DnD upload, preview modal, file detail route.'

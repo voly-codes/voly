@@ -1,5 +1,5 @@
 # Combat mission: smarty-auth-onboarding
-# Run: python3 -m codeops.cli smarty combat run smarty-auth-onboarding --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-auth-onboarding --sequential
 
 name: smarty-auth-onboarding
 description: 'P0: Auth onboarding — sign-up, password reset, invite accept, session

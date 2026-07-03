@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from codeops.config._types import (
+from voly.config._types import (
     A2AConfig,
     AGUIConfig,
     AIGatewayConfig,
@@ -83,7 +83,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             enabled=m.get("enabled", False),
             backend=m.get("backend", "hybrid"),
             remote_url=os.path.expandvars(m.get("remote_url", "")),
-            db_path=m.get("db_path", ".codeops/memory.db"),
+            db_path=m.get("db_path", ".voly/memory.db"),
             embedding_model=m.get("embedding_model", "all-MiniLM-L6-v2"),
             max_memories=m.get("max_memories", 10000),
         )
@@ -174,7 +174,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             max_retries=w.get("max_retries", 3),
             retry_delay_seconds=w.get("retry_delay_seconds", 5.0),
             timeout_seconds=w.get("timeout_seconds", 300.0),
-            checkpoint_dir=w.get("checkpoint_dir", ".codeops/checkpoints"),
+            checkpoint_dir=w.get("checkpoint_dir", ".voly/checkpoints"),
         )
 
     if not config.workflow.remote_url:
@@ -189,8 +189,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
         marketplace_url = os.path.expandvars(r.get("marketplace_url", ""))
         config.registry = RegistryConfig(
             enabled=r.get("enabled", True),
-            agents_path=r.get("agents_path", ".codeops/agents"),
-            skills_path=r.get("skills_path", ".codeops/skills"),
+            agents_path=r.get("agents_path", ".voly/agents"),
+            skills_path=r.get("skills_path", ".voly/skills"),
             marketplace_url=marketplace_url,
         )
 
@@ -251,7 +251,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
         pipeline_url = os.path.expandvars(t.get("pipeline_url", ""))
         config.telemetry = TelemetryConfig(
             enabled=t.get("enabled", True),
-            events_dir=t.get("events_dir", ".codeops/events"),
+            events_dir=t.get("events_dir", ".voly/events"),
             pipeline_url=pipeline_url,
             pipeline_enabled=t.get("pipeline_enabled", True),
             pipeline_timeout_seconds=float(t.get("pipeline_timeout_seconds", 5.0)),
@@ -272,8 +272,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
             mode=d.get("mode", "shadow"),
             model=d.get("model", ""),
             provider=d.get("provider", ""),
-            programs_dir=d.get("programs_dir", ".codeops/dspy/programs"),
-            datasets_dir=d.get("datasets_dir", ".codeops/dspy/datasets"),
+            programs_dir=d.get("programs_dir", ".voly/dspy/programs"),
+            datasets_dir=d.get("datasets_dir", ".voly/dspy/datasets"),
             optimizer=d.get("optimizer", "bootstrap_fewshot"),
             min_examples=int(d.get("min_examples", 20)),
             compile_budget=d.get("compile_budget", "small"),

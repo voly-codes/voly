@@ -8,8 +8,8 @@ from urllib.error import HTTPError
 
 import pytest
 
-from codeops.a2a.backend import FederationBackend, task_from_remote
-from codeops.a2a.federation import (
+from voly.a2a.backend import FederationBackend, task_from_remote
+from voly.a2a.federation import (
     FederationClient,
     FederationClientError,
     create_federation_client,
@@ -99,7 +99,7 @@ def test_federation_backend_sync_agents() -> None:
                 "version": "1.0.0",
                 "skills": [],
                 "capabilities": {},
-                "provider": "codeops",
+                "provider": "voly",
             }
         ],
     ):

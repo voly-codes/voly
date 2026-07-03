@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from codeops.scanner import ProjectScanner, ProjectProfile, generate_project_skills
+from voly.scanner import ProjectScanner, ProjectProfile, generate_project_skills
 
 _HERE = Path(__file__).resolve().parent
 _PROJECT_ROOT = _HERE.parent

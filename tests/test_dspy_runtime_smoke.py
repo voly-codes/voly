@@ -2,13 +2,13 @@ from __future__ import annotations
 
 
 def test_inference_import_without_dspy_extra() -> None:
-    import codeops.inference
+    import voly.inference
 
-    assert codeops.inference is not None
+    assert voly.inference is not None
 
 
 def test_default_config_keeps_dspy_disabled() -> None:
-    from codeops.config import VOLYConfig
+    from voly.config import VOLYConfig
 
     cfg = VOLYConfig()
 
@@ -17,9 +17,9 @@ def test_default_config_keeps_dspy_disabled() -> None:
 
 
 def test_inference_manager_falls_back_to_classic_when_dspy_missing() -> None:
-    from codeops.config import VOLYConfig
-    from codeops.inference import InferenceManager
-    from codeops.router import RouteDecision
+    from voly.config import VOLYConfig
+    from voly.inference import InferenceManager
+    from voly.router import RouteDecision
 
     class FakeGateway:
         def chat(self, **kwargs):  # type: ignore[no-untyped-def]

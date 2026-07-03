@@ -1,10 +1,10 @@
 # Combat mission: vibe-migration-patterns-audit
 # Аудит и фиксы паттернов toolkit → @vibe/core, найденных после LAN-131–133.
 # Run:
-#   cd /home/user1/smarty/smarty-code/codeops && . .venv/bin/activate
+#   cd /home/user1/smarty/smarty-code/voly && . .venv/bin/activate
 #   export SMARTY_CRM_PATH=/home/user1/smarty/smarty-code
 #   set -a && . .env && set +a
-#   python3 -m codeops.cli smarty combat run vibe-migration-patterns-audit --sequential
+#   python3 -m voly.cli smarty combat run vibe-migration-patterns-audit --sequential
 
 name: vibe-migration-patterns-audit
 description: >

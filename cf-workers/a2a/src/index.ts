@@ -126,8 +126,8 @@ app.use("*", cors());
 app.get("/health", (c) =>
   c.json({
     status: "ok",
-    service: "codeops-a2a",
-    queue: "codeops-a2a-tasks",
+    service: "voly-a2a",
+    queue: "voly-a2a-tasks",
   }),
 );
 

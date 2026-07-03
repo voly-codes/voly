@@ -1,6 +1,6 @@
 # A2A — Backend Reference
 
-`codeops/a2a/` — Agent2Agent orchestration: task decomposition, federation dispatch,
+`voly/a2a/` — Agent2Agent orchestration: task decomposition, federation dispatch,
 parallel subtask execution, and result merging.
 
 ---
@@ -26,7 +26,7 @@ or `complexity=high`, `Pipeline.run()` calls `_stage_a2a_auto()`:
 ROUTE → _should_dispatch_a2a() → TaskDecomposer → dispatch_parallel() → ResultMerger
 ```
 
-Config (`codeops.yaml` → `a2a`):
+Config (`voly.yaml` → `a2a`):
 
 | Field | Default | Meaning |
 |---|---|---|
@@ -104,7 +104,7 @@ Agent worker (`cf-workers/agent`):
 ## CLI / API
 
 ```bash
-codeops run "implement X, write tests, review" --a2a-delegate   # explicit A2A path
+voly run "implement X, write tests, review" --a2a-delegate   # explicit A2A path
 # auto-dispatch triggers without flag when a2a.enabled + complex task
 ```
 

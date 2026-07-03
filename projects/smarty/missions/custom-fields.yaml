@@ -1,5 +1,5 @@
 # Combat mission: custom-fields
-# Run: python3 -m codeops.cli smarty combat run custom-fields --sequential
+# Run: python3 -m voly.cli smarty combat run custom-fields --sequential
 
 name: custom-fields
 description: CustomFieldRenderer + Editor на ContactDetail и DealDetail

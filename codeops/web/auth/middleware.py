@@ -9,10 +9,10 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from codeops.web.auth.jwt import ExpiredTokenError, InvalidTokenError, jwt_auth_from_config
+from voly.web.auth.jwt import ExpiredTokenError, InvalidTokenError, jwt_auth_from_config
 
 if TYPE_CHECKING:
-    from codeops.config import AuthConfig
+    from voly.config import AuthConfig
 
 PUBLIC_API_PREFIXES = (
     "/api/docs",

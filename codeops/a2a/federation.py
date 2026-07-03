@@ -14,7 +14,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
 
 
 class FederationClientError(Exception):

@@ -1,6 +1,6 @@
 """Built-in model registry — used by VOLYConfig.get_model_config() as fallback."""
 
-from codeops.config._types import ModelConfig
+from voly.config._types import ModelConfig
 
 _DEFAULT_MODELS: dict[str, ModelConfig] = {
     # Anthropic (via Cloudflare Gateway)

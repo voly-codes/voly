@@ -78,7 +78,7 @@ class MemoryStore:
 
     def __init__(
         self,
-        db_path: str | Path = ".codeops/memory.db",
+        db_path: str | Path = ".voly/memory.db",
         embedding_model: str = "all-MiniLM-L6-v2",
         remote_url: str = "",
     ):
@@ -91,7 +91,7 @@ class MemoryStore:
 
     def _get_remote_client(self) -> Any:
         if self._remote_client is None and self._remote_url:
-            from codeops.memory.client import create_memory_client
+            from voly.memory.client import create_memory_client
 
             self._remote_client = create_memory_client(self._remote_url)
         return self._remote_client

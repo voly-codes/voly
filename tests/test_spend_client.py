@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codeops.spend.client import SpendClient, create_spend_client, resolve_spend_url
+from voly.spend.client import SpendClient, create_spend_client, resolve_spend_url
 
 
 def test_resolve_spend_url(monkeypatch: pytest.MonkeyPatch) -> None:

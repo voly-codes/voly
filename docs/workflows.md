@@ -76,7 +76,7 @@ architect─┘
 ## Создание кастомного Workflow
 
 ```python
-from codeops.workflow import Workflow, BUILTIN_WORKFLOWS
+from voly.workflow import Workflow, BUILTIN_WORKFLOWS
 
 wf = Workflow("db-migration")
 wf.description = "Безопасная миграция базы данных"
@@ -102,16 +102,16 @@ BUILTIN_WORKFLOWS["db-migration"] = wf
 ### Запуск
 
 ```bash
-codeops workflow run feature-delivery "Добавить OAuth2 авторизацию"
-codeops workflow run bugfix "API возвращает 500 при пустом теле запроса"
-codeops workflow run code-review "Ревью PR #142"
+voly workflow run feature-delivery "Добавить OAuth2 авторизацию"
+voly workflow run bugfix "API возвращает 500 при пустом теле запроса"
+voly workflow run code-review "Ревью PR #142"
 ```
 
 ### Статус
 
 ```bash
-codeops workflow list           # все доступные определения
-codeops workflow status         # активные инстансы
+voly workflow list           # все доступные определения
+voly workflow status         # активные инстансы
 ```
 
 ### Human Approval Gates
@@ -120,14 +120,14 @@ codeops workflow status         # активные инстансы
 
 ```
 Workflow paused — awaiting human approval for: ['deploy']
-Use 'codeops workflow approve <id> <step>' to continue
+Use 'voly workflow approve <id> <step>' to continue
 ```
 
 Подтверждение:
 
 ```python
-from codeops.pipeline import Pipeline
-from codeops.config import load_config
+from voly.pipeline import Pipeline
+from voly.config import load_config
 
 pipeline = Pipeline(load_config())
 pipeline.approve_workflow_step(instance_id="...", step_name="deploy")
@@ -154,8 +154,8 @@ CREATED → RUNNING → PAUSED ─→ RUNNING (после approve)
 ## Программный запуск
 
 ```python
-from codeops.pipeline import Pipeline
-from codeops.config import load_config
+from voly.pipeline import Pipeline
+from voly.config import load_config
 
 pipeline = Pipeline(load_config())
 pipeline.setup_environment()

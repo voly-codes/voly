@@ -13,7 +13,7 @@ Project Scanner — автоматическое определение конт
 Формирует project profile, который становится project skills.
 
 Запуск:
-    codeops scan
+    voly scan
 """
 
 from __future__ import annotations

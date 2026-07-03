@@ -15,8 +15,8 @@ import shutil
 import subprocess
 import time
 
-from codeops.executor.base import Executor, ExecutorResult, _extract_cli_error, _is_billing_error, _oc_event_error
-from codeops.telemetry import _estimate_cost
+from voly.executor.base import Executor, ExecutorResult, _extract_cli_error, _is_billing_error, _oc_event_error
+from voly.telemetry import _estimate_cost
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 # Combat mission: auth-polish
-# Run: python3 -m codeops.cli smarty combat run auth-polish --sequential
+# Run: python3 -m voly.cli smarty combat run auth-polish --sequential
 
 name: auth-polish
 description: Auth flow polish — SignUp, AuthGuard, session redirect

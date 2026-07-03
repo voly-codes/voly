@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from codeops.config import VOLYConfig
-    from codeops.telemetry import TaskEvent
+    from voly.config import VOLYConfig
+    from voly.telemetry import TaskEvent
 
 
 def record_task_spend(event: TaskEvent, config: VOLYConfig) -> None:
@@ -16,7 +16,7 @@ def record_task_spend(event: TaskEvent, config: VOLYConfig) -> None:
     if event.cost_usd <= 0:
         return
 
-    from codeops.spend.client import create_spend_client
+    from voly.spend.client import create_spend_client
 
     client = create_spend_client(spend_cfg.remote_url)
     if not client:
@@ -38,7 +38,7 @@ def check_agent_spend_limit(agent: str, config: VOLYConfig) -> dict[str, Any] | 
     if spend_cfg is None or not spend_cfg.enabled or not spend_cfg.remote_url:
         return None
 
-    from codeops.spend.client import create_spend_client
+    from voly.spend.client import create_spend_client
 
     client = create_spend_client(spend_cfg.remote_url)
     if not client:

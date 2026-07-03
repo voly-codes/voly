@@ -7,8 +7,8 @@ from pathlib import Path
 
 import yaml
 
-from codeops.config._types import VOLYConfig, DEFAULT_CONFIG_FILENAME
-from codeops.config._parser import _parse_config
+from voly.config._types import VOLYConfig, DEFAULT_CONFIG_FILENAME
+from voly.config._parser import _parse_config
 
 
 def _find_config_path(start_dir: Path | None = None) -> Path | None:

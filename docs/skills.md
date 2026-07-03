@@ -19,7 +19,7 @@
 | Источник | Описание | Приоритет |
 |----------|----------|-----------|
 | `BUILTIN` | Встроенные скиллы ядра VOLY | Базовый |
-| `PROJECT` | Скиллы проекта из `.codeops/skills/` | Высокий |
+| `PROJECT` | Скиллы проекта из `.voly/skills/` | Высокий |
 | `ORGANIZATION` | Скиллы организации из общего репозитория | Высокий |
 | `MARKETPLACE` | Скиллы сообщества (Cloudflare Worker) | Средний |
 | `GENERATED` | Авто-генерация из успешных выполнений | Черновик до подтверждения |
@@ -62,7 +62,7 @@ class Skill:
 
 ## Регистрация скилла из YAML
 
-**Шаг 1: создайте файл `.codeops/skills/deploy-service.yaml`**
+**Шаг 1: создайте файл `.voly/skills/deploy-service.yaml`**
 
 ```yaml
 id: deploy-service
@@ -91,27 +91,27 @@ content: |
   Откатывай через kubectl rollout undo.
 ```
 
-**Шаг 2: файлы из `.codeops/skills/` подхватываются автоматически** при запуске `codeops` из директории проекта.
+**Шаг 2: файлы из `.voly/skills/` подхватываются автоматически** при запуске `voly` из директории проекта.
 
 ## Поиск скиллов через CLI
 
 ```bash
 # Все скиллы
-codeops registry skills
+voly registry skills
 
 # По тегу
-codeops registry skills --tag kubernetes
-codeops registry skills --tag deploy --tag devops
+voly registry skills --tag kubernetes
+voly registry skills --tag deploy --tag devops
 
 # По совместимому агенту
-codeops registry skills --agent devops
+voly registry skills --agent devops
 
 # По языку
-codeops registry skills --lang python
-codeops registry skills --lang typescript --lang go
+voly registry skills --lang python
+voly registry skills --lang typescript --lang go
 
 # Комбинированный поиск
-codeops registry skills --tag security --agent reviewer --lang python
+voly registry skills --tag security --agent reviewer --lang python
 ```
 
 ## Авто-генерация скиллов
@@ -132,7 +132,7 @@ skill = registry.auto_generate(
 Сгенерированный скилл попадает в очередь кандидатов. Для подтверждения:
 
 ```python
-from codeops.registry.skills import SkillRegistry
+from voly.registry.skills import SkillRegistry
 
 reg = SkillRegistry()
 reg.approve_candidate("skill-id")  # переводит в ACTIVE
@@ -142,7 +142,7 @@ reg.reject_candidate("skill-id")   # удаляет кандидата
 ## Программный доступ
 
 ```python
-from codeops.registry.skills import SkillRegistry, Skill, SkillSource
+from voly.registry.skills import SkillRegistry, Skill, SkillSource
 
 reg = SkillRegistry()
 
@@ -170,11 +170,11 @@ print(skill.content)
 
 ## Marketplace CLI
 
-Marketplace развёрнут как Cloudflare Worker. URL задаётся в `codeops.yaml`:
+Marketplace развёрнут как Cloudflare Worker. URL задаётся в `voly.yaml`:
 
 ```yaml
 registry:
-  skills_path: ".codeops/skills"
+  skills_path: ".voly/skills"
   marketplace_url: "${CF_WORKER_MARKETPLACE_URL}"
 ```
 
@@ -182,32 +182,32 @@ registry:
 
 ```bash
 # Список скиллов в marketplace
-codeops skill list
+voly skill list
 
-# Локальный реестр (builtin + .codeops/skills/)
-codeops skill list --local
+# Локальный реестр (builtin + .voly/skills/)
+voly skill list --local
 
 # Семантический поиск
-codeops skill search "react frontend"
+voly skill search "react frontend"
 
-# Установка в .codeops/skills/
-codeops skill install skill-nextjs
+# Установка в .voly/skills/
+voly skill install skill-nextjs
 
 # Публикация YAML
-codeops skill publish .codeops/skills/my-skill.yaml
+voly skill publish .voly/skills/my-skill.yaml
 
 # Детали скилла
-codeops skill show skill-nextjs
-codeops skill show my-skill --local
+voly skill show skill-nextjs
+voly skill show my-skill --local
 ```
 
 ## Программный доступ к marketplace
 
 ```python
-from codeops.registry.skills import create_skill_registry
+from voly.registry.skills import create_skill_registry
 
 reg = create_skill_registry(
-    skills_path=".codeops/skills",
+    skills_path=".voly/skills",
     marketplace_url="${CF_WORKER_MARKETPLACE_URL}",
 )
 

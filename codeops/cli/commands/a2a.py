@@ -14,13 +14,13 @@ def a2a() -> None:
 @click.pass_context
 def a2a_status(ctx: click.Context) -> None:
     """Show A2A federation hub status."""
-    from codeops.a2a.federation import create_federation_client, resolve_federation_url
+    from voly.a2a.federation import create_federation_client, resolve_federation_url
 
     config = ctx.obj["config"]
     url = resolve_federation_url(config.a2a.federation_url)
     if not url:
         click.echo("Federation URL not configured.")
-        click.echo("Set a2a.federation_url in codeops.yaml or CF_WORKER_A2A_URL in .env")
+        click.echo("Set a2a.federation_url in voly.yaml or CF_WORKER_A2A_URL in .env")
         raise SystemExit(1)
 
     client = create_federation_client(url)
@@ -48,7 +48,7 @@ def a2a_status(ctx: click.Context) -> None:
 @click.pass_context
 def a2a_list(ctx: click.Context, remote: bool) -> None:
     """List discovered A2A agents."""
-    from codeops.a2a import create_a2a_orchestrator
+    from voly.a2a import create_a2a_orchestrator
 
     config = ctx.obj["config"]
     orch = create_a2a_orchestrator(config.a2a.federation_url)
@@ -76,7 +76,7 @@ def a2a_list(ctx: click.Context, remote: bool) -> None:
 @a2a.command("call")
 @click.argument("agent_name")
 @click.argument("task")
-@click.option("--remote", is_flag=True, help="Execute via CF agent worker (needs `codeops serve` + tunnel)")
+@click.option("--remote", is_flag=True, help="Execute via CF agent worker (needs `voly serve` + tunnel)")
 @click.option("--cwd", default=None, help="Working directory")
 @click.pass_context
 def a2a_call(ctx: click.Context, agent_name: str, task: str, remote: bool, cwd: str | None) -> None:
@@ -115,7 +115,7 @@ def a2a_call(ctx: click.Context, agent_name: str, task: str, remote: bool, cwd: 
             raise SystemExit(1)
         return
 
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     pipeline = Pipeline(config)
     pipeline.setup_environment()
@@ -150,7 +150,7 @@ def a2a_call(ctx: click.Context, agent_name: str, task: str, remote: bool, cwd: 
 @click.pass_context
 def a2a_deploy(ctx: click.Context, agent: str | None) -> None:
     """Seed builtin agents into the federation hub."""
-    from codeops.a2a import AgentCard, AgentSkill, create_a2a_orchestrator
+    from voly.a2a import AgentCard, AgentSkill, create_a2a_orchestrator
 
     config = ctx.obj["config"]
     orch = create_a2a_orchestrator(config.a2a.federation_url)
@@ -159,7 +159,7 @@ def a2a_deploy(ctx: click.Context, agent: str | None) -> None:
         click.echo("Federation URL not configured.", err=True)
         raise SystemExit(1)
 
-    # Builtin agents mirror codeops.yaml roles
+    # Builtin agents mirror voly.yaml roles
     builtins = {
         "developer": ("Реализация кода", ["implement", "code", "feature"]),
         "architect": ("Архитектурное планирование", ["architecture", "design"]),
@@ -206,7 +206,7 @@ def a2a_deploy(ctx: click.Context, agent: str | None) -> None:
 @click.pass_context
 def a2a_delegate(ctx: click.Context, task: str, agent_url: str | None, agent: str | None) -> None:
     """Delegate a task to an A2A agent."""
-    from codeops.a2a import create_a2a_orchestrator
+    from voly.a2a import create_a2a_orchestrator
 
     config = ctx.obj["config"]
     orch = create_a2a_orchestrator(config.a2a.federation_url)
@@ -243,8 +243,8 @@ def agui() -> None:
 @click.pass_context
 def agui_status(ctx: click.Context) -> None:
     """Show remote AG-UI worker status."""
-    from codeops.agui.remote import create_remote_agui_client, resolve_agui_remote_url
-    from codeops.spend.client import create_spend_client, resolve_spend_url
+    from voly.agui.remote import create_remote_agui_client, resolve_agui_remote_url
+    from voly.spend.client import create_spend_client, resolve_spend_url
 
     config = ctx.obj["config"]
     url = resolve_agui_remote_url(config.agui.remote_url) or resolve_spend_url(config.spend.remote_url)
@@ -268,7 +268,7 @@ def agui_status(ctx: click.Context) -> None:
 @click.pass_context
 def agui_session(ctx: click.Context, session_id: str | None) -> None:
     """Create a remote AG-UI WebSocket session."""
-    from codeops.agui.remote import create_remote_agui_client, resolve_agui_remote_url
+    from voly.agui.remote import create_remote_agui_client, resolve_agui_remote_url
 
     config = ctx.obj["config"]
     client = create_remote_agui_client(resolve_agui_remote_url(config.agui.remote_url))
@@ -287,7 +287,7 @@ def agui_session(ctx: click.Context, session_id: str | None) -> None:
 @click.pass_context
 def agui_start(ctx: click.Context, port: int) -> None:
     """Start AG-UI gateway server."""
-    from codeops.agui import AGUIGateway, AGUIContext
+    from voly.agui import AGUIGateway, AGUIContext
 
     gateway = AGUIGateway()
     ctx_obj = ctx.find_object(dict) or {}

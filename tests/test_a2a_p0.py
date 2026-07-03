@@ -7,10 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codeops.a2a import A2AOrchestrator, A2ATask, TaskState
-from codeops.a2a.decomposer import Subtask, TaskDecomposer
-from codeops.pipeline import Pipeline
-from codeops.pipeline_server import _is_nested_a2a_request
+from voly.a2a import A2AOrchestrator, A2ATask, TaskState
+from voly.a2a.decomposer import Subtask, TaskDecomposer
+from voly.pipeline import Pipeline
+from voly.pipeline_server import _is_nested_a2a_request
 
 
 def test_is_nested_a2a_request_from_task_id() -> None:

@@ -3,7 +3,7 @@
 import json
 import time
 
-from codeops.ai_gateway import (
+from voly.ai_gateway import (
     AIGateway,
     CacheConfig,
     RateLimit,

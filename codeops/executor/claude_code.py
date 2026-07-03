@@ -21,9 +21,9 @@ import time
 
 import logging
 
-from codeops.executor.base import Executor, ExecutorResult, _is_billing_error
+from voly.executor.base import Executor, ExecutorResult, _is_billing_error
 
-_log = logging.getLogger("codeops.executor.claude_code")
+_log = logging.getLogger("voly.executor.claude_code")
 
 
 class ClaudeCodeExecutor(Executor):

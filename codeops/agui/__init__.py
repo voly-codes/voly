@@ -270,7 +270,7 @@ class AGUIGateway:
 
 
 def create_agui_gateway(remote_url: str = "") -> AGUIGateway:
-    from codeops.agui.remote import create_remote_agui_client
+    from voly.agui.remote import create_remote_agui_client
 
     client = create_remote_agui_client(remote_url)
     return AGUIGateway(remote_client=client)

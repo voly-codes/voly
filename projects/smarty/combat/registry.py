@@ -31,7 +31,7 @@ class CombatMissionName(click.ParamType):
         if value not in names:
             self.fail(
                 f"Unknown mission '{value}'. Available: {', '.join(names)}\n"
-                f"  New mission: codeops smarty combat init <name>"
+                f"  New mission: voly smarty combat init <name>"
             )
         return value
 

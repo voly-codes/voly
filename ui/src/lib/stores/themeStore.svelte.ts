@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'codeops-theme'
+const STORAGE_KEY = 'voly-theme'
 
 let dark = $state(loadTheme())
 

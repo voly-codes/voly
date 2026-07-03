@@ -1,5 +1,5 @@
 # Combat mission: smarty-marks-admin
-# Run: python3 -m codeops.cli smarty combat run smarty-marks-admin --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-marks-admin --sequential
 
 name: smarty-marks-admin
 description: 'P2: Marks admin — /settings/marks CRUD; link from LabelPicker admin.'

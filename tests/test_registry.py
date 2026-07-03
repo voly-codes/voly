@@ -1,7 +1,7 @@
 """Tests for Agent Registry and Skill Registry."""
 
-from codeops.registry.agents import AgentRegistry, AgentDefinition, BUILTIN_AGENTS
-from codeops.registry.skills import (
+from voly.registry.agents import AgentRegistry, AgentDefinition, BUILTIN_AGENTS
+from voly.registry.skills import (
     SkillRegistry,
     SkillIndex,
     Skill,
@@ -114,14 +114,14 @@ def _reg_with_builtins() -> SkillRegistry:
 
 
 def test_skill_registry_starts_empty() -> None:
-    """Registry loads nothing by default — skills come from .codeops/skills/ only."""
+    """Registry loads nothing by default — skills come from .voly/skills/ only."""
     reg = SkillRegistry()
     assert reg.index.count() == 0
 
 
 def test_skill_registry_loads_from_directory(tmp_path) -> None:
     """Skills saved as YAML are loaded on init."""
-    from codeops.registry.loader import save_skill_yaml, skill_from_dict
+    from voly.registry.loader import save_skill_yaml, skill_from_dict
 
     skill_dict = {
         "id": "test-skill",

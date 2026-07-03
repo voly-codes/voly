@@ -8,9 +8,9 @@ import re
 import urllib.error
 import urllib.request
 
-from codeops.catalog.types import CatalogModel
+from voly.catalog.types import CatalogModel
 
-USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
 
 FREE_MODEL_IDS = frozenset({
     "big-pickle",

@@ -6,9 +6,9 @@ from pathlib import Path
 import click
 import yaml
 
-from codeops.registry.loader import skill_from_dict, skill_to_yaml_dict
-from codeops.registry.marketplace import MarketplaceClient, MarketplaceError
-from codeops.registry.skills import create_skill_registry, resolve_marketplace_url
+from voly.registry.loader import skill_from_dict, skill_to_yaml_dict
+from voly.registry.marketplace import MarketplaceClient, MarketplaceError
+from voly.registry.skills import create_skill_registry, resolve_marketplace_url
 
 
 def _registry(ctx: click.Context):
@@ -29,7 +29,7 @@ def _marketplace_client(ctx: click.Context) -> MarketplaceClient:
     url = resolve_marketplace_url(config.registry.marketplace_url)
     if not url:
         raise click.ClickException(
-            "Marketplace URL not configured. Set registry.marketplace_url in codeops.yaml "
+            "Marketplace URL not configured. Set registry.marketplace_url in voly.yaml "
             "or CF_WORKER_MARKETPLACE_URL in .env"
         )
     return MarketplaceClient(url)
@@ -104,7 +104,7 @@ def skill_search(ctx: click.Context, query: str, limit: int) -> None:
 @click.argument("skill_id")
 @click.pass_context
 def skill_install(ctx: click.Context, skill_id: str) -> None:
-    """Download skill from marketplace into .codeops/skills/."""
+    """Download skill from marketplace into .voly/skills/."""
     reg = _registry(ctx)
     try:
         skill_obj = reg.install_from_marketplace(skill_id)
@@ -149,9 +149,9 @@ def skill_generate(ctx: click.Context, project_root: str, dry_run: bool) -> None
     """Generate PROJECT skills from CLAUDE.md, README, ARCHITECTURE docs."""
     from pathlib import Path
 
-    from codeops.registry.loader import save_skill_yaml, skill_from_dict
-    from codeops.registry.project_skill_extractor import generate_project_skills
-    from codeops.scanner import ProjectScanner
+    from voly.registry.loader import save_skill_yaml, skill_from_dict
+    from voly.registry.project_skill_extractor import generate_project_skills
+    from voly.scanner import ProjectScanner
 
     root = Path(project_root).resolve()
     scanner = ProjectScanner(root)
@@ -193,8 +193,8 @@ def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
     Skills already present in the marketplace are skipped unless --force is set.
     Run once after initial deployment to populate the D1 database.
     """
-    from codeops.registry.builtin_data import BUILTIN_SKILLS
-    from codeops.registry.loader import skill_to_yaml_dict
+    from voly.registry.builtin_data import BUILTIN_SKILLS
+    from voly.registry.loader import skill_to_yaml_dict
 
     mp = _marketplace_client(ctx)
 

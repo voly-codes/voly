@@ -34,7 +34,7 @@ except ImportError:
 def _require_dspy() -> None:
     if not _DSPY_AVAILABLE:
         raise ImportError(
-            "DSPy is not installed. Run: pip install codeops[dspy]  "
+            "DSPy is not installed. Run: pip install voly[dspy]  "
             "or: pip install 'dspy>=2.5.0'"
         )
 
@@ -78,7 +78,7 @@ class VOLYDSPyLM(_BaseLM):  # type: ignore[misc]
         temperature: float = 0.0,
     ) -> None:
         _require_dspy()
-        model_name = f"codeops/{provider}/{model}"
+        model_name = f"voly/{provider}/{model}"
         super().__init__(
             model=model_name,
             model_type="chat",

@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="docs/assets/codeops-logo.png" alt="VOLY" width="720">
+  <img src="docs/assets/voly-logo.png" alt="VOLY" width="720">
 </p>
 
 <p align="center">
-  <a href="https://github.com/codeops-org/codeops/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/codeops-org/codeops/ci.yml?branch=main&style=for-the-badge"></a>
+  <a href="https://github.com/VOLY-org/VOLY/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/VOLY-org/VOLY/ci.yml?branch=main&style=for-the-badge"></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img alt="Multi-Agent" src="https://img.shields.io/badge/Multi--Agent-A2A-6366F1?style=for-the-badge">
   <img alt="DSPy" src="https://img.shields.io/badge/DSPy-Optional-22C55E?style=for-the-badge">
@@ -28,7 +28,7 @@ VOLY — не ещё один AI-агент. Это **control plane** между
 - **снижает расход токенов** через persistent-кэш, Headroom, model routing и детерминизм;
 - **собирает telemetry** по каждому запуску и показывает реальные метрики в Web UI;
 - поддерживает **DSPy** как optional optimization layer;
-- остаётся **project-agnostic** — целевой проект передаётся через `--cwd` или `CODEOPS_PROJECT_CWD`.
+- остаётся **project-agnostic** — целевой проект передаётся через `--cwd` или `VOLY_PROJECT_CWD`.
 
 ## Как это работает
 
@@ -67,7 +67,7 @@ DLP → Cache → Rate limit → Spend limit → Provider → Telemetry
 
 **Smart dispatch** (`POST /api/run`, `executor=pipeline`):
 - сложная многокомпонентная задача (≥ `a2a.min_flags_for_dispatch` флагов из code-gen/review/testing/deployment, либо `complexity=high`) → **остаётся в pipeline и уходит в мульти-агента**;
-- простая код-задача → промоут в `executor=claude-code` с `cwd` из конфига/`CODEOPS_PROJECT_CWD` (чтобы реально писать файлы);
+- простая код-задача → промоут в `executor=claude-code` с `cwd` из конфига/`VOLY_PROJECT_CWD` (чтобы реально писать файлы);
 - текстовая задача → одиночный вызов модели.
 
 ## Мульти-агентная оркестрация (A2A local)
@@ -82,25 +82,25 @@ DLP → Cache → Rate limit → Spend limit → Provider → Telemetry
 4. Суб-агенты исполняются **в процессе** через `AIGateway.chat()` в порядке зависимостей; результаты предыдущих ролей прокидываются дальше.
 5. Merge → `TaskEvent` с `a2a_assignments` (роль / тир / модель / скилы / токены / стоимость / cache_hit). Всё видно в Web UI (панель «Мульти-агенты»).
 
-**Экономия на повторах:** суб-агенты детерминированы (`temperature=0`), а gateway-кэш **persistent** (на диск) — идентичная задача на повторе даёт cache-hit по всей цепочке (стоимость → $0). Пропуск провайдера (например при исчерпании кредитов): `CODEOPS_A2A_EXCLUDE_PROVIDERS=anthropic`.
+**Экономия на повторах:** суб-агенты детерминированы (`temperature=0`), а gateway-кэш **persistent** (на диск) — идентичная задача на повторе даёт cache-hit по всей цепочке (стоимость → $0). Пропуск провайдера (например при исчерпании кредитов): `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic`.
 
 ## Быстрый старт
 
 ```bash
-git clone https://github.com/codeops-org/codeops.git
-cd codeops
+git clone https://github.com/VOLY-org/VOLY.git
+cd VOLY
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[ui,dev]"
 cp .env.example .env       # добавь API ключи
-codeops init
-codeops status
+VOLY init
+VOLY status
 ```
 
 Web UI (dev):
 
 ```bash
 # backend API (FastAPI) — :7788
-python3 -m uvicorn codeops.web.server:create_app --factory --host 127.0.0.1 --port 7788
+python3 -m uvicorn VOLY.web.server:create_app --factory --host 127.0.0.1 --port 7788
 # UI dev-сервер (Vite) — :5173, проксирует API на :7788
 cd ui && npm install && npm run dev
 ```
@@ -109,20 +109,20 @@ cd ui && npm install && npm run dev
 
 ```bash
 cd ui && npm run build && cd ..
-codeops ui
+VOLY ui
 ```
 
 Pipeline-раннер для CF agent workers через туннель — отдельный сервис на `:9202`:
 
 ```bash
-codeops serve
+VOLY serve
 ```
 
 DSPy (опционально):
 
 ```bash
 pip install -e ".[dspy,dev]"
-codeops dspy status
+VOLY dspy status
 ```
 
 ## Billing Fallback Chain (executor path)
@@ -148,16 +148,16 @@ claude-code  →  wrangler  →  zen
 | `deepseek` / `mimo` | нет — text only | API | вне цепочки |
 
 ```bash
-codeops run "implement auth refactor" --executor claude-code --cwd /path/to/target-project
+VOLY run "implement auth refactor" --executor claude-code --cwd /path/to/target-project
 ```
 
-Для автоматического выбора — Web UI или `codeops match`.
+Для автоматического выбора — Web UI или `VOLY match`.
 
 ## AI Gateway
 
 `AIGateway.chat()` — единая точка выхода. Middleware: **DLP → Cache → Rate limit → Spend limit → Routing → Provider**.
 
-- **Persistent cache** — ответы кэшируются на диск (`ai_gateway.cache_persist_dir`, по умолчанию `.codeops/gateway_cache`), поэтому повторные запросы попадают в кэш между запросами и рестартами.
+- **Persistent cache** — ответы кэшируются на диск (`ai_gateway.cache_persist_dir`, по умолчанию `.VOLY/gateway_cache`), поэтому повторные запросы попадают в кэш между запросами и рестартами.
 - **Провайдеры**: `anthropic`, `openai`, `google`, `deepseek`, `workers-ai`, `cloudflare-dynamic`, `opencode-zen`, `mimo`, **`omniroute`** (self-hosted OpenAI-совместимый шлюз, opt-in).
 - **Метрики Gateway-вкладки** берутся из телеметрии (реальные запросы/токены/стоимость/`by_provider`/`by_model`/`spent_today`), а не из свежего инстанса.
 
@@ -186,22 +186,22 @@ Svelte 5 SPA с hash-routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` + 
 | `active` | DSPy-результат заменяет classic для разрешённых агентов |
 
 ```bash
-codeops dspy status
-codeops dspy dataset build
-codeops dspy compile --agent reviewer
-codeops dspy promote code-review.v2 --tag production
+VOLY dspy status
+VOLY dspy dataset build
+VOLY dspy compile --agent reviewer
+VOLY dspy promote code-review.v2 --tag production
 ```
 
 ## Конфигурация
 
 ```yaml
-# codeops.yaml
-default_cwd: ""              # путь к целевому проекту (или CODEOPS_PROJECT_CWD)
+# VOLY.yaml
+default_cwd: ""              # путь к целевому проекту (или VOLY_PROJECT_CWD)
 
 ai_gateway:
   provider: cloudflare
   cache_enabled: true
-  cache_persist_dir: .codeops/gateway_cache   # disk-кэш; пусто → только in-memory
+  cache_persist_dir: .VOLY/gateway_cache   # disk-кэш; пусто → только in-memory
   spend_limit_usd_per_day: 20.0
 
 a2a:
@@ -227,27 +227,27 @@ OPENCODE_API_KEY=...                      # zen / opencode-zen
 CLOUDFLARE_ACCOUNT_ID=...                 # CF AI Gateway + Workers AI
 CLOUDFLARE_API_TOKEN=...
 CF_AIG_TOKEN=...                          # CF Dashboard → AI Gateway → Settings
-CODEOPS_PROJECT_CWD=/path/to/proj         # default cwd для executor-а и UI
-CODEOPS_A2A_EXCLUDE_PROVIDERS=            # напр. "anthropic" — скрыть из tier-пула
+VOLY_PROJECT_CWD=/path/to/proj         # default cwd для executor-а и UI
+VOLY_A2A_EXCLUDE_PROVIDERS=            # напр. "anthropic" — скрыть из tier-пула
 OMNIROUTE_BASE_URL=http://localhost:20128 # если используешь OmniRoute-адаптер
 ```
 
 ## Основные команды
 
 ```bash
-codeops run <task>                        # задача через pipeline (→ мульти-агент при сложности)
-codeops run <task> --executor claude-code --cwd /path/to/project
-codeops match <task>                      # подобрать агента / executor / модель
-codeops status                            # статус компонентов
-codeops savings                           # отчёт об экономии
-codeops ui                                # web dashboard (FastAPI + Svelte) :7788
-codeops serve                             # pipeline HTTP-раннер :9202
+VOLY run <task>                        # задача через pipeline (→ мульти-агент при сложности)
+VOLY run <task> --executor claude-code --cwd /path/to/project
+VOLY match <task>                      # подобрать агента / executor / модель
+VOLY status                            # статус компонентов
+VOLY savings                           # отчёт об экономии
+VOLY ui                                # web dashboard (FastAPI + Svelte) :7788
+VOLY serve                             # pipeline HTTP-раннер :9202
 
-codeops registry agents | skills          # реестр агентов / скилов
-codeops model list                        # модели и цены
-codeops ai-gateway status                 # статус AI Gateway
-codeops spend status                      # текущий дневной spend
-codeops dspy status                       # DSPy programs + режим
+VOLY registry agents | skills          # реестр агентов / скилов
+VOLY model list                        # модели и цены
+VOLY ai-gateway status                 # статус AI Gateway
+VOLY spend status                      # текущий дневной spend
+VOLY dspy status                       # DSPy programs + режим
 ```
 
 ## CI и тесты
@@ -263,8 +263,8 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 ## Не коммитить
 
 ```
-.codeops/events/  .codeops/dspy/  .codeops/reports/  .codeops/gateway_cache/
-.venv/  ui/node_modules/  codeops/web/static/
+.VOLY/events/  .VOLY/dspy/  .VOLY/reports/  .VOLY/gateway_cache/
+.venv/  ui/node_modules/  VOLY/web/static/
 ```
 
 ## Документация
@@ -276,7 +276,7 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 | [docs/backend/executors.md](docs/backend/executors.md) | Executor-ы, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, провайдеры, OmniRoute, persistent cache |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
-| [docs/backend/config.md](docs/backend/config.md) | codeops.yaml, env vars, VOLYConfig |
+| [docs/backend/config.md](docs/backend/config.md) | VOLY.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE events, CF Worker /infer |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 стек, структура ui/, dev/build |
 | [CLAUDE.md](CLAUDE.md) | Инструкции для AI-агентов в этом репозитории |

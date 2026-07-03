@@ -8,7 +8,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-_log = logging.getLogger("codeops.ai_gateway.providers")
+_log = logging.getLogger("voly.ai_gateway.providers")
 
 
 class _GatewayProvidersMixin:
@@ -419,14 +419,14 @@ class _GatewayProvidersMixin:
                 key  = os.environ.get("OPENCODE_API_KEY", "")
                 base = os.environ.get("OPENCODE_BASE_URL", "https://opencode.ai/zen/go")
                 base = base[:-3] if base.endswith("/v1") else base
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "codeops/0.1.0"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "voly/0.1.0"}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "opencode-zen":
                 key  = os.environ.get("OPENCODE_API_KEY", "")
                 base = os.environ.get("OPENCODE_ZEN_BASE_URL", "https://opencode.ai/zen")
                 base = base[:-3] if base.endswith("/v1") else base
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "codeops/0.1.0"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "voly/0.1.0"}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "workers-ai":

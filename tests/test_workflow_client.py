@@ -8,11 +8,11 @@ from urllib.error import HTTPError
 
 import pytest
 
-from codeops.workflow.backend import (
+from voly.workflow.backend import (
     instance_from_remote_payload,
     instance_to_remote_payload,
 )
-from codeops.workflow.client import (
+from voly.workflow.client import (
     WorkflowClient,
     WorkflowClientError,
     create_workflow_client,

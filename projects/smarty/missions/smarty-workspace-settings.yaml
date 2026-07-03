@@ -1,5 +1,5 @@
 # Combat mission: smarty-workspace-settings
-# Run: python3 -m codeops.cli smarty combat run smarty-workspace-settings --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-workspace-settings --sequential
 
 name: smarty-workspace-settings
 description: 'Workspace settings Plane-style: sidebar 250px, full-width content, integrations

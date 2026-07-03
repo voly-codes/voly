@@ -17,14 +17,14 @@ Multi-agent:
   MultiAgentOrchestrator → параллельный запуск задач на нескольких агентах
 """
 
-from codeops.executor.base import Executor, ExecutorResult
-from codeops.executor.cursor import CursorExecutor
-from codeops.executor.claude_code import ClaudeCodeExecutor
-from codeops.executor.deepseek import DeepSeekExecutor
-from codeops.executor.mimo import MiMoExecutor
-from codeops.executor.multi_agent import AgentTask, MultiAgentOrchestrator, OrchestrationReport
-from codeops.executor.opencode import OpenCodeExecutor
-from codeops.executor.zen import ZenExecutor
+from voly.executor.base import Executor, ExecutorResult
+from voly.executor.cursor import CursorExecutor
+from voly.executor.claude_code import ClaudeCodeExecutor
+from voly.executor.deepseek import DeepSeekExecutor
+from voly.executor.mimo import MiMoExecutor
+from voly.executor.multi_agent import AgentTask, MultiAgentOrchestrator, OrchestrationReport
+from voly.executor.opencode import OpenCodeExecutor
+from voly.executor.zen import ZenExecutor
 
 __all__ = [
     "Executor",

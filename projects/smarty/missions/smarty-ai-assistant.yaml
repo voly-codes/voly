@@ -1,5 +1,5 @@
 # Combat mission: smarty-ai-assistant
-# Run: python3 -m codeops.cli smarty combat run smarty-ai-assistant --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-ai-assistant --sequential
 
 name: smarty-ai-assistant
 description: 'AI-помощник Smarty: /assistant chat (consultant API) + /settings/ai-assistant

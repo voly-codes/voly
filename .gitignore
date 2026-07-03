@@ -20,10 +20,10 @@ dist/
 *~
 
 # VOLY runtime state
-.codeops/events/
-.codeops/dspy/datasets/
-.codeops/dspy/programs/
-.codeops/reports/
+.voly/events/
+.voly/dspy/datasets/
+.voly/dspy/programs/
+.voly/reports/
 
 # External repos (use git submodule if needed)
 # headroom/
@@ -32,9 +32,10 @@ rtk/
 # UI build artifacts
 ui/node_modules/
 ui/dist/
+voly/web/static/
 codeops/web/static/
 
 # generated runtime artifacts
-.codeops/a2a/
-.codeops/gateway_cache/
+.voly/a2a/
+.voly/gateway_cache/
 docs.zip

@@ -9,14 +9,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-from codeops.registry.loader import (
+from voly.registry.loader import (
     load_skills_from_directory,
     save_skill_yaml,
     skill_from_dict,
     skill_to_yaml_dict,
 )
-from codeops.registry.marketplace import MarketplaceClient, MarketplaceError
-from codeops.registry.skills import (
+from voly.registry.marketplace import MarketplaceClient, MarketplaceError
+from voly.registry.skills import (
     Skill,
     SkillSource,
     create_skill_registry,

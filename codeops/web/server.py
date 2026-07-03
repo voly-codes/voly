@@ -7,7 +7,7 @@ import pathlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from codeops.config import VOLYConfig
+    from voly.config import VOLYConfig
 
 try:
     from fastapi import FastAPI
@@ -39,8 +39,8 @@ def _load_dotenv_once() -> None:
 
 def _resolve_events_dir() -> pathlib.Path:
     candidates = [
-        pathlib.Path.cwd() / ".codeops" / "events",
-        pathlib.Path.home() / ".codeops" / "events",
+        pathlib.Path.cwd() / ".voly" / "events",
+        pathlib.Path.home() / ".voly" / "events",
     ]
     for c in candidates:
         if c.exists():
@@ -57,7 +57,7 @@ def _configure_logging() -> None:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
-    logging.getLogger("codeops.executor").setLevel(logging.DEBUG)
+    logging.getLogger("voly.executor").setLevel(logging.DEBUG)
 
 
 def create_app(
@@ -65,15 +65,15 @@ def create_app(
     config: "VOLYConfig | None" = None,
 ) -> "FastAPI":
     if not HAS_FASTAPI:
-        raise ImportError("Install UI dependencies: pip install 'codeops[ui]'")
+        raise ImportError("Install UI dependencies: pip install 'voly[ui]'")
     _configure_logging()
 
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.staticfiles import StaticFiles
 
-    from codeops.web.deps import AppState
-    from codeops.web.routes import cf, dspy, marketplace, registry, run, tasks, gateway, telemetry
+    from voly.web.deps import AppState
+    from voly.web.routes import cf, dspy, marketplace, registry, run, tasks, gateway, telemetry
 
     app = FastAPI(title="VOLY UI", version="0.1.0", docs_url="/api/docs")
     app.add_middleware(
@@ -103,5 +103,5 @@ def create_app(
     return app
 
 
-# Entry point for uvicorn --reload: codeops ui --reload
+# Entry point for uvicorn --reload: voly ui --reload
 _dev_app = create_app()

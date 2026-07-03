@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from codeops.memory.store import MemoryStore, MemoryEntry
+from voly.memory.store import MemoryStore, MemoryEntry
 
 
 def test_add_and_get() -> None:

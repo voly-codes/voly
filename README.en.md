@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="docs/assets/codeops-logo.png" alt="VOLY" width="720">
+  <img src="docs/assets/voly-logo.png" alt="VOLY" width="720">
 </p>
 
 <p align="center">
-  <a href="https://github.com/codeops-org/codeops/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/codeops-org/codeops/ci.yml?branch=main&style=for-the-badge"></a>
+  <a href="https://github.com/voly-org/voly/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/voly-org/voly/ci.yml?branch=main&style=for-the-badge"></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img alt="DSPy" src="https://img.shields.io/badge/DSPy-Optional-22C55E?style=for-the-badge">
   <img alt="Cloudflare AI Gateway" src="https://img.shields.io/badge/Cloudflare-AI_Gateway-F38020?style=for-the-badge&logo=cloudflare&logoColor=white">
@@ -45,26 +45,26 @@ VOLY is not yet another AI agent. It is a **control plane** between the develope
 ## Quick start
 
 ```bash
-git clone https://github.com/codeops-org/codeops.git
-cd codeops
+git clone https://github.com/voly-org/voly.git
+cd voly
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env  # add API keys if needed
-codeops init
-codeops status
+voly init
+voly status
 ```
 
 For DSPy:
 ```bash
 pip install -e ".[dspy,dev]"
-codeops dspy status
+voly dspy status
 ```
 
 For file-capable executors:
 ```bash
 pip install -e ".[cursor]"   # if using Cursor executor
-codeops run "review this repository" --agent reviewer --executor cursor --cwd /path/to/project
+voly run "review this repository" --agent reviewer --executor cursor --cwd /path/to/project
 ```
 
 ## How it works
@@ -93,7 +93,7 @@ AI Gateway
         ↓
 Claude / GPT / Gemini / DeepSeek / MiMo / OpenCode
         ↓
-Telemetry → .codeops/events/ + optional CF Pipelines / R2
+Telemetry → .voly/events/ + optional CF Pipelines / R2
 ```
 
 `AIGateway.chat()` remains the single exit point to models. Even DSPy goes through the gateway adapter, preserving cache, DLP, spend limits, fallback, and telemetry.
@@ -101,34 +101,34 @@ Telemetry → .codeops/events/ + optional CF Pipelines / R2
 ## Core commands
 
 ```bash
-codeops run <task>              # run a task through the pipeline
-codeops match <task>            # match agent, model, provider, tools
-codeops compare <task>          # direct API vs VOLY pipeline
-codeops savings                 # savings report
-codeops scan                    # scan project
-codeops status                  # component status
+voly run <task>              # run a task through the pipeline
+voly match <task>            # match agent, model, provider, tools
+voly compare <task>          # direct API vs VOLY pipeline
+voly savings                 # savings report
+voly scan                    # scan project
+voly status                  # component status
 ```
 
 ## Agents, models, and skills
 
 ```bash
-codeops registry agents         # list agents
-codeops registry skills         # list skills
-codeops model list              # models and pricing
-codeops model route <task>      # model for a task
-codeops catalog sync            # sync OpenCode Zen models
-codeops catalog match <task>    # match model/executor by catalog rules
+voly registry agents         # list agents
+voly registry skills         # list skills
+voly model list              # models and pricing
+voly model route <task>      # model for a task
+voly catalog sync            # sync OpenCode Zen models
+voly catalog match <task>    # match model/executor by catalog rules
 ```
 
 ## Budget, gateway, and telemetry
 
 ```bash
-codeops ai-gateway status
-codeops ai-gateway metrics
-codeops ai-gateway flush-cache
-codeops spend summary
-codeops telemetry status
-codeops telemetry test --dry-run
+voly ai-gateway status
+voly ai-gateway metrics
+voly ai-gateway flush-cache
+voly spend summary
+voly telemetry status
+voly telemetry test --dry-run
 ```
 
 ## DSPy optimizer layer
@@ -145,12 +145,12 @@ Modes:
 
 Commands:
 ```bash
-codeops dspy status
-codeops dspy dataset build
-codeops dspy compile --agent reviewer
-codeops dspy eval --agent reviewer
-codeops dspy programs
-codeops dspy promote code-review.v2 --tag production
+voly dspy status
+voly dspy dataset build
+voly dspy compile --agent reviewer
+voly dspy eval --agent reviewer
+voly dspy programs
+voly dspy promote code-review.v2 --tag production
 ```
 
 Note: `shadow` may execute both DSPy and classic calls for the same task. Use it as a staged rollout before `active`.
@@ -170,7 +170,7 @@ An executor is a runtime that can actually work with files in `--cwd`.
 
 Example:
 ```bash
-codeops run "implement auth refactor" \
+voly run "implement auth refactor" \
   --agent developer \
   --executor cursor \
   --cwd /path/to/target-project
@@ -178,7 +178,7 @@ codeops run "implement auth refactor" \
 
 ## Configuration
 
-Minimal `codeops.yaml`:
+Minimal `voly.yaml`:
 ```yaml
 default_model: claude-sonnet
 default_agent: claude
@@ -206,9 +206,9 @@ dspy:
 
 Runtime state should not be committed to git:
 ```text
-.codeops/events/
-.codeops/dspy/datasets/
-.codeops/dspy/programs/
+.voly/events/
+.voly/dspy/datasets/
+.voly/dspy/programs/
 ```
 
 ## CI

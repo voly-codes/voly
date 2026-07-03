@@ -25,10 +25,10 @@
   }
 
   const lifecycleSteps = [
-    { label: 'Собрать датасет', cmd: 'codeops dspy dataset build', desc: 'Из событий телеметрии по агентам' },
-    { label: 'Скомпилировать программу', cmd: 'codeops dspy compile --agent reviewer', desc: 'Запускает DSPy optimizer' },
-    { label: 'Оценить результат', cmd: 'codeops dspy eval --agent reviewer', desc: 'Средний score на датасете' },
-    { label: 'Повысить до production', cmd: 'codeops dspy promote reviewer.v1 --tag production', desc: 'После успешной оценки' },
+    { label: 'Собрать датасет', cmd: 'voly dspy dataset build', desc: 'Из событий телеметрии по агентам' },
+    { label: 'Скомпилировать программу', cmd: 'voly dspy compile --agent reviewer', desc: 'Запускает DSPy optimizer' },
+    { label: 'Оценить результат', cmd: 'voly dspy eval --agent reviewer', desc: 'Средний score на датасете' },
+    { label: 'Повысить до production', cmd: 'voly dspy promote reviewer.v1 --tag production', desc: 'После успешной оценки' },
   ]
 </script>
 
@@ -134,7 +134,7 @@
         {#if data.programs.length === 0}
           <div class="empty-hint">
             Нет скомпилированных программ. Сначала собери датасет, затем запусти
-            <code>codeops dspy compile --agent reviewer</code>
+            <code>voly dspy compile --agent reviewer</code>
           </div>
         {:else}
           <div class="programs-table">
@@ -179,7 +179,7 @@
         {#if data.datasets.length === 0}
           <div class="empty-hint">
             Нет датасетов. Запусти
-            <code>codeops dspy dataset build</code>
+            <code>voly dspy dataset build</code>
             чтобы собрать из событий телеметрии.
           </div>
         {:else}

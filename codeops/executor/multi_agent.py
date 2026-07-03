@@ -28,7 +28,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from codeops.executor.base import Executor, ExecutorResult
+from voly.executor.base import Executor, ExecutorResult
 
 AgentName = Literal["cursor", "claude-code", "opencode", "deepseek", "zen", "mimo"]
 
@@ -106,32 +106,32 @@ class OrchestrationReport:
 
 def _build_executor(agent: AgentName, model: str | None = None) -> Executor:
     if agent == "cursor":
-        from codeops.executor.cursor import CursorExecutor
+        from voly.executor.cursor import CursorExecutor
         return CursorExecutor(model=model) if model else CursorExecutor()
     if agent == "claude-code":
-        from codeops.executor.claude_code import ClaudeCodeExecutor
+        from voly.executor.claude_code import ClaudeCodeExecutor
         return ClaudeCodeExecutor()
     if agent == "opencode":
-        from codeops.executor.opencode import OpenCodeExecutor
+        from voly.executor.opencode import OpenCodeExecutor
         return OpenCodeExecutor(model=model) if model else OpenCodeExecutor()
     if agent == "deepseek":
-        from codeops.executor.deepseek import DeepSeekExecutor
+        from voly.executor.deepseek import DeepSeekExecutor
         return DeepSeekExecutor(model=model) if model else DeepSeekExecutor()
     if agent == "zen":
-        from codeops.executor.zen import ZenExecutor
+        from voly.executor.zen import ZenExecutor
         return ZenExecutor(model=model) if model else ZenExecutor()
     if agent == "mimo":
-        from codeops.executor.mimo import MiMoExecutor
+        from voly.executor.mimo import MiMoExecutor
         return MiMoExecutor()
     raise ValueError(f"Unknown agent: {agent}")
 
 
 def _emit_combat_telemetry(agent_task: AgentTask, result: ExecutorResult) -> None:
     try:
-        from codeops.automation import compute_automation_metrics
-        from codeops.config import load_config
-        from codeops.cost_policy import budget_status, detect_task_type
-        from codeops.telemetry import (
+        from voly.automation import compute_automation_metrics
+        from voly.config import load_config
+        from voly.cost_policy import budget_status, detect_task_type
+        from voly.telemetry import (
             TaskEvent,
             TokenMetrics,
             _estimate_cost,

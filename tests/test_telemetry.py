@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from codeops.config import VOLYConfig, TelemetryConfig
-from codeops.telemetry import (
+from voly.config import VOLYConfig, TelemetryConfig
+from voly.telemetry import (
     TaskEvent,
     TokenMetrics,
     emit_event,
@@ -39,7 +39,7 @@ def test_event_to_pipeline_record_flattens_tokens() -> None:
         status="completed",
         tokens=TokenMetrics(input=100, output=50, saved_rtk=10),
         cost_usd=0.01,
-        gateway=__import__("codeops.telemetry", fromlist=["GatewayMetrics"]).GatewayMetrics(
+        gateway=__import__("voly.telemetry", fromlist=["GatewayMetrics"]).GatewayMetrics(
             cache_hit=True
         ),
     )
@@ -82,7 +82,7 @@ def test_emit_event_writes_local_and_pipeline(tmp_path: Path, monkeypatch: pytes
     def fake_send(endpoint, ev, **kwargs):
         sent.append(ev)
 
-    monkeypatch.setattr("codeops.telemetry.send_to_pipeline", fake_send)
+    monkeypatch.setattr("voly.telemetry.send_to_pipeline", fake_send)
 
     path = emit_event(
         event,
@@ -102,7 +102,7 @@ def test_emit_event_pipeline_failure_still_writes_local(tmp_path: Path, monkeypa
     def fail_send(*args, **kwargs):
         raise TelemetryDeliveryError("network down")
 
-    monkeypatch.setattr("codeops.telemetry.send_to_pipeline", fail_send)
+    monkeypatch.setattr("voly.telemetry.send_to_pipeline", fail_send)
 
     path = emit_event(
         event,
@@ -126,7 +126,7 @@ def test_emit_event_from_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     def fake_send(endpoint, ev, **kwargs):
         sent.append(endpoint)
 
-    monkeypatch.setattr("codeops.telemetry.send_to_pipeline", fake_send)
+    monkeypatch.setattr("voly.telemetry.send_to_pipeline", fake_send)
 
     emit_event_from_config(
         TaskEvent(task_id="cfg-1", agent="dev", status="completed"),
@@ -137,10 +137,10 @@ def test_emit_event_from_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
 
 
 def test_config_loads_telemetry_pipeline_url(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from codeops.config import load_config
+    from voly.config import load_config
 
     monkeypatch.setenv("CF_PIPELINE_TELEMETRY_ENDPOINT", "https://env-pipe.example.com")
-    cfg_path = tmp_path / "codeops.yaml"
+    cfg_path = tmp_path / "voly.yaml"
     cfg_path.write_text("""
 telemetry:
   pipeline_url: "${CF_PIPELINE_TELEMETRY_ENDPOINT}"

@@ -1,8 +1,8 @@
 # Config & Env — Backend Reference
 
-Конфиг загружается из `codeops.yaml` + `.env`. Класс: `codeops/config.py:VOLYConfig`.
+Конфиг загружается из `voly.yaml` + `.env`. Класс: `voly/config.py:VOLYConfig`.
 
-Приоритет: `.env` > `codeops.yaml` > defaults в коде.
+Приоритет: `.env` > `voly.yaml` > defaults в коде.
 
 ---
 
@@ -41,7 +41,7 @@ CLOUDFLARE_R2_BUCKET=...
 ```env
 CODEOPS_PROJECT_CWD=/path/to/target/project
 # Если задан — executor использует его как cwd по умолчанию.
-# Можно также задать default_cwd в codeops.yaml.
+# Можно также задать default_cwd в voly.yaml.
 
 CODEOPS_LOG_LEVEL=INFO
 CODEOPS_SERVER_PORT=7860
@@ -50,7 +50,7 @@ CODEOPS_SERVER_HOST=0.0.0.0
 
 ---
 
-## codeops.yaml — ключевые поля
+## voly.yaml — ключевые поля
 
 ```yaml
 default_agent: cursor
@@ -61,7 +61,7 @@ ai_gateway:
   cloudflare_account_id: ""
   cloudflare_gateway_id: default
   cache_enabled: true
-  cache_persist_dir: .codeops/gateway_cache  # disk-кэш ответов; пусто → только in-memory
+  cache_persist_dir: .voly/gateway_cache  # disk-кэш ответов; пусто → только in-memory
   rate_limit_rpm: 60
   spend_limit_usd_per_day: 10.0
 
@@ -73,8 +73,8 @@ dspy:
   enabled: false
   mode: shadow           # off | shadow | active
   model: claude-sonnet-4-6
-  programs_dir: .codeops/dspy/programs
-  datasets_dir: .codeops/dspy/datasets
+  programs_dir: .voly/dspy/programs
+  datasets_dir: .voly/dspy/datasets
 
 a2a:
   enabled: true
@@ -90,7 +90,7 @@ rtk:
 
 memory:
   enabled: true
-  storage: .codeops/memory/
+  storage: .voly/memory/
 
 agents:
   cursor:
@@ -106,7 +106,7 @@ agents:
 ## VOLYConfig — важные поля
 
 ```python
-config.default_cwd           # из codeops.yaml default_cwd или CODEOPS_PROJECT_CWD
+config.default_cwd           # из voly.yaml default_cwd или CODEOPS_PROJECT_CWD
 config.dspy.enabled          # bool
 config.dspy.mode             # "off" | "shadow" | "active"
 config.dspy.datasets_dir     # путь для сохранения (task, result) примеров
@@ -119,10 +119,10 @@ config.ai_gateway.spend_limit_usd_per_day
 ## Инициализация
 
 ```bash
-codeops init              # интерактивно создаёт codeops.yaml
-codeops setup             # проверяет все нужные ключи
-codeops config            # показывает текущий конфиг
-codeops status            # health check всех компонентов
+voly init              # интерактивно создаёт voly.yaml
+voly setup             # проверяет все нужные ключи
+voly config            # показывает текущий конфиг
+voly status            # health check всех компонентов
 ```
 
 ---

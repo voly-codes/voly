@@ -63,7 +63,7 @@ app.use("*", cors());
 
 // ── Health ────────────────────────────────────────────────────────────────────
 
-app.get("/health", (c) => c.json({ ok: true, service: "codeops-marketplace" }));
+app.get("/health", (c) => c.json({ ok: true, service: "voly-marketplace" }));
 
 app.get("/health/detailed", async (c) => {
   const services: Record<string, { ok: boolean; latency_ms?: number; error?: string }> = {};
@@ -110,7 +110,7 @@ app.get("/health/detailed", async (c) => {
 
   const allOk = Object.values(services).every((s) => s.ok);
   return c.json(
-    { ok: allOk, service: "codeops-marketplace", skills_active: skillCount, services },
+    { ok: allOk, service: "voly-marketplace", skills_active: skillCount, services },
     allOk ? 200 : 503,
   );
 });
@@ -233,7 +233,7 @@ app.get("/skills/:id/download", async (c) => {
   return new Response(obj.body, { headers: { "Content-Type": "application/json" } });
 });
 
-// POST /skills — upsert skill (used by `codeops skill seed`)
+// POST /skills — upsert skill (used by `voly skill seed`)
 app.post("/skills", async (c) => {
   let body: Record<string, unknown>;
   try {

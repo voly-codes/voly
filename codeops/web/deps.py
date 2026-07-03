@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from codeops.config import VOLYConfig
+    from voly.config import VOLYConfig
 
 
 @dataclass

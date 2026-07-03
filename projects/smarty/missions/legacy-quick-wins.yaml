@@ -1,5 +1,5 @@
 # Combat mission: legacy-quick-wins
-# Run: python3 -m codeops.cli smarty combat run legacy-quick-wins --sequential
+# Run: python3 -m voly.cli smarty combat run legacy-quick-wins --sequential
 
 name: legacy-quick-wins
 description: 'Быстрые правки из legacy-gap-audit §5 (<1 день): маршруты, i18n, markRead,

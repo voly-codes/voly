@@ -63,9 +63,9 @@ class DSPyRunner:
     """Интеграция DSPy с учётом реестра программ и менеджера версий."""
 
     def __init__(self, config: Any, gateway: Any) -> None:
-        from codeops.dspy.programs import get_registry
-        from codeops.dspy.store import DSPyProgramStore
-        from codeops.dspy.versioning import ProgramVersionManager
+        from voly.dspy.programs import get_registry
+        from voly.dspy.store import DSPyProgramStore
+        from voly.dspy.versioning import ProgramVersionManager
 
         self.config = config
         self.gateway = gateway
@@ -209,7 +209,7 @@ class DSPyRunner:
 
         key = (effective_model, effective_provider, agent)
         if key not in self._lm_cache:
-            from codeops.dspy.adapter import VOLYDSPyLM
+            from voly.dspy.adapter import VOLYDSPyLM
 
             mc = self.config.get_model_config(effective_model)
             self._lm_cache[key] = VOLYDSPyLM(

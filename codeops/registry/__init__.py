@@ -2,15 +2,15 @@
 Registry package — Agent Registry + Skill Registry.
 """
 
-from codeops.registry.agents import AgentRegistry, AgentDefinition, BUILTIN_AGENTS
-from codeops.registry.loader import (
+from voly.registry.agents import AgentRegistry, AgentDefinition, BUILTIN_AGENTS
+from voly.registry.loader import (
     load_skills_from_directory,
     save_skill_yaml,
     skill_from_dict,
     skill_to_yaml_dict,
 )
-from codeops.registry.marketplace import MarketplaceClient, MarketplaceError
-from codeops.registry.skills import (
+from voly.registry.marketplace import MarketplaceClient, MarketplaceError
+from voly.registry.skills import (
     SkillRegistry,
     SkillIndex,
     Skill,
@@ -20,7 +20,7 @@ from codeops.registry.skills import (
     resolve_marketplace_url,
     resolve_skills_path,
 )
-from codeops.registry.builtin_data import BUILTIN_SKILLS
+from voly.registry.builtin_data import BUILTIN_SKILLS
 
 __all__ = [
     "AgentRegistry",

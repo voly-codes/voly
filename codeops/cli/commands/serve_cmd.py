@@ -1,4 +1,4 @@
-"""CLI command: codeops serve — pipeline HTTP server."""
+"""CLI command: voly serve — pipeline HTTP server."""
 
 from __future__ import annotations
 
@@ -12,14 +12,14 @@ import click
 @click.pass_context
 def serve(ctx: click.Context, host: str, port: int, cwd: str | None) -> None:
     """Start pipeline HTTP server (for CF agent workers via tunnel)."""
-    from codeops.pipeline_server import run_pipeline_server
+    from voly.pipeline_server import run_pipeline_server
 
     config = ctx.obj["config"]
     click.echo(f"Pipeline server: http://{host}:{port}")
     click.echo("Secrets and git repo stay on this machine.")
     click.echo("")
     click.echo("Expose to Cloudflare:")
-    click.echo(f"  codeops tunnel start")
+    click.echo(f"  voly tunnel start")
     click.echo(f"  # or: cloudflared tunnel --url http://{host}:{port}")
     click.echo("")
     click.echo("Press Ctrl+C to stop")

@@ -1,5 +1,5 @@
 ---
-name: codeops-backend
+name: voly-backend
 description: Guide for working on VOLY Python backend — pipeline, executors, AI gateway, DSPy, config, API routes. Use this skill for any backend changes.
 ---
 
@@ -13,7 +13,7 @@ description: Guide for working on VOLY Python backend — pipeline, executors, A
 | Pipeline стадии / PipelineResult | `docs/backend/pipeline.md` |
 | AI Gateway / провайдеры / CF | `docs/backend/ai-gateway.md` |
 | DSPy programs / runner / adapter | `docs/backend/dspy.md` |
-| Config / env vars / codeops.yaml | `docs/backend/config.md` |
+| Config / env vars / voly.yaml | `docs/backend/config.md` |
 | API routes (/api/run, /api/tasks, ...) | `docs/backend/api.md` |
 | CF Worker (infer.ts, index.ts) | `docs/backend/ai-gateway.md` + `cf-workers/agent/src/` |
 
@@ -21,7 +21,7 @@ description: Guide for working on VOLY Python backend — pipeline, executors, A
 
 - `AIGateway.chat()` — единственный выход к моделям из Pipeline и DSPy
 - Executors могут bypass gateway (они запускают субпроцессы: claude CLI, wrangler dev, opencode)
-- Нет product-specific логики в `codeops/` — только через `--cwd`
+- Нет product-specific логики в `voly/` — только через `--cwd`
 - `billing_error=True` на ExecutorResult → AgentRunner запускает fallback chain
 - DSPy импортируется только lazy (не на уровне модуля)
 
@@ -68,7 +68,7 @@ register_program(MyProgram())  # в конце модуля
 
 ```bash
 # Smoke test (всегда после изменений)
-python -c "import codeops.pipeline, codeops.inference; from codeops.config import VOLYConfig; assert VOLYConfig().dspy.enabled is False"
+python -c "import voly.pipeline, voly.inference; from voly.config import VOLYConfig; assert VOLYConfig().dspy.enabled is False"
 pytest tests/test_dspy_runtime_smoke.py -q
 
 # Весь тест-сюит
@@ -90,4 +90,4 @@ pytest tests/ -q
 
 ## Completion report
 
-После завершения задачи создай отчёт: `/codeops-report`
+После завершения задачи создай отчёт: `/voly-report`

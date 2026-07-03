@@ -44,7 +44,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Реализация кода и фич",
       url: `${root}/agents/developer`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("implement", "Implementation", "Writes and implements code", ["code", "implement", "feature"], [
@@ -59,7 +59,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Архитектурное планирование",
       url: `${root}/agents/architect`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("design", "System Design", "Designs architecture and APIs", ["architecture", "design", "api"], [
@@ -72,7 +72,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Код-ревью и статический анализ",
       url: `${root}/agents/reviewer`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("review", "Code Review", "Reviews code quality and security", ["review", "code", "quality"], [
@@ -85,7 +85,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Тестирование и QA",
       url: `${root}/agents/tester`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("test", "Testing", "Writes and runs tests", ["test", "unittest", "qa"], [
@@ -98,7 +98,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Исправление багов",
       url: `${root}/agents/bugfixer`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("bugfix", "Bug Fix", "Analyzes and fixes bugs", ["bug", "fix", "debug"], ["Fix login 500 error"]),
@@ -109,7 +109,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Деплой и инфраструктура",
       url: `${root}/agents/devops`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("deploy", "Deployment", "Prepares deployment and CI", ["deploy", "ci", "infra"], [
@@ -122,7 +122,7 @@ export function buildBuiltinAgents(baseUrl: string): AgentCardDef[] {
       description: "Проверка безопасности",
       url: `${root}/agents/security`,
       version: "1.0.0",
-      provider: "codeops",
+      provider: "voly",
       capabilities: { streaming: false, tasks: true },
       skills: [
         skill("security", "Security Scan", "Security review and scanning", ["security", "audit"], [

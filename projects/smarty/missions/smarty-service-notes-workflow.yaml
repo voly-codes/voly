@@ -1,5 +1,5 @@
 # Combat mission: smarty-service-notes-workflow
-# Run: python3 -m codeops.cli smarty combat run smarty-service-notes-workflow --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-service-notes-workflow --sequential
 
 name: smarty-service-notes-workflow
 description: 'P1: Service notes — detail route, approval modal, 4-stage status, linked

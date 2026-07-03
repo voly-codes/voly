@@ -26,7 +26,7 @@ app.use("*", cors());
 app.get("/health", (c) =>
   c.json({
     status: "ok",
-    service: "codeops-spend",
+    service: "voly-spend",
     features: ["spend-tracker", "agui-session"],
   }),
 );

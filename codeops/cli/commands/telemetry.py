@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import click
 
-from codeops.telemetry import (
+from voly.telemetry import (
     TaskEvent,
     TokenMetrics,
     emit_event_from_config,
@@ -54,7 +54,7 @@ def telemetry_test(ctx: click.Context, dry_run: bool) -> None:
 
     if not endpoint:
         raise click.ClickException(
-            "Pipeline URL not configured. Set telemetry.pipeline_url in codeops.yaml "
+            "Pipeline URL not configured. Set telemetry.pipeline_url in voly.yaml "
             "or CF_PIPELINE_TELEMETRY_ENDPOINT in .env"
         )
 

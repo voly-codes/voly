@@ -28,7 +28,7 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", cors());
 
-app.get("/health", (c) => c.json({ status: "ok", service: "codeops-memory" }));
+app.get("/health", (c) => c.json({ status: "ok", service: "voly-memory" }));
 
 app.post("/memory/add", async (c) => {
   if (!authorize(c)) return c.json({ error: "Unauthorized" }, 401);

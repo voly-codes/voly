@@ -1,5 +1,5 @@
 # Combat mission: smarty-time-log
-# Run: python3 -m codeops.cli smarty combat run smarty-time-log --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-time-log --sequential
 
 name: smarty-time-log
 description: 'P1: Time log — workspace settings + employee embed + PDF export + card

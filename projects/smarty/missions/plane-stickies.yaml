@@ -1,5 +1,5 @@
 # Combat mission: plane-stickies
-# Run: python3 -m codeops.cli smarty combat run plane-stickies --sequential
+# Run: python3 -m voly.cli smarty combat run plane-stickies --sequential
 
 name: plane-stickies
 description: 'Stickies (Plane parity): личные post-it заметки — новая страница /stickies,

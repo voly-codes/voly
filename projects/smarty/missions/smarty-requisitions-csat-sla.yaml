@@ -1,5 +1,5 @@
 # Combat mission: smarty-requisitions-csat-sla
-# Run: python3 -m codeops.cli smarty combat run smarty-requisitions-csat-sla --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-requisitions-csat-sla --sequential
 
 name: smarty-requisitions-csat-sla
 description: 'P1: Requisitions — CSAT submit, SLA panel, section import/export.'

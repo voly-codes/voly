@@ -1,6 +1,6 @@
-"""codeops.pipeline — re-exports for backward compatibility."""
+"""voly.pipeline — re-exports for backward compatibility."""
 
-from codeops.pipeline.core import Pipeline
-from codeops.pipeline.types import PipelineMetrics, PipelineResult, PipelineStage
+from voly.pipeline.core import Pipeline
+from voly.pipeline.types import PipelineMetrics, PipelineResult, PipelineStage
 
 __all__ = ["Pipeline", "PipelineStage", "PipelineResult", "PipelineMetrics"]

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from codeops.router import TaskAnalysis
+    from voly.router import TaskAnalysis
 
 
 @dataclass

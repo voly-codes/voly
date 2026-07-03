@@ -54,7 +54,7 @@ def smarty_combat() -> None:
 @smarty_combat.command("list")
 def combat_list() -> None:
     """List available combat missions."""
-    click.echo("Combat missions (codeops smarty combat run <name>):\n")
+    click.echo("Combat missions (voly smarty combat run <name>):\n")
     click.echo(f"  Missions dir: {MISSIONS_DIR}\n")
     for name in combat_mission_names():
         mission = get_combat_missions()[name]
@@ -93,7 +93,7 @@ def combat_init(mission_name: str, force: bool) -> None:
         raise click.ClickException(f"{path} already exists — use --force to overwrite")
     path.write_text(mission_template_yaml(mission_name), encoding="utf-8")
     click.echo(f"Created {path}")
-    click.echo(f"Edit the file, then: codeops smarty combat run {mission_name} --sequential")
+    click.echo(f"Edit the file, then: voly smarty combat run {mission_name} --sequential")
 
 
 @smarty_combat.command("run")
@@ -119,7 +119,7 @@ def combat_run(mission_name: str, parallel: bool, save: bool, sync_catalog: bool
 @click.option("--save/--no-save", default=True)
 def smarty_run(task_name: str, parallel: bool, save: bool) -> None:
     """Run an analytical multi-agent task (zen/deepseek/mimo)."""
-    from codeops.executor import AgentTask, MultiAgentOrchestrator
+    from voly.executor import AgentTask, MultiAgentOrchestrator
 
     task_defs = _analytical_tasks()[task_name]
     tasks = [
@@ -174,7 +174,7 @@ def smarty_reports() -> None:
         reverse=True,
     )
     if not files:
-        click.echo("No reports yet. Run: codeops smarty combat run <mission>")
+        click.echo("No reports yet. Run: voly smarty combat run <mission>")
         return
     click.echo(f"Reports in {SMARTY_REPORTS}:\n")
     for f in files[:20]:

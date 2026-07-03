@@ -1,5 +1,5 @@
 # Combat mission: smarty-print-export
-# Run: python3 -m codeops.cli smarty combat run smarty-print-export --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-print-export --sequential
 
 name: smarty-print-export
 description: 'P2: Print routes for entities + export template editor at /settings/export-templates.'

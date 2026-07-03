@@ -18,8 +18,8 @@ import click
 def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None:
     """Compare token usage: direct API call vs VOLY pipeline."""
     import time
-    from codeops.pipeline import Pipeline
-    from codeops.telemetry import _estimate_cost
+    from voly.pipeline import Pipeline
+    from voly.telemetry import _estimate_cost
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -136,7 +136,7 @@ def compare(ctx: click.Context, task: str, model: str | None, runs: int) -> None
 def savings(ctx: click.Context, days: int, as_json: bool) -> None:
     """Show savings report based on measured telemetry data."""
     import time
-    from codeops.telemetry import _estimate_cost
+    from voly.telemetry import _estimate_cost
 
     # Executor types that never go through AIGateway — no token/cost data in telemetry
     _EXECUTOR_MODELS = frozenset({"claude-code", "cursor", "opencode", "zen", "wrangler", "mimo", "deepseek"})
@@ -144,7 +144,7 @@ def savings(ctx: click.Context, days: int, as_json: bool) -> None:
     _BASELINE_MODEL = "claude-sonnet-4-6"
     _SONNET_IN_PER_TOKEN = 0.003 / 1000
 
-    events_dir = Path(".codeops/events")
+    events_dir = Path(".voly/events")
     events: list[dict] = []
 
     if events_dir.exists():

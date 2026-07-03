@@ -404,7 +404,7 @@ class A2AOrchestrator:
         results into dependent subtask descriptions before dispatch.
         Returns list of A2ATask objects in the same order as subtasks.
         '''
-        from codeops.a2a.decomposer import Subtask, TaskDecomposer
+        from voly.a2a.decomposer import Subtask, TaskDecomposer
 
         results: list[A2ATask | None] = [None] * len(subtasks)
         decomposer = TaskDecomposer()
@@ -522,8 +522,8 @@ class A2AOrchestrator:
 
 
 def create_a2a_orchestrator(federation_url: str = "", token: str = "") -> A2AOrchestrator:
-    from codeops.a2a.backend import FederationBackend
-    from codeops.a2a.federation import create_federation_client
+    from voly.a2a.backend import FederationBackend
+    from voly.a2a.federation import create_federation_client
 
     fed_client = create_federation_client(federation_url, token=token)
     a2a_client = A2AClient(token=token)

@@ -8,6 +8,6 @@ Memory Layer — долгосрочная память агента.
     - Семантический поиск по памяти
 """
 
-from codeops.memory.store import MemoryStore
+from voly.memory.store import MemoryStore
 
 __all__ = ["MemoryStore"]

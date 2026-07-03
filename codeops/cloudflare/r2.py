@@ -8,8 +8,8 @@ Uses only stdlib (no boto3/s3transfer). Credentials from env:
 
 Usage:
     r2 = R2Client.from_env()
-    r2.put("codeops-telemetry", "events/abc.json", b"...", "application/json")
-    data = r2.get("codeops-skills", "index.json")
+    r2.put("voly-telemetry", "events/abc.json", b"...", "application/json")
+    data = r2.get("voly-skills", "index.json")
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-_log = logging.getLogger("codeops.cloudflare.r2")
+_log = logging.getLogger("voly.cloudflare.r2")
 
 
 def _sign_key(secret: str, date: str, region: str, service: str) -> bytes:

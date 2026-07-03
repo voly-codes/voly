@@ -20,19 +20,19 @@ projects/smarty/
 ## Quick start
 
 ```bash
-cd codeops && source .env
+cd voly && source .env
 
 # List all missions (inline + files)
-python3 -m codeops.cli smarty combat list
+python3 -m voly.cli smarty combat list
 
 # Run by name
-python3 -m codeops.cli smarty combat run smarty-group-settings --sequential
+python3 -m voly.cli smarty combat run smarty-group-settings --sequential
 
 # Scaffold a new mission file
-python3 -m codeops.cli smarty combat init smarty-my-feature
+python3 -m voly.cli smarty combat init smarty-my-feature
 
 # Preview steps + source file
-python3 -m codeops.cli smarty combat show smarty-bills-crud
+python3 -m voly.cli smarty combat show smarty-bills-crud
 ```
 
 ## File format (`*.yaml`)

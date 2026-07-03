@@ -1,13 +1,13 @@
-"""Local catalog cache (.codeops/catalog/models.json)."""
+"""Local catalog cache (.voly/catalog/models.json)."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from codeops.catalog.types import CatalogModel
+from voly.catalog.types import CatalogModel
 
-DEFAULT_CATALOG_DIR = Path(".codeops/catalog")
+DEFAULT_CATALOG_DIR = Path(".voly/catalog")
 MODELS_FILE = "models.json"
 
 

@@ -1,4 +1,4 @@
-"""CLI command: codeops config."""
+"""CLI command: voly config."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import click
 def config_cmd(ctx: click.Context, show: bool, path: bool, export_path: str | None) -> None:
     """Show or export VOLY configuration."""
     config = ctx.obj["config"]
-    cfg_path = ctx.obj.get("config_path") or "codeops.yaml"
+    cfg_path = ctx.obj.get("config_path") or "voly.yaml"
 
     if path:
         click.echo(cfg_path)

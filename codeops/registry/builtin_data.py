@@ -3,15 +3,15 @@
 These are NOT auto-loaded into SkillRegistry at runtime.
 Skills are only active after a user explicitly installs them via:
   - UI: Skill Marketplace → Install
-  - CLI: codeops skill install <id>
+  - CLI: voly skill install <id>
 
 To push these to CF Marketplace run:
-  codeops skill seed  (seeds missing builtins without overwriting existing)
+  voly skill seed  (seeds missing builtins without overwriting existing)
 """
 
 from __future__ import annotations
 
-from codeops.registry.skills import Skill, SkillSource
+from voly.registry.skills import Skill, SkillSource
 
 BUILTIN_SKILLS: list[Skill] = [
     Skill(

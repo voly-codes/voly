@@ -19,7 +19,7 @@ import os
 import time
 from pathlib import Path
 
-from codeops.executor.base import Executor, ExecutorResult
+from voly.executor.base import Executor, ExecutorResult
 
 _SUCCESS_STATUSES = frozenset({"finished", "completed", "success", "succeeded"})
 _FAILURE_STATUSES = frozenset({"failed", "error", "cancelled", "canceled", "timeout"})
@@ -65,7 +65,7 @@ class CursorExecutor(Executor):
         if not self._api_key:
             return ExecutorResult(
                 success=False,
-                error="CURSOR_API_KEY is not set. Add it to codeops/.env",
+                error="CURSOR_API_KEY is not set. Add it to voly/.env",
             )
 
         work_dir = cwd or os.getcwd()

@@ -2,7 +2,7 @@
 Хранилище скомпилированных DSPy программ.
 
 Новая схема хранения:
-    .codeops/dspy/programs/<program_id>/v<N>.json
+    .voly/dspy/programs/<program_id>/v<N>.json
 
 Где `program_id` — стабильный идентификатор программы, независимый
 от агента. Для обратной совместимости также читаются legacy-директории,
@@ -29,7 +29,7 @@ except ImportError:
 class DSPyProgramStore:
     """Управляет сохранением и загрузкой скомпилированных DSPy программ."""
 
-    def __init__(self, programs_dir: str = ".codeops/dspy/programs") -> None:
+    def __init__(self, programs_dir: str = ".voly/dspy/programs") -> None:
         self.programs_dir = Path(programs_dir)
 
     # ------------------------------------------------------------------

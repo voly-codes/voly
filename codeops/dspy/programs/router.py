@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from codeops.dspy.programs.base import BaseProgram
-from codeops.dspy.programs.registry import register_program
+from voly.dspy.programs.base import BaseProgram
+from voly.dspy.programs.registry import register_program
 
 
 class RouterProgram(BaseProgram):
@@ -17,13 +17,13 @@ class RouterProgram(BaseProgram):
     def build(self) -> Any:
         self.ensure_dspy()
         import dspy
-        from codeops.dspy.signatures import build_route_task_signature
+        from voly.dspy.signatures import build_route_task_signature
 
         signature = build_route_task_signature()
         return dspy.Predict(signature)
 
     def get_metric(self) -> Any:
-        from codeops.dspy.metrics import routing_metric
+        from voly.dspy.metrics import routing_metric
 
         return routing_metric
 

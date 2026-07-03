@@ -1,6 +1,6 @@
-"""python -m codeops.cli entry point."""
+"""python -m voly.cli entry point."""
 
-from codeops.cli.main import main
+from voly.cli.main import main
 
 if __name__ == "__main__":
     main()

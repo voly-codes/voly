@@ -133,7 +133,7 @@ def merge_combat_missions(
 def mission_template_yaml(name: str) -> str:
     """Scaffold for `combat init`."""
     return f"""# Combat mission: {name}
-# Run: python3 -m codeops.cli smarty combat run {name} --sequential
+# Run: python3 -m voly.cli smarty combat run {name} --sequential
 # Template vars: {{{{SMARTY_PROJECT}}}}, {{{{LEGACY_GAP_REF}}}}, … — see projects/smarty/context.py
 
 name: {name}

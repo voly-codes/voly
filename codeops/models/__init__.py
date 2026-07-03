@@ -11,7 +11,7 @@ Model Layer — абстракция для работы с различными
 Принцип Model Agnostic: Код агента не зависит от конкретной модели.
 """
 
-from codeops.models.providers import (
+from voly.models.providers import (
     ModelProvider,
     ModelResponse,
     ModelUsage,

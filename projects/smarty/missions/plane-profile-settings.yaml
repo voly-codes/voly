@@ -1,5 +1,5 @@
 # Combat mission: plane-profile-settings
-# Run: python3 -m codeops.cli smarty combat run plane-profile-settings --sequential
+# Run: python3 -m voly.cli smarty combat run plane-profile-settings --sequential
 
 name: plane-profile-settings
 description: 'Profile settings (Plane parity): /settings/profile/:tab — General (cover+avatar

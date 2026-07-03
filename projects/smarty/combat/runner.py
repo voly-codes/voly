@@ -10,17 +10,17 @@ from projects.smarty.context import SMARTY_PROJECT, SMARTY_REPORTS, SMARTY_SYSTE
 
 
 def build_combat_tasks(mission_name: str, mission: dict, sys_prompt: str) -> list:
-    from codeops.executor import AgentTask
+    from voly.executor import AgentTask
 
     task_defs = mission["tasks"]
     supervisor = None
     step_specs = []
 
     if mission.get("supervised"):
-        from codeops.catalog.supervisor import CombatSupervisor
+        from voly.catalog.supervisor import CombatSupervisor
 
-        codeops_root = Path(SMARTY_PROJECT) / "codeops"
-        supervisor = CombatSupervisor(SMARTY_PROJECT, codeops_root=codeops_root)
+        voly_root = Path(SMARTY_PROJECT) / "voly"
+        supervisor = CombatSupervisor(SMARTY_PROJECT, voly_root=voly_root)
         plan = supervisor.plan(mission_name)
         step_specs = plan.steps
         click.echo(f"  Supervisor plan: {len(step_specs)} steps (Zen catalog routing)\n")
@@ -72,7 +72,7 @@ def run_mission(
     sync_catalog: bool = False,
     from_step: int = 1,
 ) -> None:
-    from codeops.executor import MultiAgentOrchestrator
+    from voly.executor import MultiAgentOrchestrator
 
     missions = get_combat_missions()
     mission = missions[mission_name]
@@ -80,12 +80,12 @@ def run_mission(
 
     if sync_catalog or mission.get("supervised"):
         try:
-            from codeops.catalog.supervisor import CombatSupervisor
+            from voly.catalog.supervisor import CombatSupervisor
 
-            codeops_root = Path(SMARTY_PROJECT) / "codeops"
-            sup = CombatSupervisor(SMARTY_PROJECT, codeops_root=codeops_root)
+            voly_root = Path(SMARTY_PROJECT) / "voly"
+            sup = CombatSupervisor(SMARTY_PROJECT, voly_root=voly_root)
             n = sup.sync_catalog()
-            click.echo(f"[Combat] Catalog synced: {n} Zen models → .codeops/catalog/models.json")
+            click.echo(f"[Combat] Catalog synced: {n} Zen models → .voly/catalog/models.json")
         except Exception as exc:
             click.echo(f"[Combat] Catalog sync skipped: {exc}")
 

@@ -1,11 +1,11 @@
 {
-  "name": "codeops-memory",
+  "name": "voly-memory",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:init": "wrangler d1 execute codeops --remote --file=schema.sql"
+    "db:init": "wrangler d1 execute voly --remote --file=schema.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250620.0",

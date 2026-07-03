@@ -11,7 +11,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
 
 
 class MemoryClientError(Exception):

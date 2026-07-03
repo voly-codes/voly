@@ -9,7 +9,7 @@ from typing import Any
 
 import yaml
 
-from codeops.registry.skills import Skill, SkillSource, SkillStatus
+from voly.registry.skills import Skill, SkillSource, SkillStatus
 
 
 def skill_from_dict(data: dict[str, Any]) -> Skill:

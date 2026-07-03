@@ -2,7 +2,7 @@
 DSPy Compiler — builds optimized programs for VOLY agents.
 
 Flow:
-    1. Load dataset from .codeops/dspy/datasets/<agent>.jsonl
+    1. Load dataset from .voly/dspy/datasets/<agent>.jsonl
     2. Build a dspy.Module for the agent
     3. Run the configured teleprompter (optimizer)
     4. Save the compiled program to the store
@@ -37,7 +37,7 @@ except ImportError:
 
 def _require_dspy() -> None:
     if not _DSPY_AVAILABLE:
-        raise ImportError("DSPy is not installed. Run: pip install codeops[dspy]")
+        raise ImportError("DSPy is not installed. Run: pip install voly[dspy]")
 
 
 # Budget → optimizer kwargs
@@ -50,7 +50,7 @@ _BUDGET_KWARGS: dict[str, dict[str, Any]] = {
 
 def load_dataset(datasets_dir: str, dataset_id: str) -> list[Any]:
     """
-    Load JSONL dataset from .codeops/dspy/datasets/<dataset_id>.jsonl.
+    Load JSONL dataset from .voly/dspy/datasets/<dataset_id>.jsonl.
 
     Each line must be a JSON object with at minimum:
         {"task": "...", "agent": "...", ...}  (routing dataset)
@@ -120,7 +120,7 @@ def compile_program(
     program_id: str,
     *,
     dataset_id: str,
-    datasets_dir: str = ".codeops/dspy/datasets",
+    datasets_dir: str = ".voly/dspy/datasets",
     optimizer: str = "bootstrap_fewshot",
     compile_budget: str = "small",
     min_examples: int = 20,
@@ -136,7 +136,7 @@ def compile_program(
         ValueError:   not enough examples in dataset
     """
     _require_dspy()
-    from codeops.dspy.programs import get_registry
+    from voly.dspy.programs import get_registry
 
     registry = get_registry()
     program_def = registry.get(program_id)
@@ -147,7 +147,7 @@ def compile_program(
     if len(dataset) < min_examples:
         raise ValueError(
             f"Not enough examples for {dataset_id}: need {min_examples}, got {len(dataset)}. "
-            f"Run: codeops dspy dataset build --agent {dataset_id}"
+            f"Run: voly dspy dataset build --agent {dataset_id}"
         )
 
     metric = program_def.metric

@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 router = APIRouter()
 _THREAD_POOL = ThreadPoolExecutor(max_workers=4)
-_log = logging.getLogger("codeops.web.run")
+_log = logging.getLogger("voly.web.run")
 
 # Code extensions to search when gathering context
 _CODE_EXTS = ("*.py", "*.ts", "*.tsx", "*.js", "*.jsx", "*.go", "*.rs", "*.cs", "*.java")
@@ -133,11 +133,11 @@ def _extract_relevant_lines(content: str, keywords: list[str], max_lines: int = 
 # ── Run helpers ───────────────────────────────────────────────────────────────
 
 def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     cfg = config
     if cfg is None:
-        from codeops.config import load_config
+        from voly.config import load_config
         cfg = load_config()
 
     pipeline = Pipeline(cfg)
@@ -187,11 +187,11 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
 
 
 def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
-    from codeops.runner.agent_runner import AgentRunner
+    from voly.runner.agent_runner import AgentRunner
 
     cfg = config
     if cfg is None:
-        from codeops.config import load_config
+        from voly.config import load_config
         cfg = load_config()
 
     work_dir = os.path.expanduser(req.cwd) if req.cwd else os.getcwd()
@@ -225,7 +225,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
 
 def _needs_executor(task: str, config: Any) -> bool:
     """True when the task requires actual file operations (code gen/edit/fix)."""
-    from codeops.router import AgentRouter
+    from voly.router import AgentRouter
     router = AgentRouter(config)
     analysis = router.analyze_task(task)
     return analysis.requires_code_gen
@@ -238,12 +238,12 @@ def _would_dispatch_a2a(task: str, config: Any) -> bool:
     instead of being promoted to the single-executor claude-code path.
     """
     if config is None:  # --factory mode injects no config → load defaults
-        from codeops.config import load_config
+        from voly.config import load_config
         config = load_config()
     a2a = getattr(config, "a2a", None)
     if not a2a or not getattr(a2a, "enabled", False) or not getattr(a2a, "auto_dispatch", True):
         return False
-    from codeops.router import AgentRouter
+    from voly.router import AgentRouter
     analysis = AgentRouter(config).analyze_task(task)
     flags = sum([
         bool(analysis.requires_code_gen),

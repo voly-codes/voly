@@ -2,7 +2,7 @@
 Task telemetry — замеры на задачу.
 
 Каждый вызов pipeline.run() / runner эмитирует TaskEvent:
-  1. Локальный JSON в `.codeops/events/<task_id>.json` (fallback + savings CLI)
+  1. Локальный JSON в `.voly/events/<task_id>.json` (fallback + savings CLI)
   2. CF Pipelines HTTP ingest (если `CF_PIPELINE_TELEMETRY_ENDPOINT` задан)
   3. Прямой upload в R2 (legacy, пока pipeline не владеет хранилищем)
 """
@@ -22,7 +22,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
+USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
 
 # Оценка стоимости по провайдеру/модели: (input_usd_per_1k, output_usd_per_1k)
 _COST_RATES: dict[str, tuple[float, float]] = {
@@ -290,7 +290,7 @@ def emit_event(
 ) -> Path | None:
     """Записывает TaskEvent локально и доставляет в Pipeline / R2 при наличии конфига."""
     if events_dir is None:
-        events_dir = Path(".codeops") / "events"
+        events_dir = Path(".voly") / "events"
 
     path = _write_local_event(event, events_dir)
 
@@ -304,7 +304,7 @@ def emit_event(
 
     if r2_enabled:
         r2_endpoint = os.environ.get("CF_R2_ENDPOINT")
-        r2_bucket = os.environ.get("CF_R2_BUCKET_TELEMETRY", "codeops-telemetry")
+        r2_bucket = os.environ.get("CF_R2_BUCKET_TELEMETRY", "voly-telemetry")
         r2_key_id = os.environ.get("CF_R2_ACCESS_KEY_ID")
         r2_secret = os.environ.get("CF_R2_SECRET_ACCESS_KEY")
         if r2_endpoint and r2_key_id and r2_secret:
@@ -334,7 +334,7 @@ def emit_event_from_config(event: TaskEvent, config: Any | None = None) -> Path 
         r2_enabled=telemetry.r2_enabled,
     )
     try:
-        from codeops.spend import record_task_spend
+        from voly.spend import record_task_spend
 
         record_task_spend(event, config)
     except Exception:
@@ -350,15 +350,15 @@ def _emit_to_r2(
     secret_key: str,
 ) -> None:
     """PUT события в R2 через R2Client (правильный SigV4)."""
-    from codeops.cloudflare.r2 import R2Client
+    from voly.cloudflare.r2 import R2Client
     r2 = R2Client(endpoint, access_key, secret_key, timeout=5.0)
     r2.put(bucket, f"events/{event.task_id}.json", event.to_json().encode(), "application/json")
 
 
 def load_events(events_dir: str | Path | None = None) -> list[TaskEvent]:
-    """Загружает все события из .codeops/events/."""
+    """Загружает все события из .voly/events/."""
     if events_dir is None:
-        events_dir = Path(".codeops") / "events"
+        events_dir = Path(".voly") / "events"
 
     events: list[TaskEvent] = []
     target = Path(events_dir)

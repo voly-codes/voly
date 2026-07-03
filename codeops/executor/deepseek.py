@@ -18,8 +18,8 @@ from __future__ import annotations
 import os
 import time
 
-from codeops.executor.base import Executor, ExecutorResult, _is_billing_error
-from codeops.telemetry import _estimate_cost
+from voly.executor.base import Executor, ExecutorResult, _is_billing_error
+from voly.telemetry import _estimate_cost
 
 
 class DeepSeekExecutor(Executor):

@@ -25,10 +25,10 @@ import time
 import urllib.error
 import urllib.request
 
-from codeops.executor.base import Executor, ExecutorResult, _is_billing_error
-from codeops.executor.patch import LocalPatchApplier
+from voly.executor.base import Executor, ExecutorResult, _is_billing_error
+from voly.executor.patch import LocalPatchApplier
 
-_log = logging.getLogger("codeops.executor.wrangler")
+_log = logging.getLogger("voly.executor.wrangler")
 
 _DEFAULT_URL   = "http://127.0.0.1:8787"
 _DEFAULT_MODEL = "@cf/moonshotai/kimi-k2.7-code"
@@ -93,7 +93,7 @@ class WranglerExecutor(Executor):
         # Gather local context if not provided and cwd is known
         if context is None and cwd:
             try:
-                from codeops.web.routes.run import _gather_local_context
+                from voly.web.routes.run import _gather_local_context
                 context = _gather_local_context(task, work_dir, max_chars=5000)
             except Exception as exc:
                 _log.debug("context gather failed: %s", exc)

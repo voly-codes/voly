@@ -1,6 +1,6 @@
 """Tests for ContextAnalyzer."""
 
-from codeops.headroom.analyzer import ContextAnalyzer
+from voly.headroom.analyzer import ContextAnalyzer
 
 
 def test_analyze_counts_tokens_chars_lines() -> None:

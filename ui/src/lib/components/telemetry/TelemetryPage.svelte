@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <div class="section-hint">Данные собраны из директории <code>.codeops/events/</code> по всем выполненным задачам. Обновляется при нажатии Refresh.</div>
+    <div class="section-hint">Данные собраны из директории <code>.voly/events/</code> по всем выполненным задачам. Обновляется при нажатии Refresh.</div>
 
     <!-- Daily spend chart -->
     <section class="chart-section">

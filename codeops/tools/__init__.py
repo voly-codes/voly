@@ -10,6 +10,6 @@ Tool Layer — абстракция для доступа к внешним ин
     - Cloudflare
 """
 
-from codeops.tools.mcp import MCPManager, MCPServer, ToolInfo
+from voly.tools.mcp import MCPManager, MCPServer, ToolInfo
 
 __all__ = ["MCPManager", "MCPServer", "ToolInfo"]

@@ -1,5 +1,5 @@
 # Combat mission: smarty-extchats
-# Run: python3 -m codeops.cli smarty combat run smarty-extchats --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-extchats --sequential
 
 name: smarty-extchats
 description: 'P0: Внешние чаты /messages — extchats API, shared dialog shell (after

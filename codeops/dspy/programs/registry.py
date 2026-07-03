@@ -6,7 +6,7 @@ import importlib
 import logging
 from typing import Any
 
-from codeops.dspy.programs.base import BaseProgram, ProgramDefinition
+from voly.dspy.programs.base import BaseProgram, ProgramDefinition
 
 logger = logging.getLogger(__name__)
 
@@ -98,12 +98,12 @@ def list_program_ids() -> list[str]:
 
 def _load_builtins() -> None:
     builtin_modules = [
-        "codeops.dspy.programs.task_planner",
-        "codeops.dspy.programs.reviewer",
-        "codeops.dspy.programs.architect",
-        "codeops.dspy.programs.documenter",
-        "codeops.dspy.programs.bugfixer",
-        "codeops.dspy.programs.router",
+        "voly.dspy.programs.task_planner",
+        "voly.dspy.programs.reviewer",
+        "voly.dspy.programs.architect",
+        "voly.dspy.programs.documenter",
+        "voly.dspy.programs.bugfixer",
+        "voly.dspy.programs.router",
     ]
 
     for module_path in builtin_modules:

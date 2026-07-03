@@ -1,4 +1,4 @@
-"""CLI: codeops tunnel — cloudflared quick tunnel + worker secrets."""
+"""CLI: voly tunnel — cloudflared quick tunnel + worker secrets."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import click
 
-from codeops.tunnel_util import (
+from voly.tunnel_util import (
     ensure_pipeline_token,
     find_cloudflared,
     install_cloudflared,
@@ -22,16 +22,16 @@ from codeops.tunnel_util import (
 )
 
 
-def _codeops_root() -> Path:
+def _voly_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
 def _env_path() -> Path:
-    return _codeops_root() / ".env"
+    return _voly_root() / ".env"
 
 
 def _agent_worker_dir() -> Path:
-    return _codeops_root() / "cf-workers/agent"
+    return _voly_root() / "cf-workers/agent"
 
 
 @click.group()
@@ -44,7 +44,7 @@ def tunnel() -> None:
 @click.option("--install-cloudflared", is_flag=True, help="Download cloudflared to ~/.local/bin")
 @click.pass_context
 def tunnel_setup(ctx: click.Context, install_cloudflared: bool) -> None:
-    """Generate PIPELINE_RUNNER_TOKEN and sync secrets to codeops-agent worker."""
+    """Generate PIPELINE_RUNNER_TOKEN and sync secrets to voly-agent worker."""
     env_path = _env_path()
     token = ensure_pipeline_token(env_path)
     click.echo(f"PIPELINE_RUNNER_TOKEN: set in {env_path}")
@@ -70,7 +70,7 @@ def tunnel_setup(ctx: click.Context, install_cloudflared: bool) -> None:
         _sync_secrets(existing_url, token)
         click.echo("Worker secrets synced.")
     else:
-        click.echo("PIPELINE_RUNNER_URL not set yet — run: codeops tunnel start")
+        click.echo("PIPELINE_RUNNER_URL not set yet — run: voly tunnel start")
 
 
 @tunnel.command("start")
@@ -122,7 +122,7 @@ def tunnel_start(ctx: click.Context, host: str, port: int, cwd: str, no_sync: bo
     click.echo(f"Saved to {env_path} as PIPELINE_RUNNER_URL")
 
     if not no_sync:
-        click.echo("Syncing secrets to codeops-agent worker ...")
+        click.echo("Syncing secrets to voly-agent worker ...")
         try:
             _sync_secrets(tunnel_url, token)
             click.echo("Worker secrets synced.")
@@ -134,7 +134,7 @@ def tunnel_start(ctx: click.Context, host: str, port: int, cwd: str, no_sync: bo
 
     click.echo("")
     click.echo("Ready. CF agents can now call your local pipeline.")
-    click.echo("Test: codeops a2a call developer 'health check' --remote")
+    click.echo("Test: voly a2a call developer 'health check' --remote")
     click.echo("Press Ctrl+C to stop tunnel and server.")
 
     def _shutdown(signum: int, frame: object) -> None:

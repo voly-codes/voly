@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from codeops.dspy.programs.registry import (
+from voly.dspy.programs.registry import (
     DSPyProgramRegistry,
     get_registry,
     list_program_ids,

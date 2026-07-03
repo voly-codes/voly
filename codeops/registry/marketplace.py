@@ -16,7 +16,7 @@ class MarketplaceError(Exception):
 
 
 class MarketplaceClient:
-    USER_AGENT = "VOLY/0.1 (+https://github.com/codeops)"
+    USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
 
     def __init__(self, base_url: str, timeout: int = 30):
         self.base_url = base_url.rstrip("/")

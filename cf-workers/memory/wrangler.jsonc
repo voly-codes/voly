@@ -1,12 +1,12 @@
 {
-  "name": "codeops-memory",
+  "name": "voly-memory",
   "main": "src/index.ts",
   "compatibility_date": "2025-01-01",
 
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "codeops",
+      "database_name": "voly",
       "database_id": "0c11557b-a216-46eb-8564-f548175a0408"
     }
   ],
@@ -14,14 +14,14 @@
   "r2_buckets": [
     {
       "binding": "MEMORY_BUCKET",
-      "bucket_name": "codeops-skills"
+      "bucket_name": "voly-skills"
     }
   ],
 
   "vectorize": [
     {
       "binding": "VECTORIZE",
-      "index_name": "codeops-memory"
+      "index_name": "voly-memory"
     }
   ],
 

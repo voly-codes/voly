@@ -1,6 +1,6 @@
 # Frontend Overview
 
-UI для VOLY — Svelte 5 SPA в `ui/`. FastAPI сервирует его из `codeops/web/static/`
+UI для VOLY — Svelte 5 SPA в `ui/`. FastAPI сервирует его из `voly/web/static/`
 (built assets). В development — Vite dev server на `localhost:5173`.
 
 ---
@@ -60,7 +60,7 @@ npm install
 npm run dev       # http://localhost:5173
 ```
 
-Требует запущенного backend: `codeops serve` (порт 7860).
+Требует запущенного backend: `voly serve` (порт 7860).
 
 ---
 
@@ -68,10 +68,10 @@ npm run dev       # http://localhost:5173
 
 ```bash
 cd ui && npm run build
-# → codeops/web/static/assets/  (не коммитить — генерируется)
+# → voly/web/static/assets/  (не коммитить — генерируется)
 ```
 
-FastAPI сервирует `codeops/web/static/` как static files.
+FastAPI сервирует `voly/web/static/` как static files.
 
 ---
 

@@ -1,7 +1,7 @@
 """Tests for VOLY agent router."""
 
-from codeops.config import VOLYConfig
-from codeops.router import AgentRouter, RouteDecision, TaskAnalysis
+from voly.config import VOLYConfig
+from voly.router import AgentRouter, RouteDecision, TaskAnalysis
 
 
 def test_router_default() -> None:

@@ -169,12 +169,12 @@ def sync_agent_worker_secrets(
 
 
 def run_pipeline_server_background(config: Any, host: str, port: int, cwd: str) -> threading.Thread:
-    from codeops.pipeline_server import run_pipeline_server
+    from voly.pipeline_server import run_pipeline_server
 
     thread = threading.Thread(
         target=lambda: run_pipeline_server(config, host=host, port=port, default_cwd=cwd, block=True),
         daemon=True,
-        name="codeops-pipeline-server",
+        name="voly-pipeline-server",
     )
     thread.start()
     return thread

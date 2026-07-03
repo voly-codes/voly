@@ -12,7 +12,7 @@ def gateway_status(request: fastapi.Request) -> dict:
     state = request.app.state.app
     config = state.config
 
-    from codeops.ai_gateway import AIGateway
+    from voly.ai_gateway import AIGateway
 
     gw = AIGateway(
         account_id=config.ai_gateway.account_id if config else "",
@@ -40,7 +40,7 @@ def gateway_status(request: fastapi.Request) -> dict:
 
     # The gateway instance above is fresh (0 metrics). Overlay REAL usage from
     # persistent telemetry so the Gateway tab reflects actual traffic.
-    from codeops.web.routes.telemetry import _load_events, aggregate
+    from voly.web.routes.telemetry import _load_events, aggregate
 
     agg = aggregate(_load_events(state.ev_dir))
     total = agg["cache_hits"] + agg["cache_misses"]

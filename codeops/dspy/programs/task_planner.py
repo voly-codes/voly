@@ -12,7 +12,7 @@ This creates a feedback loop that DSPy teleprompters can later optimize:
 Usage:
   auto — AgentRunner calls this when dspy.enabled and executor path
   manual:
-    from codeops.dspy.programs.task_planner import TaskPlannerProgram
+    from voly.dspy.programs.task_planner import TaskPlannerProgram
     program = TaskPlannerProgram()
     module = program.build()
     result = module(task="add JWT auth to FastAPI app", project_context="Python/FastAPI")
@@ -22,8 +22,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from codeops.dspy.programs.base import BaseProgram
-from codeops.dspy.programs.registry import register_program
+from voly.dspy.programs.base import BaseProgram
+from voly.dspy.programs.registry import register_program
 
 
 def _build_task_planner_signature() -> type:

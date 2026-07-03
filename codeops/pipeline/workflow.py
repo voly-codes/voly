@@ -16,7 +16,7 @@ class _WorkflowMixin:
         *,
         instance_id: str | None = None,
     ) -> str:
-        from codeops.workflow import StepState, WorkflowState
+        from voly.workflow import StepState, WorkflowState
 
         if instance_id:
             instance = self.workflow.get_instance(instance_id)  # type: ignore[attr-defined]
@@ -92,7 +92,7 @@ class _WorkflowMixin:
         return approved
 
     def resume_workflow(self, instance_id: str, task: str | None = None) -> str | None:
-        from codeops.workflow import WorkflowState
+        from voly.workflow import WorkflowState
 
         instance = self.workflow.get_instance(instance_id)  # type: ignore[attr-defined]
         if not instance or instance.state != WorkflowState.PAUSED:
@@ -111,7 +111,7 @@ class _WorkflowMixin:
         )
 
     def _check_workflow_done(self, instance: Any) -> None:
-        from codeops.workflow import StepState, WorkflowState
+        from voly.workflow import StepState, WorkflowState
 
         all_done = all(
             s.state in (StepState.COMPLETED, StepState.FAILED, StepState.SKIPPED)

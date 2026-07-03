@@ -1,6 +1,6 @@
 """Tests for A2A Orchestrator."""
 
-from codeops.a2a import (
+from voly.a2a import (
     AgentCard,
     AgentSkill,
     A2AClient,
@@ -97,7 +97,7 @@ def test_a2a_orchestrator_register_local() -> None:
         skills=[AgentSkill(id="review", name="Review", description="Code review", tags=["review"])],
     )
 
-    from codeops.a2a import A2AAgent
+    from voly.a2a import A2AAgent
 
     agent = A2AAgent(card)
     orch.register_local_agent(agent)

@@ -7,8 +7,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from codeops.config import VOLYConfig
-from codeops.router import RouteDecision
+from voly.config import VOLYConfig
+from voly.router import RouteDecision
 
 TASK_TYPE_PATTERNS: dict[str, list[str]] = {
     "docs": [

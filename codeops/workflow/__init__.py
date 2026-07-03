@@ -375,8 +375,8 @@ _register_builtins()
 
 
 def create_workflow_engine(workflow_url: str = "") -> WorkflowEngine:
-    from codeops.workflow.backend import PersistentWorkflowBackend
-    from codeops.workflow.client import create_workflow_client
+    from voly.workflow.backend import PersistentWorkflowBackend
+    from voly.workflow.client import create_workflow_client
 
     client = create_workflow_client(workflow_url)
     if client:

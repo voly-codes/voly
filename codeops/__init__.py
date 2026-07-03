@@ -32,8 +32,8 @@ VOLY — Control Plane for AI Engineering Agents.
 
 __version__ = "0.1.0"
 
-from codeops.config import VOLYConfig
-from codeops.pipeline import Pipeline
-from codeops.router import AgentRouter
+from voly.config import VOLYConfig
+from voly.pipeline import Pipeline
+from voly.router import AgentRouter
 
 __all__ = ["VOLYConfig", "Pipeline", "AgentRouter"]

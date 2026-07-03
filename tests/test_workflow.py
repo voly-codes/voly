@@ -1,6 +1,6 @@
 """Tests for Workflow Engine."""
 
-from codeops.workflow import (
+from voly.workflow import (
     BUILTIN_WORKFLOWS,
     WorkflowDefinition,
     WorkflowEngine,

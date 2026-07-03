@@ -4,8 +4,8 @@ Uses a fake gateway so no real provider calls are made.
 """
 from __future__ import annotations
 
-from codeops.a2a.decomposer import TaskDecomposer
-from codeops.a2a.multiagent import (
+from voly.a2a.decomposer import TaskDecomposer
+from voly.a2a.multiagent import (
     Assignment,
     LeadOrchestrator,
     merge_report,

@@ -6,7 +6,7 @@ const apiPort = process.env.CODEOPS_UI_API_PORT ?? '7788'
 export default defineConfig({
   plugins: [svelte()],
   build: {
-    outDir: '../codeops/web/static',
+    outDir: '../voly/web/static',
     emptyOutDir: true,
   },
   server: {

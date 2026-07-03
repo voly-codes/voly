@@ -18,7 +18,7 @@ def memory() -> None:
 @click.pass_context
 def memory_list(ctx: click.Context, category: str | None, limit: int) -> None:
     """List memory entries."""
-    from codeops.memory.store import MemoryStore
+    from voly.memory.store import MemoryStore
 
     config = ctx.obj["config"]
     store = MemoryStore(config.memory.db_path)
@@ -43,7 +43,7 @@ def memory_list(ctx: click.Context, category: str | None, limit: int) -> None:
 @click.pass_context
 def memory_status(ctx: click.Context) -> None:
     """Show semantic memory worker status."""
-    from codeops.memory.client import create_memory_client, resolve_memory_url
+    from voly.memory.client import create_memory_client, resolve_memory_url
 
     config = ctx.obj["config"]
     url = resolve_memory_url(config.memory.remote_url)
@@ -73,7 +73,7 @@ def memory_status(ctx: click.Context) -> None:
 @click.pass_context
 def memory_search(ctx: click.Context, query: str, limit: int) -> None:
     """Search memory entries."""
-    from codeops.memory.store import MemoryStore
+    from voly.memory.store import MemoryStore
 
     config = ctx.obj["config"]
     store = MemoryStore(config.memory.db_path, remote_url=config.memory.remote_url)
@@ -96,7 +96,7 @@ def rtk() -> None:
 @click.pass_context
 def rtk_install(ctx: click.Context) -> None:
     """Install RTK binary."""
-    from codeops.rtk.installer import RTKManager
+    from voly.rtk.installer import RTKManager
 
     config = ctx.obj["config"]
     mgr = RTKManager(config.rtk.binary_path)
@@ -109,7 +109,7 @@ def rtk_install(ctx: click.Context) -> None:
 def rtk_stats(ctx: click.Context) -> None:
     """Show RTK token savings."""
     import json
-    from codeops.rtk.installer import RTKManager
+    from voly.rtk.installer import RTKManager
 
     config = ctx.obj["config"]
     mgr = RTKManager(config.rtk.binary_path)
@@ -134,7 +134,7 @@ def headroom() -> None:
 def headroom_start(ctx: click.Context, port: int) -> None:
     """Start Headroom compression proxy."""
     import time
-    from codeops.headroom.proxy import HeadroomManager
+    from voly.headroom.proxy import HeadroomManager
 
     config = ctx.obj["config"]
     hm = HeadroomManager(port=port, savings_profile=config.headroom.savings_profile)
@@ -155,7 +155,7 @@ def headroom_start(ctx: click.Context, port: int) -> None:
 @click.pass_context
 def headroom_status(ctx: click.Context) -> None:
     """Show Headroom proxy status."""
-    from codeops.headroom.proxy import HeadroomManager
+    from voly.headroom.proxy import HeadroomManager
 
     config = ctx.obj["config"]
     hm = HeadroomManager(port=config.headroom.port)
@@ -181,7 +181,7 @@ def mcp() -> None:
 @click.pass_context
 def mcp_list(ctx: click.Context) -> None:
     """List available MCP servers."""
-    from codeops.tools.mcp import MCPManager
+    from voly.tools.mcp import MCPManager
 
     mgr = MCPManager()
     click.echo("Built-in MCP servers:")
@@ -195,7 +195,7 @@ def mcp_list(ctx: click.Context) -> None:
 def mcp_config(ctx: click.Context, fmt: str) -> None:
     """Generate MCP config for AI agents."""
     import json
-    from codeops.tools.mcp import MCPManager
+    from voly.tools.mcp import MCPManager
 
     mgr = MCPManager()
     for name in ["github", "gitlab", "filesystem", "postgres"]:

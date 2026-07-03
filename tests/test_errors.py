@@ -14,7 +14,7 @@ import pytest
 
 
 def test_marketplace_error_can_be_raised_and_caught() -> None:
-    from codeops.registry.marketplace import MarketplaceError
+    from voly.registry.marketplace import MarketplaceError
 
     with pytest.raises(MarketplaceError, match="marketplace is down"):
         raise MarketplaceError("marketplace is down")
@@ -26,7 +26,7 @@ def test_marketplace_error_can_be_raised_and_caught() -> None:
 
 
 def test_catalog_client_error_can_be_raised_and_caught() -> None:
-    from codeops.catalog.client import CatalogClientError
+    from voly.catalog.client import CatalogClientError
 
     with pytest.raises(CatalogClientError, match="catalog unreachable"):
         raise CatalogClientError("catalog unreachable")
@@ -36,35 +36,35 @@ def test_catalog_client_error_can_be_raised_and_caught() -> None:
 
 
 def test_memory_client_error_can_be_raised_and_caught() -> None:
-    from codeops.memory.client import MemoryClientError
+    from voly.memory.client import MemoryClientError
 
     with pytest.raises(MemoryClientError):
         raise MemoryClientError("memory service error")
 
 
 def test_spend_client_error_can_be_raised_and_caught() -> None:
-    from codeops.spend.client import SpendClientError
+    from voly.spend.client import SpendClientError
 
     with pytest.raises(SpendClientError):
         raise SpendClientError("spend service error")
 
 
 def test_federation_client_error_can_be_raised_and_caught() -> None:
-    from codeops.a2a.federation import FederationClientError
+    from voly.a2a.federation import FederationClientError
 
     with pytest.raises(FederationClientError):
         raise FederationClientError("federation error")
 
 
 def test_workflow_client_error_can_be_raised_and_caught() -> None:
-    from codeops.workflow.client import WorkflowClientError
+    from voly.workflow.client import WorkflowClientError
 
     with pytest.raises(WorkflowClientError):
         raise WorkflowClientError("workflow error")
 
 
 def test_telemetry_delivery_error_can_be_raised_and_caught() -> None:
-    from codeops.telemetry import TelemetryDeliveryError
+    from voly.telemetry import TelemetryDeliveryError
 
     with pytest.raises(TelemetryDeliveryError, match="network down"):
         raise TelemetryDeliveryError("network down")
@@ -79,7 +79,7 @@ def test_telemetry_delivery_error_can_be_raised_and_caught() -> None:
 
 
 def test_skill_from_dict_raises_on_missing_id_and_name() -> None:
-    from codeops.registry.loader import skill_from_dict
+    from voly.registry.loader import skill_from_dict
 
     with pytest.raises(ValueError, match="Skill must have id or name"):
         skill_from_dict({})
@@ -89,7 +89,7 @@ def test_skill_from_dict_raises_on_missing_id_and_name() -> None:
 
 
 def test_skill_from_dict_uses_name_as_fallback_id() -> None:
-    from codeops.registry.loader import skill_from_dict
+    from voly.registry.loader import skill_from_dict
 
     skill = skill_from_dict({"name": "my-skill"})
     assert skill.id == "my-skill"
@@ -101,8 +101,8 @@ def test_skill_from_dict_uses_name_as_fallback_id() -> None:
 
 
 def test_install_from_marketplace_raises_without_url() -> None:
-    from codeops.registry.marketplace import MarketplaceError
-    from codeops.registry.skills import SkillRegistry
+    from voly.registry.marketplace import MarketplaceError
+    from voly.registry.skills import SkillRegistry
 
     registry = SkillRegistry(marketplace_url="")
 
@@ -111,8 +111,8 @@ def test_install_from_marketplace_raises_without_url() -> None:
 
 
 def test_publish_to_marketplace_raises_without_url() -> None:
-    from codeops.registry.marketplace import MarketplaceError
-    from codeops.registry.skills import SkillRegistry
+    from voly.registry.marketplace import MarketplaceError
+    from voly.registry.skills import SkillRegistry
 
     registry = SkillRegistry(marketplace_url="")
 
@@ -126,7 +126,7 @@ def test_publish_to_marketplace_raises_without_url() -> None:
 
 
 def test_workflow_engine_start_unknown() -> None:
-    from codeops.workflow import WorkflowEngine
+    from voly.workflow import WorkflowEngine
 
     engine = WorkflowEngine()
 
@@ -135,7 +135,7 @@ def test_workflow_engine_start_unknown() -> None:
 
 
 def test_workflow_definition_validate_cycle_detection() -> None:
-    from codeops.workflow import WorkflowDefinition
+    from voly.workflow import WorkflowDefinition
 
     wf = WorkflowDefinition(name="cyclic")
     wf.step("a", agent="dev", depends_on=["b"])
@@ -145,7 +145,7 @@ def test_workflow_definition_validate_cycle_detection() -> None:
 
 
 def test_workflow_definition_validate_unknown_dep() -> None:
-    from codeops.workflow import WorkflowDefinition
+    from voly.workflow import WorkflowDefinition
 
     wf = WorkflowDefinition(name="bad-dep")
     wf.step("a", agent="dev", depends_on=["missing-step"])
@@ -154,7 +154,7 @@ def test_workflow_definition_validate_unknown_dep() -> None:
 
 
 def test_workflow_definition_validate_empty() -> None:
-    from codeops.workflow import WorkflowDefinition
+    from voly.workflow import WorkflowDefinition
 
     wf = WorkflowDefinition(name="empty")
     errors = wf.validate()
@@ -168,7 +168,7 @@ def test_workflow_definition_validate_empty() -> None:
 
 @pytest.mark.asyncio
 async def test_a2a_agent_execute_without_executor() -> None:
-    from codeops.a2a import A2AAgent, AgentCard, A2ATask
+    from voly.a2a import A2AAgent, AgentCard, A2ATask
 
     card = AgentCard(
         name="NoOpAgent",
@@ -183,7 +183,7 @@ async def test_a2a_agent_execute_without_executor() -> None:
 
 
 def test_a2a_client_discover_returns_none_on_error() -> None:
-    from codeops.a2a import A2AClient
+    from voly.a2a import A2AClient
 
     client = A2AClient()
     result = client.discover("http://nonexistent.example.com/agent")
@@ -191,7 +191,7 @@ def test_a2a_client_discover_returns_none_on_error() -> None:
 
 
 def test_a2a_send_task_returns_failed_on_connection_error() -> None:
-    from codeops.a2a import A2AClient, A2ATask
+    from voly.a2a import A2AClient, A2ATask
 
     client = A2AClient()
     task = A2ATask(
@@ -207,7 +207,7 @@ def test_a2a_send_task_returns_failed_on_connection_error() -> None:
 
 
 def test_a2a_get_task_status_returns_none_on_error() -> None:
-    from codeops.a2a import A2AClient
+    from voly.a2a import A2AClient
 
     client = A2AClient()
     result = client.get_task_status("http://nonexistent.example.com/agent", "t1")
@@ -220,7 +220,7 @@ def test_a2a_get_task_status_returns_none_on_error() -> None:
 
 
 def test_send_to_pipeline_raises_on_http_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    from codeops.telemetry import TaskEvent, TelemetryDeliveryError, send_to_pipeline
+    from voly.telemetry import TaskEvent, TelemetryDeliveryError, send_to_pipeline
 
     event = TaskEvent(task_id="http-err", agent="test", status="completed")
 
@@ -255,7 +255,7 @@ def test_send_to_pipeline_raises_on_http_error(monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_send_to_pipeline_raises_on_url_error() -> None:
-    from codeops.telemetry import TaskEvent, TelemetryDeliveryError, send_to_pipeline
+    from voly.telemetry import TaskEvent, TelemetryDeliveryError, send_to_pipeline
 
     event = TaskEvent(task_id="url-err", agent="test", status="completed")
 
@@ -269,7 +269,7 @@ def test_send_to_pipeline_raises_on_url_error() -> None:
 
 
 def test_emit_event_handles_pipeline_failure_gracefully(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from codeops.telemetry import TaskEvent, TelemetryDeliveryError, emit_event
+    from voly.telemetry import TaskEvent, TelemetryDeliveryError, emit_event
 
     event = TaskEvent(task_id="graceful-fail", agent="test", status="completed")
     events: list = []
@@ -278,7 +278,7 @@ def test_emit_event_handles_pipeline_failure_gracefully(tmp_path: Path, monkeypa
         events.append(args)
         raise TelemetryDeliveryError("network error")
 
-    monkeypatch.setattr("codeops.telemetry.send_to_pipeline", capturing_send)
+    monkeypatch.setattr("voly.telemetry.send_to_pipeline", capturing_send)
 
     path = emit_event(
         event,
@@ -348,31 +348,31 @@ def _test_client_url_error(client_class, error_class, base_url: str = "http://lo
 
 class TestMarketplaceClientErrors:
     def test_http_error(self) -> None:
-        from codeops.registry.marketplace import MarketplaceClient, MarketplaceError
+        from voly.registry.marketplace import MarketplaceClient, MarketplaceError
         _test_client_http_error(MarketplaceClient, MarketplaceError)
 
     def test_url_error(self) -> None:
-        from codeops.registry.marketplace import MarketplaceClient, MarketplaceError
+        from voly.registry.marketplace import MarketplaceClient, MarketplaceError
         _test_client_url_error(MarketplaceClient, MarketplaceError)
 
 
 class TestCatalogClientErrors:
     def test_http_error(self) -> None:
-        from codeops.catalog.client import CatalogClient, CatalogClientError
+        from voly.catalog.client import CatalogClient, CatalogClientError
         _test_client_http_error(CatalogClient, CatalogClientError)
 
     def test_url_error(self) -> None:
-        from codeops.catalog.client import CatalogClient, CatalogClientError
+        from voly.catalog.client import CatalogClient, CatalogClientError
         _test_client_url_error(CatalogClient, CatalogClientError)
 
 
 class TestFederationClientErrors:
     def test_http_error(self) -> None:
-        from codeops.a2a.federation import FederationClient, FederationClientError
+        from voly.a2a.federation import FederationClient, FederationClientError
         _test_client_http_error(FederationClient, FederationClientError)
 
     def test_url_error(self) -> None:
-        from codeops.a2a.federation import FederationClient, FederationClientError
+        from voly.a2a.federation import FederationClient, FederationClientError
         _test_client_url_error(FederationClient, FederationClientError)
 
 
@@ -381,7 +381,7 @@ class TestWorkflowClientErrors:
         import urllib.error
         from unittest.mock import MagicMock, patch
 
-        from codeops.workflow.client import WorkflowClient, WorkflowClientError
+        from voly.workflow.client import WorkflowClient, WorkflowClientError
 
         fp = MagicMock()
         fp.read.return_value = b'internal error'
@@ -404,7 +404,7 @@ class TestWorkflowClientErrors:
         import urllib.error
         from unittest.mock import patch
 
-        from codeops.workflow.client import WorkflowClient, WorkflowClientError
+        from voly.workflow.client import WorkflowClient, WorkflowClientError
 
         client = WorkflowClient(base_url="http://localhost:8080")
         with patch("urllib.request.urlopen", side_effect=urllib.error.URLError(
@@ -416,21 +416,21 @@ class TestWorkflowClientErrors:
 
 class TestMemoryClientErrors:
     def test_http_error(self) -> None:
-        from codeops.memory.client import MemoryClient, MemoryClientError
+        from voly.memory.client import MemoryClient, MemoryClientError
         _test_client_http_error(MemoryClient, MemoryClientError)
 
     def test_url_error(self) -> None:
-        from codeops.memory.client import MemoryClient, MemoryClientError
+        from voly.memory.client import MemoryClient, MemoryClientError
         _test_client_url_error(MemoryClient, MemoryClientError)
 
 
 class TestSpendClientErrors:
     def test_http_error(self) -> None:
-        from codeops.spend.client import SpendClient, SpendClientError
+        from voly.spend.client import SpendClient, SpendClientError
         _test_client_http_error(SpendClient, SpendClientError)
 
     def test_url_error(self) -> None:
-        from codeops.spend.client import SpendClient, SpendClientError
+        from voly.spend.client import SpendClient, SpendClientError
         _test_client_url_error(SpendClient, SpendClientError)
 
 
@@ -440,7 +440,7 @@ class TestSpendClientErrors:
 
 
 def test_mcp_register_builtin_unknown() -> None:
-    from codeops.tools.mcp import MCPManager
+    from voly.tools.mcp import MCPManager
 
     manager = MCPManager()
 
@@ -454,14 +454,14 @@ def test_mcp_register_builtin_unknown() -> None:
 
 
 def test_build_executor_unknown_agent() -> None:
-    from codeops.executor.multi_agent import _build_executor
+    from voly.executor.multi_agent import _build_executor
 
     with pytest.raises(ValueError, match="Unknown agent"):
         _build_executor("some-unknown-agent")
 
 
 def test_executor_result_error_returns_success_false() -> None:
-    from codeops.executor.base import ExecutorResult
+    from voly.executor.base import ExecutorResult
 
     ok = ExecutorResult(success=True, output="done")
     assert ok.success is True
@@ -479,7 +479,7 @@ def test_executor_result_error_returns_success_false() -> None:
 
 
 def test_gateway_chat_returns_error_dict_on_failure() -> None:
-    from codeops.ai_gateway.gateway import AIGateway
+    from voly.ai_gateway.gateway import AIGateway
 
     gw = AIGateway()
     gw._enabled = False

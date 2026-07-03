@@ -1,6 +1,6 @@
 # Pipeline — Backend Reference
 
-`codeops/pipeline/core.py:Pipeline` — оркестратор для **text-only** задач (inference через AIGateway).
+`voly/pipeline/core.py:Pipeline` — оркестратор для **text-only** задач (inference через AIGateway).
 Для задач с записью файлов — используй `AgentRunner` + executor.
 
 ---
@@ -12,7 +12,7 @@
 | Вопрос / суммаризация / review без правок | Pipeline → AIGateway.chat() |
 | Написать/изменить файлы в проекте | AgentRunner → executor (claude-code / wrangler / zen) |
 | Web UI задача с кодом | smart dispatch: pipeline → claude-code автоматически |
-| CLI `codeops run --executor cursor` | AgentRunner напрямую |
+| CLI `voly run --executor cursor` | AgentRunner напрямую |
 
 ---
 
@@ -96,7 +96,7 @@ class PipelineResult:
 
 ## Agent Router
 
-`codeops/router.py:AgentRouter`
+`voly/router.py:AgentRouter`
 
 ```python
 analysis = router.analyze_task(task)
@@ -122,5 +122,5 @@ add, write, fix, refactor, migrate, напиши, создай, добавь, р
 - Сохранять `PipelineResult` структуру
 - Каждая стадия — именованный метод `_stage_*`
 - Обязательно `emit TaskEvent` в telemetry
-- Нет product-specific логики в `codeops/`
+- Нет product-specific логики в `voly/`
 - При изменении — обновить `docs/ARCHITECTURE.md` и этот файл

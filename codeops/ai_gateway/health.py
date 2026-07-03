@@ -6,7 +6,7 @@ import os
 import time
 from dataclasses import dataclass, field
 
-_log = logging.getLogger("codeops.ai_gateway.health")
+_log = logging.getLogger("voly.ai_gateway.health")
 
 _TTL = 60.0  # seconds between re-checks
 

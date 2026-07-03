@@ -14,7 +14,7 @@ router = APIRouter()
 def dspy_status(request: Request) -> dict[str, Any]:
     config = request.app.state.app.config
     if config is None:
-        from codeops.config import load_config
+        from voly.config import load_config
         config = load_config()
 
     cfg = config.dspy
@@ -30,9 +30,9 @@ def dspy_status(request: Request) -> dict[str, Any]:
     # Programs inventory
     programs: list[dict[str, Any]] = []
     try:
-        from codeops.dspy.store import DSPyProgramStore
-        from codeops.dspy.versioning import ProgramVersionManager
-        from codeops.dspy.programs import get_registry
+        from voly.dspy.store import DSPyProgramStore
+        from voly.dspy.versioning import ProgramVersionManager
+        from voly.dspy.programs import get_registry
 
         store = DSPyProgramStore(cfg.programs_dir)
         version_mgr = ProgramVersionManager(cfg.programs_dir)

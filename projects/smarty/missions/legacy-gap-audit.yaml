@@ -1,5 +1,5 @@
 # Combat mission: legacy-gap-audit
-# Run: python3 -m codeops.cli smarty combat run legacy-gap-audit --sequential
+# Run: python3 -m voly.cli smarty combat run legacy-gap-audit --sequential
 
 name: legacy-gap-audit
 description: 'Аудит legacy smarty-crm-frontend vs smarty-crm-next: матрица модулей

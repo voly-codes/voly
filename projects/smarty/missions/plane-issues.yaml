@@ -1,5 +1,5 @@
 # Combat mission: plane-issues
-# Run: python3 -m codeops.cli smarty combat run plane-issues --sequential
+# Run: python3 -m voly.cli smarty combat run plane-issues --sequential
 
 name: plane-issues
 description: 'Issues (Plane parity): supervised multi-executor — opencode/cursor/zen

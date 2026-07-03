@@ -23,19 +23,19 @@ This component is now generic and project-agnostic. Product-specific combat miss
 ## Architecture
 
 ```text
-codeops catalog sync
+voly catalog sync
         │
         ▼
 OpenCode Zen API / fallback catalog
         │
         ▼
-.codeops/catalog/models.json
+.voly/catalog/models.json
         │
         ▼
 Catalog routing
         │
-        ├─ codeops catalog list
-        ├─ codeops catalog match <task>
+        ├─ voly catalog list
+        ├─ voly catalog match <task>
         └─ Supervisor plan helpers
                 │
                 ▼
@@ -54,13 +54,13 @@ VOLY CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
 
 | Module | Path | Purpose |
 |---|---|---|
-| Types | `codeops/catalog/types.py` | `CatalogModel`, plan/spec dataclasses |
-| Zen sync | `codeops/catalog/zen_sync.py` | fetch/parse OpenCode Zen model metadata |
-| Store | `codeops/catalog/store.py` | local cache under `.codeops/catalog/` |
-| Routing | `codeops/catalog/routing.py` | task matching and model/executor selection |
-| Supervisor | `codeops/catalog/supervisor.py` | planning helpers for multi-step execution |
-| CF client | `codeops/catalog/client.py` | optional remote worker client |
-| Multi-agent | `codeops/executor/multi_agent.py` | sequential/parallel executor tasks |
+| Types | `voly/catalog/types.py` | `CatalogModel`, plan/spec dataclasses |
+| Zen sync | `voly/catalog/zen_sync.py` | fetch/parse OpenCode Zen model metadata |
+| Store | `voly/catalog/store.py` | local cache under `.voly/catalog/` |
+| Routing | `voly/catalog/routing.py` | task matching and model/executor selection |
+| Supervisor | `voly/catalog/supervisor.py` | planning helpers for multi-step execution |
+| CF client | `voly/catalog/client.py` | optional remote worker client |
+| Multi-agent | `voly/executor/multi_agent.py` | sequential/parallel executor tasks |
 
 ---
 
@@ -68,21 +68,21 @@ VOLY CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
 
 ```bash
 # Sync model metadata
-codeops catalog sync
+voly catalog sync
 
 # Sync and push to CF Worker when configured
-codeops catalog sync --push
+voly catalog sync --push
 
 # List catalog entries
-codeops catalog list
-codeops catalog list --tier free
-codeops catalog list --json
+voly catalog list
+voly catalog list --tier free
+voly catalog list --json
 
 # Match an ad-hoc task
-codeops catalog match "review migration plan for database risks"
+voly catalog match "review migration plan for database risks"
 
 # Create a routing plan if supported by current rules
-codeops catalog plan <plan-id>
+voly catalog plan <plan-id>
 ```
 
 ---
@@ -150,7 +150,7 @@ Skill content may be injected into system prompts where the executor/runtime sup
 Recommended lookup order:
 
 1. target project skill directory, if configured;
-2. local `.codeops/skills/`;
+2. local `.voly/skills/`;
 3. repository `.claude/skills/`, if present;
 4. remote marketplace/catalog, if configured.
 
@@ -179,9 +179,9 @@ Each planned/executed step should be represented as `TaskEvent` where possible.
 Useful commands:
 
 ```bash
-codeops savings
-codeops spend summary
-codeops telemetry status
+voly savings
+voly spend summary
+voly telemetry status
 ```
 
 ---
@@ -191,7 +191,7 @@ codeops telemetry status
 ```bash
 cd cf-workers/catalog
 npm install
-npx wrangler d1 execute codeops --file=schema.sql --remote
+npx wrangler d1 execute voly --file=schema.sql --remote
 npx wrangler deploy
 ```
 
@@ -199,7 +199,7 @@ After deployment:
 
 ```bash
 export CF_WORKER_CATALOG_URL="https://<worker-url>"
-codeops catalog sync --push
+voly catalog sync --push
 ```
 
 ---
@@ -207,5 +207,5 @@ codeops catalog sync --push
 ## Notes
 
 - Catalog is reusable infrastructure, not a product-specific mission system.
-- Generated cache under `.codeops/catalog/` is runtime state.
+- Generated cache under `.voly/catalog/` is runtime state.
 - Product-specific plans should be kept in the downstream project repository.

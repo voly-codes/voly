@@ -5,6 +5,6 @@ Headroom Layer — управление сжатием контекста.
 инструментов для снижения расхода токенов на 60-95%.
 """
 
-from codeops.headroom.proxy import HeadroomManager
+from voly.headroom.proxy import HeadroomManager
 
 __all__ = ["HeadroomManager"]

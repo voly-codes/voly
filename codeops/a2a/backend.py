@@ -6,8 +6,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from codeops.a2a import AgentCard, A2ATask, TaskState
-from codeops.a2a.federation import FederationClient
+from voly.a2a import AgentCard, A2ATask, TaskState
+from voly.a2a.federation import FederationClient
 
 
 def task_from_remote(data: dict[str, Any]) -> A2ATask:

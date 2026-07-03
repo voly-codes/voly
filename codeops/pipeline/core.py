@@ -7,10 +7,10 @@ import time
 from pathlib import Path
 from typing import Any, Callable
 
-from codeops.pipeline.skills import _SkillsMixin
-from codeops.pipeline.stages import _PipelineStageMixin
-from codeops.pipeline.types import PipelineMetrics, PipelineResult, PipelineStage
-from codeops.pipeline.workflow import _WorkflowMixin
+from voly.pipeline.skills import _SkillsMixin
+from voly.pipeline.stages import _PipelineStageMixin
+from voly.pipeline.types import PipelineMetrics, PipelineResult, PipelineStage
+from voly.pipeline.workflow import _WorkflowMixin
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,11 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     """VOLY pipeline: INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE / ERROR."""
 
     def __init__(self, config: Any = None):
-        from codeops.config import load_config
-        from codeops.memory.store import MemoryStore
-        from codeops.router import AgentRouter
-        from codeops.rtk.installer import RTKManager
-        from codeops.tools.mcp import MCPManager
+        from voly.config import load_config
+        from voly.memory.store import MemoryStore
+        from voly.router import AgentRouter
+        from voly.rtk.installer import RTKManager
+        from voly.tools.mcp import MCPManager
 
         self.config = config or load_config()
         self.router = AgentRouter(self.config)
@@ -63,7 +63,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     @property
     def a2a(self) -> Any:
         if self._a2a_orchestrator is None:
-            from codeops.a2a import create_a2a_orchestrator
+            from voly.a2a import create_a2a_orchestrator
             self._a2a_orchestrator = create_a2a_orchestrator(
                 self.config.a2a.federation_url,
                 token=self.config.a2a.token,
@@ -73,28 +73,28 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     @property
     def agui(self) -> Any:
         if self._agui_gateway is None:
-            from codeops.agui import create_agui_gateway
+            from voly.agui import create_agui_gateway
             self._agui_gateway = create_agui_gateway(self.config.agui.remote_url)
         return self._agui_gateway
 
     @property
     def workflow(self) -> Any:
         if self._workflow_engine is None:
-            from codeops.workflow import create_workflow_engine
+            from voly.workflow import create_workflow_engine
             self._workflow_engine = create_workflow_engine(self.config.workflow.remote_url)
         return self._workflow_engine
 
     @property
     def agent_registry(self) -> Any:
         if self._agent_registry is None:
-            from codeops.registry.agents import AgentRegistry
+            from voly.registry.agents import AgentRegistry
             self._agent_registry = AgentRegistry()
         return self._agent_registry
 
     @property
     def skill_registry(self) -> Any:
         if self._skill_registry is None:
-            from codeops.registry.skills import create_skill_registry
+            from voly.registry.skills import create_skill_registry
             config_dir = None
             if hasattr(self, "_config_path") and self._config_path:
                 config_dir = Path(self._config_path).parent
@@ -108,14 +108,14 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     @property
     def model_router(self) -> Any:
         if self._model_router is None:
-            from codeops.model_router import ModelRouter
+            from voly.model_router import ModelRouter
             self._model_router = ModelRouter()
         return self._model_router
 
     @property
     def gateway(self) -> Any:
         if self._ai_gateway is None:
-            from codeops.ai_gateway import AIGateway
+            from voly.ai_gateway import AIGateway
             gw = AIGateway(
                 account_id=self.config.ai_gateway.account_id,
                 gateway_id=self.config.ai_gateway.gateway_id,
@@ -144,7 +144,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     def dspy_runner(self) -> Any:
         if self._dspy_runner is None and self.config.dspy.enabled:
             try:
-                from codeops.dspy.runner import DSPyRunner
+                from voly.dspy.runner import DSPyRunner
                 self._dspy_runner = DSPyRunner(self.config, self.gateway)
             except ImportError:
                 pass
@@ -153,7 +153,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
     @property
     def inference_manager(self) -> Any:
         if self._inference_manager is None:
-            from codeops.inference import InferenceManager
+            from voly.inference import InferenceManager
             self._inference_manager = InferenceManager(self.config, self.gateway, self.dspy_runner)
         return self._inference_manager
 
@@ -164,7 +164,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
     def scan_project(self) -> Any:
         if self._project_profile is None:
-            from codeops.scanner import ProjectScanner
+            from voly.scanner import ProjectScanner
             self._scanner = ProjectScanner()
             self._project_profile = self._scanner.scan()
         return self._project_profile
@@ -182,7 +182,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
         if self.config.headroom.enabled:
             try:
-                from codeops.headroom.proxy import HeadroomManager
+                from voly.headroom.proxy import HeadroomManager
                 self.headroom_mgr = HeadroomManager(
                     port=self.config.headroom.port,
                     savings_profile=self.config.headroom.savings_profile,
@@ -210,12 +210,12 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
         self.memory.close()
 
     def start_agui_gateway(self) -> str:
-        from codeops.agui import AGUIContext
+        from voly.agui import AGUIContext
         ctx = AGUIContext(conversation_id=str(__import__("uuid").uuid4()))
         return self.agui.create_session(ctx)
 
     def deploy_a2a_agents(self, agents_cards: list[dict[str, Any]]) -> list[str]:
-        from codeops.a2a import A2AAgent, AgentCard
+        from voly.a2a import A2AAgent, AgentCard
         deployed: list[str] = []
         for spec in agents_cards:
             card = AgentCard(
@@ -248,7 +248,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
         force_model: str | None = None,
         force_agent: str | None = None,
     ) -> PipelineResult:
-        from codeops.telemetry import TaskEvent, emit_event_from_config, new_task_id
+        from voly.telemetry import TaskEvent, emit_event_from_config, new_task_id
 
         started = time.monotonic()
         self._run_started = started
@@ -385,7 +385,7 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
 
     def _get_provider(self, name: str) -> Any:
         if self._provider is None:
-            from codeops.models.providers import create_provider
+            from voly.models.providers import create_provider
             model_cfg = self.config.get_model_config()
             self._provider = create_provider(name, api_key=model_cfg.api_key, base_url=model_cfg.base_url)
         return self._provider

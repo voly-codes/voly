@@ -1,5 +1,5 @@
 # Combat mission: plane-tracker-projects
-# Run: python3 -m codeops.cli smarty combat run plane-tracker-projects --sequential
+# Run: python3 -m voly.cli smarty combat run plane-tracker-projects --sequential
 
 name: plane-tracker-projects
 description: 'Tracker projects hub: Plane projects list/card UI на /tracker. ProjectCard

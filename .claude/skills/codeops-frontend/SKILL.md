@@ -1,5 +1,5 @@
 ---
-name: codeops-frontend
+name: voly-frontend
 description: Guide for working on VOLY Svelte 5 UI — components, API client, styling. Use this skill for any frontend changes in ui/.
 ---
 
@@ -46,7 +46,7 @@ import { createEventDispatcher } from 'svelte'
 cd ui
 npm run dev     # Vite dev server на :5173
 # В другом терминале:
-codeops serve   # backend на :7860
+voly serve   # backend на :7860
 ```
 
 Vite проксирует `/api/*` → `localhost:7860` (см. `vite.config.js`).
@@ -55,7 +55,7 @@ Vite проксирует `/api/*` → `localhost:7860` (см. `vite.config.js`)
 
 ```bash
 cd ui && npm run build
-# Output: codeops/web/static/assets/ — НЕ коммитить
+# Output: voly/web/static/assets/ — НЕ коммитить
 ```
 
 ## Adding executor to UI
@@ -80,4 +80,4 @@ cd ui && npm run build
 
 ## Completion report
 
-После завершения задачи создай отчёт: `/codeops-report`
+После завершения задачи создай отчёт: `/voly-report`

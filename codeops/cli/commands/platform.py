@@ -9,16 +9,16 @@ import click
 # ── Scan ──────────────────────────────────────────────────────────────────────
 
 @click.command("scan")
-@click.option("--save/--no-save", default=True, show_default=True, help="Save generated skills to .codeops/skills/")
+@click.option("--save/--no-save", default=True, show_default=True, help="Save generated skills to .voly/skills/")
 @click.pass_context
 def scan_project(ctx: click.Context, save: bool) -> None:
     """Scan project and generate PROJECT skills from docs + stack."""
     from pathlib import Path
 
-    from codeops.registry.loader import save_skill_yaml, skill_from_dict
-    from codeops.registry.project_skill_extractor import generate_project_skills
-    from codeops.registry.skills import create_skill_registry
-    from codeops.scanner import ProjectScanner
+    from voly.registry.loader import save_skill_yaml, skill_from_dict
+    from voly.registry.project_skill_extractor import generate_project_skills
+    from voly.registry.skills import create_skill_registry
+    from voly.scanner import ProjectScanner
 
     scanner = ProjectScanner()
     profile = scanner.scan()
@@ -71,7 +71,7 @@ def scan_project(ctx: click.Context, save: bool) -> None:
 @click.pass_context
 def match_task(ctx: click.Context, task: str) -> None:
     """Match task to agent, model, skills and tools."""
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -98,7 +98,7 @@ def workflow() -> None:
 @click.pass_context
 def workflow_list(ctx: click.Context) -> None:
     """List available workflows."""
-    from codeops.workflow import BUILTIN_WORKFLOWS
+    from voly.workflow import BUILTIN_WORKFLOWS
 
     for name, wf in BUILTIN_WORKFLOWS.items():
         click.echo(f"\n{name}: {wf.description}")
@@ -114,7 +114,7 @@ def workflow_list(ctx: click.Context) -> None:
 @click.pass_context
 def workflow_run(ctx: click.Context, workflow_name: str, task: str) -> None:
     """Execute a multi-agent workflow."""
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -132,7 +132,7 @@ def workflow_run(ctx: click.Context, workflow_name: str, task: str) -> None:
         if instance.state.value == "paused":
             pending = list(instance.approvals_pending)
             click.echo(f"\nAwaiting human approval for: {pending}")
-            click.echo("Use 'codeops workflow approve <id> <step>' to continue")
+            click.echo("Use 'voly workflow approve <id> <step>' to continue")
 
     pipeline.shutdown()
 
@@ -142,7 +142,7 @@ def workflow_run(ctx: click.Context, workflow_name: str, task: str) -> None:
 @click.pass_context
 def workflow_status_cmd(ctx: click.Context, instance_id: str | None) -> None:
     """List workflow instances or show one by ID."""
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -178,7 +178,7 @@ def workflow_status_cmd(ctx: click.Context, instance_id: str | None) -> None:
 @click.pass_context
 def workflow_approve(ctx: click.Context, instance_id: str, step: str) -> None:
     """Approve a human-gated workflow step."""
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -186,7 +186,7 @@ def workflow_approve(ctx: click.Context, instance_id: str, step: str) -> None:
         click.echo(f"Cannot approve step '{step}' on {instance_id}", err=True)
         raise SystemExit(1)
     click.echo(f"Approved: {step}")
-    click.echo("Run 'codeops workflow resume <id>' to continue.")
+    click.echo("Run 'voly workflow resume <id>' to continue.")
 
 
 @workflow.command("resume")
@@ -195,7 +195,7 @@ def workflow_approve(ctx: click.Context, instance_id: str, step: str) -> None:
 @click.pass_context
 def workflow_resume(ctx: click.Context, instance_id: str, task: str | None) -> None:
     """Resume a paused workflow after approval."""
-    from codeops.pipeline import Pipeline
+    from voly.pipeline import Pipeline
 
     config = ctx.obj["config"]
     pipeline = Pipeline(config)
@@ -227,7 +227,7 @@ def registry() -> None:
 @click.pass_context
 def registry_agents(ctx: click.Context) -> None:
     """List all registered agents."""
-    from codeops.registry.agents import AgentRegistry
+    from voly.registry.agents import AgentRegistry
 
     reg = AgentRegistry()
     for agent in reg.list_all():
@@ -247,7 +247,7 @@ def registry_skills(ctx: click.Context, agent: str | None, tag: str | None, lang
     """List all registered skills."""
     from pathlib import Path
 
-    from codeops.registry.skills import create_skill_registry
+    from voly.registry.skills import create_skill_registry
 
     config = ctx.obj["config"]
     config_path = ctx.obj.get("config_path")
@@ -283,7 +283,7 @@ def model() -> None:
 @click.pass_context
 def model_list(ctx: click.Context) -> None:
     """List available models with pricing."""
-    from codeops.model_router import ModelRouter
+    from voly.model_router import ModelRouter
 
     router = ModelRouter()
     for m in router.list_models():
@@ -301,7 +301,7 @@ def model_list(ctx: click.Context) -> None:
 @click.pass_context
 def model_route(ctx: click.Context, task: str, prefer_cost: bool, prefer_speed: bool) -> None:
     """Route task to optimal model."""
-    from codeops.model_router import ModelRouter
+    from voly.model_router import ModelRouter
 
     router = ModelRouter()
     m = router.route(task=task, prefer_cost=prefer_cost, prefer_speed=prefer_speed)
@@ -321,7 +321,7 @@ def ai_gateway() -> None:
 
 def _make_gateway(ctx: click.Context):
     """Build AIGateway from config."""
-    from codeops.ai_gateway import AIGateway
+    from voly.ai_gateway import AIGateway
 
     config = ctx.obj["config"]
     gw = AIGateway(
@@ -362,7 +362,7 @@ def ai_gateway_metrics(ctx: click.Context, hours: int, provider: str | None, as_
     gw, config = _make_gateway(ctx)
 
     if not gw.cloudflare_enabled:
-        click.echo("CF AI Gateway not configured — set account_id + api_token in codeops.yaml")
+        click.echo("CF AI Gateway not configured — set account_id + api_token in voly.yaml")
         click.echo("Tip: export CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=...")
         return
 
@@ -438,11 +438,11 @@ def ai_gateway_flush(ctx: click.Context) -> None:
 def ai_gateway_test(ctx: click.Context, message: str, provider: str, model: str) -> None:
     """Test AI Gateway with a single request."""
     import time
-    from codeops.ai_gateway import AIGateway
+    from voly.ai_gateway import AIGateway
 
     config = ctx.obj["config"]
     if not config.ai_gateway.enabled or not config.ai_gateway.account_id:
-        click.echo("AI Gateway is not enabled. Set account_id in codeops.yaml")
+        click.echo("AI Gateway is not enabled. Set account_id in voly.yaml")
         return
 
     gw = AIGateway(

@@ -1,5 +1,5 @@
 # Combat mission: plane-assistant-ui
-# Run: python3 -m codeops.cli smarty combat run plane-assistant-ui --sequential
+# Run: python3 -m voly.cli smarty combat run plane-assistant-ui --sequential
 
 name: plane-assistant-ui
 description: 'Plane AI chat UI parity: two-pane /assistant (threads sidebar + hero

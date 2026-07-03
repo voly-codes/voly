@@ -1,6 +1,6 @@
 # API Routes — Backend Reference
 
-FastAPI сервер: `codeops/web/server.py`. Запуск: `codeops serve` (порт 7860).
+FastAPI сервер: `voly/web/server.py`. Запуск: `voly serve` (порт 7860).
 
 ---
 
@@ -36,7 +36,7 @@ data: {"type": "error", "error": "..."}
 
 ## GET /api/tasks
 
-Список задач из `.codeops/events/`. SSE-поток обновлений.
+Список задач из `.voly/events/`. SSE-поток обновлений.
 
 ```typescript
 // SSE events
@@ -54,25 +54,25 @@ data: {"type": "update", "task": {...}}
 {
   "version": "0.1.0",
   "tasks_count": 12,
-  "events_dir": "/path/to/.codeops/events",
+  "events_dir": "/path/to/.voly/events",
   "default_cwd": "/home/user/project",
   "cf": { ... }
 }
 ```
 
-`default_cwd` — путь из `codeops.yaml` (`default_cwd`) или env `CODEOPS_PROJECT_CWD`. Пустая строка если не задан. Используется UI (RunPanel) для авто-заполнения поля cwd при загрузке.
+`default_cwd` — путь из `voly.yaml` (`default_cwd`) или env `CODEOPS_PROJECT_CWD`. Пустая строка если не задан. Используется UI (RunPanel) для авто-заполнения поля cwd при загрузке.
 
 ---
 
 ## GET /api/registry/agents
 
-Список зарегистрированных агентов из `codeops/registry/`.
+Список зарегистрированных агентов из `voly/registry/`.
 
 ---
 
 ## GET /api/registry/skills
 
-Список скилов из `codeops/catalog/`.
+Список скилов из `voly/catalog/`.
 
 ---
 

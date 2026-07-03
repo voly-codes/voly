@@ -21,10 +21,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from codeops.ai_gateway.health import get_checker
-from codeops.router import _PROVIDER_MODELS
+from voly.ai_gateway.health import get_checker
+from voly.router import _PROVIDER_MODELS
 
-_log = logging.getLogger("codeops.a2a.multiagent")
+_log = logging.getLogger("voly.a2a.multiagent")
 
 # ── Model tiers → ordered real-provider preference (filtered by health) ──────────
 _STRONG = ["anthropic", "cloudflare-dynamic"]
@@ -310,8 +310,8 @@ def run_local(
     Sub-tasks are processed in dependency order; each dependent agent receives prior
     agents' outputs. Mutates and returns the assignments with usage/cost/savings.
     """
-    from codeops.a2a.decomposer import TaskDecomposer
-    from codeops.telemetry import _estimate_cost
+    from voly.a2a.decomposer import TaskDecomposer
+    from voly.telemetry import _estimate_cost
 
     done: dict[int, Assignment] = {}
     for a in assignments:

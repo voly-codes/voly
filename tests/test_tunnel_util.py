@@ -2,7 +2,7 @@
 
 import pytest
 
-from codeops.tunnel_util import parse_tunnel_url, ensure_pipeline_token
+from voly.tunnel_util import parse_tunnel_url, ensure_pipeline_token
 
 
 def test_parse_tunnel_url() -> None:

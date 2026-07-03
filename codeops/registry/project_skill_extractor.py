@@ -17,7 +17,7 @@ _DOC_SOURCES: list[tuple[str, list[str], str]] = [
     ("guidelines",  ["CLAUDE.md", ".claude/CLAUDE.md"],                       "Coding guidelines for {name}"),
     ("overview",    ["README.md", "README.rst", "README.txt"],                 "Project overview: {name}"),
     ("architecture",["docs/ARCHITECTURE.md", "ARCHITECTURE.md", "docs/architecture.md"], "Architecture: {name}"),
-    ("agents",      ["AGENTS.md", ".codeops/AGENTS.md", "docs/AGENTS.md"],    "Agent instructions: {name}"),
+    ("agents",      ["AGENTS.md", ".voly/AGENTS.md", "docs/AGENTS.md"],    "Agent instructions: {name}"),
     ("contributing",["CONTRIBUTING.md", "docs/CONTRIBUTING.md"],               "Contributing guide: {name}"),
 ]
 

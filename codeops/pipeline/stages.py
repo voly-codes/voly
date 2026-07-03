@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from codeops.pipeline.types import PipelineResult, PipelineStage
+from voly.pipeline.types import PipelineResult, PipelineStage
 
 
 class _PipelineStageMixin:
@@ -14,7 +14,7 @@ class _PipelineStageMixin:
     # ── AGUI ─────────────────────────────────────────────────────────────────
 
     def _stage_agui_start(self, session_id: str) -> None:
-        from codeops.agui import AGUIContext
+        from voly.agui import AGUIContext
 
         if not self.agui._event_queues.get(session_id):  # type: ignore[attr-defined]
             ctx = AGUIContext(conversation_id=session_id, session_id=session_id)
@@ -30,7 +30,7 @@ class _PipelineStageMixin:
     def _stage_a2a(
         self, task: str, agui_session_id: str | None, started: float
     ) -> PipelineResult | None:
-        from codeops.router import RouteDecision
+        from voly.router import RouteDecision
 
         self._fire(PipelineStage.A2A_DISCOVER, task=task)  # type: ignore[attr-defined]
         a2a_task = self.a2a.create_task(title=task[:100], description=task)  # type: ignore[attr-defined]
@@ -79,11 +79,11 @@ class _PipelineStageMixin:
         if nested:
             return None
         import time as _time
-        from codeops.a2a.decomposer import TaskDecomposer
-        from codeops.a2a.merger import ResultMerger
-        from codeops.a2a.report import A2AReport
-        from codeops.pipeline.types import PipelineResult, PipelineStage
-        from codeops.router import RouteDecision
+        from voly.a2a.decomposer import TaskDecomposer
+        from voly.a2a.merger import ResultMerger
+        from voly.a2a.report import A2AReport
+        from voly.pipeline.types import PipelineResult, PipelineStage
+        from voly.router import RouteDecision
 
         decomposer = TaskDecomposer()
         subtasks = decomposer.decompose(task, analysis)
@@ -103,10 +103,10 @@ class _PipelineStageMixin:
 
         # Poll until all tasks complete or timeout
         import logging as _logging
-        _poll_log = _logging.getLogger('codeops.pipeline')
+        _poll_log = _logging.getLogger('voly.pipeline')
         poll_deadline = _time.monotonic() + timeout
         poll_interval = 3.0
-        from codeops.a2a import TaskState as _TaskState
+        from voly.a2a import TaskState as _TaskState
         terminal = {_TaskState.COMPLETED, _TaskState.FAILED, _TaskState.CANCELLED}
         while _time.monotonic() < poll_deadline:
             pending = [t for t in a2a_tasks if t.state not in terminal]
@@ -125,13 +125,13 @@ class _PipelineStageMixin:
         duration_ms = (_time.monotonic() - started) * 1000
 
         # Build and save report
-        reports_dir = getattr(self.config.telemetry, 'events_dir', '.codeops/events')  # type: ignore[attr-defined]
+        reports_dir = getattr(self.config.telemetry, 'events_dir', '.voly/events')  # type: ignore[attr-defined]
         report = A2AReport.from_a2a_tasks(task_id, task, a2a_tasks, merged, duration_ms)
         try:
             saved = report.save(__import__('pathlib').Path(reports_dir).parent)
-            import logging; logging.getLogger('codeops.pipeline').info('A2A report saved: %s', saved)
+            import logging; logging.getLogger('voly.pipeline').info('A2A report saved: %s', saved)
         except Exception as e:
-            import logging; logging.getLogger('codeops.pipeline').warning('A2A report save failed: %s', e)
+            import logging; logging.getLogger('voly.pipeline').warning('A2A report save failed: %s', e)
 
         agents_used = [t.metadata.get('agent', 'unknown') for t in a2a_tasks]
         route = RouteDecision(agent='a2a', model='multi-agent', provider='a2a', routing_score=0.9)
@@ -146,7 +146,7 @@ class _PipelineStageMixin:
             usage = _FakeUsage()
 
         # Emit telemetry event
-        from codeops.telemetry import TaskEvent, emit_event_from_config
+        from voly.telemetry import TaskEvent, emit_event_from_config
         ev = TaskEvent(
             task_id=task_id,
             agent='a2a',
@@ -184,10 +184,10 @@ class _PipelineStageMixin:
         """Lead orchestrator assigns model tier + skills per sub-agent; run in-process."""
         import time as _time
 
-        from codeops.a2a.multiagent import LeadOrchestrator, merge_report, run_local
-        from codeops.pipeline.types import PipelineResult, PipelineStage
-        from codeops.router import RouteDecision
-        from codeops.telemetry import GatewayMetrics, TaskEvent, TokenMetrics, emit_event_from_config
+        from voly.a2a.multiagent import LeadOrchestrator, merge_report, run_local
+        from voly.pipeline.types import PipelineResult, PipelineStage
+        from voly.router import RouteDecision
+        from voly.telemetry import GatewayMetrics, TaskEvent, TokenMetrics, emit_event_from_config
 
         lead = LeadOrchestrator(
             gateway=self.gateway,  # type: ignore[attr-defined]
@@ -283,7 +283,7 @@ class _PipelineStageMixin:
         force_model: str | None,
         force_agent: str | None,
     ) -> tuple[Any, Any, str | None]:
-        from codeops.cost_policy import apply_cost_policy, detect_task_type
+        from voly.cost_policy import apply_cost_policy, detect_task_type
 
         analysis = self.router.analyze_task(task)  # type: ignore[attr-defined]
         route = self.router.route(task, context)  # type: ignore[attr-defined]
@@ -316,8 +316,8 @@ class _PipelineStageMixin:
     ) -> PipelineResult | None:
         if not (self.config.spend.enabled and self.config.ai_gateway.spend_limits_enabled):  # type: ignore[attr-defined]
             return None
-        from codeops.spend import check_agent_spend_limit
-        from codeops.telemetry import TaskEvent, emit_event_from_config
+        from voly.spend import check_agent_spend_limit
+        from voly.telemetry import TaskEvent, emit_event_from_config
 
         spend_check = check_agent_spend_limit(route.agent, self.config)  # type: ignore[attr-defined]
         if not spend_check or spend_check.get("ok"):
@@ -461,7 +461,7 @@ class _PipelineStageMixin:
         return tools if tools else None
 
     def _build_model_response(self, gw_result: dict[str, Any], model: str) -> Any:
-        from codeops.models.providers import ModelResponse, ModelUsage
+        from voly.models.providers import ModelResponse, ModelUsage
 
         usage = gw_result.get("usage", {})
         return ModelResponse(
@@ -489,7 +489,7 @@ class _PipelineStageMixin:
         agui_session_id: str | None,
         started: float,
     ) -> PipelineResult | None:
-        from codeops.telemetry import GatewayMetrics, TaskEvent, emit_event_from_config
+        from voly.telemetry import GatewayMetrics, TaskEvent, emit_event_from_config
 
         _GATEWAY_ERRORS: list[tuple[str, str, dict[str, Any]]] = [
             ("dlp_blocked",   "dlp_blocked",   {"gateway": GatewayMetrics(dlp_blocked=True)}),
@@ -563,10 +563,10 @@ class _PipelineStageMixin:
         headroom_saved: int = 0,
         memory_hits: int = 0,
     ) -> tuple[Any, str, float]:
-        from codeops.automation import compute_automation_metrics
-        from codeops.cost_policy import budget_status
-        from codeops.executor.base import ExecutorResult
-        from codeops.telemetry import (
+        from voly.automation import compute_automation_metrics
+        from voly.cost_policy import budget_status
+        from voly.executor.base import ExecutorResult
+        from voly.telemetry import (
             GatewayMetrics, TaskEvent, TokenMetrics,
             _estimate_cost, emit_event_from_config,
         )

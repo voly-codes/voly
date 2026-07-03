@@ -17,7 +17,7 @@ except ImportError:  # pragma: no cover - окружения без DSPy
 
 def _require_dspy() -> None:
     if not _DSPY_AVAILABLE:  # pragma: no cover - ошибки создаются выше по стеку
-        raise ImportError("DSPy не установлен. Выполните: pip install codeops[dspy]")
+        raise ImportError("DSPy не установлен. Выполните: pip install voly[dspy]")
 
 
 @runtime_checkable
@@ -76,7 +76,7 @@ class BaseProgram:
         raise NotImplementedError
 
     def get_metric(self) -> Any:
-        from codeops.dspy.metrics import docs_metric
+        from voly.dspy.metrics import docs_metric
 
         return docs_metric
 

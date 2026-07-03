@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from codeops.web.auth.jwt import (
+from voly.web.auth.jwt import (
     ExpiredTokenError,
     InvalidTokenError,
     JWTAuth,
@@ -16,7 +16,7 @@ from codeops.web.auth.jwt import (
 )
 
 if TYPE_CHECKING:
-    from codeops.config import AuthConfig
+    from voly.config import AuthConfig
 
 _bearer = HTTPBearer(auto_error=False)
 

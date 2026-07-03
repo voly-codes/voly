@@ -20,7 +20,7 @@ import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
 
-_log = logging.getLogger("codeops.executor.patch")
+_log = logging.getLogger("voly.executor.patch")
 
 # Matches:  ### FILE: src/foo/bar.py   (with optional leading ##, spaces, or "**File:**" markdown)
 _FILE_HEADER = re.compile(

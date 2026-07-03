@@ -21,7 +21,7 @@ app.use("*", cors());
 app.get("/health", (c) =>
   c.json({
     status: "ok",
-    service: "codeops-agent",
+    service: "voly-agent",
     pipeline_configured: Boolean(c.env.PIPELINE_RUNNER_URL),
     a2a_callback_configured: Boolean(c.env.A2A_FEDERATION ?? c.env.A2A_FEDERATION_URL),
     a2a_callback_token_configured: Boolean(c.env.A2A_FEDERATION_TOKEN ?? c.env.API_TOKEN),

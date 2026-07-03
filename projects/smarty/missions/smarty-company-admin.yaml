@@ -1,5 +1,5 @@
 # Combat mission: smarty-company-admin
-# Run: python3 -m codeops.cli smarty combat run smarty-company-admin --sequential
+# Run: python3 -m voly.cli smarty combat run smarty-company-admin --sequential
 
 name: smarty-company-admin
 description: 'P1: Раздел «Компания» — hub сотрудники, отделы (workgroups), права,
