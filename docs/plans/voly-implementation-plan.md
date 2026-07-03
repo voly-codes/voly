@@ -30,7 +30,7 @@
 
 ## Этап 1 — Стабилизация executor path (M) · *фундамент FinOps*
 
-- [~] `isEmptyContentResponse` guard — *функция портирована и покрыта тестами (`voly/ai_gateway/error_classifier.py`, коммит 769bc89), но НЕ подключена. Требует проброса `stop_reason`/`finish_reason` через `AIGateway.chat()` и применения на уровне gateway/провайдера*
+- [x] `isEmptyContentResponse` guard — *подключён на уровне gateway: провайдер-адаптеры (`providers.py`) пробрасывают `stop_reason`; `AIGateway._empty_content_error` конвертирует фейк-успех в model-fallback в `_gateway_call`, `chat()`-direct и `_direct_fallback`; легитимный пустой (`max_tokens`/`tool_use`/`length`/`tool_calls`) не триггерит fallback. Тесты: `tests/test_ai_gateway.py`, `tests/test_error_classifier.py`; doc: `docs/backend/ai-gateway.md`*
 - [ ] Пересмотр ключа кэша executor path + документирование границ валидности (R1) — *ключ обязан включать снимок состояния проекта: git hash / хэш затронутых файлов; порог temperature для pipeline path*
 - [ ] Таймауты на subprocess-executor-ах (все CLI-обёртки)
 - [ ] Retry-aware стоимость в TaskEvent и `_COST_RATES` (перезапуски не задваивают цифры)

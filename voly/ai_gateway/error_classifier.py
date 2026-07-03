@@ -238,8 +238,18 @@ def is_empty_content_response(body: object) -> bool:
     if isinstance(text, str):
         return text.strip() == ""
 
+    # VOLY's normalized provider result: {"content": <str>, "stop_reason": <str>}.
+    # A non-empty string is a real answer; an empty one is only a fake success
+    # when the stop reason is NOT a legitimate terminal (max_tokens / tool_use /
+    # length / tool_calls) — those carry the propagated stop_reason and must not
+    # trigger fallback.
     if "content" in body:
-        return body.get("content") in (None, "")
+        content = body.get("content")
+        if content not in (None, ""):
+            return False
+        stop_reason = body.get("stop_reason")
+        stop = stop_reason if isinstance(stop_reason, str) else ""
+        return stop not in (_LEGIT_EMPTY_CLAUDE_STOP | _LEGIT_EMPTY_OPENAI_FINISH)
 
     return False
 

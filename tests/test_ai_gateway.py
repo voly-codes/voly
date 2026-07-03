@@ -228,3 +228,57 @@ def test_gateway_disabled_bypasses_middleware() -> None:
     )
     # No dlp_blocked — middleware was bypassed (error from direct call instead)
     assert result.get("dlp_blocked") is not True
+
+
+# ─── Empty-content guard wiring (step 2) ─────────────────────────────────────
+def test_empty_content_triggers_gateway_fallback(monkeypatch) -> None:
+    """A fake-success empty response (CF path) rolls over to the next model."""
+    gw = AIGateway(account_id="acct", gateway_id="gw")
+    gw.cache.enabled = False
+    gw.fallback.chain = [{"provider": "anthropic", "model": "claude-b"}]
+    calls: list[str] = []
+
+    def fake_single(messages, model, provider_name, *a, **k):
+        calls.append(model)
+        if model == "claude-a":
+            return {"content": "", "stop_reason": "end_turn", "usage": {}}
+        return {"content": "real answer", "stop_reason": "end_turn", "usage": {}}
+
+    monkeypatch.setattr(gw, "_single_call", fake_single)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="claude-a", provider_name="anthropic")
+    assert result["content"] == "real answer"
+    assert result.get("fallback_used") is True
+    assert calls == ["claude-a", "claude-b"]
+
+
+def test_empty_content_with_terminal_stop_does_not_fallback(monkeypatch) -> None:
+    """Empty + max_tokens is a legit completion — must NOT trigger fallback."""
+    gw = AIGateway(account_id="acct", gateway_id="gw")
+    gw.cache.enabled = False
+    gw.fallback.chain = [{"provider": "anthropic", "model": "claude-b"}]
+    calls: list[str] = []
+
+    def fake_single(messages, model, provider_name, *a, **k):
+        calls.append(model)
+        return {"content": "", "stop_reason": "max_tokens", "usage": {}}
+
+    monkeypatch.setattr(gw, "_single_call", fake_single)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="claude-a", provider_name="anthropic")
+    assert result.get("error") is None
+    assert result.get("fallback_used") is not True
+    assert calls == ["claude-a"]  # no fallback attempt was made
+
+
+def test_empty_content_direct_path_surfaces_error(monkeypatch) -> None:
+    """Direct (non-CF) provider: a fake-empty is surfaced as an error, not a blank answer."""
+    gw = AIGateway()  # no account_id → direct path
+    gw.cache.enabled = False
+    gw.fallback.enabled = False
+
+    def fake_direct(messages, model, provider_name, *a, **k):
+        return {"content": "", "stop_reason": "", "usage": {}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="m", provider_name="mimo")
+    assert result.get("empty_content") is True
+    assert result.get("error")

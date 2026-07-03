@@ -12,7 +12,7 @@ AI Gateway — единая точка входа для всех LLM-запро
 ```
 AIGateway.chat(messages, agent, model)
     ↓
-DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
+DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider → Empty-content guard
 ```
 
 1. **DLP** — блокирует secrets/PII, возвращает `{"dlp_blocked": true}`
@@ -20,6 +20,7 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 3. **Rate limit** — rpm guard → `{"rate_limited": true}`
 4. **Spend limit** — дневной бюджет → `{"spend_limited": true}`
 5. **Routing** — CF AI Gateway или прямой вызов, затем model fallback
+6. **Empty-content guard** — фейк-успех (HTTP 200 без контента) → синтетическая ошибка → model fallback
 
 ---
 
@@ -108,6 +109,22 @@ CF_AIG_TOKEN=<token from CF Dashboard → AI Gateway → Settings>
 Когда основная модель возвращает ошибку, Gateway автоматически пробует следующую
 в списке `fallback_models` из конфига. Это отдельно от billing fallback chain в
 AgentRunner (которая переключает целый executor, не только модель).
+
+## Empty-content guard
+
+Провайдер может вернуть HTTP 200 без полезного контента (`content: ""`) — «фейк-успех»,
+который иначе прошёл бы к пользователю пустым ответом. `AIGateway._empty_content_error`
+конвертирует такой ответ в синтетическую ошибку (`{"empty_content": true, "error": ...}`),
+и он уходит в обычный **model fallback** (в `_gateway_call`, `chat()`-direct и `_direct_fallback`).
+
+**Что НЕ считается фейк-успехом** (пропускается без fallback): пустой контент с легитимным
+терминальным стопом — `stop_reason` `max_tokens`/`tool_use` (Claude) или `finish_reason`
+`length`/`tool_calls` (OpenAI). Для этого провайдер-адаптеры в `providers.py` пробрасывают
+`stop_reason` в нормализованный результат, а детекция живёт в
+`is_empty_content_response` (`voly/ai_gateway/error_classifier.py`).
+
+Это **model-level** сигнал: `empty_content` НЕ входит в `TERMINAL_BILLING_TYPES`, поэтому
+никогда не переключает executor по billing-цепочке — только следующую модель.
 
 ---
 
