@@ -31,7 +31,7 @@
 ## Этап 1 — Стабилизация executor path (M) · *фундамент FinOps*
 
 - [x] `isEmptyContentResponse` guard — *подключён на уровне gateway: провайдер-адаптеры (`providers.py`) пробрасывают `stop_reason`; `AIGateway._empty_content_error` конвертирует фейк-успех в model-fallback в `_gateway_call`, `chat()`-direct и `_direct_fallback`; легитимный пустой (`max_tokens`/`tool_use`/`length`/`tool_calls`) не триггерит fallback. Тесты: `tests/test_ai_gateway.py`, `tests/test_error_classifier.py`; doc: `docs/backend/ai-gateway.md`*
-- [ ] Пересмотр ключа кэша executor path + документирование границ валидности (R1) — *ключ обязан включать снимок состояния проекта: git hash / хэш затронутых файлов; порог temperature для pipeline path*
+- [ ] Пересмотр ключа кэша executor path + документирование границ валидности (R1) — *ключ обязан включать снимок состояния проекта: git hash / хэш затронутых файлов; порог temperature для pipeline path. Референс стратегии инвалидации (git HEAD + mtime/size/content hash): `codebase-memory-mcp-analysis-for-voly.md`*
 - [ ] Таймауты на subprocess-executor-ах (все CLI-обёртки)
 - [ ] Retry-aware стоимость в TaskEvent и `_COST_RATES` (перезапуски не задваивают цифры)
 
@@ -106,6 +106,7 @@
 - [ ] `skipForToolRequests` перед last-resort в billing chain — *zen может не тянуть tool-use*
 - [ ] Marketplace скилов с revenue share — *только при наличии базы пользователей*
 - [ ] Публикация воспроизводимого бенчмарка экономии — *сильнейший маркетинговый актив; телеметрия уже есть*
+- [ ] Заменить `local context` (grep) на knowledge-graph MCP перед executor — *внешний инструмент `codebase-memory-mcp` через `voly mcp`, не форк; см. `codebase-memory-mcp-analysis-for-voly.md`. Только после стабилизации ядра B*
 
 ---
 
@@ -137,7 +138,7 @@
 | Этап | Готовность | Примечание |
 |---|---|---|
 | 0 — Гигиена | 3 / 6 | осталось: 2 CI-гейта доков + решение по прототипам |
-| 1 — Executor path | 0.5 / 4 | guard портирован, не подключён |
+| 1 — Executor path | 1 / 4 | guard подключён; следующий — ключ кэша (R1) |
 | 2 — Устойчивость | 0 / 3 | ждёт ответа на открытый вопрос №1 |
 | 3 — Границы/делегирование | 1 / 3 | классификатор billing готов |
 | 4 — Мультитенантность | 0 / 5 | первый платный этап |
@@ -145,4 +146,4 @@
 | 6 — Тесты (сквозной) | 1.5 / 7 | классификатор + частично recursion guard |
 | 7 — Периферия | 0 / 4 | по необходимости |
 
-**Ближайший фокус (roadmap §7, ядро прежде монетизации):** доделать этап 1 — подключить `isEmptyContentResponse` на уровне gateway и пересмотреть ключ кэша executor path (P0-риск R1).
+**Ближайший фокус (roadmap §7, ядро прежде монетизации):** доделать этап 1 — пересмотреть ключ кэша executor path (P0-риск R1; референс `codebase-memory-mcp-analysis-for-voly.md`), затем таймауты subprocess-executor-ов и retry-aware стоимость.
