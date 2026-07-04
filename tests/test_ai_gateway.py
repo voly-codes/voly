@@ -142,6 +142,43 @@ def test_gateway_cache_key() -> None:
     assert key1 != key3
 
 
+def test_gateway_cache_key_scoped_by_project_state() -> None:
+    """Same request text + different project scope → different cache key (R1)."""
+    gw = AIGateway()
+    msgs = [{"role": "user", "content": "refactor foo"}]
+    base = gw._cache_key(msgs, "gpt-4o", "openai", "", "")
+    scoped_a = gw._cache_key(msgs, "gpt-4o", "openai", "", "", "git:aaaa")
+    scoped_b = gw._cache_key(msgs, "gpt-4o", "openai", "", "", "git:bbbb")
+    assert base != scoped_a
+    assert scoped_a != scoped_b
+    # No-scope default keeps the pre-R1 key stable.
+    assert base == gw._cache_key(msgs, "gpt-4o", "openai", "", "")
+
+
+def test_gateway_instance_cache_scope_changes_hits(monkeypatch) -> None:
+    """A changed instance cache_scope must miss a previously cached response."""
+    gw = AIGateway()  # no account_id → _direct_call path
+    gw.fallback.enabled = False
+    calls: list[str] = []
+
+    def fake_direct(messages, model, provider_name, *a, **k):
+        calls.append(model)
+        return {"content": "answer", "stop_reason": "end_turn", "usage": {"total_tokens": 3}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+
+    gw.cache_scope = "git:rev1"
+    r1 = gw.chat([{"role": "user", "content": "do it"}], model="m", provider_name="mimo")
+    r2 = gw.chat([{"role": "user", "content": "do it"}], model="m", provider_name="mimo")
+    assert r2.get("cache_hit") is True          # same scope → cached
+    assert len(calls) == 1
+
+    gw.cache_scope = "git:rev2"                  # repo changed
+    r3 = gw.chat([{"role": "user", "content": "do it"}], model="m", provider_name="mimo")
+    assert r3.get("cache_hit") is not True       # new scope → miss, provider called again
+    assert len(calls) == 2
+
+
 def test_gateway_cost_estimation() -> None:
     gw = AIGateway()
     cost = gw._estimate_cost("claude-sonnet-4-5-20250929", "anthropic", 4000)

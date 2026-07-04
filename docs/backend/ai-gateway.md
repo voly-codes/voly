@@ -16,7 +16,7 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 ```
 
 1. **DLP** — блокирует secrets/PII, возвращает `{"dlp_blocked": true}`
-2. **Cache** — exact/semantic hit → `{"cache_hit": true}`, квота не тратится
+2. **Cache** — exact/semantic hit → `{"cache_hit": true}`, квота не тратится; ключ включает **project-state scope** (см. «Границы валидности кэша»)
 3. **Rate limit** — rpm guard → `{"rate_limited": true}`
 4. **Spend limit** — дневной бюджет → `{"spend_limited": true}`
 5. **Routing** — CF AI Gateway или прямой вызов, затем model fallback
@@ -109,6 +109,33 @@ CF_AIG_TOKEN=<token from CF Dashboard → AI Gateway → Settings>
 Когда основная модель возвращает ошибку, Gateway автоматически пробует следующую
 в списке `fallback_models` из конфига. Это отдельно от billing fallback chain в
 AgentRunner (которая переключает целый executor, не только модель).
+
+## Границы валидности кэша (risk R1)
+
+Код-генерация чувствительна к состоянию репозитория: тот же промпт на изменившейся
+кодовой базе должен давать другой ответ. Поэтому ключ кэша, помимо `messages` /
+`model` / `provider` / `system`, включает **project-state scope** — отпечаток
+состояния проекта.
+
+- **Что даёт scope:** `voly/ai_gateway/project_state.py:project_fingerprint(cwd, files=None)`.
+  Repo-level по умолчанию: git `HEAD` + сигнатура «грязного» рабочего дерева
+  (`git diff HEAD` + untracked → повторное редактирование того же файла
+  инвалидирует кэш без списка файлов). Не-git директория → идентичность по пути.
+  Опциональный `files=[...]` добавляет mtime+size+content конкретных файлов
+  (file-level precision; hook для local-context пути).
+- **Как подключается:** атрибут инстанса `AIGateway.cache_scope` выставляется один
+  раз при создании gateway из `config.default_cwd` (`pipeline/core.py`), поэтому
+  все `chat()` на этом инстансе наследуют scope без пер-call проводки. Пер-call
+  параметр `chat(..., cache_scope=...)` переопределяет инстансный. Пусто → scope
+  не участвует (поведение до R1).
+- **Что scope предотвращает:** cross-project collision (тот же task-текст на другом
+  `cwd` → чужой cache hit) и stale hit после изменения репозитория.
+
+**Executor path вне этого кэша.** Executor-субпроцессы (`claude-code`, `zen`,
+`cursor`) читают и пишут файлы напрямую и **не** проходят через `AIGateway.cache`;
+`wrangler` идёт через отдельный `/infer` (CF Worker), не через этот кэш. Значит
+`AIGateway.cache` обслуживает только text-only reasoning (pipeline, суб-агенты,
+DSPy) — именно там scope и нужен. Результаты executor-ов нигде не кэшируются.
 
 ## Empty-content guard
 

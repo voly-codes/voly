@@ -44,6 +44,10 @@ class AIGateway(_GatewayProvidersMixin):
         self.metrics     = GatewayMetrics()
         self._enabled    = True
         self._transports: dict[str, Callable] = {}
+        # Project-state fingerprint folded into every cache key on this instance
+        # (VOLY risk R1). Set once per project run — see voly/ai_gateway/
+        # project_state.py and pipeline/core.py. Empty → no scope (prior behaviour).
+        self.cache_scope = ""
 
     @property
     def enabled(self) -> bool:
@@ -74,6 +78,7 @@ class AIGateway(_GatewayProvidersMixin):
         system: str | None = None,
         agent: str | None = None,
         tools: list[dict[str, Any]] | None = None,
+        cache_scope: str = "",
         **kwargs: Any,
     ) -> dict[str, Any]:
         if not self._enabled:
@@ -84,7 +89,10 @@ class AIGateway(_GatewayProvidersMixin):
             self.metrics.record_dlp_block()
             return {"error": f"DLP blocked: {violations}", "content": "", "dlp_blocked": True}
 
-        cache_key = self._cache_key(messages, model, provider_name, system or "", str(kwargs))
+        # Per-call scope overrides the instance default; folded into the cache key
+        # so a repo change / different project does not serve a stale hit (R1).
+        scope = cache_scope or self.cache_scope
+        cache_key = self._cache_key(messages, model, provider_name, system or "", str(kwargs), scope)
         if self.cache.enabled:
             cached = self.cache.get(cache_key)
             if cached:
@@ -283,9 +291,12 @@ class AIGateway(_GatewayProvidersMixin):
 
     # ── Cost helpers ─────────────────────────────────────────────────────────────
 
-    def _cache_key(self, messages: list, model: str, provider: str, system: str, extra: str) -> str:
+    def _cache_key(
+        self, messages: list, model: str, provider: str, system: str, extra: str, scope: str = "",
+    ) -> str:
         raw = json.dumps(
-            {"messages": messages, "model": model, "provider": provider, "system": system, "extra": extra},
+            {"messages": messages, "model": model, "provider": provider,
+             "system": system, "extra": extra, "scope": scope},
             sort_keys=True,
         )
         return hashlib.sha256(raw.encode()).hexdigest()
