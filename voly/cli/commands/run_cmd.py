@@ -22,6 +22,10 @@ import click
 )
 @click.option("--cwd", default=None, help="Working directory for executor")
 @click.option("--max-turns", default=30, help="Max agent turns (claude-code executor)")
+@click.option(
+    "--timeout", default=300, show_default=True,
+    help="Executor timeout in seconds (total deadline, incl. internal model fallback)",
+)
 @click.option("--a2a-delegate", is_flag=True, help="Delegate to A2A agents")
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
 @click.pass_context
@@ -33,12 +37,13 @@ def run(
     executor: str | None,
     cwd: str | None,
     max_turns: int,
+    timeout: int,
     a2a_delegate: bool,
     output_json: bool,
 ) -> None:
     """Run a task through the VOLY pipeline."""
     if executor:
-        _run_with_executor(task, executor, cwd, max_turns, output_json, ctx)
+        _run_with_executor(task, executor, cwd, max_turns, timeout, output_json, ctx)
         return
 
     from voly.pipeline import Pipeline
@@ -96,6 +101,7 @@ def _run_with_executor(
     executor_type: str,
     cwd: str | None,
     max_turns: int,
+    timeout: int,
     output_json: bool,
     ctx: click.Context,
 ) -> None:
@@ -114,6 +120,7 @@ def _run_with_executor(
             executor_type,
             cwd=work_dir,
             max_turns=max_turns,
+            timeout=timeout,
         )
     except ValueError as exc:
         click.echo(str(exc), err=True)

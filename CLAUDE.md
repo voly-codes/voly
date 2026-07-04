@@ -46,9 +46,10 @@ VOLY = два слоя с разной ценностью (истина: `docs/p
 - **Семантический классификатор billing-ошибок** `voly/ai_gateway/error_classifier.py` (порт из OmniRoute): отделяет transient rate-limit (429) от terminal quota-exhausted; `_is_billing_error` в `voly/executor/base.py` делегирует туда. Тесты: `tests/test_error_classifier.py`.
 - **Empty-content guard подключён** на уровне `AIGateway`: провайдер-адаптеры (`providers.py`) пробрасывают `stop_reason`, `_empty_content_error` в `gateway.py` конвертирует фейк-успех (HTTP 200 без контента) в синтетическую ошибку → model fallback; легитимный пустой (`max_tokens`/`tool_use`/`length`/`tool_calls`) не триггерит fallback. Это model-level, не billing. Тесты: `tests/test_ai_gateway.py`, `tests/test_error_classifier.py`; doc: `docs/backend/ai-gateway.md`.
 - **Cache-key project-state scope (R1)**: `AIGateway._cache_key` включает `cache_scope` — отпечаток состояния проекта (`ai_gateway/project_state.py:project_fingerprint`, git HEAD + dirty-сигнатура, repo-level; opt-in `files=` для file-level). `gw.cache_scope` выставляется из `config.default_cwd` в `pipeline/core.py`. Аудит: executor-субпроцессы и wrangler `/infer` **вне** `AIGateway.cache` — кэшируется только text-only reasoning. Границы в `docs/backend/ai-gateway.md`; тесты `tests/test_project_state.py`, `tests/test_ai_gateway.py`.
+- **Deadline-таймауты executor-ов**: `timeout` — общий deadline вызова; циклы перебора моделей `zen`/`opencode` делят его между попытками (floor 10s `_MIN_ATTEMPT_SECONDS` в `executor/base.py`), не умножают (8×300s ≈ 40 мин). Маркеры `metadata.timeout` / `deadline_exhausted`; проброс `voly run --timeout` и `timeout` в `POST /api/run`. Тесты: `tests/test_executor_timeouts.py`; docs: `executors.md` («Timeouts»), `api.md`.
 
 **Ближайший фокус (ядро прежде монетизации — этап 1 roadmap):**
-1. Таймауты на subprocess-executor-ах; retry-aware стоимость в TaskEvent / `_COST_RATES`.
+1. Retry-aware стоимость в TaskEvent / `_COST_RATES` (перезапуски не задваивают цифры) — последний пункт этапа 1.
 
 **Не делать без явного запроса:** свой workflow-движок, Temporal (при необходимости — DBOS/Restate), ранний marketplace, наращивание периферии до стабилизации ядра B.
 

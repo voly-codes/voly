@@ -125,6 +125,7 @@ class ClaudeCodeExecutor(Executor):
                 success=False,
                 error=f"Timeout after {timeout}s",
                 duration_ms=duration_ms,
+                metadata={"timeout": True},
             )
         except FileNotFoundError:
             _log.error("[CLAUDE] binary not found: %s", self._bin)

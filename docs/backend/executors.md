@@ -114,6 +114,32 @@ Env: `OPENCODE_API_KEY` (optional for free Zen tier)
 
 ---
 
+## Timeouts (total deadline)
+
+Все subprocess-executor-ы принимают `timeout` (секунды) и убивают подпроцесс по
+истечении (`subprocess.run(timeout=...)` + обработанный `TimeoutExpired`).
+HTTP-executor-ы (`wrangler`, `mimo`, `deepseek`) передают его в таймаут запроса.
+
+**`timeout` — общий deadline вызова, не per-attempt.** Внутренние циклы перебора
+моделей (`zen._run_cli`, `opencode._run_cli` — до ~9 моделей при billing-ошибках)
+делят deadline: каждая попытка получает **оставшееся** время; при остатке меньше
+`_MIN_ATTEMPT_SECONDS` (10s, `executor/base.py`) перебор останавливается, у
+результата выставляется `metadata["deadline_exhausted"]=true` (при billing-ошибке
+`billing_error` сохраняется — цепочка может продолжить). Без этого вызов «300s»
+молча растягивался бы до 8×300s ≈ 40 минут.
+
+Таймаут-результаты помечаются `metadata["timeout"]=true` (для телеметрии и
+будущего watchdog этапа 2).
+
+**Проброс:** `voly run --executor X --timeout N` (default 300) и
+`voly runner --timeout N` → `AgentRunner.run(timeout=...)` → каждый executor,
+включая fallback-цепочку. Web: поле `timeout` в `POST /api/run` (default 300).
+Замечание: billing fallback-цепочка даёт каждому executor-у **свой** полный
+timeout (прозрачно через `chain_timelog`) — умножение только на видимом уровне
+цепочки, не внутри одного executor-а.
+
+---
+
 ## AgentRunner billing fallback (`voly/runner/agent_runner.py`)
 
 ```python

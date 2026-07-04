@@ -25,6 +25,13 @@ class WorkReport:
         }
 
 
+# Minimum remaining seconds worth starting another CLI attempt with. Model-
+# fallback loops (zen/opencode) treat the caller's `timeout` as a TOTAL deadline
+# shared across attempts; below this floor the loop stops instead of launching
+# a subprocess that would be killed almost immediately.
+_MIN_ATTEMPT_SECONDS = 10
+
+
 @dataclass
 class ExecutorResult:
     success: bool
