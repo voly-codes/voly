@@ -378,8 +378,18 @@ class AgentRunner:
             "model": result.metadata.get("model", "") if result.metadata else "",
             "status": _chain_status(result),
             "duration_ms": round(result.duration_ms),
+            "cost_usd": round(result.cost_usd, 6),
+            "input_tokens": result.input_tokens,
+            "output_tokens": result.output_tokens,
             "error": (result.error or "")[:200],
         }]
+
+        # Spend of abandoned chain attempts. Folded into the TaskEvent totals so
+        # a task's cost stays truthful across retries (этап 1: retry-aware cost).
+        retry_count = 0
+        retry_cost_usd = 0.0
+        retry_tokens_in = 0
+        retry_tokens_out = 0
 
         # Billing/availability fallback: walk the chain when current executor can't run the task.
         # Triggers on billing_error (no credits) OR not_available (service not running).
@@ -418,6 +428,11 @@ class AgentRunner:
                     fb_result.duration_ms = (time.monotonic() - fb_t0) * 1000
                 fb_result.metadata["billing_fallback_from"] = first_fallback_from
                 fb_result.metadata["billing_fallback_to"] = fallback_name
+                # The current result is being abandoned — bank its spend before replacing.
+                retry_count += 1
+                retry_cost_usd += result.cost_usd
+                retry_tokens_in += result.input_tokens
+                retry_tokens_out += result.output_tokens
                 executor_name = fallback_name
                 result = fb_result
                 chain_timelog.append({
@@ -425,6 +440,9 @@ class AgentRunner:
                     "model": result.metadata.get("model", "") if result.metadata else "",
                     "status": _chain_status(result),
                     "duration_ms": round(result.duration_ms),
+                    "cost_usd": round(result.cost_usd, 6),
+                    "input_tokens": result.input_tokens,
+                    "output_tokens": result.output_tokens,
                     "error": (result.error or "")[:200],
                 })
                 _chain_log.info(
@@ -454,10 +472,14 @@ class AgentRunner:
             executor_name, result, task_type=task_type
         )
 
+        # Task totals include abandoned chain attempts — a retried task costs the
+        # sum of everything it burned, not just the final executor's attempt.
+        total_cost_usd = round(result.cost_usd + retry_cost_usd, 6)
+
         status = "failed"
         budget_exceeded = False
         if result.success:
-            status = budget_status(result.cost_usd, self.config)
+            status = budget_status(total_cost_usd, self.config)
             budget_exceeded = status == "budget_exceeded"
 
         emit_event_from_config(TaskEvent(
@@ -466,10 +488,12 @@ class AgentRunner:
             executor=executor_name,
             status=status,
             tokens=TokenMetrics(
-                input=result.input_tokens,
-                output=result.output_tokens,
+                input=result.input_tokens + retry_tokens_in,
+                output=result.output_tokens + retry_tokens_out,
             ),
-            cost_usd=result.cost_usd,
+            cost_usd=total_cost_usd,
+            retry_count=retry_count,
+            retry_cost_usd=round(retry_cost_usd, 6),
             duration_ms=result.duration_ms,
             model=result.metadata.get("model") if result.metadata else (model or executor_name),
             provider=result.metadata.get("provider") if result.metadata else executor_name,
@@ -477,7 +501,7 @@ class AgentRunner:
             automation_score=automation_score,
             manual_steps_removed=manual_steps,
             error=result.error if not result.success else (
-                f"Budget exceeded: ${result.cost_usd:.4f} > "
+                f"Budget exceeded: ${total_cost_usd:.4f} > "
                 f"${self.config.cost_policy.max_task_cost_usd:.2f}"
                 if budget_exceeded else None
             ),

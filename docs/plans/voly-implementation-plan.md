@@ -33,7 +33,7 @@
 - [x] `isEmptyContentResponse` guard — *подключён на уровне gateway: провайдер-адаптеры (`providers.py`) пробрасывают `stop_reason`; `AIGateway._empty_content_error` конвертирует фейк-успех в model-fallback в `_gateway_call`, `chat()`-direct и `_direct_fallback`; легитимный пустой (`max_tokens`/`tool_use`/`length`/`tool_calls`) не триггерит fallback. Тесты: `tests/test_ai_gateway.py`, `tests/test_error_classifier.py`; doc: `docs/backend/ai-gateway.md`*
 - [x] Пересмотр ключа кэша executor path + документирование границ валидности (R1) — *`AIGateway._cache_key` включает project-state scope (`project_state.py:project_fingerprint` — git HEAD + dirty-сигнатура, repo-level; opt-in `files=` для file-level); `gw.cache_scope` из `config.default_cwd` в `pipeline/core.py`. Аудит: executor-субпроцессы и wrangler `/infer` вне кэша — кэшируется только text-only reasoning. Границы задокументированы в `docs/backend/ai-gateway.md`. Тесты: `tests/test_project_state.py`, `tests/test_ai_gateway.py`*
 - [x] Таймауты на subprocess-executor-ах (все CLI-обёртки) — *аудит: per-subprocess таймауты уже были везде; реальный фикс — `timeout` стал ОБЩИМ deadline: циклы перебора моделей `zen`/`opencode` делят его (каждая попытка получает остаток, floor 10s `_MIN_ATTEMPT_SECONDS`), иначе 8 моделей × 300s ≈ 40 мин на «300s» вызов. Плюс маркеры `metadata.timeout`/`deadline_exhausted`, проброс `--timeout` в `voly run` и `timeout` в `POST /api/run`. Тесты: `tests/test_executor_timeouts.py`; docs: `executors.md` («Timeouts»), `api.md`*
-- [ ] Retry-aware стоимость в TaskEvent и `_COST_RATES` (перезапуски не задваивают цифры)
+- [x] Retry-aware стоимость в TaskEvent и `_COST_RATES` (перезапуски не задваивают цифры) — *два уровня сворачивания: model-loops `zen`/`opencode` фолдят потраченное брошенными попытками в `ExecutorResult` (`_fold_retry_costs`, `executor/base.py`); `AgentRunner` фолдит брошенные попытки цепочки в тоталы `TaskEvent` + поля `retry_count`/`retry_cost_usd`; `chain_timelog` несёт per-attempt cost/tokens; бюджет-чек по тоталу. Ставки per-attempt уже шли через `_estimate_cost` по фактической модели попытки. Тесты: `tests/test_retry_cost.py`; docs: `executors.md` («Retry-aware cost»)*
 
 **Готовность:** tool-use не вызывает ложных fallback; кэш инвалидируется при изменении репозитория; стоимость корректна при перезапусках.
 **Монетизация:** телеметрия стоимости становится достоверной — базис для FinOps-отчётов.
@@ -138,7 +138,7 @@
 | Этап | Готовность | Примечание |
 |---|---|---|
 | 0 — Гигиена | 3 / 6 | осталось: 2 CI-гейта доков + решение по прототипам |
-| 1 — Executor path | 3 / 4 | guard + cache-key (R1) + deadline-таймауты; остался retry-aware cost |
+| 1 — Executor path | 4 / 4 | **ЗАВЕРШЁН**: guard + cache-key (R1) + deadline-таймауты + retry-aware cost |
 | 2 — Устойчивость | 0 / 3 | ждёт ответа на открытый вопрос №1 |
 | 3 — Границы/делегирование | 1 / 3 | классификатор billing готов |
 | 4 — Мультитенантность | 0 / 5 | первый платный этап |
@@ -146,4 +146,4 @@
 | 6 — Тесты (сквозной) | 1.5 / 7 | классификатор + частично recursion guard |
 | 7 — Периферия | 0 / 4 | по необходимости |
 
-**Ближайший фокус (roadmap §7, ядро прежде монетизации):** доделать этап 1 — retry-aware стоимость в `TaskEvent`/`_COST_RATES` (перезапуски не задваивают цифры); guard, R1-cache-key и deadline-таймауты закрыты.
+**Ближайший фокус (roadmap §7, ядро прежде монетизации):** этап 1 завершён (guard, R1-cache-key, deadline-таймауты, retry-aware cost). Следующий — этап 2 «Устойчивость цепочки» (heartbeat/watchdog, чекпоинтинг, git-чекпоинт перед ретраем); перед стартом ответить на открытый вопрос №1 (реальная длина цепочек и частота зависаний).

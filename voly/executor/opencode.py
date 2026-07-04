@@ -23,6 +23,7 @@ from voly.executor.base import (
     ExecutorResult,
     _MIN_ATTEMPT_SECONDS,
     _extract_cli_error,
+    _fold_retry_costs,
     _is_billing_error,
     _oc_event_error,
 )
@@ -106,33 +107,37 @@ class OpenCodeExecutor(Executor):
         attempt gets the remaining time (see ZenExecutor._run_cli for rationale).
         """
         deadline = time.monotonic() + timeout
-        last_result: ExecutorResult | None = None
+        # Failed billing attempts we moved past; spend folded into the returned
+        # result (see _fold_retry_costs) so retries don't vanish from telemetry.
+        abandoned: list[ExecutorResult] = []
 
         for model in self._models_to_try():
             remaining = int(deadline - time.monotonic())
             if remaining < _MIN_ATTEMPT_SECONDS:
-                if last_result is None:
+                if not abandoned:
                     return ExecutorResult(
                         success=False,
                         error=f"opencode: {timeout}s deadline too short for any model attempt",
                         metadata={"mode": "cli", "provider": "opencode-go", "timeout": True},
                     )
                 _log.warning("opencode._run_cli: %ds deadline exhausted, stopping model iteration", timeout)
-                last_result.metadata["deadline_exhausted"] = True
-                return last_result
+                last = abandoned.pop()
+                last.metadata["deadline_exhausted"] = True
+                return _fold_retry_costs(last, abandoned)
 
             model_id = model if "/" in model else f"opencode-go/{model}"
             result = self._run_cli_one(task, model_id=model_id, cwd=cwd, timeout=remaining)
-            last_result = result
 
             if result.success:
-                return result
+                return _fold_retry_costs(result, abandoned)
             if not result.billing_error:
-                return result
+                return _fold_retry_costs(result, abandoned)
+            abandoned.append(result)
             _log.warning("opencode._run_cli: billing error with model=%s, trying next", model)
 
-        assert last_result is not None
-        return last_result
+        assert abandoned
+        last = abandoned.pop()
+        return _fold_retry_costs(last, abandoned)
 
     def _run_cli_one(
         self,

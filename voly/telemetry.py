@@ -151,6 +151,13 @@ class TaskEvent:
     task_type: str | None = None
     automation_score: float = 0.0
     manual_steps_removed: int = 0
+    # Retry-aware cost: cost_usd/tokens are TOTALS across all executor-chain
+    # attempts (abandoned + final); retry_* isolate the abandoned share, so
+    # summing cost_usd never double-counts and waste stays visible. Inner
+    # model-loop retries (zen/opencode) are already folded into the executor's
+    # own result (metadata.retry_cost_usd) before it reaches this event.
+    retry_count: int = 0
+    retry_cost_usd: float = 0.0
     error: str | None = None
     # DSPy optimizer fields
     dspy_enabled: bool = False
@@ -387,6 +394,8 @@ def load_events(events_dir: str | Path | None = None) -> list[TaskEvent]:
                 task_type=data.get("task_type"),
                 automation_score=float(data.get("automation_score") or 0.0),
                 manual_steps_removed=int(data.get("manual_steps_removed") or 0),
+                retry_count=int(data.get("retry_count") or 0),
+                retry_cost_usd=float(data.get("retry_cost_usd") or 0.0),
                 error=data.get("error"),
                 dspy_enabled=bool(data.get("dspy_enabled", False)),
                 dspy_mode=data.get("dspy_mode"),

@@ -51,6 +51,26 @@ class ExecutorResult:
     not_available: bool = False
 
 
+def _fold_retry_costs(final: ExecutorResult, abandoned: list[ExecutorResult]) -> ExecutorResult:
+    """Fold spend of abandoned model attempts into the returned result.
+
+    Model-fallback loops (zen/opencode) discard failed attempts' results, but
+    the tokens/cost those attempts burned are real spend — without folding, the
+    task's FinOps numbers silently under-report on retries. ``retry_count`` /
+    ``retry_cost_usd`` in metadata isolate the retry share so dashboards can
+    show waste without double counting (``cost_usd`` is already the total).
+    """
+    if not abandoned:
+        return final
+    retry_cost = sum(r.cost_usd for r in abandoned)
+    final.cost_usd = round(final.cost_usd + retry_cost, 6)
+    final.input_tokens += sum(r.input_tokens for r in abandoned)
+    final.output_tokens += sum(r.output_tokens for r in abandoned)
+    final.metadata["retry_count"] = len(abandoned)
+    final.metadata["retry_cost_usd"] = round(retry_cost, 6)
+    return final
+
+
 def _is_billing_error(error: str) -> bool:
     """True when the error means the provider is out of budget/quota.
 

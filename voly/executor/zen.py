@@ -20,6 +20,7 @@ from voly.executor.base import (
     ExecutorResult,
     _MIN_ATTEMPT_SECONDS,
     _extract_cli_error,
+    _fold_retry_costs,
     _is_billing_error,
     _oc_event_error,
 )
@@ -113,37 +114,41 @@ class ZenExecutor(Executor):
         budget (8 models × 300s ≈ 40 min for a "300s" call).
         """
         deadline = time.monotonic() + timeout
-        last_result: ExecutorResult | None = None
+        # Failed billing attempts we moved past; their spend is folded into the
+        # returned result so retries don't silently vanish from FinOps numbers.
+        abandoned: list[ExecutorResult] = []
 
         for model in self._models_to_try():
             remaining = int(deadline - time.monotonic())
             if remaining < _MIN_ATTEMPT_SECONDS:
-                if last_result is None:
+                if not abandoned:
                     return ExecutorResult(
                         success=False,
                         error=f"zen: {timeout}s deadline too short for any model attempt",
                         metadata={"mode": "cli", "provider": "opencode-zen", "timeout": True},
                     )
                 logger.warning("zen._run_cli: %ds deadline exhausted, stopping model iteration", timeout)
-                last_result.metadata["deadline_exhausted"] = True
-                return last_result
+                last = abandoned.pop()
+                last.metadata["deadline_exhausted"] = True
+                return _fold_retry_costs(last, abandoned)
 
             model_id = model if "/" in model else f"opencode/{model}"
             result = self._run_cli_one(task, model_id=model_id, cwd=cwd, max_turns=max_turns, timeout=remaining)
-            last_result = result
 
             if result.success:
-                return result
+                return _fold_retry_costs(result, abandoned)
             if not result.billing_error:
                 # Non-billing failure (timeout, parse error, etc.) — don't iterate models
-                return result
+                return _fold_retry_costs(result, abandoned)
+            abandoned.append(result)
             logger.warning(
                 "zen._run_cli: billing error with model=%s, trying next free model", model
             )
 
         # All models exhausted — return last result (billing_error=True so chain can continue)
-        assert last_result is not None
-        return last_result
+        assert abandoned
+        last = abandoned.pop()
+        return _fold_retry_costs(last, abandoned)
 
     def _run_cli_one(
         self,

@@ -154,6 +154,23 @@ if result.billing_error and executor_name in BILLING_FALLBACK_CHAIN:
             break
 ```
 
+### Retry-aware cost
+
+Стоимость задачи достоверна при перезапусках — два уровня сворачивания, без двойного счёта:
+
+1. **Executor-level** (`zen`/`opencode`): циклы перебора моделей сворачивают
+   потраченное брошенными попытками в возвращаемый `ExecutorResult`
+   (`_fold_retry_costs` в `executor/base.py`): `cost_usd`/токены — тоталы,
+   `metadata.retry_count` / `metadata.retry_cost_usd` изолируют долю ретраев.
+2. **Chain-level** (`AgentRunner`): потраченное брошенными попытками цепочки
+   попадает в тоталы `TaskEvent` (`cost_usd`, `tokens`) и в поля
+   `retry_count` / `retry_cost_usd`; бюджет-чек (`budget_status`) считает по
+   тоталу. Каждая запись `chain_timelog` несёт свои `cost_usd` /
+   `input_tokens` / `output_tokens`.
+
+Правило чтения: `cost_usd` — всегда полный тотал (суммирование по событиям не
+задваивает); `retry_cost_usd` — подмножество, потраченное на неудачные попытки.
+
 Chain logs (see `logging.getLogger("voly.chain")`):
 - `[CHAIN:START]` — first executor attempt
 - `[CHAIN:RESULT]` — result + billing_error status
