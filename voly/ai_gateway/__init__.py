@@ -15,6 +15,7 @@ from .models import (
     GatewayMetrics,
 )
 from .gateway import AIGateway
+from .project_state import project_fingerprint
 
 __all__ = [
     "GatewayProvider",
@@ -26,4 +27,5 @@ __all__ = [
     "DLPConfig",
     "GatewayMetrics",
     "AIGateway",
+    "project_fingerprint",
 ]

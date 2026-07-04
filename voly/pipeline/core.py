@@ -137,6 +137,12 @@ class Pipeline(_PipelineStageMixin, _WorkflowMixin, _SkillsMixin):
             gw.dlp.block_secrets = self.config.ai_gateway.dlp_block_secrets
             gw.dlp.block_pii = self.config.ai_gateway.dlp_block_pii
             gw._enabled = self.config.ai_gateway.enabled
+            # Scope the persistent cache to the project's repo state (R1): the same
+            # task text on a changed repo — or a different project — must miss.
+            project_cwd = getattr(self.config, "default_cwd", "")
+            if project_cwd:
+                from voly.ai_gateway.project_state import project_fingerprint
+                gw.cache_scope = project_fingerprint(project_cwd)
             self._ai_gateway = gw
         return self._ai_gateway
 
