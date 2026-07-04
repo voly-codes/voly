@@ -38,6 +38,7 @@ VOLY = два слоя с разной ценностью (истина: `docs/p
 | `docs/plans/voly-implementation-plan.md` | Чеклист внедрения с чекбоксами и прогрессом по этапам |
 | `docs/plans/codeops-project-assessment.md` | Риски R1–R7 (P0: R1 семантика кэша, R2 тесты отказов, R4 billing-детекция) |
 | `docs/plans/omniroute-analysis-for-voly.md` | Что переносим из OmniRoute — **принципы, не код**; при копировании — MIT-атрибуция |
+| `docs/plans/codebase-memory-mcp-analysis-for-voly.md` | Референс для cache-key R1 (git HEAD + file-hash инвалидация) + бэклог: MCP как замена context-grep. **Принципы, не код** (MIT) |
 
 **Уже сделано:**
 - Синхрон доков: порты `7788` (web UI = `voly ui`) / `9202` (pipeline = `voly serve`), `a2a.enabled=true`.
