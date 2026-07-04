@@ -17,6 +17,7 @@ FastAPI сервер: `voly/web/server.py`. Запуск: `voly ui` (порт 77
   executor?: string,   // "pipeline" | "claude-code" | "wrangler" | "zen" | ...
   cwd?: string,        // target project path (overrides config.default_cwd)
   max_turns?: number,  // default 30
+  timeout?: number,    // default 300 — total executor deadline (s), incl. internal model fallback
   a2a_delegate?: bool  // delegate to A2A federation
 }
 

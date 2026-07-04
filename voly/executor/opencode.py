@@ -18,7 +18,14 @@ import time
 
 import logging
 
-from voly.executor.base import Executor, ExecutorResult, _extract_cli_error, _is_billing_error, _oc_event_error
+from voly.executor.base import (
+    Executor,
+    ExecutorResult,
+    _MIN_ATTEMPT_SECONDS,
+    _extract_cli_error,
+    _is_billing_error,
+    _oc_event_error,
+)
 from voly.telemetry import _estimate_cost
 
 _log = logging.getLogger(__name__)
@@ -93,12 +100,29 @@ class OpenCodeExecutor(Executor):
         max_turns: int = 20,
         timeout: int = 600,
     ) -> ExecutorResult:
-        """Run via opencode CLI with free model fallback on billing error."""
+        """Run via opencode CLI with free model fallback on billing error.
+
+        ``timeout`` is a TOTAL deadline shared across the model loop — each
+        attempt gets the remaining time (see ZenExecutor._run_cli for rationale).
+        """
+        deadline = time.monotonic() + timeout
         last_result: ExecutorResult | None = None
 
         for model in self._models_to_try():
+            remaining = int(deadline - time.monotonic())
+            if remaining < _MIN_ATTEMPT_SECONDS:
+                if last_result is None:
+                    return ExecutorResult(
+                        success=False,
+                        error=f"opencode: {timeout}s deadline too short for any model attempt",
+                        metadata={"mode": "cli", "provider": "opencode-go", "timeout": True},
+                    )
+                _log.warning("opencode._run_cli: %ds deadline exhausted, stopping model iteration", timeout)
+                last_result.metadata["deadline_exhausted"] = True
+                return last_result
+
             model_id = model if "/" in model else f"opencode-go/{model}"
-            result = self._run_cli_one(task, model_id=model_id, cwd=cwd, timeout=timeout)
+            result = self._run_cli_one(task, model_id=model_id, cwd=cwd, timeout=remaining)
             last_result = result
 
             if result.success:
@@ -151,6 +175,7 @@ class OpenCodeExecutor(Executor):
                 success=False,
                 error=f"opencode CLI timed out after {timeout}s",
                 duration_ms=duration_ms,
+                metadata={"mode": "cli", "model": model_id, "provider": "opencode-go", "timeout": True},
             )
         except FileNotFoundError:
             self._use_cli = False

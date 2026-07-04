@@ -38,6 +38,8 @@ class RunRequest(BaseModel):
     executor: str = "pipeline"
     cwd: str = ""
     max_turns: int = 30
+    # Total executor deadline in seconds, incl. internal model-fallback loops.
+    timeout: int = 300
     a2a_delegate: bool = False
 
 
@@ -205,7 +207,10 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
             _log.info("context gathered: %d chars added to task", len(ctx))
 
     runner = AgentRunner(cfg)
-    result = runner.run(task, req.executor, cwd=work_dir, max_turns=req.max_turns, model=req.model or "")
+    result = runner.run(
+        task, req.executor, cwd=work_dir,
+        max_turns=req.max_turns, timeout=req.timeout, model=req.model or "",
+    )
     meta = result.result.metadata or {}
     return {
         "success": result.success,

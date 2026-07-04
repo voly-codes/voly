@@ -15,7 +15,14 @@ import shutil
 import subprocess
 import time
 
-from voly.executor.base import Executor, ExecutorResult, _extract_cli_error, _is_billing_error, _oc_event_error
+from voly.executor.base import (
+    Executor,
+    ExecutorResult,
+    _MIN_ATTEMPT_SECONDS,
+    _extract_cli_error,
+    _is_billing_error,
+    _oc_event_error,
+)
 from voly.telemetry import _estimate_cost
 
 logger = logging.getLogger(__name__)
@@ -99,12 +106,30 @@ class ZenExecutor(Executor):
         """Agentic execution via `opencode run` with file access.
 
         Tries each model in sequence. On billing error, moves to the next free model.
+
+        ``timeout`` is a TOTAL deadline for this call, shared across the model
+        loop — each attempt gets the remaining time. Otherwise N billing-failed
+        models × a full per-attempt timeout silently multiplies the caller's
+        budget (8 models × 300s ≈ 40 min for a "300s" call).
         """
+        deadline = time.monotonic() + timeout
         last_result: ExecutorResult | None = None
 
         for model in self._models_to_try():
+            remaining = int(deadline - time.monotonic())
+            if remaining < _MIN_ATTEMPT_SECONDS:
+                if last_result is None:
+                    return ExecutorResult(
+                        success=False,
+                        error=f"zen: {timeout}s deadline too short for any model attempt",
+                        metadata={"mode": "cli", "provider": "opencode-zen", "timeout": True},
+                    )
+                logger.warning("zen._run_cli: %ds deadline exhausted, stopping model iteration", timeout)
+                last_result.metadata["deadline_exhausted"] = True
+                return last_result
+
             model_id = model if "/" in model else f"opencode/{model}"
-            result = self._run_cli_one(task, model_id=model_id, cwd=cwd, max_turns=max_turns, timeout=timeout)
+            result = self._run_cli_one(task, model_id=model_id, cwd=cwd, max_turns=max_turns, timeout=remaining)
             last_result = result
 
             if result.success:
@@ -164,6 +189,7 @@ class ZenExecutor(Executor):
                 success=False,
                 error=f"opencode CLI timed out after {timeout}s",
                 duration_ms=(time.monotonic() - started) * 1000,
+                metadata={"mode": "cli", "model": model_id, "provider": "opencode-zen", "timeout": True},
             )
 
     def _parse_json_events(self, stdout: str, stderr: str, duration_ms: float, *, model_id: str = "") -> ExecutorResult:
