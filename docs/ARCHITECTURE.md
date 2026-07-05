@@ -56,7 +56,39 @@ Developer / UI / CI
 3. **Optimization is layered.** RTK, Headroom и DSPy независимы с явным fallback.
 4. **Shadow before active.** Новое поведение оптимизатора — сначала shadow, потом active.
 5. **Runtime state is not source.** `.voly/events/`, datasets, compiled programs — генерируемые артефакты.
-6. **Billing fallback chain.** При ошибке биллинга executor автоматически заменяется: `claude-code → wrangler → zen`.
+6. **Billing fallback chain.** При ошибке биллинга executor автоматически заменяется: `claude-code → wrangler → opencode → zen`.
+
+---
+
+## Слои A/B — make vs delegate
+
+VOLY состоит из двух слоёв с разной инженерной стратегией:
+
+| Слой | Что это | Стратегия |
+|---|---|---|
+| **A — model gateway** | Маршрутизация/fallback между провайдерами моделей (anthropic, openai, deepseek, workers-ai, …) | **Delegate.** Зрелая ниша (OmniRoute, LiteLLM, OpenRouter) — не догоняем по ширине провайдеров. Стабилизируется по минимуму; провайдерная маршрутизация делегируется внешнему gateway (см. «Upstream delegation» ниже), прямые адаптеры — fallback. |
+| **B — оркестрация file-capable CLI-агентов** | Executor chain (агенты пишут файлы), billing fallback между CLI, мульти-агентная декомпозиция (тир модели на роль), телеметрия стоимости задач | **Make.** Уникальность VOLY — сюда весь фокус разработки: устойчивость цепочки, честный FinOps-учёт, project-agnostic executor path. |
+
+**Upstream delegation (слой A first-class):** `ai_gateway.upstream: "omniroute"` в
+`voly.yaml` направляет все не-CF вызовы `AIGateway.chat()` через один внешний
+gateway (модель passthrough или `upstream_model: "auto"`); при его недоступности —
+автоматический fallback на прямой адаптер запрошенного провайдера
+(`upstream_fallback_direct`). Кэш, DLP, spend limits и телеметрия не меняются —
+они живут вокруг вызова. Детали: `docs/backend/ai-gateway.md`.
+
+### Публичные версионируемые контракты
+
+Ядро общается с любыми внешними сервисами (self-hosted или managed) через
+открытые версионируемые интерфейсы — они замораживаются контрактными тестами
+(`tests/test_protocol_contracts.py`):
+
+| Контракт | Версия | Где описан |
+|---|---|---|
+| `TaskEvent` (телеметрия задач) | `schema_version: 1` | `voly/telemetry.py`, `docs/backend/api.md` |
+| Spend-протокол (`/spend/record`, `/spend/check`, …) | v1 | `docs/backend/spend-protocol.md` |
+| A2A federation | — | `cf-workers/a2a/`, `docs/backend/api.md` |
+
+Изменение контракта = бамп версии + обновление docs + снимка в контрактном тесте.
 
 ---
 
