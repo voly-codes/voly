@@ -132,11 +132,19 @@ class GatewayMetrics:
     dlp_blocked: bool = False
 
 
+# Версия схемы TaskEvent — публичный контракт ядра (события читают внешние
+# потребители: CF Pipelines, R2, hosted-дашборды). Любое изменение набора
+# полей/семантики — бамп версии + правка контрактного теста
+# (tests/test_protocol_contracts.py) + docs/backend/api.md.
+TASK_EVENT_SCHEMA_VERSION = 1
+
+
 @dataclass
 class TaskEvent:
     task_id: str
     agent: str
     status: str  # completed | failed | budget_exceeded | dlp_blocked | rate_limited | spend_limited
+    schema_version: int = TASK_EVENT_SCHEMA_VERSION
     tokens: TokenMetrics = field(default_factory=TokenMetrics)
     gateway: GatewayMetrics = field(default_factory=GatewayMetrics)
     skill_ids: list[str] = field(default_factory=list)
@@ -408,6 +416,7 @@ def load_events(events_dir: str | Path | None = None) -> list[TaskEvent]:
                 task_id=data["task_id"],
                 agent=data.get("agent", ""),
                 status=data.get("status", ""),
+                schema_version=int(data.get("schema_version") or 1),
                 tokens=TokenMetrics(**tok) if tok else TokenMetrics(),
                 gateway=GatewayMetrics(**gw) if gw else GatewayMetrics(),
                 skill_ids=data.get("skill_ids", []),

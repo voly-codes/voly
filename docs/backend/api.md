@@ -99,6 +99,20 @@ data: {"type": "update", "task": {...}}
 
 Запись телеметрии из внешних источников.
 
+### Контракт TaskEvent (schema_version: 1)
+
+`TaskEvent` (`voly/telemetry.py`) — публичный версионируемый формат события
+задачи; его читают внешние потребители (CF Pipelines ingest, R2, дашборды).
+Каждое событие несёт `schema_version` (сейчас `1`). Набор полей v1 заморожен
+контрактным тестом `tests/test_protocol_contracts.py` — изменение схемы
+требует бампа `TASK_EVENT_SCHEMA_VERSION`, обновления этого раздела и снимка
+в тесте. Ключевые группы полей: идентификация (`task_id`, `agent`, `executor`,
+`status`, `schema_version`), стоимость (`cost_usd`, `retry_count`,
+`retry_cost_usd`, `tokens`), диагностика (`error`, `error_class`,
+`chain_timelog`), A2A (`a2a_*`), DSPy (`dspy_*`).
+
+Смежный контракт: spend-протокол — `docs/backend/spend-protocol.md`.
+
 ---
 
 ## CF Worker endpoints (`cf-workers/agent/`)
