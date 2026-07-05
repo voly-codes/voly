@@ -383,6 +383,19 @@ def run_local(
         if tracker is not None and task_id:
             tracker.heartbeat(task_id, a.role, len(done))
 
+        # Spend limit is a hard stop for the WHOLE chain: remaining sub-agents
+        # would only re-hit the same exhausted budget. Mark them spend-limited
+        # (same observable outcome) but WITHOUT another gateway call, and stop —
+        # early exit instead of walking every role. (Budget isolation, Этап 4.)
+        if resp.get("spend_limited"):
+            _log.info("multiagent: spend limit hit at role %s — stopping chain", a.role)
+            for rest in assignments:
+                if rest.idx not in done:
+                    rest.error = str(resp.get("error") or "Spend limit exceeded")
+                    rest.ok = False
+                    done[rest.idx] = rest
+            break
+
     if tracker is not None and task_id:
         any_ok = any(a.ok for a in assignments)
         tracker.finish(task_id, status="completed" if any_ok else "failed")

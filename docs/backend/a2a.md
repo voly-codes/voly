@@ -53,6 +53,15 @@ CF agent worker passes `a2a_parent_task_id: task_id` in `/run` requests.
 
 ---
 
+## Spend limit — early exit
+
+`run_local` stops the whole chain the moment a sub-agent comes back
+`spend_limited` (budget exhausted): remaining roles are marked
+`error="Spend limit exceeded"` **without another `AIGateway.chat()` call** and the
+loop breaks. Same observable outcome as walking every role, minus the wasted
+calls — the budget won't recover mid-run. Tested in
+`tests/test_failure_paths.py` and `tests/test_tenant_isolation.py`.
+
 ## Context handoff between waves
 
 `dispatch_parallel()` runs subtasks in dependency waves:
