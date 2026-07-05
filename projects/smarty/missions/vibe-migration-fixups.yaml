@@ -1,0 +1,132 @@
+# Combat mission: vibe-migration-fixups
+# Хвосты LAN-131/132/133: IconButton icon=, Vibe input props, синтаксис после скриптов.
+# Run:
+#   cd /home/user1/smarty/smarty-code/voly && source .env
+#   python3 -m voly.cli smarty combat run vibe-migration-fixups --sequential
+
+name: vibe-migration-fixups
+description: >
+  Исправить регрессии миграции smarty-crm-toolkit → @vibe/core (LAN-131–133):
+  IconButton icon JSX, info/error→helpText, синтаксис, onRemove boolean.
+
+tasks:
+  - agent: cursor
+    label: "cursor: audit + fix IconButton icon prop (LAN-132 tail)"
+    task: |
+      STEP 1/4 — IconButton / Vibe Icon regressions.
+
+      Repo: /home/user1/smarty/smarty-code
+      Frontend: /home/user1/smarty/smarty-code/smarty-crm-frontend
+      Branch: work/frontend-refactor (не коммитить и не пушить без явной просьбы).
+
+      SYMPTOM (runtime):
+        Element type is invalid: expected a string or class/function but got: object
+        Stack: @vibe/core Icon → IconButton → DialogAvatar, LeftSidebarHeader, …
+
+      ROOT CAUSE:
+        После LAN-132 Vibe IconButton ожидает icon={Component}, НЕ icon={<Component />}.
+        JSX-элемент попадает в <Icon icon={object} /> → React crash.
+
+      SCAN:
+        cd smarty-crm-frontend/src
+        rg 'icon=\{<' -g '*.{js,jsx,tsx}'
+
+      FIX PATTERN:
+        - icon={<FooIcon />}           → icon={FooIcon}
+        - icon={<FooIcon className={cx(theme.x)} />} → icon={FooIcon} iconClassName={cx(theme.x)}
+        - CircleButton с icon JSX — аналогично IconButton
+
+      KNOWN FILES (не исчерпывающий список — проверь весь rg):
+        - src/js/components/dialogs/dialogComponents/DialogAvatar/DialogAvatar.js:118
+        - src/js/components/fs/FsSidebar/SidebarHeader/SidebarHeader.js
+        - src/js/components/dialogs/Message/MessageMenu/MessageMenu.js
+        - src/js/components/dialogs/DialogContent/DialogContentInput/DialogInputAttachMenu/DialogInputAttachMenu.js
+        - src/js/components/employees/EmployeesList/EmployeesList.js
+        - src/js/modals/RefillBalanceModal/RefillBalanceModal.js
+
+      REFERENCE (уже исправлено):
+        docs/refactoring/scripts/lan132_migrate_buttons.py
+        LeftSidebarHeader.js — icon={ChatSearchDefaultIcon} iconClassName={...}
+
+      DO NOT touch OutlineInput/OutlineTextarea/InputSelect/ItemsInput (LAN-134/139).
+
+      CHECK:
+        rg 'icon=\{<' smarty-crm-frontend/src → 0 matches (кроме комментариев)
+        npx eslint <изменённые файлы> — без новых ошибок
+
+  - agent: cursor
+    label: "cursor: fix Vibe TextField/TextArea props (LAN-133 tail)"
+    task: |
+      STEP 2/4 — Vibe input props после LAN-133.
+
+      Repo: /home/user1/smarty/smarty-code/smarty-crm-frontend
+
+      SYMPTOMS:
+        - Warning: Invalid value for prop `info` on <textarea> / <input>
+        - SyntaxError после lan133_migrate_inputs.py (разорванные template literal в value)
+
+      ROOT CAUSE:
+        Toolkit: info={LimitInfo(limit)} — функция, вызывается с value внутри компонента.
+        Vibe TextField/TextArea: helpText={string}, error={boolean}.
+        Скрипт lan133_migrate_inputs.py fix_vibe_limit_props ломает многострочные value.
+
+      SCAN:
+        rg 'info=\{LimitInfo' smarty-crm-frontend/src -g '*.{js,jsx}'
+        rg 'error=\{LimitError' smarty-crm-frontend/src -g '*.{js,jsx}' | rg -v 'helpText'
+        find smarty-crm-frontend/src -name '*.js' -exec node --check {} + 2>&1 | rg 'SyntaxError'
+
+      FIX PATTERN (когда value={var} на том же теге):
+        info={LimitInfo(expr)}     → helpText={LimitInfo(expr)(var) || undefined}
+        error={LimitError(expr)}   → error={!!LimitError(expr)(var)}
+        info={() => formatMessage(...)} → helpText={formatMessage(...)}
+
+      REFERENCE (уже исправлено):
+        AddDialogModal.js, AutoSendMessageBlock.js, CardFields/TextField/TextField.js
+
+      CARD FIELD WRAPPERS — проверить и доработать:
+        CardFields/TextField, TitleField, UniqueNumberField, EmailField, PhoneField, …
+
+      DO NOT migrate Select/InputSelect (LAN-134).
+
+      CHECK:
+        node --check на все изменённые файлы
+        rg '\binfo=\{' на файлах с @vibe/core TextField|TextArea|Search — только toolkit/EditorTiptap
+
+  - agent: cursor
+    label: "cursor: fix boolean onRemove + syntax sweep"
+    task: |
+      STEP 3/4 — PropTypes и синтаксис.
+
+      PATTERN onRemove:
+        onRemove={condition && handler}  →  onRemove={condition ? handler : undefined}
+        KNOWN: DialogItemsInput/DialogItemsInput.js
+
+      SYNTAX SWEEP после LAN-133:
+        - Сложные value с template literals внутри Textarea (см. AutoSendMessageBlock.js)
+        - Выносить display value в переменную в render при необходимости
+
+      OPTIONAL (не блокер, не чинить если ломает scope):
+        POST /api/v2/logbook/error 404 в local — ожидаемо (нет роута в scripts/local.js)
+
+      CHECK:
+        npm run start:local компилируется без babel SyntaxError
+
+  - agent: cursor
+    label: "cursor: verify + tests"
+    task: |
+      STEP 4/4 — Верификация.
+
+      cd /home/user1/smarty/smarty-code/docs/refactoring/scripts
+      python3 verify_migration.py --lan 132
+      python3 verify_migration.py --lan 133
+
+      cd /home/user1/smarty/smarty-code/smarty-crm-frontend
+      npm test -- --no-coverage --passWithNoTests --watchAll=false
+
+      npx eslint $(git diff --name-only -- '*.js' '*.jsx' | tr '\n' ' ') 2>/dev/null || true
+
+      DELIVERABLE:
+        - Список изменённых файлов (группы: icon, input props, syntax, onRemove)
+        - Сколько осталось icon={< / info={ несовместимых с Vibe
+        - Результат verify + tests
+        - Не коммитить; не пушить

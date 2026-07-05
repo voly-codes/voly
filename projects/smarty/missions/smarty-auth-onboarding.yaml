@@ -1,0 +1,75 @@
+# Combat mission: smarty-auth-onboarding
+# Run: python3 -m voly.cli smarty combat run smarty-auth-onboarding --sequential
+
+name: smarty-auth-onboarding
+description: 'P0: Auth onboarding — sign-up, password reset, invite accept, session
+  cookie parity.'
+tasks:
+- agent: cursor
+  label: 'cursor: sign-up flow complete'
+  task: 'STEP 1/5 — Sign-up flow.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy auth: {{LEGACY_FRONTEND}}/src/js/components/Auth/
+
+    Zitadel ref: {{ZITADEL_AUTH}}
+
+    COMPLETE SignUp.tsx: form validation, authApi.signup, error states.
+
+    Routes: /sign-up; post-signup redirect to sign-in or workspace picker.
+
+    i18n auth namespace en+ru.'
+- agent: cursor
+  label: 'cursor: password reset flow'
+  task: 'STEP 2/5 — Password reset.
+
+
+    {{LEGACY_GAP_REF}}
+
+    ADD routes: /forgot-password, /reset-password (token from query).
+
+    Wire authApi reset request + confirm endpoints (read backend).
+
+    Pages: ForgotPassword.tsx, ResetPassword.tsx — Plane minimal forms.
+
+    Links from SignIn.'
+- agent: cursor
+  label: 'cursor: workspace invite accept'
+  task: 'STEP 3/5 — Invite accept.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Employees API: {{EMPLOYEES_API}}
+
+    Route /invite/:token or query param — accept employee invite.
+
+    Hook useAcceptInvite; success → sign-in or auto session.
+
+    Empty/error for invalid/expired token.'
+- agent: cursor
+  label: 'cursor: oauth session parity'
+  task: 'STEP 4/5 — OAuth + session.
+
+
+    {{LEGACY_GAP_REF}}
+
+    If legacy supports OAuth buttons on SignIn — port redirect URLs only.
+
+    Ensure withCredentials on all auth calls; no JWT Bearer.
+
+    ProtectedRoute: unauthenticated → /sign-in (not /login).
+
+    Document OAuth env vars in comments if needed.'
+- agent: cursor
+  label: 'cursor: auth onboarding review'
+  task: 'STEP 5/5 — Auth review.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Checklist: sign-up, sign-in, forgot/reset, invite, sign-out.
+
+    npm run build; update gap audit auth rows.'

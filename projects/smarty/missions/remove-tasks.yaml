@@ -1,0 +1,149 @@
+# Combat mission: remove-tasks
+# Run: python3 -m voly.cli smarty combat run remove-tasks --sequential
+
+name: remove-tasks
+description: 'Полное удаление модуля Tasks (ежедневник): миграция shared-компонентов
+  в Tracker, удаление routes/pages/hooks, замена Dashboard/Reports на Tracker'
+tasks:
+- agent: cursor
+  label: 'cursor: migrate shared components out of tasks/'
+  task: "STEP 1/4 — Migrate shared code before deleting src/pages/tasks/.\n\nProject:\
+    \ {{SMARTY_PROJECT}}. Read ../CLAUDE.md first.\n\nMIGRATE (do NOT break Tracker):\n\
+    1. TaskAssigneePicker.tsx → src/components/shared/EmployeeAssigneePicker.tsx (named\
+    \ export EmployeeAssigneePicker). Update IssuePropertyPickers to re-export from\
+    \ shared. Move i18n keys from tasks.json → common.json (assignee, members, bots,\
+    \ unassigned, searchMembers, noResults) en+ru.\n2. taskDragUtils.ts → src/lib/kanbanDragUtils.ts.\
+    \ Update IssueKanbanView import.\n3. TaskCalendar.tsx → rename to CalendarGrid.tsx\
+    \ in src/components/shared/. Keep CalendarView + CalendarViewMode exports. Remove\
+    \ Task-specific props if any; IssueCalendarView must keep working.\n4. task-config.ts\
+    \ → rename to status-priority-config.ts (same exports: TaskStatus, TaskPriority,\
+    \ STATUS_CONFIG, PRIORITY_CONFIG, STATUS_ORDER, PRIORITY_ORDER, resolveTaskStatus).\
+    \ Update imports in StatusIcon, PriorityIcon, tracker-config.ts.\n5. Shared components\
+    \ using useTranslation('tasks') → switch namespace:\n   AssigneePicker, CommentInput,\
+    \ FileUploadButton, LabelPicker → common or tracker.\n\nDo NOT delete src/pages/tasks/\
+    \ yet. npm run build must pass."
+- agent: cursor
+  label: 'cursor: delete tasks module + routes + API client'
+  task: 'STEP 2/4 — Delete legacy Tasks (ежедневник) frontend module.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    DELETE entirely:
+
+    - src/pages/tasks/ (all 32 files)
+
+    - src/hooks/useTasks.ts
+
+    - src/locales/en/tasks.json, src/locales/ru/tasks.json
+
+    - useTasksViewStore from src/stores/viewStores.ts (remove line, keep other stores)
+
+    - taskUtils.ts if orphaned
+
+
+    REMOVE from src/lib/api.ts:
+
+    - Task interface (if unused after step 3)
+
+    - wsApi(wsId).tasks.* endpoints
+
+
+    REMOVE from src/App.tsx:
+
+    - imports Tasks, TaskDetail
+
+    - routes /tasks, /tasks/:taskId
+
+
+    REMOVE from src/components/layout/Sidebar.tsx:
+
+    - SidebarNavLink to=/tasks
+
+
+    REMOVE from src/lib/i18n.ts:
+
+    - tasks namespace registration
+
+
+    UPDATE src/pages/settings/sections/CustomFieldsSection.tsx:
+
+    - Remove ''tasks'' from collection picker (backend collection deprecated in UI).
+
+
+    Fix all broken imports. npm run build must pass with 0 TS errors.'
+- agent: cursor
+  label: 'cursor: replace Dashboard + Reports + ActivityFeed with Tracker'
+  task: 'STEP 3/4 — Replace all useTasks() consumers with Tracker issues.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    DASHBOARD (src/pages/Dashboard.tsx + dashboard/):
+
+    1. Replace useTasks with useTrackerIssues or aggregate across projects (useTrackerProjects
+    + per-project issues, or add useAllTrackerIssues hook if needed).
+
+    2. RecentTasks.tsx → RecentIssues.tsx — show last 5 tracker issues (key, title,
+    status, link to /tracker/issues/:id).
+
+    3. StatsRow.tsx — replace tasksDone metric with tracker metric (e.g. open issues
+    count or done/total from tracker statuses). Update dashboard i18n en+ru.
+
+    4. QuickActions.tsx — ''addTask'' button → ''addIssue'' linking to /tracker or
+    create issue modal.
+
+
+    REPORTS (src/pages/reports/Reports.tsx):
+
+    - Remove useTasks import and tasks-related metrics/charts.
+
+    - If tasks tab/section exists, replace with tracker issues stats via trackerApi
+    or remove section.
+
+    - Use statistic API entity ''tracker_issue'' if available, else count from hooks.
+
+
+    ACTIVITY FEED (src/components/shared/ActivityFeed.tsx):
+
+    - Replace useTasks with recent tracker issues.
+
+    - href /tasks → /tracker/issues/:id or /tracker/browse/:key
+
+
+    SEARCH (src/components/layout/SearchModal.tsx):
+
+    - Update placeholder: ''tasks'' → ''issues'' (i18n if hardcoded).
+
+
+    No mock data. npm run build.'
+- agent: cursor
+  label: 'cursor: review remove-tasks + update docs'
+  task: 'STEP 4/4 — Review and document removal.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    VERIFY (grep must return 0 hits in src/ except comments/docs):
+
+    - useTasks, /tasks, pages/tasks, locales/*/tasks.json
+
+    - TaskAssigneePicker from old path
+
+
+    RUN: npm run build — must succeed.
+
+
+    UPDATE docs:
+
+    - docs/reports/CURRENT_STATUS.md — remove Tasks row, note Tracker replaces diary
+
+    - BUSINESS_LOGIC_AUDIT.md — mark tasks module as removed
+
+
+    Do NOT edit files except docs if review finds P0 issues — list P0/P1/P2 gaps.
+
+    If P0 found in steps 1-3, fix them first then review again.'

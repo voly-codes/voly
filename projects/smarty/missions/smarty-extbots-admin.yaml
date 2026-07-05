@@ -1,0 +1,37 @@
+# Combat mission: smarty-extbots-admin
+# Run: python3 -m voly.cli smarty combat run smarty-extbots-admin --sequential
+
+name: smarty-extbots-admin
+description: 'P2: ExtBots admin — /extbot list/card, ExtFlow texts, templates; features.bots
+  gate.'
+tasks:
+- agent: cursor
+  label: 'cursor: extbots routes API'
+  task: 'STEP 1/3 — ExtBots API + routes.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy: {{LEGACY_FRONTEND}}/src/js/components/ExtBot/
+
+    wsApi extbots; routes /extbot, /extbot/:id; gate nav by workspace features.bots.
+
+    Hooks useExtBots, useExtBot.'
+- agent: cursor
+  label: 'cursor: extflow texts templates'
+  task: 'STEP 2/3 — ExtFlow editor + templates.
+
+
+    {{LEGACY_GAP_REF}}
+
+    ExtBot detail: flow texts editor, bot templates list.
+
+    i18n extbot en+ru.'
+- agent: cursor
+  label: 'cursor: extbots review'
+  task: 'STEP 3/3 — Review extbots.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build.'

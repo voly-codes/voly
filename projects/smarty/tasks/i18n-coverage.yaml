@@ -1,0 +1,9 @@
+name: i18n-coverage
+
+tasks:
+  - agent: deepseek
+    label: "deepseek: find untranslated strings"
+    task: |
+      Audit i18n in {{SMARTY_PROJECT}}/src/.
+      Find hardcoded strings not using useTranslation().
+      Output file:line → string.

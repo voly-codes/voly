@@ -1,0 +1,43 @@
+# Combat mission: smarty-extchats
+# Run: python3 -m voly.cli smarty combat run smarty-extchats --sequential
+
+name: smarty-extchats
+description: 'P0: Внешние чаты /messages — extchats API, shared dialog shell (after
+  inbox messaging).'
+tasks:
+- agent: cursor
+  label: 'cursor: extchats API hooks'
+  task: 'STEP 1/4 — extchats / extmessages client.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy: {{LEGACY_FRONTEND}}/src/js/components/ExtChats/
+
+    EXTEND api.ts: wsApi extchats list, extmessages (match backend routes).
+
+    Hooks: useExtChats, useExtMessages, useSendExtMessage.
+
+    Depends on smarty-inbox-messaging patterns — reuse message types where possible.'
+- agent: cursor
+  label: 'cursor: messages page two-pane shell'
+  task: "STEP 2/4 — Replace /messages EmptyState.\n\n{{LEGACY_GAP_REF}}\nREWRITE src/pages/messages/Messages.tsx:\n\
+    \  - Two-pane like Inbox: channel list left, thread right\n  - Extract shared\
+    \ MessageThread + Compose from inbox if duplicated\n  - PageHeader «Сообщения»\
+    \ / Messages\ni18n messages namespace en+ru."
+- agent: cursor
+  label: 'cursor: extchats send + channel meta'
+  task: "STEP 3/4 — Send + channel details.\n\n{{LEGACY_GAP_REF}}\n  - Compose send\
+    \ via useSendExtMessage\n  - Channel header: contact name, source badge (telegram/whatsapp/etc\
+    \ if in API)\n  - Link to related contact/deal if backend provides ids\nLoading/error/empty\
+    \ states."
+- agent: cursor
+  label: 'cursor: extchats review'
+  task: 'STEP 4/4 — Review extchats.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build; update gap audit row extchats.
+
+    Note dependency: inbox messaging shared components.'

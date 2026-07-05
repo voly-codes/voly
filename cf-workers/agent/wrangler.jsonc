@@ -1,0 +1,38 @@
+{
+  "name": "voly-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "services": [
+    {
+      "binding": "A2A_FEDERATION",
+      "service": "voly-a2a"
+    }
+  ],
+
+  "ai": {
+    "binding": "AI"
+  },
+
+  // CF AI Gateway route schema for /infer — provided as SECRETS (not vars) so the
+  // AIG token is never committed:
+  //   wrangler secret put CF_ACCOUNT_ID | CF_GATEWAY_ID | CF_AIG_TOKEN
+  // Leave unset to fall back to env.AI.run() directly (AI binding above).
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "VOLY_MCP_AGENT",
+        "class_name": "VOLYMcpAgent"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["VOLYMcpAgent"]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docs-sync:
+    name: Docs sync gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: env ↔ .env.example ↔ docs in sync
+        run: python scripts/check_env_doc_sync.py
+
+      - name: no broken relative doc links
+        run: python scripts/check_doc_links.py
+
+  base:
+    name: Base install
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install base package with dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      - name: Import smoke test without DSPy extra
+        run: |
+          python - <<'PY'
+          import voly.pipeline
+          import voly.inference
+          from voly.config import VOLYConfig
+          cfg = VOLYConfig()
+          assert cfg.dspy.enabled is False
+          print("base import ok")
+          PY
+
+      - name: Run tests
+        run: pytest
+
+  dspy-extra:
+    name: DSPy extra smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package with DSPy extra
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dspy,dev]"
+
+      - name: DSPy import smoke test
+        run: |
+          python - <<'PY'
+          import voly.dspy
+          import voly.dspy.programs
+          import voly.inference
+          print("dspy extra import ok")
+          PY
+
+      - name: Run tests
+        run: pytest

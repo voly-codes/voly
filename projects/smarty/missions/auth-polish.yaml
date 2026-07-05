@@ -1,0 +1,15 @@
+# Combat mission: auth-polish
+# Run: python3 -m voly.cli smarty combat run auth-polish --sequential
+
+name: auth-polish
+description: Auth flow polish — SignUp, AuthGuard, session redirect
+tasks:
+- agent: cursor
+  label: 'cursor: polish auth flow'
+  task: Polish auth in {{SMARTY_PROJECT}}/src/pages/auth/ and AuthGuard. Ensure SignIn/SignUp
+    use authApi with session cookies. Handle 401 redirect, loading states, i18n errors.
+    Read src/lib/api.ts authApi endpoints. No JWT Bearer tokens.
+- agent: cursor
+  label: 'cursor: review auth flow'
+  task: Security and UX review of auth flow in {{SMARTY_PROJECT}}/src/. Session cookies
+    only, no token in localStorage.

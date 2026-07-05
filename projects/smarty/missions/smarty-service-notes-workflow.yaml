@@ -1,0 +1,31 @@
+# Combat mission: smarty-service-notes-workflow
+# Run: python3 -m voly.cli smarty combat run smarty-service-notes-workflow --sequential
+
+name: smarty-service-notes-workflow
+description: 'P1: Service notes — detail route, approval modal, 4-stage status, linked
+  tabs.'
+tasks:
+- agent: cursor
+  label: 'cursor: service note detail workflow'
+  task: "STEP 1/3 — Service note detail + status.\n\n{{LEGACY_GAP_REF}}\nLegacy: {{LEGACY_FRONTEND}}/src/js/components/ServiceNotes/\n\
+    EXPAND ServiceNoteDetail (beyond quick-win stub):\n  - 4-stage status colors (status-*\
+    \ tokens)\n  - Approval decision modal (approve/reject + comment)\n  - useServiceNote\
+    \ PATCH for status transitions"
+- agent: cursor
+  label: 'cursor: service note linked tabs'
+  task: 'STEP 2/3 — Linked tabs on service note.
+
+
+    {{LEGACY_GAP_REF}}
+
+    EntityDetailTabs on service note detail: contact, deal, files, history.
+
+    List page filters by status stage.'
+- agent: cursor
+  label: 'cursor: service notes review'
+  task: 'STEP 3/3 — Review service notes.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build.'

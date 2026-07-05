@@ -1,0 +1,142 @@
+# Combat mission: plane-home-dashboard
+# Run: python3 -m voly.cli smarty combat run plane-home-dashboard --sequential
+
+name: plane-home-dashboard
+description: 'CRM Workspace Dashboard: bento-виджеты под Smarty (pipeline, inbox,
+  helpdesk, my issues). Plane — только паттерны layout/widgets, НЕ копия personal
+  Home 800px.'
+tasks:
+- agent: cursor
+  label: 'cursor: dashboard backend — preferences + recents + quick links'
+  task: "STEP 1/6 — Backend: smarty-dashboard (минимальный, CRM-support).\n\nProject:\
+    \ {{SMARTY_PROJECT}}. Read ../CLAUDE.md + ../.claude/skills/plane-design-system.md.\n\
+    Mount in api-rest/routes/workspace.js → /ws/:_wsId/home/*.\n\nCONCEPT: backend\
+    \ хранит только персональные prefs и bookmarks. CRM-метрики считаются из существующих\
+    \ API (contacts, projects, dialogs, requisitions, tracker) — НЕ дублировать бизнес-логику\
+    \ в dashboard backend.\n\nMODEL home_quick_link:\n  _wsId, _ownerId, title (max\
+    \ 100), url (max 2000), sortOrder, isDeleted, _createdOn\n\nMODEL home_recent:\n\
+    \  _wsId, _ownerId, entityType: contact|deal|issue|requisition|note|dialog\n \
+    \ entityId, title, href, visitedAt — upsert, max 50, prune oldest\n\nWidget preferences\
+    \ (per employee per ws):\n  Keys (Smarty CRM set — NOT Plane keys):\n    crm_pulse\
+    \ | needs_attention | inbox_preview | my_issues | pipeline |     recents | requisitions\
+    \ | quick_actions | my_stickies | quick_links\n  Default enabled + order (top→bottom):\n\
+    \    1 crm_pulse  2 needs_attention  3 inbox_preview  4 my_issues\n    5 pipeline\
+    \  6 recents  7 quick_actions\n  Default disabled: requisitions (enable if HD\
+    \ used), my_stickies, quick_links\n\nROUTES (EmployeeRequest, owner-scoped):\n\
+    \  GET/PATCH /home/preferences\n  GET/POST/PATCH/DELETE /home/quick-links[/:id]\n\
+    \  GET/POST /home/recents\n\ndocs/API.md. No mock data."
+- agent: cursor
+  label: 'cursor: dashboard hooks + home-config registry'
+  task: "STEP 2/6 — Frontend foundation (CRM widget registry).\n\nProject: {{SMARTY_PROJECT}}.\
+    \ Read ../CLAUDE.md.\nPlane ref (patterns only): {{HOME_REF}}/home-dashboard-widgets.tsx,\
+    \ {{HOME_REF}}/widgets/manage/.\n\nIMPLEMENT:\n1. Types + homeApi(wsId) — preferences,\
+    \ quickLinks, recents\n2. src/hooks/useHomeDashboard.ts — widget prefs, quick\
+    \ links, recents mutations\n3. src/lib/home-config.ts — HOME_WIDGETS registry:\n\
+    \   key, component, title i18n, defaultEnabled, fullWidth, category: crm|work|personal\n\
+    4. src/hooks/useRecordRecentView.ts — POST /home/recents on view:\n   ContactDetail,\
+    \ DealDetail/Kanban card, IssueDetailPage, Requisition detail, Inbox dialog open\n\
+    5. src/hooks/useDashboardMetrics.ts — aggregate EXISTING hooks with sane limits:\n\
+    \   useContacts(limit:20), useProjects(limit:50), useDialogs(unread), useRequisitions(limit:50),\
+    \ useAllTrackerIssues(), useHdDashboard() optional\n   Export: { contactCount,\
+    \ dealCount, openDeals, unreadDialogs, openRequisitions, overdueRequisitions,\
+    \ myOpenIssues, pipelineByStage }\n\nNO limit:9999 on page mount — each widget\
+    \ fetches its own data lazily.\nnpm run build."
+- agent: cursor
+  label: 'cursor: dashboard shell — PageHeader + bento layout'
+  task: "STEP 3/6 — Replace Dashboard shell (Smarty CRM hub, NOT Plane 800px home).\n\
+    \nProject: {{SMARTY_PROJECT}}/src/pages/home/.\nRead: ../.claude/skills/plane-design-system.md,\
+    \ ../.claude/skills/minimalist-skill.md.\nPlane ref (layout patterns only): {{HOME_REF}}/home-dashboard-widgets.tsx.\n\
+    \nIMPLEMENT HomePage.tsx — replaces Dashboard.tsx:\n\nLAYOUT (Smarty CRM concept):\n\
+    \  - Standard Header + optional compact subtitle: 'Good morning, {name}' (text-sm\
+    \ muted, NO emoji)\n  - Full-width content area p-6, max-w-6xl mx-auto (NOT narrow\
+    \ 800px personal feed)\n  - Bento grid: crm_pulse + needs_attention full-width\
+    \ rows; two-column md:grid-cols-2 for inbox/my_issues/pipeline/recents\n  - Widget\
+    \ wrapper: SectionCard or bordered rounded-lg bg-surface-1 (Plane tokens)\n  -\
+    \ HomeDashboardWidgets orchestrator — enabled widgets by sortOrder from useHomeWidgets\n\
+    \  - Top-right: 'Customize' → ManageHomeWidgetsModal\n  - Skeleton per-widget\
+    \ (not full-page block)\n\nRoute '/' → HomePage. Dashboard.tsx re-exports HomePage.\n\
+    DELETE old Dashboard layout (StatsRow grid, QuickActions bar, 2×2 Recent* grid).\n\
+    \ni18n: dashboard.json home.* + widget titles en+ru.\nDark-first, text-sm density,\
+    \ lucide 16px strokeWidth=1.5."
+- agent: cursor
+  label: 'cursor: CRM widgets — pulse, attention, inbox, pipeline, work'
+  task: "STEP 4/6 — CRM-first widget components.\n\nProject: {{SMARTY_PROJECT}}/src/pages/home/widgets/.\n\
+    \nIMPLEMENT (each = SectionCard header + content + EmptyState + link to full page):\n\
+    \n1. CrmPulseWidget (crm_pulse) — REPLACES StatsRow:\n   StatCard row: contacts,\
+    \ active deals, my open issues, open requisitions.\n   Each card links to /contacts,\
+    \ /deals, /tracker, /requisitions.\n   Uses useDashboardMetrics — no full-table\
+    \ fetch.\n\n2. NeedsAttentionWidget (needs_attention):\n   Action list: unread\
+    \ inbox count → /inbox, overdue requisitions (SLA), deals without activity 30d\
+    \ (if data available), issues assigned to me overdue.\n   Empty: 'All caught up'.\
+    \ Uses useDialogs + useRequisitions + useAllTrackerIssues.\n\n3. InboxPreviewWidget\
+    \ (inbox_preview):\n   Last 5 unread dialogs: avatar, name, snippet, time → /inbox/:id.\n\
+    \   useDialogs filter unread. Link 'View all' → /inbox.\n\n4. MyIssuesWidget (my_issues):\n\
+    \   Tracker issues where assigneeId = current employee, status ≠ done, limit 8.\n\
+    \   Row: key, title, StatusIcon, PriorityIcon → /tracker/issues/:id.\n\n5. PipelineWidget\
+    \ (pipeline):\n   Mini pipeline: deals grouped by stage (useProjects + useStages),\
+    \ horizontal bars or compact columns.\n   Link → /deals. Reuse deals Kanban stage\
+    \ config if exists.\n\n6. RecentsWidget (recents):\n   CRM recents only: contacts,\
+    \ deals, issues, requisitions. Tabs filter.\n   NOT Plane pages/wiki. useRecents\
+    \ API.\n\n7. RequisitionsWidget (requisitions) — optional:\n   Open/overdue tickets\
+    \ list, CSAT hint from useHdDashboard if available.\n\n8. QuickActionsWidget (quick_actions):\n\
+    \   Wired buttons: Add contact, New deal, New issue (→ /tracker), Open inbox.\n\
+    \   Replace old QuickActions.tsx with real navigation/modal triggers.\n\n9. StickiesHomeWidget\
+    \ + QuickLinksWidget — personal, lower priority:\n   Move existing StickiesWidget;\
+    \ QuickLinks from backend. category=personal.\n\nRegister all in home-config.ts.\
+    \ npm run build."
+- agent: cursor
+  label: 'cursor: customize widgets + remove legacy dashboard'
+  task: "STEP 5/6 — Customize modal + cleanup.\n\nProject: {{SMARTY_PROJECT}}.\nREFERENCE:\
+    \ {{HOME_REF}}/widgets/manage/, src/components/shared/LayoutCustomizer.tsx.\n\n\
+    1. ManageHomeWidgetsModal — group by category (CRM / Work / Personal):\n   toggle\
+    \ enabled, DnD reorder, save → PATCH /home/preferences.\n   Fallback localStorage\
+    \ pageId='home' via layout-config.ts for dev.\n\n2. DELETE legacy dashboard files\
+    \ after migration:\n   StatsRow, RecentContacts, RecentIssues, RecentGoals, RecentNotes,\
+    \ QuickActions\n   Move StickiesWidget + StickiesModal → home/widgets/\n\n3. ActivityFeed.tsx\
+    \ — update links (/tracker not /tasks).\n4. Prune dashboard.json i18n — CRM widget\
+    \ keys.\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: review Smarty CRM dashboard'
+  task: 'STEP 6/6 — Review against Smarty CRM concept (NOT Plane Home parity).
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    CHECKLIST:
+
+    ✅ CRM-first: pulse, pipeline, inbox, requisitions visible by default
+
+    ✅ Tracker integrated (my issues), not separate product silo
+
+    ✅ No limit:9999 on HomePage mount — lazy per-widget fetching
+
+    ✅ Bento full-width layout (max-w-6xl), NOT centered 800px personal feed
+
+    ✅ No emoji greetings, no Plane marketing widgets
+
+    ✅ Customize widgets (enable/order/categories)
+
+    ✅ Recents for CRM entities + record on view
+
+    ✅ Quick actions wired to real routes
+
+    ✅ Stickies/quick links optional (personal category)
+
+    ✅ Legacy StatsRow/Recent*/QuickActions removed
+
+    ✅ i18n en+ru, Plane dark-first tokens
+
+    ✅ Real API only
+
+
+    ANTI-PATTERNS (must be ❌):
+
+    - Blind Plane Home clone (narrow feed, wiki recents, tour widgets)
+
+    - Dashboard as generic PM tool ignoring contacts/deals/inbox
+
+
+    UPDATE docs/reports/CURRENT_STATUS.md.
+
+    List P1/P2 gaps.'

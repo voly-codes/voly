@@ -1,0 +1,32 @@
+# Combat mission: smarty-access-rights
+# Run: python3 -m voly.cli smarty combat run smarty-access-rights --sequential
+
+name: smarty-access-rights
+description: 'P1: Access rights matrix at /settings/access-rights — roles × operations.'
+tasks:
+- agent: cursor
+  label: 'cursor: access rights API hooks'
+  task: 'STEP 1/3 — Access rights API.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy: {{LEGACY_FRONTEND}}/src/js/components/AccessRights/
+
+    Add wsApi access_rights or roles endpoints; hooks useAccessRights, useUpdateRole.
+
+    Types for collection × operation grid.'
+- agent: cursor
+  label: 'cursor: access rights matrix UI'
+  task: "STEP 2/3 — Matrix UI.\n\n{{LEGACY_GAP_REF}}\nPage SettingsAccessRights.tsx\
+    \ under /settings/access-rights:\n  - Role selector dropdown\n  - Grid: rows =\
+    \ entities (contacts, deals, ...), cols = CRUD + extbot/analytics flags\n  - Save\
+    \ with optimistic or refetch\nPlane table style; i18n settings.accessRights en+ru."
+- agent: cursor
+  label: 'cursor: access rights review'
+  task: 'STEP 3/3 — Review access rights.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Compare legacy matrix; npm run build.'

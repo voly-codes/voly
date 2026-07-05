@@ -1,0 +1,54 @@
+# Combat mission: smarty-company-admin
+# Run: python3 -m voly.cli smarty combat run smarty-company-admin --sequential
+
+name: smarty-company-admin
+description: 'P1: Раздел «Компания» — hub сотрудники, отделы (workgroups), права,
+  приглашения, внешние/guest; legacy /employees + /workgroups + /access-rights.'
+tasks:
+- agent: cursor
+  label: 'cursor: company hub layout nav'
+  task: "STEP 1/5 — Company admin hub shell + navigation.\n\n{{LEGACY_GAP_REF}}\n\
+    Legacy settings sidebar: {{LEGACY_FRONTEND}}/src/js/components/settings/SettingsLeftPanel/\n\
+    Legacy routes: /employees, /workgroups, /access-rights, /info, /time-log\n\nDO\
+    \ NOT confuse with CRM `/companies` (B2B org entities) — this is workspace team\
+    \ admin.\n\nCREATE hub at `/settings/company` (or `/company` admin-only) with\
+    \ CompanySettingsLayout:\n  - Sidebar tabs: Overview | Members | Departments |\
+    \ Access rights | Directory sync\n  - i18n namespace settings.company en+ru («Компания»)\n\
+    \  - Admin-only guard (useMyEmployee.isAdmin)\n  - Link from SettingsLayout nav\
+    \ + optional Sidebar «Company» for admins\n  - Migrate existing MembersTab content\
+    \ under Members sub-route\nPlane dark-first; match SettingsLayout patterns."
+- agent: cursor
+  label: 'cursor: employees list actions profile'
+  task: "STEP 2/5 — Employees parity (list + profile + actions).\n\n{{LEGACY_GAP_REF}}\n\
+    Legacy: {{LEGACY_FRONTEND}}/src/js/components/employees/\nEmployees API: {{EMPLOYEES_API}}\n\
+    \nEXPAND members/employees section:\n  - Route `/settings/company/members/:employeeId`\
+    \ — profile (name, email, phone, role, status, workgroups)\n  - Row actions menu:\
+    \ resend invite, cancel invite, block/unblock, remove, toggle full/guest accessType\n\
+    \  - Create employee modal (POST employees) — not only invite\n  - Search + sort;\
+    \ status filters (active, invited, blocked, guest/external)\n  - Warning badge\
+    \ when access rights not assigned (legacy parity)\nWire hooks: useEmployees, useSendEmployeeInvite,\
+    \ useResendEmployeeInvite, block/activate if API exists in api.ts."
+- agent: cursor
+  label: 'cursor: workgroups departments CRUD'
+  task: "STEP 3/5 — Departments / workgroups admin page.\n\n{{LEGACY_GAP_REF}}\nLegacy:\
+    \ {{LEGACY_FRONTEND}}/src/js/components/Workgroups/\nRoute `/settings/company/departments`:\n\
+    \  - List workgroups (useWorkgroups)\n  - Create / rename / delete workgroup (wsApi.workgroups)\n\
+    \  - Assign employees to group (PATCH employees/:id/workgroups)\n  - Member count\
+    \ per group\nKeep LDAP AD mapping at directory sync — link from hub, do not duplicate."
+- agent: cursor
+  label: 'cursor: company access rights entry'
+  task: "STEP 4/5 — Access rights under Company hub.\n\n{{LEGACY_GAP_REF}}\nLegacy:\
+    \ {{LEGACY_FRONTEND}}/src/js/components/RightAccessContent/\nRoute `/settings/company/access-rights`\
+    \ (+ `/:roleId` detail):\n  - Role list; create/clone/delete roles\n  - Matrix:\
+    \ collections × operations (contacts, deals, dialogs, extbot, analytics…)\n  -\
+    \ Assign role to employee from member profile\nAdd wsApi access_rights if missing;\
+    \ hooks useAccessRights.\nCan reuse scope from mission smarty-access-rights —\
+    \ integrate into company hub nav."
+- agent: cursor
+  label: 'cursor: company admin review'
+  task: "STEP 5/5 — Review Company hub vs legacy admin.\n\n{{LEGACY_GAP_REF}}\nCHECKLIST\
+    \ vs legacy SettingsLeftPanel:\n  ✅ Members list + invite (email/phone/link)\n\
+    \  ✅ Employee profile + row actions\n  ✅ Workgroups CRUD\n  ✅ Access rights matrix\n\
+    \  ✅ Admin-only; i18n en+ru\nDocument deferred: time-log, modes, billing, marks\
+    \ (separate missions).\nUPDATE legacy-gap-audit §2.4 + CURRENT_STATUS.md.\nnpm\
+    \ run build."

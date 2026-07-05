@@ -1,0 +1,16 @@
+# Combat mission: entity-links
+# Run: python3 -m voly.cli smarty combat run entity-links --sequential
+
+name: entity-links
+description: useLinks hook + LinkedEntities на detail pages
+tasks:
+- agent: cursor
+  label: 'cursor: implement useLinks + LinkedEntities'
+  task: Add useLinks hook and LinkedEntities shared component in {{SMARTY_PROJECT}}.
+    Connect related entities on DealDetail and ContactDetail. Use real backend API
+    (check smarty-backend-stable or src/lib/api.ts). i18n en+ru, Plane style, no mock
+    data.
+- agent: cursor
+  label: 'cursor: review entity links'
+  task: Review useLinks and LinkedEntities in {{SMARTY_PROJECT}}/src/. List gaps vs
+    backend API and UX issues.

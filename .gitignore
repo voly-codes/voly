@@ -1,0 +1,41 @@
+.venv/
+node_modules/
+.wrangler/
+*.db
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+*.egg-info/
+*.eggs/
+.env
+.opencode/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# VOLY runtime state
+.voly/events/
+.voly/dspy/datasets/
+.voly/dspy/programs/
+.voly/reports/
+
+# External repos (use git submodule if needed)
+# headroom/
+rtk/
+
+# UI build artifacts
+ui/node_modules/
+ui/dist/
+voly/web/static/
+
+# generated runtime artifacts
+.voly/a2a/
+.voly/gateway_cache/
+docs.zip
+.voly/runs/

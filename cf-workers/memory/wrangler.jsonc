@@ -1,0 +1,31 @@
+{
+  "name": "voly-memory",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "voly",
+      "database_id": "52103c13-d1fe-4a1e-b025-9ca687e67dbd"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "MEMORY_BUCKET",
+      "bucket_name": "voly-skills"
+    }
+  ],
+
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "voly-memory"
+    }
+  ],
+
+  "ai": {
+    "binding": "AI"
+  }
+}

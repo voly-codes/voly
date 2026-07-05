@@ -1,0 +1,15 @@
+name: design-review
+
+tasks:
+  - agent: zen
+    label: "zen: design system review vs Plane"
+    task: |
+      Review design system in {{SMARTY_PROJECT}}/src/styles/globals.css
+      and {{SMARTY_PROJECT}}/src/components/ui/.
+      Compare with Plane tokens. List missing tokens, inconsistencies, top 5 improvements.
+
+  - agent: deepseek
+    label: "deepseek: contacts page review"
+    task: |
+      Review {{SMARTY_PROJECT}}/src/pages/contacts/Contacts.tsx for
+      a11y, keyboard nav, loading states. Specific code suggestions.

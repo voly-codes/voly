@@ -1,0 +1,115 @@
+# Combat mission: plane-assistant-ui
+# Run: python3 -m voly.cli smarty combat run plane-assistant-ui --sequential
+
+name: plane-assistant-ui
+description: 'Plane AI chat UI parity: two-pane /assistant (threads sidebar + hero
+  composer + suggestions) как EE /pi-chat в Plane. Backend consultant API не трогать.'
+tasks:
+- agent: cursor
+  label: 'cursor: audit plane pi-chat layout'
+  task: "STEP 1/8 — Audit Plane AI chat layout (product reference + OSS refs).\n\n\
+    Project: {{SMARTY_PROJECT}}\n{{PLANE_PI_CHAT_REFS}}\nScreenshot ref: {{SMARTY_PROJECT}}/docs/references/plane-ai-chat.png\
+    \ (if missing, copy from team assets or describe two-pane layout in audit doc)\n\
+    Current: src/pages/assistant/AssistantPage.tsx, AssistantChat.tsx\nSpec: {{AI_ASSISTANT_SPEC}}\
+    \ §3–4 (single thread per user — sidebar Recents = 0 or 1 item)\n\nWRITE docs/reports/plane-assistant-ui-audit.md:\n\
+    \  - Two-pane component tree (left sidebar vs right main)\n  - Empty vs active-thread\
+    \ layout modes\n  - Map each Plane UI block → Smarty component file\n  - P2 stubs:\
+    \ Build menu, GitHub/Slack connect, multi-thread New chat\n  - DO NOT edit UI\
+    \ code this step.\n"
+- agent: cursor
+  label: 'cursor: two-pane AssistantLayout shell'
+  task: "STEP 2/8 — Two-pane layout shell (Plane AI page structure).\n\nProject: {{SMARTY_PROJECT}}/src/pages/assistant/components/\n\
+    {{PLANE_PI_CHAT_REFS}}\n\nREPLACE current single-column AssistantPage layout with:\n\
+    \  AssistantLayout.tsx — flex h-full min-h-0 flex-1 overflow-hidden:\n    LEFT:\
+    \ AssistantThreadsSidebar (w-[260px] shrink-0 border-r bg-surface-0)\n    RIGHT:\
+    \ AssistantMainPane (flex-1 min-w-0 flex flex-col overflow-hidden)\n\nRemove old\
+    \ top header bar from AssistantPage — move admin actions to main pane top bar.\n\
+    AppShell CRM sidebar unchanged (pi-chat nav link stays). This sidebar is IN-PAGE\
+    \ only.\nnpm run build."
+- agent: cursor
+  label: 'cursor: threads sidebar New chat Recents'
+  task: "STEP 3/8 — Left threads sidebar (Plane AI left column).\n\nProject: src/pages/assistant/components/AssistantThreadsSidebar.tsx\n\
+    {{PLANE_PI_CHAT_REFS}}\n\nIMPLEMENT:\n  - Header: PiChatIcon + «AI-помощник Smarty»\
+    \ (i18n assistant.sidebarTitle)\n  - Row: full-width «New chat» button (secondary/ghost\
+    \ pill) + Search icon button (P2: filter stub)\n  - «Recents» section label (text-xs\
+    \ uppercase/muted)\n  - List: single active thread title OR empty «No threads\
+    \ available»\n  - v1: one consultant thread — clicking New chat shows toast «Один\
+    \ диалог на workspace» or no-op\n  - Bottom area P2: skip GitHub/Slack/Trial badges\
+    \ (not Smarty scope)\n\ni18n assistant.json en+ru: sidebarTitle, newChat, recents,\
+    \ noThreads.\nnpm run build."
+- agent: cursor
+  label: 'cursor: main pane header model selector'
+  task: "STEP 4/8 — Main pane top bar + model selector.\n\nProject: src/pages/assistant/components/AssistantMainHeader.tsx\n\
+    {{PLANE_PI_CHAT_REFS}}\n\nCREATE AssistantMainHeader.tsx:\n  - Left: model label\
+    \ «AI-помощник Smarty» + chevron (read-only Select/disabled dropdown)\n    Show\
+    \ consultant model from useConsultantBotSettings if available, else static label\n\
+    \  - Right: admin-only Activity + Settings icon links (from old AssistantPage\
+    \ header)\n  - h-[48px] shrink-0 border-b border-border-subtle px-4\n\nWire into\
+    \ AssistantMainPane. npm run build."
+- agent: cursor
+  label: 'cursor: hero composer empty state'
+  task: "STEP 5/8 — Empty state: hero composer (Plane centered layout).\n\nProject:\
+    \ src/pages/assistant/components/\n{{PLANE_PI_CHAT_REFS}}\n\nWhen thread empty\
+    \ (no messages):\n  AssistantEmptyView.tsx — flex-1 flex flex-col items-center\
+    \ justify-center px-6 pb-8:\n    - h1 «What can I do for you?» → i18n assistant.greeting\
+    \ (large text-xl/2xl)\n    - ChatHeroComposer.tsx — max-w-3xl w-full rounded-2xl\
+    \ border bg-surface-1 p-4 shadow-sm:\n        · Workspace context chip top-left\
+    \ (useWorkspace title, brand dot icon)\n        · Textarea borderless/minimal,\
+    \ placeholder assistant.placeholderHero\n        · Bottom row: + button (attach\
+    \ P3 stub), Build button disabled P2, mic disabled P3\n        · Blue primary\
+    \ Send square button bottom-right (ArrowUp icon)\n    - ChatSuggestions.tsx below\
+    \ composer: «Suggestions» label + clickable rows with CornerDownLeft icon\n\n\
+    Click suggestion → fill composer. Enter send. NO bottom sticky composer in empty\
+    \ mode.\nnpm run build."
+- agent: cursor
+  label: 'cursor: active thread messages + bottom composer'
+  task: "STEP 6/8 — Active thread view (messages + bottom composer).\n\nProject: src/pages/assistant/components/\n\
+    Refactor: AssistantChat.tsx\n\nWhen messages exist:\n  ChatThread.tsx — scroll\
+    \ area flex-1 overflow-y-auto px-6 py-4 max-w-3xl mx-auto w-full\n  ChatMessage.tsx\
+    \ — user right / assistant left bubbles (text-sm)\n  ChatThinkingIndicator.tsx\
+    \ — pending state\n  ChatComposer.tsx — sticky bottom, SAME rounded-2xl card style\
+    \ as hero composer (compact)\n  Scroll: container.scrollTo NOT scrollIntoView\n\
+    \nPreserve useConsultantHistory + useSendConsultantMessage logic.\nnpm run build."
+- agent: cursor
+  label: 'cursor: footer disclaimer + wire page'
+  task: "STEP 7/8 — Footer disclaimer + integrate AssistantPage.\n\nProject: {{SMARTY_PROJECT}}/src/pages/assistant/\n\
+    {{PLANE_PI_CHAT_REFS}}\n\n  AssistantFooterDisclaimer.tsx — centered text-xs text-text-muted\
+    \ py-3\n    «AI can make mistakes, please double-check responses» — i18n assistant.footerDisclaimer\n\
+    \  AssistantPage.tsx — compose Layout + Sidebar + MainPane(Header + Empty|Thread\
+    \ + Footer)\n  Switch empty vs active based on message count from useConsultantHistory\n\
+    \nDelete redundant code from monolithic AssistantChat where replaced by components.\n\
+    npm run build."
+- agent: cursor
+  label: 'cursor: review plane-assistant-ui'
+  task: 'STEP 8/8 — Visual review vs Plane AI screenshot.
+
+
+    Project: {{SMARTY_PROJECT}}. Audit: docs/reports/plane-assistant-ui-audit.md
+
+
+    CHECKLIST (compare to Plane AI /pi-chat screenshot):
+
+    ✅ Two-pane: left threads sidebar + right main (in-page, not CRM sidebar)
+
+    ✅ Left: title, New chat, Recents, empty/list state
+
+    ✅ Empty main: centered greeting + hero composer card + Suggestions list
+
+    ✅ Composer: context chip, toolbar icons, blue send button
+
+    ✅ Active thread: scrollable messages + bottom composer same card style
+
+    ✅ Footer disclaimer centered
+
+    ✅ Model selector read-only in main header
+
+    ✅ Consultant API unchanged
+
+    ✅ i18n en+ru
+
+    ✅ npm run build 0 errors
+
+
+    Fix P0 layout gaps. UPDATE docs/reports/CURRENT_STATUS.md.
+
+    P1/P2: multi-thread, Build menu, voice, streaming, GitHub/Slack.'

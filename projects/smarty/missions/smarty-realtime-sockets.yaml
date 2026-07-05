@@ -1,0 +1,34 @@
+# Combat mission: smarty-realtime-sockets
+# Run: python3 -m voly.cli smarty combat run smarty-realtime-sockets --sequential
+
+name: smarty-realtime-sockets
+description: 'P1: Socket.IO client + TanStack Query invalidation for live updates.'
+tasks:
+- agent: cursor
+  label: 'cursor: socket.io client setup'
+  task: 'STEP 1/3 — Socket.IO client.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy: {{LEGACY_FRONTEND}}/src/js/services/socket/
+
+    ADD src/lib/socket.ts: connect with session cookies, workspace room join.
+
+    Hook useWorkspaceSocket(wsId) — connect on mount, disconnect on leave.
+
+    Env VITE_SOCKET_URL if needed.'
+- agent: cursor
+  label: 'cursor: query invalidation map'
+  task: "STEP 2/3 — Event → query invalidation.\n\n{{LEGACY_GAP_REF}}\nMap backend\
+    \ events to TanStack Query keys:\n  contacts, projects, dialogs, requisitions,\
+    \ assignments, inbox unread\nDebounce burst events; log dev-only on unknown event\
+    \ types."
+- agent: cursor
+  label: 'cursor: realtime review'
+  task: 'STEP 3/3 — Review realtime.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Document events handled vs missing; npm run build.'

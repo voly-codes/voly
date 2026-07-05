@@ -1,0 +1,36 @@
+{
+  "name": "voly-a2a",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+
+  "services": [
+    {
+      "binding": "AGENT_WORKER",
+      "service": "voly-agent"
+    }
+  ],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "voly",
+      "database_id": "52103c13-d1fe-4a1e-b025-9ca687e67dbd"
+    }
+  ],
+
+  "queues": {
+    "producers": [
+      {
+        "binding": "A2A_QUEUE",
+        "queue": "voly-a2a-tasks"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "voly-a2a-tasks",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5
+      }
+    ]
+  }
+}

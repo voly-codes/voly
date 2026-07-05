@@ -1,0 +1,12 @@
+{
+  "name": "voly-catalog",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "voly",
+      "database_id": "52103c13-d1fe-4a1e-b025-9ca687e67dbd"
+    }
+  ]
+}

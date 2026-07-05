@@ -1,0 +1,32 @@
+{
+  "id": "skill-security",
+  "name": "Security Best Practices",
+  "description": "Безопасность: OWASP Top 10, secrets management, dependency scanning, SAST",
+  "source": "builtin",
+  "status": "active",
+  "version": "1.0.0",
+  "tags": [
+    "security",
+    "owasp",
+    "compliance"
+  ],
+  "capabilities": [
+    "security-audit",
+    "vulnerability-scanning"
+  ],
+  "required_tools": [],
+  "compatible_agents": [
+    "security",
+    "reviewer"
+  ],
+  "compatible_languages": [
+    "*"
+  ],
+  "compatible_frameworks": [
+    "*"
+  ],
+  "usage_count": 0,
+  "success_rate": 1,
+  "content": "Security checklist: OWASP Top 10, secrets in env vars (not code), dependency audit, input validation...",
+  "updated_at": 1782214225729
+}

@@ -1,0 +1,138 @@
+# Combat mission: plane-stickies
+# Run: python3 -m voly.cli smarty combat run plane-stickies --sequential
+
+name: plane-stickies
+description: 'Stickies (Plane parity): личные post-it заметки — новая страница /stickies,
+  backend smarty-stickies, Dashboard widget. Notes (/notes) не трогать.'
+tasks:
+- agent: cursor
+  label: 'cursor: stickies backend — smarty-stickies module'
+  task: "STEP 1/5 — Backend: новый модуль smarty-stickies.\n\nProject: {{SMARTY_PROJECT}}.\
+    \ Pattern: copy structure from smarty-tracker/ (index.js, models/, routes/index.js,\
+    \ docs/API.md).\n\nMOUNT: register in api-rest/routes/workspace.js like workspaceTracker\
+    \ → require('../../smarty-stickies'). Routes under /ws/:_wsId/stickies/*.\n\n\
+    MODEL sticky (Mongo, register in models/index.js):\n  _wsId, _ownerId (employee\
+    \ _id), name (optional, max 100)\n  description (String, plain text or simple\
+    \ HTML — store as string)\n  backgroundColor (String, hex or palette key e.g.\
+    \ 'yellow'|'pink'|'blue')\n  sortOrder (Number, default auto-increment +10000\
+    \ on create)\n  isDeleted (Boolean), _createdOn, _updatedOn\n  Index: { _wsId,\
+    \ _ownerId, isDeleted, sortOrder }\n\nROUTES (EmployeeRequest auth, scope = current\
+    \ employee only):\n  GET    /stickies           — list own stickies, ?query= search\
+    \ in description/name\n  POST   /stickies           — create { description?, name?,\
+    \ backgroundColor? }\n  GET    /stickies/:id       — get one (403 if not owner)\n\
+    \  PATCH  /stickies/:id       — update fields + sortOrder (for DnD reorder)\n\
+    \  DELETE /stickies/:id       — soft delete\n  POST   /stickies/reorder   — {\
+    \ stickyId, targetStickyId, position: 'before'|'after' }\n\nDTO: return { _id,\
+    \ name, description, backgroundColor, sortOrder, _createdOn, _updatedOn }.\nMigration\
+    \ script optional (indexes only). Update smarty-stickies/docs/API.md.\nDo NOT\
+    \ modify notes collection. Minimal working JS."
+- agent: cursor
+  label: 'cursor: stickies API + types + hooks'
+  task: "STEP 2/5 — Frontend foundation.\n\nProject: {{SMARTY_PROJECT}}. Read ../CLAUDE.md.\n\
+    Backend ref: {{STICKIES_API}}. Plane types ref (style only): {{PLANE_REF}}/packages/types/src/stickies.ts.\n\
+    \nIMPLEMENT:\n1. Type Sticky in src/lib/api.ts\n2. stickiesApi(wsId) in src/lib/api.ts:\n\
+    \   list(params?), get(id), create(data), update(id, data), delete(id), reorder(payload)\n\
+    3. Hooks in src/hooks/useStickies.ts:\n   useStickies(query?), useSticky(id),\
+    \ useCreateSticky, useUpdateSticky, useDeleteSticky, useReorderSticky\n4. Debounced\
+    \ PATCH on inline edit (300ms). Optimistic create/delete.\n5. Color palette constant\
+    \ in src/lib/sticky-config.ts (5–8 colors, ref Plane STICKY_COLORS_LIST in {{STICKIES_REF}}/editor/sticky-editor/color-palette.ts\
+    \ — style only, no AGPL copy).\n\nRULES: session cookies, wsApi pattern, named\
+    \ exports, npm run build."
+- agent: cursor
+  label: 'cursor: stickies page — masonry grid + cards'
+  task: 'STEP 3/5 — Stickies page (Plane parity).
+
+
+    Project: {{SMARTY_PROJECT}}/src/pages/stickies/.
+
+    REFERENCE (style only, no AGPL code): {{STICKIES_REF}}/layout/stickies-list.tsx,
+    {{STICKIES_REF}}/sticky/root.tsx, {{PLANE_REF}}/apps/web/app/(all)/[workspaceSlug]/(projects)/stickies/page.tsx,
+    {{PLANE_REF}}/apps/web/app/(all)/[workspaceSlug]/(projects)/stickies/header.tsx.
+
+
+    IMPLEMENT:
+
+    1. StickiesPage — full-page masonry grid (CSS columns or react-masonry-css if
+    already in deps, else CSS column-count). Responsive 1→2→3→4 columns.
+
+    2. StickyCard — colored background, inline editable textarea (auto-resize), color
+    picker popover, delete with ConfirmDialog.
+
+    3. StickiesHeader — title ''Your stickies'', search input (filters client-side
+    or ?query= API), Add sticky button.
+
+    4. EmptyState when no stickies (Plane copy tone, i18n keys).
+
+    5. DnD reorder between cards → POST /stickies/reorder or PATCH sortOrder (use
+    @dnd-kit if already in project, match IssueKanban patterns).
+
+    6. Infinite scroll optional — paginate if backend supports cursor/offset.
+
+
+    ROUTES: /stickies in App.tsx.
+
+    SIDEBAR: new link in ''Work'' section (StickyNote icon from lucide-react), nav
+    key ''stickies'' — do NOT remove /notes.
+
+    i18n: en/stickies.json + ru/stickies.json, register in src/lib/i18n.ts.
+
+    Plane dark-first. npm run build.'
+- agent: cursor
+  label: 'cursor: dashboard widget + quick access'
+  task: 'STEP 4/5 — Dashboard widget + truncated preview.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+    REFERENCE: {{STICKIES_REF}}/widget.tsx, {{STICKIES_REF}}/layout/stickies-truncated.tsx,
+    {{HOME_REF}}/widgets/empty-states/stickies.tsx.
+
+
+    IMPLEMENT:
+
+    1. StickiesWidget in src/pages/dashboard/StickiesWidget.tsx — shows 3–4 recent
+    stickies (truncated text), ''Add sticky'', link ''View all'' → /stickies.
+
+    2. Wire into Dashboard.tsx grid (replace or add beside RecentNotes — keep both).
+
+    3. Optional: StickiesModal (Dialog) — quick view from widget ''expand'' button,
+    reuses StickiesTruncated list component from src/pages/stickies/StickiesTruncated.tsx.
+
+    4. dashboard i18n keys for widget title en+ru.
+
+
+    Do NOT touch Notes page logic. npm run build.'
+- agent: cursor
+  label: 'cursor: review plane-stickies parity'
+  task: 'STEP 5/5 — Review stickies implementation.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    CHECKLIST (✅/❌/partial):
+
+    - Backend /ws/:wsId/stickies CRUD + reorder, owner-scoped
+
+    - Frontend hooks, no mock data
+
+    - /stickies page: masonry, colors, inline edit, search, add/delete
+
+    - DnD reorder
+
+    - Sidebar nav + route
+
+    - Dashboard widget
+
+    - /notes unchanged (grep: Notes.tsx, useNotes still work)
+
+    - i18n en+ru stickies namespace
+
+    - Plane dark-first visual density
+
+    - npm run build 0 errors
+
+
+    UPDATE docs/reports/CURRENT_STATUS.md — add Stickies row.
+
+    Fix any P0 issues found; list P1/P2 gaps.'

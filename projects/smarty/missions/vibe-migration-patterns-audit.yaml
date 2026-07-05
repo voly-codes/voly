@@ -1,0 +1,150 @@
+# Combat mission: vibe-migration-patterns-audit
+# Аудит и фиксы паттернов toolkit → @vibe/core, найденных после LAN-131–133.
+# Run:
+#   cd /home/user1/smarty/smarty-code/voly && . .venv/bin/activate
+#   export SMARTY_CRM_PATH=/home/user1/smarty/smarty-code
+#   set -a && . .env && set +a
+#   python3 -m voly.cli smarty combat run vibe-migration-patterns-audit --sequential
+
+name: vibe-migration-patterns-audit
+description: >
+  Аудит остальных регрессий миграции @vibe/core: Tooltip render-props/parentRef,
+  Dropdown со строками/toolkit-props, неверные API-вызовы (fetchGroups без collection).
+
+tasks:
+  - agent: cursor
+    label: "cursor: scan vibe-incompatible patterns (read-only inventory)"
+    task: |
+      STEP 1/4 — Инвентаризация несовместимых паттернов (без правок кода).
+
+      Repo: /home/user1/smarty/smarty-code
+      Frontend: /home/user1/smarty/smarty-code/smarty-crm-frontend
+      Branch: work/frontend-refactor
+      Не коммитить и не пушить.
+
+      КОНТЕКСТ (уже исправлено вручную — не дублировать, только сверить):
+        - DialogContentHeader.js — Zoom alert: @vibe/core Tooltip + {(tooltipProps)=>}
+          → AnchoredTooltip из react-tooltpz
+        - CountryField.js — Dropdown со строками → {value,label}[]
+        - WsRoute.js — fetch без currentWsId, prevCurrentWsId.current
+        - InputPhone — defaultProps на function component
+
+      СКАНЫ (запустить все, сохранить вывод в отчёт):
+
+      A) Vibe Tooltip — function children / parentRef (CRASH или warning
+         «Functions are not valid as a React child»):
+        cd smarty-crm-frontend/src
+        # Файлы с @vibe/core Tooltip:
+        rg -l 'Tooltip' -g '*.{js,jsx}' | xargs rg -l '@vibe/core' 2>/dev/null
+        # Пересечение: render-props children:
+        rg -l '\(tooltipProps\)' -g '*.{js,jsx}'
+        # parentRef на Tooltip (toolkit API):
+        rg 'parentRef=' -g '*.{js,jsx}' -B5 | rg -B5 '@vibe/core' || true
+        # ВАЖНО: react-tooltpz + parentRef + (tooltipProps) — OK, не трогать.
+        # БАГ только если import Tooltip from "@vibe/core" И (tooltipProps)|parentRef.
+
+      B) Vibe Dropdown — toolkit Select API (runtime: 'options' in primitive):
+        rg -l 'Dropdown' -g '*.{js,jsx}' | xargs rg -l '@vibe/core' 2>/dev/null
+        rg 'getOptionLabel|valueRenderer' -g '*.{js,jsx}' --files-with-matches
+        rg 'options=\{' -g '*.{js,jsx}' | rg -i 'suggestions|countries|phone' || true
+
+      C) IconButton / прочие хвосты LAN-132:
+        rg 'icon=\{<' -g '*.{js,jsx}'
+        rg 'info=\{LimitInfo' -g '*.{js,jsx}' | head -60
+
+      D) Неверные API-вызовы (404 с undefined в URL):
+        rg "fetchGroups\(\)" -g '*.{js,jsx}'
+        rg "fetchObjects\(['\"]stages['\"]\)" -g '*.{js,jsx}'
+        rg "fetchNoWsObject\(['\"]workspaces['\"],\s*currentWsId\)" -g '*.{js,jsx}'
+
+      E) PropTypes / defaultProps на function components:
+        rg 'defaultProps' -g '*.{js,jsx}' smarty-crm-frontend/src/js/components | head -40
+
+      DELIVERABLE:
+        Создать /home/user1/smarty/smarty-code/docs/refactoring/2026-06-26-cursor-vibe-patterns-audit.md
+        с таблицами: Pattern | Files | Severity (crash/warning/404) | Fix strategy
+        Отметить файлы, где react-tooltpz уже используется корректно (skip list).
+
+  - agent: cursor
+    label: "cursor: fix Tooltip parentRef / render-props on @vibe/core"
+    task: |
+      STEP 2/4 — Tooltip: исправить только реальные баги @vibe/core.
+
+      Repo: /home/user1/smarty/smarty-code/smarty-crm-frontend
+
+      VIBE TOOLTIP API:
+        - content={string|element|() => element} — тело подсказки
+        - children — ОДИН React-элемент-триггер (IconButton, span), НЕ функция
+        - НЕТ parentRef, align, margin как у react-tooltpz
+
+      FIX STRATEGY (выбрать по кейсу):
+        1) Простой текст + кнопка — уже OK: <Tooltip content="..."><IconButton/></Tooltip>
+        2) Кастомный popup + parentRef + (tooltipProps) — ОСТАВИТЬ react-tooltpz:
+           import { Tooltip as AnchoredTooltip } from "react-tooltpz";
+           (как DialogContentHeader.js, HelpCenterTopMenu.js)
+        3) Не смешивать в одном файле @vibe/core Tooltip и AnchoredTooltip без alias.
+
+      KNOWN OK (react-tooltpz, не менять):
+        - HelpCenterTopMenu.js
+        - MessageReaction.js
+        - EmployeeMentionInfo.js
+        - ObjectsShowGeo.js
+        - DialogInputInputField.js
+        - ItemQuickWord/index.js
+        - ObjectShowGantt.js (импортирует оба: Tooltip + VibeTooltip — проверить границы)
+
+      CHECK после правок:
+        rg -l '@vibe/core' -g '*.{js,jsx}' | xargs rg -l '\(tooltipProps\)' 2>/dev/null → 0
+        node --check на изменённые файлы
+
+  - agent: cursor
+    label: "cursor: fix Dropdown + API wiring regressions"
+    task: |
+      STEP 3/4 — Dropdown и API.
+
+      DROPDOWN (Vibe):
+        - options: { value, label }[] — value/label строки или value может быть ""
+        - value: выбранный объект опции (не примитив)
+        - onChange: (option) => void; option?.value для строки
+        - Убрать: getOptionLabel, valueRenderer, suggestions как string[]
+
+      REFERENCE: smarty-crm-frontend/src/js/components/CardFields/CountryField/CountryField.js
+
+      ФАЙЛЫ С getOptionLabel/valueRenderer (приоритет — на @vibe/core Dropdown):
+        EmployeeProfileContent.js, BotTriggersEditor.js, CityField.js, MessengerField.js,
+        PhoneField.js, AmountField.js, BillBase.js, ConfirmPhone.js, ExportModalXLSX.js,
+        SelectFormBot/index.js, AnalyticsParams, AssignmentsParams, TaskReminderFields,
+        AssignmentReminderFields, ExtBotTextInput.js, …
+        НЕ мигрировать всё подряд: если файл ещё на toolkit Select — skip.
+        Чинить только где import Dropdown from "@vibe/core" И toolkit-props.
+
+      API WIRING:
+        - fetchGroups(collectionName) — всегда с именем коллекции
+        - fetchStages(collectionName) — не fetchObjects('stages')
+        - fetchData / fetchNoWsObject — guard if (!wsId) return
+        - Проверить аналоги WsRoute в других route wrappers
+
+      SCOPE: только подтверждённые runtime-баги из step 1 inventory.
+      Не начинать полный LAN-134 (массовая миграция Select) без явного запроса.
+
+  - agent: cursor
+    label: "cursor: verify + audit report"
+    task: |
+      STEP 4/4 — Верификация и финальный отчёт.
+
+      cd /home/user1/smarty/smarty-code/docs/refactoring/scripts
+      python3 verify_migration.py --lan 132
+      python3 verify_migration.py --lan 133
+
+      cd /home/user1/smarty/smarty-code/smarty-crm-frontend
+      npm test -- --no-coverage --passWithNoTests --watchAll=false
+
+      npx eslint $(git diff --name-only -- 'smarty-crm-frontend/**/*.js' 'smarty-crm-frontend/**/*.jsx' 2>/dev/null | tr '\n' ' ') 2>/dev/null || true
+
+      Дополнить docs/refactoring/2026-06-26-cursor-vibe-patterns-audit.md:
+        - Список изменённых файлов (что и зачем)
+        - Остаточный долг (что отложено на LAN-134)
+        - Результаты verify + tests
+        - Чек-лист: icon={< , vibe+tooltipProps, dropdown primitives, fetchGroups()
+
+      Не коммитить; не пушить.

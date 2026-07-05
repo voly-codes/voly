@@ -1,0 +1,88 @@
+# P1: Bills on contact/deal cards — list/create/view/edit
+name: smarty-bills-crud
+
+description: >
+  P1: Счета (bills) на карточках contact/deal — list/create/view/edit,
+  product lines + currency. Depends on smarty-card-linked-tabs ✅.
+
+tasks:
+  - agent: cursor
+    label: "cursor: bills API hooks types"
+    task: |
+      STEP 1/5 — Bills API + hooks + types.
+
+      {{LEGACY_GAP_REF}}
+      Legacy UI: {{LEGACY_BILLS}}/ — BillCreate, BillView, BillEdit, BillBase
+      Legacy routes: {{LEGACY_FRONTEND_ROUTES}} — `/:entityId/bills/*`
+      API: GET/POST/PATCH `/ws/:wsId/bills`, GET `/ws/:wsId/bills/:id`
+      Host entities: {{BILLS_HOST_ENTITIES}}
+
+      READ legacy BillCreate createObject payload (products, currency, _baseLinkObject).
+      EXTEND src/lib/api.ts wsApi(wsId).bills:
+        - list(params?: { contactId?, projectId?, assignmentId? })
+        - get(id), create(data), update(id, data), delete(id)
+      ADD types Bill, BillProductLine, BillStatus in src/types/bill.ts.
+      ADD hooks: useBills(host), useBill(id), useCreateBill, useUpdateBill, useDeleteBill.
+      TanStack Query keys scoped by host entity.
+
+  - agent: cursor
+    label: "cursor: bills tab on entity cards"
+    task: |
+      STEP 2/5 — Bills tab on EntityDetailTabs.
+
+      {{LEGACY_GAP_REF}}
+      EXTEND EntityDetailTab type: add 'bills' to entity-detail-utils.ts + EntityDetailTabs.
+      CREATE EntityDetailBillsTab.tsx:
+        - Table: number/title, amount + currency, status, date
+        - Empty state + «Create bill» button
+        - Row click → bill detail route
+      WIRE on ContactDetail + DealDetail (+ AssignmentDetail if time permits).
+      useBills filtered by host entity id; i18n bills en+ru.
+
+  - agent: cursor
+    label: "cursor: bills nested routes"
+    task: |
+      STEP 3/5 — Nested bill routes (mirror legacy).
+
+      {{LEGACY_GAP_REF}}
+      REGISTER App.tsx (contacts first, then deals):
+        /contacts/:contactId/bills/create
+        /contacts/:contactId/bills/:billId
+        /contacts/:contactId/bills/:billId/edit
+        Same pattern for /deals/:dealId/bills/…
+
+      BillDetailPage shell: header with back link to parent card bills tab.
+      Pass hostEntityType + hostEntityId via route params or loader context.
+
+  - agent: cursor
+    label: "cursor: bill form line items"
+    task: |
+      STEP 4/5 — Bill form + product lines.
+
+      {{LEGACY_GAP_REF}}
+      Legacy: {{LEGACY_BILLS}}/BillBase/, useCurrency, useGetProductsIds
+
+      CREATE BillForm component:
+        - Header fields: title, account number, date, currency selector
+        - Product lines: name, qty, price, discount — add/remove rows
+        - Totals row (computed client-side, match backend on save)
+        - Save → POST/PATCH bills; link to host via _baseLinkObject or links API
+      BillCreatePage + BillEditPage reuse BillForm.
+      BillViewPage read-only mode with Edit button.
+      Optional: post bill to linked dialog (legacy) — stub with tooltip if complex.
+
+  - agent: cursor
+    label: "cursor: bills CRUD review"
+    task: |
+      STEP 5/5 — Review bills CRUD.
+
+      {{LEGACY_GAP_REF}}
+      CHECKLIST:
+        ✅ Bills tab on contact + deal detail
+        ✅ Create / view / edit flows
+        ✅ Real API, no mock
+        ✅ i18n en+ru
+      npm run build.
+      UPDATE legacy-gap-audit Bills row → 🟡 or ✅.
+      UPDATE CURRENT_STATUS.md.
+      Run AFTER smarty-group-settings if group-scoped bill fields needed later.

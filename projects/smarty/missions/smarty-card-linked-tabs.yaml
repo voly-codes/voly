@@ -1,0 +1,44 @@
+# Combat mission: smarty-card-linked-tabs
+# Run: python3 -m voly.cli smarty combat run smarty-card-linked-tabs --sequential
+
+name: smarty-card-linked-tabs
+description: 'P0: Card linked-entity tabs on contact/deal/requisition/assignment detail
+  pages.'
+tasks:
+- agent: cursor
+  label: 'cursor: EntityDetailTabs shell'
+  task: "STEP 1/4 — Shared tab shell component.\n\n{{LEGACY_GAP_REF}}\nLegacy card\
+    \ tabs: {{LEGACY_FRONTEND}}/src/js/components/Card/\nCREATE src/components/shared/EntityDetailTabs.tsx:\n\
+    \  - Tabs: overview | files | linked | notes | history (hide empty)\n  - Radix\
+    \ tabs or button row — Plane style\nProps: entityType, entityId, activeTab, onTabChange.\n\
+    i18n common or entity-specific keys en+ru."
+- agent: cursor
+  label: 'cursor: contact deal detail tabs'
+  task: "STEP 2/4 — Wire ContactDetail + DealDetail.\n\n{{LEGACY_GAP_REF}}\nINTEGRATE\
+    \ EntityDetailTabs into ContactDetail.tsx, DealDetail.tsx:\n  - Linked: related\
+    \ deals/contacts/tasks via existing list APIs + filters\n  - Notes: useNotes filtered\
+    \ by entity\n  - Files: placeholder or useFiles if hook exists\n  - History: activity\
+    \ feed stub or timeline API if available\nPreserve existing overview content as\
+    \ first tab."
+- agent: cursor
+  label: 'cursor: requisition assignment detail tabs'
+  task: 'STEP 3/4 — RequisitionDetail + AssignmentDetail tabs.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Same EntityDetailTabs on RequisitionDetail, AssignmentDetail.
+
+    Requisition: SLA block in overview; linked contact/deal.
+
+    Assignment: linked project/contact.'
+- agent: cursor
+  label: 'cursor: card tabs review'
+  task: 'STEP 4/4 — Review card tabs.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build; list APIs still missing per tab in CURRENT_STATUS.
+
+    Unblocks smarty-bills-crud and smarty-time-log card embeds.'

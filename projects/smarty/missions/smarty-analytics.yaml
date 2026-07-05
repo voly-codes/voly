@@ -1,0 +1,170 @@
+# Combat mission: smarty-analytics
+# Run: python3 -m voly.cli smarty combat run smarty-analytics --sequential
+
+name: smarty-analytics
+description: 'Аналитика (Plane analytics/overview): /reports → /analytics, nav «Аналитика».
+  Overview + CRM tabs (sales, contacts, helpdesk, tracker). Plane insight-cards/charts.'
+tasks:
+- agent: cursor
+  label: 'cursor: rename reports → analytics nav + routes'
+  task: 'STEP 1/7 — Rename «Отчёты» → «Аналитика» + route /analytics.
+
+
+    Project: {{SMARTY_PROJECT}}. Read ../CLAUDE.md + plane-design-system.md.
+
+    {{PLANE_ANALYTICS_UX}}
+
+    Plane refs: {{ANALYTICS_REF}}/analytics-wrapper.tsx, {{PLANE_REF}}/apps/web/app/(all)/[workspaceSlug]/(projects)/analytics/[tabId]/header.tsx.
+
+
+    MANDATORY:
+
+    1. Move src/pages/reports/ → src/pages/analytics/
+
+    2. AnalyticsPage.tsx — route /analytics, /analytics/overview default tab
+
+    3. App.tsx: redirect /reports → /analytics
+
+    4. Sidebar: replace nav.reports with nav.analytics → /analytics
+
+    5. i18n en: ''Analytics'', ru: ''Аналитика'' (NOT «Отчёты»)
+
+    6. AnalyticsShell — header like Plane analytics header (title + period + tabs
+    row)
+
+    7. Extract shared: InsightCard, TrendBadge, AnalyticsSection from Reports.tsx
+
+
+    npm run build.'
+- agent: cursor
+  label: 'cursor: overview tab Plane analytics/overview'
+  task: "STEP 2/7 — Overview tab = Plane analytics/overview parity.\n\nProject: src/pages/analytics/tabs/OverviewTab.tsx\n\
+    Plane ref: {{PLANE_ANALYTICS_OVERVIEW}}, {{PLANE_ANALYTICS_TOTAL}}, {{ANALYTICS_REF}}/overview/active-projects.tsx,\
+    \ project-insights.tsx\n\nLAYOUT (Plane overview/root.tsx pattern):\n  flex flex-col\
+    \ gap-14:\n  1. TotalInsightsRow — 4–6 metric InsightCards with TrendBadge (%\
+    \ vs prev period)\n     CRM metrics: contacts, deals, requisitions, issues, dialogs\
+    \ (useStatistic)\n  2. grid md:grid-cols-5 gap-14:\n     - ProjectInsights (3\
+    \ cols): pipeline by stage horizontal bars / donut\n     - ActiveProjects (2 cols):\
+    \ top tracker projects by open issues\n  3. Charts row: contacts growth + deals\
+    \ created (Plane-style bar/area, not plain div bars)\n  4. LayoutCustomizer pageId='analytics-overview'\n\
+    \nUse existing statToChart + enhance with InsightCard wrapper.\nnpm run build."
+- agent: cursor
+  label: 'cursor: sales + contacts analytics tabs'
+  task: 'STEP 3/7 — Sales + Contacts tabs.
+
+
+    Project: {{SMARTY_PROJECT}}/src/pages/analytics/tabs/.
+
+    Plane ref: {{ANALYTICS_REF}}/insight-table/ (table pattern).
+
+
+    SALES TAB:
+
+    1. Funnel — ObjectStage/projects over period
+
+    2. Created vs won/completed time series
+
+    3. Deal value if projects have amount field; else count-only
+
+    4. InsightTable: deals by stage age (limit 50)
+
+
+    CONTACTS TAB:
+
+    1. New contacts time series
+
+    2. By stage snapshot
+
+    3. Top marks chart
+
+    4. Group breakdown if groupId exists
+
+
+    useStatistic, useStages, useMarks. npm run build.'
+- agent: cursor
+  label: 'cursor: helpdesk tab — inbox + requisitions SLA'
+  task: 'STEP 4/7 — Helpdesk tab (Smarty-native, Plane-style layout).
+
+
+    Project: {{SMARTY_PROJECT}}/src/pages/analytics/tabs/HelpdeskTab.tsx.
+
+
+    1. SLA row: useHdDashboard — open, overdue, avgFirstResponse, avgResolution, csatPct
+
+    2. Requisitions: ObjectCreated/ObjectStage time series, open vs completed
+
+    3. HorizontalBars: by status/stage
+
+    4. Dialogs volume over period
+
+    5. Replace ComingSoon ticketsByPriority with real breakdown
+
+
+    Links → /inbox, /requisitions. i18n en+ru.'
+- agent: cursor
+  label: 'cursor: tracker tab — Plane work-items charts'
+  task: 'STEP 5/7 — Tracker tab (Plane work-items analytics).
+
+
+    Project: src/pages/analytics/tabs/TrackerTab.tsx
+
+    Plane ref: {{PLANE_ANALYTICS_WORK_ITEMS}} — priority-chart.tsx, created-vs-resolved.tsx,
+    workitems-insight-table.tsx
+
+
+    1. InsightCards row: open, created, completed, overdue issues
+
+    2. Created vs resolved dual-line/bar chart (statistic API)
+
+    3. Priority donut/bar chart (group issues by priority)
+
+    4. By status, by assignee top 5, by tracker project
+
+    5. InsightTable — assignee/project rows (Plane insight-table pattern)
+
+
+    SKIP P2: CustomizedInsights x/y builder.
+
+    npm run build.'
+- agent: cursor
+  label: 'cursor: Plane chart components polish'
+  task: "STEP 6/7 — Shared Plane-style chart components.\n\nProject: src/pages/analytics/components/\
+    \ + src/components/shared/charts/\nPlane refs: {{PLANE_ANALYTICS_INSIGHT}}, {{PLANE_ANALYTICS_TREND}},\
+    \ {{PLANE_ANALYTICS_WORK_ITEMS}}priority-chart.tsx\n\nCREATE/REFINE (reusable\
+    \ across analytics + dashboard):\n  InsightCard — metric value + label + TrendPiece\
+    \ (% green/red)\n  TrendPiece — arrow + percentage text-13\n  AnalyticsBarChart\
+    \ — rounded bars, grid lines, hover tooltip (upgrade BarChart.tsx)\n  DonutChart\
+    \ or ProgressRing — for priority/status breakdown\n  ChartSkeleton — pulse loaders\
+    \ matching Plane analytics/loaders.tsx\n\nDark-first surface-1 cards, border-subtle,\
+    \ compact text-sm.\nnpm run build."
+- agent: cursor
+  label: 'cursor: review smarty-analytics'
+  task: 'STEP 7/7 — Review analytics/overview parity.
+
+
+    Project: {{SMARTY_PROJECT}}.
+
+
+    CHECKLIST:
+
+    ✅ Nav «Аналитика» / Analytics (NOT Отчёты)
+
+    ✅ /analytics/overview + /reports redirect
+
+    ✅ Overview layout matches Plane analytics/overview (TotalInsights + grid)
+
+    ✅ 5 tabs: overview, sales, contacts, helpdesk, tracker
+
+    ✅ Plane-style InsightCard + TrendPiece + charts
+
+    ✅ Real statistic + hd/dashboard, no mock, no limit:9999
+
+    ✅ i18n en+ru analytics namespace
+
+
+    ANTI-PATTERNS ❌: Plane clone (cycles/wiki), sparse renamed Reports
+
+
+    DELETE src/pages/reports/ if migrated.
+
+    UPDATE CURRENT_STATUS.md. P1/P2 gaps list.'

@@ -1,0 +1,138 @@
+# Combat mission: smarty-workspace-settings
+# Run: python3 -m voly.cli smarty combat run smarty-workspace-settings --sequential
+
+name: smarty-workspace-settings
+description: 'Workspace settings Plane-style: sidebar 250px, full-width content, integrations
+  hub (Gmail, Yandex, 1C, Bitrix24, amoCRM, SIPuni, market API). Spec: docs/specs/'
+tasks:
+- agent: cursor
+  label: 'cursor: read spec + integrations registry'
+  task: "STEP 1/8 — Product spec + integration registry (no UI yet).\n\nREAD FIRST:\
+    \ {{WORKSPACE_SETTINGS_SPEC}}\nBackend: {{MARKET_API}} § market (GET/POST /ws/:wsId/market/*)\n\
+    Legacy UI: docs/legacy-frontend/ROUTING.md — /smarty-market, /pbx-integration\n\
+    Plane ref (style): {{PLANE_REF}}/apps/web/app/routes/core.ts settings routes,\
+    \ Plane docs — workspace Integrations + Webhooks permissions\n\nWEB RESEARCH SUMMARY\
+    \ (already in spec — implement registry from this):\n- Email: Gmail OAuth2 + Gmail\
+    \ API (gmail.modify, Pub/Sub push); Yandex OAuth XOAUTH2 or app-password IMAP\
+    \ imap.yandex.ru:993\n- amoCRM: OAuth2 + webhooks (leads/contacts/companies)\n\
+    - Bitrix24: incoming webhook OR OAuth REST (crm.contact, crm.deal)\n- 1C: CommerceML\
+    \ 2.x/3.1 (import/offers/rests/contragents/orders.xml), HTTP-services /hs/, OData;\
+    \ configs UT11/KA2/ERP/Buh 8.3; phases P1 contragents → P2 orders/shipments\n\
+    - SIPuni: integration key + webhook URL (Events on PBX); backend market sipuni\
+    \ is STUB\n\nCREATE src/lib/integrations/registry.ts + types.ts:\n  IntegrationCategory:\
+    \ email | crm | erp | telephony | messengers | automation\n  IntegrationProvider:\
+    \ slug, category, nameKey, descKey, logoIcon,\n    backendModule?, backendType?,\
+    \ adapterStatus: live|stub|planned,\n    authType: oauth|api_key|webhook|credentials|market,\n\
+    \    docsUrl?, configureRoute?\nREGISTER providers (minimum):\n  email: gmail(live\
+    \ bot_plugin), yandex(planned), mailru(planned), m365(planned), smtp_imap(stub\
+    \ smarty_mail)\n  crm: amocrm(partial), bitrix24(planned), albato(stub)\n  erp:\
+    \ onec_commerceml(planned), onec_http(planned), onec_odata(planned)\n  telephony:\
+    \ sipuni(stub), uis/zadarma/mango/telkom(live market sip)\n  messengers: telegram/vk/whatsapp/viber(live\
+    \ market)\n  automation: stage_webhook(live), albato(stub), zapier(planned)\n\n\
+    CREATE src/hooks/useMarketIntegrations.ts:\n  useMarketSettings() → GET /ws/:wsId/market\n\
+    \  useEnableIntegration(), useIntegrateCredentials()\n\ni18n: new namespace integrations\
+    \ en+ru, register in i18n.ts.\nnpm run build."
+- agent: cursor
+  label: 'cursor: workspace settings shell Plane 250px'
+  task: "STEP 2/8 — Refactor /settings layout (Plane workspace settings pattern).\n\
+    \nProject: {{SMARTY_PROJECT}}/src/pages/settings/.\nSpec: {{WORKSPACE_SETTINGS_SPEC}}\
+    \ §2\nPlane ref: {{PLANE_REF}}/apps/web/app/(all)/[workspaceSlug]/(settings)/\n\
+    \nROUTES (App.tsx):\n  /settings → redirect /settings/members (or general)\n \
+    \ /settings/:tab — members | general | integrations | webhooks | api | custom-fields\n\
+    \  /settings/integrations/:slug — detail (step 4)\n  /settings/profile/* — unchanged\
+    \ (profile settings)\n\nCREATE SettingsLayout.tsx:\n  Left sidebar w-[250px] bg-surface-2\
+    \ border-r\n  Header: workspace title + logo (from ws or placeholder)\n  Nav items\
+    \ with lucide icons\n  Link 'Profile settings' → /settings/profile/general\n \
+    \ Content: flex-1 overflow-y-auto px-8 py-6 — FULL WIDTH (no max-w-2xl)\n\nRefactor\
+    \ Settings.tsx → thin router using SettingsLayout + tab outlet.\nMove TeamSection\
+    \ → workspace/MembersTab, CustomFieldsSection → workspace/CustomFieldsTab.\nDelete\
+    \ mock-only width constraint max-w-2xl on workspace settings.\ni18n settings.workspace.*\
+    \ en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: integrations hub — category grid'
+  task: "STEP 3/8 — Integrations hub UI.\n\nSpec: {{WORKSPACE_SETTINGS_SPEC}} §4\n\
+    Replace mock IntegrationsSection.tsx (emoji + local toggle) entirely.\n\nCREATE\
+    \ IntegrationsHub.tsx at /settings/integrations:\n1. Page title + description\
+    \ (Plane Integrations tone)\n2. Category filter chips: All | Email | CRM | ERP\
+    \ | Telephony | Messengers | Automation\n3. Search input (filter by name)\n4.\
+    \ Grid cards from integrations/registry.ts:\n   - Provider icon/logo placeholder\n\
+    \   - Name, short description (i18n)\n   - Status badge: Connected | Available\
+    \ | Coming soon | Request setup\n   - Connected = market data shows enabled for\
+    \ backendModule/backendType\n5. Card click → /settings/integrations/:slug\n6.\
+    \ Empty/error states, skeleton while loading market\n\nWire useMarketIntegrations\
+    \ — NO mock connected state.\nPlane dark-first card grid. npm run build."
+- agent: cursor
+  label: 'cursor: integration detail — market live providers'
+  task: "STEP 4/8 — Integration detail pages (live backend first).\n\nSpec: {{WORKSPACE_SETTINGS_SPEC}}\
+    \ §3.5–3.6\nBackend: POST /ws/:wsId/market/enable, /market/integrate { module,\
+    \ type, data }\n\nCREATE IntegrationDetailPage.tsx — reads slug from registry:\n\
+    \nSHARED LAYOUT:\n  Breadcrumb ← Integrations\n  Header: name, status, Connect/Disconnect\
+    \ button\n  SettingsControlItem rows (Plane pattern from profile settings)\n\n\
+    IMPLEMENT configure forms for LIVE market providers:\n1. telegram, viber, vk,\
+    \ whatsapp — token field → market/integrate messengers\n2. zadarma, mango_office,\
+    \ uis, telkom, rostelecom, ertelecom — publicKey/privateKey/domain → market/integrate\
+    \ sip\n3. Enable/disable toggle → market/enable\n\nSTUB providers (SIPuni, albato,\
+    \ smarty_mail):\n  Show config UI from spec + 'Request access' → POST /market/integrate/sendRequisition\
+    \ OR POST /pbxIntegration for telephony\n  Label 'Coming soon' if adapterStatus=stub\n\
+    \nPLANNED providers (Bitrix24, 1C, Yandex, amoCRM productized):\n  Overview tab\
+    \ with docs links + roadmap checklist from spec §3\n  No fake connect — button\
+    \ disabled with tooltip\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: email integrations UI (Gmail + Yandex)'
+  task: "STEP 5/8 — Email category detail pages.\n\nSpec: {{WORKSPACE_SETTINGS_SPEC}}\
+    \ §3.1\nWeb refs: Gmail API OAuth scopes; Yandex XOAUTH2 IMAP/SMTP\n\nCREATE integration\
+    \ detail templates:\n\n**Gmail** (/settings/integrations/gmail):\n  - Explain:\
+    \ Gmail API (preferred) vs IMAP fallback\n  - OAuth Connect button → reuse bot-plugins\
+    \ OAuth if /bot-plugins/oauth exists, else placeholder route + TODO backend workspace\
+    \ mailbox\n  - Scopes checklist: gmail.modify, gmail.send\n  - Toggles: sync inbox,\
+    \ send from CRM, push notifications (disabled until backend)\n  - Link Google\
+    \ Cloud setup docs\n\n**Yandex Mail** (/settings/integrations/yandex-mail):\n\
+    \  - OAuth preferred + fallback: IMAP imap.yandex.ru:993, SMTP smtp.yandex.ru:465\n\
+    \  - Form: email, app password (masked), enable IMAP hint\n  - Save → future API;\
+    \ for now store nothing fake — show 'Backend pending' banner if no endpoint\n\n\
+    **Custom SMTP/IMAP** (/settings/integrations/smtp-imap):\n  - Host, port, encryption,\
+    \ login, password\n  - Wire to market smarty_mail when backend ready; else Coming\
+    \ soon\n\ni18n integrations.email.* en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: CRM + 1C integration pages (spec-driven UI)'
+  task: "STEP 6/8 — CRM sync + 1C ERP pages (mostly planned backend).\n\nSpec: {{WORKSPACE_SETTINGS_SPEC}}\
+    \ §3.2–3.3\n\n**amoCRM** page:\n  - OAuth connect flow diagram (amoМаркет app)\n\
+    \  - Mapping table: Lead→Requisition, Contact→Contact, Company→Company, Deal→Project\n\
+    \  - Webhook URL display (copy) for inbound events\n  - Note: backend partial\
+    \ (serviceEvent.js) — admin-only warning\n\n**Bitrix24** page:\n  - Two modes:\
+    \ Incoming webhook URL (simple) vs OAuth local app\n  - Portal domain field, webhook\
+    \ code or client_id/secret\n  - Entity mapping same as amo\n  - Link apidocs.bitrix24.com\n\
+    \n**1C** page (/settings/integrations/1c) — most complex:\n  Sub-tabs or wizard\
+    \ steps:\n  1. Protocol: CommerceML | HTTP-service | OData (radio)\n  2. Configuration\
+    \ version: Buh 8.3 | UT 11 | KA2 | ERP 2.x (select)\n  3. Connection: base URL,\
+    \ auth, exchange path\n  4. Sync scope checkboxes: counterparties, orders, shipments\
+    \ (поставки), catalog/stock\n  5. Schedule: manual / hourly / daily\n  6. Field\
+    \ mapping preview (externalId, INN→company)\n  7. Last sync / log placeholder\n\
+    \  CommerceML file types help text: import.xml, offers.xml, rests.xml, contragents.xml,\
+    \ orders.xml\n  Status: Planned — all save buttons disabled with link to spec\
+    \ §8\n\ni18n integrations.crm.* integrations.erp.* en+ru. npm run build."
+- agent: cursor
+  label: 'cursor: webhooks + API tabs + general'
+  task: "STEP 7/8 — Remaining workspace tabs.\n\nSpec: {{WORKSPACE_SETTINGS_SPEC}}\
+    \ §5–6\n\n**GeneralTab** — workspace name, description, logo upload (ws imageSrc\
+    \ if API exists)\n\n**WebhooksTab** (P2):\n  - Explain stage.sendWebhook from\
+    \ stages API\n  - List stages with webhook enabled (read from stages if sendWebhook\
+    \ in response)\n  - Dialog hook: link to inbox docs\n  - Placeholder for future\
+    \ workspace-wide webhooks CRUD\n\n**ApiAppsTab** (P2):\n  - List wsapi applications\
+    \ GET /ws/:wsId/wsapi\n  - Create app, show token once, refresh token action\n\
+    \nRefactor MembersTab from TeamSection — wire useEmployees + invite if API exists,\
+    \ else show real list without mock names.\n\nnpm run build."
+- agent: cursor
+  label: 'cursor: review smarty-workspace-settings'
+  task: "STEP 8/8 — Review + backend gap list.\n\nProject: {{SMARTY_PROJECT}}. Spec:\
+    \ {{WORKSPACE_SETTINGS_SPEC}}\n\nCHECKLIST:\n✅ /settings Plane sidebar 250px,\
+    \ full-width content\n✅ /settings/integrations hub with categories + search\n\
+    ✅ integrations/registry.ts — all requested providers listed with correct status\n\
+    ✅ Live market providers wired (messengers + SIP) — no mock toggles\n✅ Gmail, Yandex,\
+    \ 1C, Bitrix24, amoCRM, SIPuni pages exist with honest status\n✅ 1C page covers\
+    \ CommerceML/HTTP/OData, configs, поставки phases\n✅ Profile settings link + /settings/profile\
+    \ unchanged\n✅ i18n integrations + settings en/ru\n✅ npm run build 0 errors in\
+    \ settings/*\n\nBACKEND GAP LIST (for separate missions):\n  - smarty-erp-sync\
+    \ / 1C CommerceML\n  - amoCRM + Bitrix24 productized connectors\n  - workspace\
+    \ mailbox OAuth (Gmail/Yandex)\n  - SIPuni sip provider adapter\n\nUPDATE docs/reports/CURRENT_STATUS.md\
+    \ + spec status.\nFix P0; list P1/P2."

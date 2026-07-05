@@ -1,0 +1,31 @@
+# Combat mission: smarty-custom-fields-advanced
+# Run: python3 -m voly.cli smarty combat run smarty-custom-fields-advanced --sequential
+
+name: smarty-custom-fields-advanced
+description: 'P1: Advanced custom field types — TipTap, geo, amount, phone in editor
+  + card.'
+tasks:
+- agent: cursor
+  label: 'cursor: advanced field type renderers'
+  task: "STEP 1/3 — Field type renderers.\n\n{{LEGACY_GAP_REF}}\nLegacy: {{LEGACY_FRONTEND}}/src/js/components/CustomFields/\n\
+    EXTEND CustomFieldRenderer + CustomFieldEditor:\n  - rich text (TipTap or lightweight\
+    \ textarea fallback)\n  - geo/address, amount+currency, phone mask\nMap legacy\
+    \ field type enum from useCustomFields response."
+- agent: cursor
+  label: 'cursor: group scoped custom fields'
+  task: 'STEP 2/3 — Group-scoped fields.
+
+
+    {{LEGACY_GAP_REF}}
+
+    After smarty-group-settings: respect groupId in custom field definitions.
+
+    Card display read-only formatting per type.'
+- agent: cursor
+  label: 'cursor: custom fields advanced review'
+  task: 'STEP 3/3 — Review advanced custom fields.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build.'

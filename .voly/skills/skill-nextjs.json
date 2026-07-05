@@ -1,0 +1,36 @@
+{
+  "id": "skill-nextjs",
+  "name": "Next.js Development",
+  "description": "Разработка на Next.js 14/15: App Router, Server Components, API Routes, Middleware",
+  "source": "builtin",
+  "status": "active",
+  "version": "1.0.0",
+  "tags": [
+    "nextjs",
+    "react",
+    "frontend",
+    "vercel"
+  ],
+  "capabilities": [
+    "frontend",
+    "ssr",
+    "api"
+  ],
+  "required_tools": [],
+  "compatible_agents": [
+    "developer",
+    "architect"
+  ],
+  "compatible_languages": [
+    "typescript",
+    "javascript"
+  ],
+  "compatible_frameworks": [
+    "nextjs",
+    "react"
+  ],
+  "usage_count": 0,
+  "success_rate": 1,
+  "content": "Next.js best practices: используй App Router, Server Components по умолчанию...",
+  "updated_at": 1782214212585
+}

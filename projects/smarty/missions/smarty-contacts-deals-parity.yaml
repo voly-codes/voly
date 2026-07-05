@@ -1,0 +1,47 @@
+# Combat mission: smarty-contacts-deals-parity
+# Run: python3 -m voly.cli smarty combat run smarty-contacts-deals-parity --sequential
+
+name: smarty-contacts-deals-parity
+description: 'P1: Contacts/deals parity — GEO map kanban, marks filter, Gantt, archive,
+  import/export.'
+tasks:
+- agent: cursor
+  label: 'cursor: marks filter label picker'
+  task: 'STEP 1/4 — Marks filter on list views.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Contacts + Deals list: LabelPicker filter, marks column.
+
+    useMarks + wsApi.marks; persist filter in URL params.'
+- agent: cursor
+  label: 'cursor: geo map kanban deals gantt'
+  task: 'STEP 2/4 — GEO map + Gantt.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Contacts: map view for geo custom fields (leaflet or legacy approach).
+
+    Deals: Gantt timeline view for project dates if API has start/end.
+
+    Feature-flag or tab toggle if heavy.'
+- agent: cursor
+  label: 'cursor: archive import export sections'
+  task: 'STEP 3/4 — Archive + import/export.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Archive filter/tab on contacts and deals lists.
+
+    Full import/export routes for deals (contacts pattern).'
+- agent: cursor
+  label: 'cursor: contacts deals parity review'
+  task: 'STEP 4/4 — Review parity.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build; document remaining legacy-only views.'

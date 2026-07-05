@@ -1,0 +1,33 @@
+id: skill-dotnet
+name: .NET Development
+description: 'Разработка на .NET 8/9: ASP.NET Core, Entity Framework, Minimal APIs,
+  SignalR'
+source: marketplace
+status: active
+version: 1.0.0
+content: '.NET best practices: используй Minimal APIs, primary constructors, Native
+  AOT...'
+tags:
+- dotnet
+- csharp
+- aspnet
+- backend
+capabilities:
+- backend
+- api
+- orm
+required_tools: []
+compatible_agents:
+- developer
+- architect
+compatible_languages:
+- csharp
+compatible_frameworks:
+- dotnet
+- aspnet
+- entity-framework
+examples: []
+author: ''
+usage_count: 0
+success_rate: 1.0
+metadata: {}

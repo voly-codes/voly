@@ -1,0 +1,50 @@
+# Combat mission: smarty-files-manager-v2
+# Run: python3 -m voly.cli smarty combat run smarty-files-manager-v2 --sequential
+
+name: smarty-files-manager-v2
+description: 'P1: Files — folder tree, DnD upload, preview modal, file detail route.'
+tasks:
+- agent: cursor
+  label: 'cursor: files API folder tree'
+  task: 'STEP 1/4 — Files API + folder hooks.
+
+
+    {{LEGACY_GAP_REF}}
+
+    Legacy: {{LEGACY_FRONTEND}}/src/js/components/Files/
+
+    Extend wsApi files: folders, upload, move, delete; useFiles, useFile, useUploadFile.
+
+    Types for folder tree nodes.'
+- agent: cursor
+  label: 'cursor: files manager page UI'
+  task: 'STEP 2/4 — Files manager page.
+
+
+    {{LEGACY_GAP_REF}}
+
+    UPGRADE src/pages/files/: folder tree sidebar + file grid/list.
+
+    DnD upload zone; progress indicators.
+
+    Breadcrumb navigation.'
+- agent: cursor
+  label: 'cursor: file preview detail'
+  task: 'STEP 3/4 — Preview modal + detail route.
+
+
+    {{LEGACY_GAP_REF}}
+
+    FilePreviewModal: image/pdf if supported; download link.
+
+    Route /files/:id detail — metadata, linked entities.
+
+    Integrate Files tab on EntityDetailTabs.'
+- agent: cursor
+  label: 'cursor: files manager review'
+  task: 'STEP 4/4 — Review files v2.
+
+
+    {{LEGACY_GAP_REF}}
+
+    npm run build.'
