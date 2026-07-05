@@ -40,14 +40,28 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 
 Переключение `GatewayProvider.CLOUDFLARE` vs `CUSTOM` — в `voly/ai_gateway/`.
 
-### OmniRoute (opt-in upstream)
+### OmniRoute (upstream)
 
 `omniroute` — self-hosted OpenAI-совместимый gateway (237+ провайдеров, free tiers,
 auto-fallback, компрессия). VOLY видит его как **один** upstream и делегирует всю
 маршрутизацию/фолбэк самому OmniRoute (`_call_omniroute` → `<base>/v1/chat/completions`).
 
-- **Opt-in:** не входит в default `_TASK_PROVIDERS`-цепочки; выбирается явно
-  (provider `omniroute`), чтобы незапущенный локальный gateway не попадал в fallback.
+Два режима использования:
+
+1. **Opt-in провайдер:** не входит в default `_TASK_PROVIDERS`-цепочки; выбирается
+   явно (provider `omniroute`), чтобы незапущенный локальный gateway не попадал в fallback.
+2. **Первоклассный upstream (делегирование слоя A):** `ai_gateway.upstream: "omniroute"`
+   в `voly.yaml` → все не-CF вызовы `chat()` идут сначала через OmniRoute
+   (`AIGateway._delegated_or_direct`). Модель — passthrough вызывающего, либо
+   `upstream_model: "auto"` (auto-combo). При ошибке/недоступности upstream —
+   `metrics.record_fallback()` и автоматический fallback на прямой адаптер
+   запрошенного провайдера (`upstream_fallback_direct: true`, default): мёртвый
+   локальный gateway не блокирует pipeline. Маркеры ответа: успех через upstream —
+   `result["upstream"]="omniroute"`, ответ после фолбэка — `result["upstream_fallback"]=true`.
+   Явный вызов provider=`omniroute` вторым hop-ом не заворачивается. Кэш, DLP,
+   spend limits и телеметрия не меняются — живут вокруг вызова. Тесты:
+   `tests/test_ai_gateway.py` («Upstream delegation»).
+
 - **Модель `auto`** запускает auto-combo роутинг OmniRoute.
 - **Cost:** считается по фактической модели, которую вернул OmniRoute (`data.model`);
   при free-tier роутинге → $0. Отдельной ставки под провайдер в `_COST_RATES` нет.

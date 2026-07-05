@@ -44,6 +44,14 @@ class AIGateway(_GatewayProvidersMixin):
         self.metrics     = GatewayMetrics()
         self._enabled    = True
         self._transports: dict[str, Callable] = {}
+        # Layer-A delegation (make-vs-delegate): when set to a provider name
+        # (e.g. "omniroute"), every non-CF chat() call is routed through that
+        # single external gateway first — it owns provider selection and its
+        # own fallback. Direct adapters remain the fallback path so a dead
+        # upstream never blocks the pipeline. See docs/ARCHITECTURE.md.
+        self.upstream = ""
+        self.upstream_model = ""          # "" → passthrough caller's model
+        self.upstream_fallback_direct = True
         # Project-state fingerprint folded into every cache key on this instance
         # (VOLY risk R1). Set once per project run — see voly/ai_gateway/
         # project_state.py and pipeline/core.py. Empty → no scope (prior behaviour).
@@ -114,10 +122,7 @@ class AIGateway(_GatewayProvidersMixin):
         if self.cloudflare_enabled and provider_name in _CF_PROVIDERS:
             result = self._gateway_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools, **kwargs)
         else:
-            result = self._direct_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools)
-            result = self._empty_content_error(result) or result
-            if result.get("error") and self.fallback.enabled and self.fallback.chain:
-                result = self._direct_fallback(result, messages, max_tokens, temperature, system, tools, **kwargs)
+            result = self._delegated_or_direct(messages, model, provider_name, max_tokens, temperature, system, tools, **kwargs)
 
         self.spend_limit.record(estimated_cost, agent)
         cost = self._calculate_cost(model, provider_name, result.get("usage", {}))
@@ -126,6 +131,71 @@ class AIGateway(_GatewayProvidersMixin):
         if self.cache.enabled and not result.get("error"):
             self.cache.set(cache_key, json.dumps(result))
 
+        return result
+
+    # ── Upstream delegation (layer A: make-vs-delegate) ─────────────────────────
+
+    def _delegated_or_direct(
+        self,
+        messages: list[dict[str, Any]],
+        model: str,
+        provider_name: str,
+        max_tokens: int,
+        temperature: float,
+        system: str | None,
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Route through the configured external upstream first, direct adapters as fallback.
+
+        With ``self.upstream`` set (e.g. ``"omniroute"``), provider routing is
+        delegated to that single external gateway — VOLY does not replicate its
+        provider breadth. ``upstream_model`` overrides the model sent upstream
+        (``"auto"`` triggers OmniRoute auto-combo); empty means passthrough.
+        On upstream failure (unreachable / error / empty content) the call
+        falls back to the direct adapter of the originally requested provider
+        (``upstream_fallback_direct``), so a dead local gateway never blocks
+        the pipeline. Calls that explicitly target the upstream provider skip
+        the extra hop.
+        """
+        if self.upstream and provider_name != self.upstream:
+            up_model = self.upstream_model or model
+            result = self._direct_call(messages, up_model, self.upstream, max_tokens, temperature, system, tools=tools)
+            result = self._empty_content_error(result) or result
+            if not result.get("error"):
+                result["upstream"] = self.upstream
+                return result
+            if not self.upstream_fallback_direct:
+                result["upstream"] = self.upstream
+                return result
+            self.metrics.record_fallback()
+            _log.warning(
+                "upstream %s failed (%s) — falling back to direct adapter %s",
+                self.upstream, str(result.get("error"))[:120], provider_name,
+            )
+            direct = self._direct_with_model_fallback(messages, model, provider_name, max_tokens, temperature, system, tools, **kwargs)
+            if not direct.get("error"):
+                direct["upstream_fallback"] = True
+            return direct
+
+        return self._direct_with_model_fallback(messages, model, provider_name, max_tokens, temperature, system, tools, **kwargs)
+
+    def _direct_with_model_fallback(
+        self,
+        messages: list[dict[str, Any]],
+        model: str,
+        provider_name: str,
+        max_tokens: int,
+        temperature: float,
+        system: str | None,
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Direct adapter call + empty-content guard + configured model fallback chain."""
+        result = self._direct_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools)
+        result = self._empty_content_error(result) or result
+        if result.get("error") and self.fallback.enabled and self.fallback.chain:
+            result = self._direct_fallback(result, messages, max_tokens, temperature, system, tools, **kwargs)
         return result
 
     # ── Empty-content guard ──────────────────────────────────────────────────────
@@ -400,6 +470,7 @@ class AIGateway(_GatewayProvidersMixin):
             "account_id": self.account_id[:8] + "..." if self.account_id else "",
             "gateway_id": self.gateway_id,
             "enabled":    self.enabled,
+            "upstream":   self.upstream,
             "cache":      self.cache.to_dict(),
             "rate_limit": self.rate_limit.to_dict(),
             "spend_limit":self.spend_limit.to_dict(),
@@ -413,6 +484,9 @@ class AIGateway(_GatewayProvidersMixin):
         self.account_id = config.get("account_id", self.account_id)
         self.gateway_id = config.get("gateway_id", self.gateway_id)
         self.api_token  = config.get("api_token",  self.api_token)
+        self.upstream   = config.get("upstream",   self.upstream)
+        self.upstream_model = config.get("upstream_model", self.upstream_model)
+        self.upstream_fallback_direct = config.get("upstream_fallback_direct", self.upstream_fallback_direct)
 
         if c := config.get("caching"):
             self.cache.enabled     = c.get("enabled",     True)

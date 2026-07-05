@@ -65,6 +65,9 @@ ai_gateway:
   provider: cloudflare   # cloudflare | custom
   cloudflare_account_id: ""
   cloudflare_gateway_id: default
+  upstream: ""           # "omniroute" → делегировать не-CF маршрутизацию внешнему gateway
+  upstream_model: ""     # "auto" = auto-combo OmniRoute; "" = passthrough модели вызывающего
+  upstream_fallback_direct: true  # при недоступности upstream — прямой адаптер провайдера
   cache_enabled: true
   cache_persist_dir: .voly/gateway_cache  # disk-кэш ответов; пусто → только in-memory
   rate_limit_rpm: 60

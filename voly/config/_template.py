@@ -100,6 +100,11 @@ ai_gateway:
   account_id: "${CLOUDFLARE_ACCOUNT_ID}"
   gateway_id: "${CLOUDFLARE_AI_GATEWAY_ID}"
   api_token: "${CLOUDFLARE_API_TOKEN}"
+  # Layer-A delegation: "" = off, "omniroute" = route non-CF calls through
+  # a local OmniRoute instance first (direct adapters remain the fallback).
+  upstream: ""
+  upstream_model: ""          # "auto" = OmniRoute auto-combo; "" = passthrough
+  upstream_fallback_direct: true
   caching:
     enabled: true
     ttl_seconds: 3600

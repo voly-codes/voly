@@ -137,6 +137,11 @@ class AIGatewayConfig:
     account_id: str = ""
     gateway_id: str = "default"
     api_token: str = ""
+    # Layer-A delegation: route non-CF calls through one external gateway
+    # (e.g. "omniroute") first; direct adapters are the fallback. Empty = off.
+    upstream: str = ""
+    upstream_model: str = ""            # override model sent upstream ("auto" = OmniRoute auto-combo)
+    upstream_fallback_direct: bool = True
     cache_enabled: bool = True
     cache_ttl_seconds: int = 3600
     cache_max_entries: int = 1000

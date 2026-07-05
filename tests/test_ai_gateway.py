@@ -319,3 +319,107 @@ def test_empty_content_direct_path_surfaces_error(monkeypatch) -> None:
     result = gw.chat([{"role": "user", "content": "hi"}], model="m", provider_name="mimo")
     assert result.get("empty_content") is True
     assert result.get("error")
+
+
+# ─── Upstream delegation (Этап 3: layer A make-vs-delegate) ───────────────────
+
+def _upstream_gw() -> AIGateway:
+    gw = AIGateway()  # no account_id → non-CF path
+    gw.cache.enabled = False
+    gw.upstream = "omniroute"
+    return gw
+
+
+def test_upstream_serves_call_direct_adapter_not_used(monkeypatch) -> None:
+    gw = _upstream_gw()
+    calls: list[str] = []
+
+    def fake_direct(messages, model, provider_name, max_tokens, temperature, system, tools=None):
+        calls.append(provider_name)
+        return {"content": "from upstream", "model": "resolved-by-omniroute",
+                "usage": {"input_tokens": 5, "output_tokens": 3, "total_tokens": 8}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="claude-sonnet-4-6",
+                     provider_name="anthropic")
+    assert result["content"] == "from upstream"
+    assert result["upstream"] == "omniroute"
+    # Один вызов — в upstream; прямой адаптер anthropic не дёргался.
+    assert calls == ["omniroute"]
+
+
+def test_upstream_failure_falls_back_to_direct(monkeypatch) -> None:
+    gw = _upstream_gw()
+    calls: list[str] = []
+
+    def fake_direct(messages, model, provider_name, max_tokens, temperature, system, tools=None):
+        calls.append(provider_name)
+        if provider_name == "omniroute":
+            return {"error": "OmniRoute unreachable at http://localhost:20128", "content": ""}
+        return {"content": "from direct", "model": model,
+                "usage": {"input_tokens": 5, "output_tokens": 3, "total_tokens": 8}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="claude-sonnet-4-6",
+                     provider_name="anthropic")
+    assert result["content"] == "from direct"
+    assert result.get("upstream_fallback") is True
+    assert calls == ["omniroute", "anthropic"]
+    assert gw.metrics.fallbacks_used >= 1
+
+
+def test_upstream_fallback_disabled_returns_upstream_error(monkeypatch) -> None:
+    gw = _upstream_gw()
+    gw.upstream_fallback_direct = False
+    monkeypatch.setattr(
+        gw, "_direct_call",
+        lambda *a, **k: {"error": "OmniRoute unreachable", "content": ""},
+    )
+    result = gw.chat([{"role": "user", "content": "hi"}], model="m", provider_name="anthropic")
+    assert "unreachable" in result["error"]
+    assert result["upstream"] == "omniroute"
+
+
+def test_upstream_model_override_passthrough(monkeypatch) -> None:
+    gw = _upstream_gw()
+    gw.upstream_model = "auto"
+    seen: dict = {}
+
+    def fake_direct(messages, model, provider_name, max_tokens, temperature, system, tools=None):
+        seen["model"] = model
+        return {"content": "ok", "model": "whatever", "usage": {}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+    gw.chat([{"role": "user", "content": "hi"}], model="claude-sonnet-4-6",
+            provider_name="anthropic")
+    assert seen["model"] == "auto"
+
+
+def test_upstream_explicit_omniroute_call_no_double_hop(monkeypatch) -> None:
+    """Явный вызов провайдера-upstream не заворачивается второй раз."""
+    gw = _upstream_gw()
+    calls: list[str] = []
+
+    def fake_direct(messages, model, provider_name, max_tokens, temperature, system, tools=None):
+        calls.append(provider_name)
+        return {"content": "ok", "model": model, "usage": {}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="auto", provider_name="omniroute")
+    assert calls == ["omniroute"]
+    assert "upstream" not in result
+
+
+def test_no_upstream_configured_behavior_unchanged(monkeypatch) -> None:
+    gw = AIGateway()
+    gw.cache.enabled = False
+    calls: list[str] = []
+
+    def fake_direct(messages, model, provider_name, max_tokens, temperature, system, tools=None):
+        calls.append(provider_name)
+        return {"content": "ok", "model": model, "usage": {}}
+
+    monkeypatch.setattr(gw, "_direct_call", fake_direct)
+    result = gw.chat([{"role": "user", "content": "hi"}], model="m", provider_name="anthropic")
+    assert calls == ["anthropic"]
+    assert "upstream" not in result and "upstream_fallback" not in result
