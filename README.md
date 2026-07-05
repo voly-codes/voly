@@ -280,3 +280,8 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE events, CF Worker /infer |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 стек, структура ui/, dev/build |
 | [CLAUDE.md](CLAUDE.md) | Инструкции для AI-агентов в этом репозитории |
+
+## Contributing & License
+
+Вклад приветствуется — см. [CONTRIBUTING.md](CONTRIBUTING.md) (DCO, правила,
+границы open-core). Код — под лицензией [Apache 2.0](LICENSE).
