@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Body, HTTPException, Request
 
 router = APIRouter()
 
@@ -20,6 +20,14 @@ def _ev_dir(request: Request):
 
 def _skills_dir(request: Request):
     return _ev_dir(request).parent / "skills"
+
+
+def _local_skill_rows(source: str = "", status: str = "active", query: str = "") -> list[dict[str, Any]]:
+    from voly.registry.skills import SkillRegistry
+
+    reg = SkillRegistry()
+    skills = reg.search(source=source or None, status=status or None, query=query or "")
+    return [s.to_dict() for s in skills]
 
 
 @router.get("/api/marketplace/skills/installed")
@@ -62,11 +70,17 @@ def marketplace_skills(
     limit: int = 24,
     agent: str = "",
     source: str = "",
+    status: str = "active",
 ) -> dict[str, Any]:
     url = _url(request)
     if not url:
-        return {"skills": [], "total": 0, "configured": False,
-                "hint": "Set CF_WORKER_MARKETPLACE_URL to enable"}
+        skills = _local_skill_rows(source=source, status=status)
+        return {
+            "skills": skills[(page - 1) * limit : (page - 1) * limit + limit],
+            "total": len(skills),
+            "configured": False,
+            "hint": "Set CF_WORKER_MARKETPLACE_URL to enable remote marketplace",
+        }
     try:
         from voly.registry.marketplace import MarketplaceClient
         result = MarketplaceClient(url).list_skills(
@@ -75,7 +89,14 @@ def marketplace_skills(
         result["configured"] = True
         return result
     except Exception as exc:
-        return {"skills": [], "total": 0, "configured": True, "error": str(exc)}
+        skills = _local_skill_rows(source=source, status=status)
+        return {
+            "skills": skills[(page - 1) * limit : (page - 1) * limit + limit],
+            "total": len(skills),
+            "configured": False,
+            "error": str(exc),
+            "hint": "Remote marketplace unavailable; showing local registry fallback",
+        }
 
 
 @router.get("/api/marketplace/skills/search")
@@ -84,14 +105,29 @@ def marketplace_search(
 ) -> dict[str, Any]:
     url = _url(request)
     if not url or not q:
-        return {"skills": [], "total": 0, "configured": bool(url)}
+        if not q:
+            return {"skills": [], "total": 0, "configured": bool(url)}
+        skills = _local_skill_rows(query=q)
+        return {
+            "skills": skills[:limit],
+            "total": len(skills),
+            "configured": False,
+            "hint": "Remote marketplace unavailable; showing local registry fallback",
+        }
     try:
         from voly.registry.marketplace import MarketplaceClient
         result = MarketplaceClient(url).search(q, limit=limit)
         result["configured"] = True
         return result
     except Exception as exc:
-        return {"skills": [], "total": 0, "configured": True, "error": str(exc)}
+        skills = _local_skill_rows(query=q)
+        return {
+            "skills": skills[:limit],
+            "total": len(skills),
+            "configured": False,
+            "error": str(exc),
+            "hint": "Remote marketplace unavailable; showing local registry fallback",
+        }
 
 
 @router.post("/api/marketplace/skills/{skill_id}/install")
@@ -116,3 +152,60 @@ def marketplace_install(skill_id: str, request: Request) -> dict[str, Any]:
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/api/marketplace/plugins")
+def marketplace_plugins(request: Request, status: str = "active", limit: int = 50, offset: int = 0) -> dict[str, Any]:
+    url = _url(request)
+    if not url:
+        from voly.registry.external_catalog import catalog_path_for, load_external_catalog
+        catalog = load_external_catalog(catalog_path_for(_ev_dir(request).parent))
+        plugins = catalog.get("plugins", []) if catalog else []
+        return {
+            "plugins": plugins[offset : offset + limit],
+            "count": len(plugins),
+            "configured": False,
+            "hint": "Set CF_WORKER_MARKETPLACE_URL to enable remote plugin marketplace",
+        }
+    try:
+        from voly.registry.marketplace import MarketplaceClient
+        result = MarketplaceClient(url).list_plugins(status=status, limit=limit, offset=offset)
+        result["configured"] = True
+        return result
+    except Exception as exc:
+        from voly.registry.external_catalog import catalog_path_for, load_external_catalog
+        catalog = load_external_catalog(catalog_path_for(_ev_dir(request).parent))
+        plugins = catalog.get("plugins", []) if catalog else []
+        return {
+            "plugins": plugins[offset : offset + limit],
+            "count": len(plugins),
+            "configured": False,
+            "error": str(exc),
+            "hint": "Remote marketplace unavailable; showing local plugin catalog fallback",
+        }
+
+
+@router.post("/api/marketplace/plugins/sync")
+def marketplace_plugins_sync(
+    request: Request,
+    payload: dict[str, Any] = Body(default_factory=dict),
+) -> dict[str, Any]:
+    """Bulk-upsert plugins into the remote marketplace (proxy to the CF worker).
+
+    The UI posts ``{"plugins": [...]}``; this proxies to the worker's
+    ``POST /plugins/sync``. Requires ``CF_WORKER_MARKETPLACE_URL``.
+    """
+    url = _url(request)
+    if not url:
+        raise HTTPException(
+            status_code=503,
+            detail="Marketplace not configured (set CF_WORKER_MARKETPLACE_URL)",
+        )
+    plugins = payload.get("plugins") or payload.get("items") or []
+    try:
+        from voly.registry.marketplace import MarketplaceClient
+        result = MarketplaceClient(url).sync_plugins({"plugins": plugins})
+        result["configured"] = True
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc))

@@ -274,6 +274,19 @@ class SkillRegistry:
             except Exception:
                 pass
 
+    def load_from_dicts(self, skill_dicts: list[dict[str, Any]]) -> None:
+        """Load skill payloads, replacing existing ids when necessary."""
+        from voly.registry.loader import skill_from_dict
+
+        for data in skill_dicts:
+            try:
+                skill = skill_from_dict(data)
+            except Exception:
+                continue
+            if self.index.get(skill.id):
+                self.index.remove(skill.id)
+            self.register(skill)
+
     def _load_directory(self, path: Path) -> None:
         from voly.registry.loader import load_skills_from_directory
 
@@ -341,7 +354,18 @@ def create_skill_registry(
 ) -> SkillRegistry:
     resolved_path = resolve_skills_path(skills_path, config_dir)
     resolved_path.mkdir(parents=True, exist_ok=True)
-    return SkillRegistry(
+    registry = SkillRegistry(
         skills_path=resolved_path,
         marketplace_url=resolve_marketplace_url(marketplace_url),
     )
+    from voly.registry.external_catalog import (
+        catalog_path_for,
+        load_external_catalog,
+        register_catalog_skills,
+    )
+
+    base_dir = config_dir if config_dir else Path.cwd()
+    catalog = load_external_catalog(catalog_path_for(base_dir))
+    if catalog:
+        register_catalog_skills(registry, catalog)
+    return registry

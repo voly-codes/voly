@@ -117,3 +117,28 @@ class MarketplaceClient:
 
     def archive_skill(self, skill_id: str) -> dict[str, Any]:
         return self._request("DELETE", f"/skills/{urllib.parse.quote(skill_id, safe='')}")
+
+    def list_plugins(
+        self,
+        *,
+        status: str = "active",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        return self._request(
+            "GET",
+            "/plugins",
+            query={"status": status, "limit": str(limit), "offset": str(offset)},
+        )
+
+    def get_plugin(self, plugin_id: str) -> dict[str, Any]:
+        return self._request("GET", f"/plugins/{urllib.parse.quote(plugin_id, safe='')}")
+
+    def publish_plugin(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/plugins", body=payload)
+
+    def sync_plugins(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/plugins/sync", body=payload)
+
+    def archive_plugin(self, plugin_id: str) -> dict[str, Any]:
+        return self._request("DELETE", f"/plugins/{urllib.parse.quote(plugin_id, safe='')}")

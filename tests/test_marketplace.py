@@ -91,6 +91,30 @@ def test_marketplace_client_list_skills() -> None:
         assert data["skills"][0]["id"] == "a"
 
 
+def test_marketplace_client_plugins() -> None:
+    client = MarketplaceClient("https://example.com")
+    payload = {"plugins": [{"id": "p", "name": "Plugin"}], "count": 1}
+
+    with patch("urllib.request.urlopen") as urlopen:
+        resp = MagicMock()
+        resp.read.return_value = json.dumps(payload).encode()
+        resp.__enter__.return_value = resp
+        urlopen.return_value = resp
+
+        data = client.list_plugins(limit=5)
+        assert data["count"] == 1
+        assert data["plugins"][0]["id"] == "p"
+
+    with patch("urllib.request.urlopen") as urlopen:
+        resp = MagicMock()
+        resp.read.return_value = json.dumps({"id": "p", "ok": True}).encode()
+        resp.__enter__.return_value = resp
+        urlopen.return_value = resp
+
+        data = client.publish_plugin({"id": "p", "name": "Plugin"})
+        assert data["ok"] is True
+
+
 def test_install_from_marketplace(tmp_path: Path) -> None:
     reg = create_skill_registry(
         skills_path=tmp_path / "skills",
@@ -118,3 +142,53 @@ def test_install_without_marketplace_url_raises(monkeypatch: pytest.MonkeyPatch)
     reg = create_skill_registry(marketplace_url="")
     with pytest.raises(MarketplaceError, match="marketplace_url"):
         reg.install_from_marketplace("skill-x")
+
+
+# ─── Web route: local fallback path (Skill Marketplace drawer in dev) ────────
+def test_marketplace_skills_route_local_fallback_no_url() -> None:
+    """No CF_WORKER_MARKETPLACE_URL → route returns the local registry, no crash.
+
+    Regression guard: the drawer calls /api/marketplace/skills on mount; when no
+    remote marketplace is configured the handler must return local skills instead
+    of raising (a missing `status` param used to make it 500 → empty drawer).
+    """
+    from voly.web.routes.marketplace import marketplace_skills
+
+    request = MagicMock()
+    request.app.state.app.marketplace_url.return_value = ""  # not configured
+
+    rows = [{"id": "s1", "name": "Skill One"}, {"id": "s2", "name": "Skill Two"}]
+    with patch("voly.web.routes.marketplace._local_skill_rows", return_value=rows):
+        result = marketplace_skills(request)
+
+    assert result["configured"] is False
+    assert result["skills"] == rows
+    assert result["total"] == 2
+    assert "hint" in result
+
+
+# ─── Web route: bulk plugin sync proxy ───────────────────────────────────────
+def test_marketplace_plugins_sync_requires_url() -> None:
+    from fastapi import HTTPException
+
+    from voly.web.routes.marketplace import marketplace_plugins_sync
+
+    request = MagicMock()
+    request.app.state.app.marketplace_url.return_value = ""
+    with pytest.raises(HTTPException) as exc:
+        marketplace_plugins_sync(request, {"plugins": [{"id": "p1"}]})
+    assert exc.value.status_code == 503
+
+
+def test_marketplace_plugins_sync_proxies_to_worker() -> None:
+    from voly.web.routes.marketplace import marketplace_plugins_sync
+
+    request = MagicMock()
+    request.app.state.app.marketplace_url.return_value = "https://mp.example"
+
+    with patch("voly.registry.marketplace.MarketplaceClient") as MC:
+        MC.return_value.sync_plugins.return_value = {"upserted": 2}
+        result = marketplace_plugins_sync(request, {"plugins": [{"id": "p1"}, {"id": "p2"}]})
+
+    MC.return_value.sync_plugins.assert_called_once_with({"plugins": [{"id": "p1"}, {"id": "p2"}]})
+    assert result == {"upserted": 2, "configured": True}

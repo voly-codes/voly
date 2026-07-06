@@ -31,6 +31,25 @@ interface SkillRow {
   updated_at: number;
 }
 
+interface PluginRow {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  homepage: string;
+  repository: string;
+  license: string;
+  skills: string;
+  source: string;
+  attribution: string;
+  payload: string;
+  status: string;
+  downloads: number;
+  created_at: number;
+  updated_at: number;
+}
+
 // slim=true strips content — used for list/search responses to keep payloads small
 function parseSkill(row: SkillRow, slim = false): Record<string, unknown> {
   const out: Record<string, unknown> = {
@@ -46,12 +65,36 @@ function parseSkill(row: SkillRow, slim = false): Record<string, unknown> {
   return out;
 }
 
-const EMBED_MODEL = "@cf/baai/bge-small-en-v1.5" as BaseAiTextEmbeddingsModels;
+function parsePlugin(row: PluginRow, slim = false): Record<string, unknown> {
+  const payload = row.payload ? JSON.parse(row.payload) : {};
+  const out: Record<string, unknown> = {
+    ...payload,
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    version: row.version,
+    author: JSON.parse(row.author || "{}"),
+    homepage: row.homepage,
+    repository: row.repository,
+    license: row.license,
+    skills: JSON.parse(row.skills || "[]"),
+    source: JSON.parse(row.source || "{}"),
+    attribution: JSON.parse(row.attribution || "{}"),
+    status: row.status,
+    downloads: row.downloads,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+  if (slim) delete out["payload"];
+  return out;
+}
+
+const EMBED_MODEL = "@cf/baai/bge-small-en-v1.5";
 
 async function embed(ai: Ai, text: string): Promise<number[] | null> {
   try {
     const result = await ai.run(EMBED_MODEL, { text: [text] });
-    return (result as { data: number[][] }).data[0];
+    return (result as unknown as { data: number[][] }).data[0];
   } catch {
     return null;
   }
@@ -298,7 +341,7 @@ app.post("/skills", async (c) => {
         await c.env.VECTORIZE.upsert([{
           id,
           values: vec,
-          metadata: { name, tags: body.tags || [] },
+          metadata: { name, tags: JSON.stringify(body.tags || []) } as any,
         }]);
       }
     })(),
@@ -320,6 +363,131 @@ app.delete("/skills/:id", async (c) => {
   if (result.meta.changes === 0) return c.json({ error: "Skill not found" }, 404);
 
   await c.env.INDEX.delete(`skill:${id}`);
+  return c.json({ ok: true });
+});
+
+app.get("/plugins", async (c) => {
+  const status = c.req.query("status") ?? "active";
+  const limit = Math.min(parseInt(c.req.query("limit") ?? "50"), 100);
+  const offset = Math.max(parseInt(c.req.query("offset") ?? "0"), 0);
+  const rows = await c.env.DB.prepare(
+    "SELECT * FROM plugins WHERE status = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+  ).bind(status, limit, offset).all<PluginRow>();
+  return c.json({
+    plugins: (rows.results ?? []).map((r) => parsePlugin(r, true)),
+    count: rows.results?.length ?? 0,
+  });
+});
+
+app.get("/plugins/:id", async (c) => {
+  const id = c.req.param("id");
+  const row = await c.env.DB.prepare("SELECT * FROM plugins WHERE id = ?")
+    .bind(id).first<PluginRow>();
+  if (!row) return c.json({ error: "Plugin not found" }, 404);
+  return c.json({ plugin: parsePlugin(row) });
+});
+
+app.post("/plugins", async (c) => {
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const id = String(body.id ?? body.name ?? `plugin-${Date.now().toString(36)}`);
+  const name = String(body.name ?? id);
+  if (!name) return c.json({ error: "name is required" }, 400);
+
+  const now = Date.now();
+  const payload = JSON.stringify(body);
+  await c.env.DB.prepare(
+    `INSERT INTO plugins (id, name, description, version, author, homepage, repository, license,
+      skills, source, attribution, payload, status, downloads, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       name=excluded.name, description=excluded.description, version=excluded.version,
+       author=excluded.author, homepage=excluded.homepage, repository=excluded.repository,
+       license=excluded.license, skills=excluded.skills, source=excluded.source,
+       attribution=excluded.attribution, payload=excluded.payload,
+       status=excluded.status, updated_at=excluded.updated_at`,
+  ).bind(
+    id,
+    name,
+    String(body.description ?? ""),
+    String(body.version ?? "1.0.0"),
+    JSON.stringify(body.author ?? {}),
+    String(body.homepage ?? ""),
+    String(body.repository ?? ""),
+    String(body.license ?? ""),
+    JSON.stringify(body.skills ?? []),
+    JSON.stringify(body.source ?? {}),
+    JSON.stringify(body.attribution ?? {}),
+    payload,
+    String(body.status ?? "active"),
+    now,
+    now,
+  ).run();
+
+  return c.json({ id, ok: true }, 201);
+});
+
+app.post("/plugins/sync", async (c) => {
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const plugins = Array.isArray(body.plugins)
+    ? body.plugins
+    : Array.isArray(body.items)
+      ? body.items
+      : [];
+
+  let upserted = 0;
+  for (const item of plugins) {
+    if (!item || typeof item !== "object") continue;
+    const single = await c.env.DB.prepare(
+      `INSERT INTO plugins (id, name, description, version, author, homepage, repository, license,
+        skills, source, attribution, payload, status, downloads, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name=excluded.name, description=excluded.description, version=excluded.version,
+         author=excluded.author, homepage=excluded.homepage, repository=excluded.repository,
+         license=excluded.license, skills=excluded.skills, source=excluded.source,
+         attribution=excluded.attribution, payload=excluded.payload,
+         status=excluded.status, updated_at=excluded.updated_at`,
+    ).bind(
+      String((item as Record<string, unknown>).id ?? (item as Record<string, unknown>).name ?? `plugin-${Date.now().toString(36)}`),
+      String((item as Record<string, unknown>).name ?? (item as Record<string, unknown>).id ?? ""),
+      String((item as Record<string, unknown>).description ?? ""),
+      String((item as Record<string, unknown>).version ?? "1.0.0"),
+      JSON.stringify((item as Record<string, unknown>).author ?? {}),
+      String((item as Record<string, unknown>).homepage ?? ""),
+      String((item as Record<string, unknown>).repository ?? ""),
+      String((item as Record<string, unknown>).license ?? ""),
+      JSON.stringify((item as Record<string, unknown>).skills ?? []),
+      JSON.stringify((item as Record<string, unknown>).source ?? {}),
+      JSON.stringify((item as Record<string, unknown>).attribution ?? {}),
+      JSON.stringify(item),
+      String((item as Record<string, unknown>).status ?? "active"),
+      Date.now(),
+      Date.now(),
+    ).run();
+    if (single.meta.changes >= 0) upserted += 1;
+  }
+
+  return c.json({ ok: true, upserted });
+});
+
+app.delete("/plugins/:id", async (c) => {
+  const id = c.req.param("id");
+  const result = await c.env.DB.prepare(
+    "UPDATE plugins SET status = 'archived', updated_at = ? WHERE id = ?",
+  ).bind(Date.now(), id).run();
+  if (result.meta.changes === 0) return c.json({ error: "Plugin not found" }, 404);
   return c.json({ ok: true });
 });
 

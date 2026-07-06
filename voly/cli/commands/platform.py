@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import click
 
@@ -140,6 +141,93 @@ def registry_skills(ctx: click.Context, agent: str | None, tag: str | None, lang
     for skill in skills:
         click.echo(f"[{skill.source.value}] {skill.name}")
         click.echo(f"  tags: {', '.join(skill.tags)} | agents: {', '.join(skill.compatible_agents)}")
+
+
+@registry.command("import-external")
+@click.option(
+    "--claude-skills-root",
+    type=click.Path(path_type=Path, file_okay=False, dir_okay=True, exists=True),
+    default=None,
+    help="Path to the claude-skills repo root",
+)
+@click.option(
+    "--agency-agents-root",
+    type=click.Path(path_type=Path, file_okay=False, dir_okay=True, exists=True),
+    default=None,
+    help="Path to the agency-agents repo root",
+)
+@click.option(
+    "--output",
+    type=click.Path(path_type=Path, dir_okay=False, exists=False),
+    default=None,
+    help="Output catalog file (default: .voly/catalog/external-registry.yaml)",
+)
+@click.option("--publish-skills/--no-publish-skills", default=False, help="Publish imported skills to marketplace if configured")
+@click.option("--publish-plugins/--no-publish-plugins", default=False, help="Publish imported plugins to marketplace if configured")
+@click.pass_context
+def registry_import_external(
+    ctx: click.Context,
+    claude_skills_root: Path | None,
+    agency_agents_root: Path | None,
+    output: Path | None,
+    publish_skills: bool,
+    publish_plugins: bool,
+) -> None:
+    """Build a local registry snapshot from claude-skills and agency-agents."""
+    from voly.registry.external_catalog import (
+        build_external_catalog,
+        catalog_path_for,
+        load_external_catalog,
+        write_external_catalog,
+    )
+    from voly.registry.marketplace import MarketplaceClient
+
+    config_path = ctx.obj.get("config_path")
+    base_dir = Path(config_path).parent if config_path else Path.cwd()
+    claude_root = claude_skills_root or base_dir.parent / "claude-skills"
+    agency_root = agency_agents_root or base_dir.parent / "agency-agents"
+    out_path = output or catalog_path_for(base_dir)
+
+    if not claude_root.exists():
+        raise click.ClickException(f"claude-skills root not found: {claude_root}")
+    if not agency_root.exists():
+        raise click.ClickException(f"agency-agents root not found: {agency_root}")
+
+    catalog = build_external_catalog(claude_root, agency_root)
+    write_external_catalog(catalog, out_path)
+    click.echo(
+        f"Wrote catalog → {out_path} (skills={catalog['counts']['skills']}, agents={catalog['counts']['agents']}, plugins={catalog['counts']['plugins']})"
+    )
+
+    if publish_skills or publish_plugins:
+        url = ctx.obj["config"].registry.marketplace_url
+        if not url:
+            click.echo("Marketplace URL not configured; skipping publish.")
+            return
+        client = MarketplaceClient(url)
+        loaded = load_external_catalog(out_path)
+        published_skills = 0
+        published_plugins = 0
+        if publish_skills:
+            for skill in loaded.get("skills", []):
+                try:
+                    client.publish_skill(skill)
+                    published_skills += 1
+                except Exception as exc:
+                    click.echo(f"Publish failed for skill {skill.get('id', '?')}: {exc}", err=True)
+        if publish_plugins:
+            for plugin in loaded.get("plugins", []):
+                if plugin.get("kind") != "claude-plugin":
+                    continue
+                try:
+                    client.publish_plugin(plugin)
+                    published_plugins += 1
+                except Exception as exc:
+                    click.echo(f"Publish failed for plugin {plugin.get('name', '?')}: {exc}", err=True)
+        if publish_skills:
+            click.echo(f"Published {published_skills} skill(s) to marketplace.")
+        if publish_plugins:
+            click.echo(f"Published {published_plugins} plugin(s) to marketplace.")
 
 
 # ── Model ─────────────────────────────────────────────────────────────────────

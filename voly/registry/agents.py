@@ -80,6 +80,13 @@ class AgentRegistry:
     def __init__(self):
         self._agents: dict[str, AgentDefinition] = {}
         self._load_builtins()
+        from pathlib import Path
+
+        from voly.registry.external_catalog import catalog_path_for, load_external_catalog, register_catalog_agents
+
+        catalog = load_external_catalog(catalog_path_for(Path.cwd()))
+        if catalog:
+            register_catalog_agents(self, catalog)
 
     def register(self, agent: AgentDefinition) -> None:
         self._agents[agent.name] = agent
@@ -116,6 +123,13 @@ class AgentRegistry:
 
     def to_dict(self) -> dict[str, Any]:
         return {name: agent.to_dict() for name, agent in self._agents.items()}
+
+    def load_from_dicts(self, agent_dicts: list[dict[str, Any]]) -> None:
+        for data in agent_dicts:
+            try:
+                self.register(AgentDefinition.from_dict(data))
+            except Exception:
+                pass
 
     def _load_builtins(self) -> None:
         for agent in BUILTIN_AGENTS:

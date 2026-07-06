@@ -27,6 +27,27 @@ CREATE INDEX IF NOT EXISTS idx_skills_status ON skills(status);
 CREATE INDEX IF NOT EXISTS idx_skills_source ON skills(source);
 CREATE INDEX IF NOT EXISTS idx_skills_updated ON skills(updated_at DESC);
 
+CREATE TABLE IF NOT EXISTS plugins (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  version TEXT DEFAULT '1.0.0',
+  author TEXT DEFAULT '{}',
+  homepage TEXT DEFAULT '',
+  repository TEXT DEFAULT '',
+  license TEXT DEFAULT '',
+  skills TEXT DEFAULT '[]',
+  source TEXT DEFAULT '{}',
+  attribution TEXT DEFAULT '{}',
+  payload TEXT DEFAULT '{}',
+  status TEXT DEFAULT 'active',
+  downloads INTEGER DEFAULT 0,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_plugins_status ON plugins(status);
+
 CREATE VIRTUAL TABLE IF NOT EXISTS skills_fts USING fts5(
   id UNINDEXED,
   name,
