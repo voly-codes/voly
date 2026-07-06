@@ -21,6 +21,16 @@ This repository also has a broader orchestration config file at the root. It rei
 ### `.env.example`
 The repository includes a non-secret sample environment file. Treat it as the place to learn which credentials and endpoints the runtime expects, without reading or committing live secrets.
 
+## Marketplace and local fallback
+
+The recent marketplace work adds both skill and plugin catalog paths that fall back to local source data when `CF_WORKER_MARKETPLACE_URL` is not set or the remote worker is unavailable.
+
+- `voly/web/routes/marketplace.py` proxies `/api/marketplace/plugins` and `/api/marketplace/plugins/sync` to the remote worker when configured, and falls back to local catalog data otherwise.
+- `voly/registry/external_catalog.py` builds a local external catalog snapshot from source trees, so the UI can still show plugins even without the worker.
+- `voly/registry/marketplace.py` now includes plugin list, detail, publish, and bulk sync calls alongside the existing skill APIs.
+
+Treat the local catalog as a fallback and the worker as the canonical marketplace backend when remote publishing or syncing matters.
+
 ## Generated runtime state
 
 The source tree and docs make it clear that several directories are runtime artifacts and should not be committed:

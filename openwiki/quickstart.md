@@ -28,6 +28,7 @@ The project is intentionally **project-agnostic**: the target codebase is suppli
 - **Gateway and cost control** — routing across model providers, caching, DLP, spend limits, and upstream delegation.
 - **CLI and web entrypoints** — the command surface and HTTP API that drive the system.
 - **UI** — the Svelte app that visualizes runs, gateway status, telemetry, and DSPy state.
+- **Marketplace and catalog flows** — skills browsing, plugin publishing/sync, and local fallback behavior when the remote marketplace is unavailable.
 - **Configuration and operations** — runtime config, environment variables, generated artifacts, and testing expectations.
 
 ## Wiki map

@@ -1,6 +1,6 @@
 # Frontend UI
 
-VOLY's frontend lives in `ui/` and is a Svelte application that visualizes task execution, gateway state, telemetry, Cloudflare-related surfaces, and DSPy state.
+VOLY's frontend lives in `ui/` and is a Svelte application that visualizes task execution, gateway state, telemetry, Cloudflare-related surfaces, DSPy state, and the marketplace browser. Recent work added a separate plugins tab plus localized English strings for the main dashboards.
 
 ## What the UI shows
 
@@ -23,7 +23,7 @@ Relevant source files include:
 - `ui/src/lib/components/gateway/GatewayPage.svelte` — gateway dashboard
 - `ui/src/lib/components/telemetry/TelemetryPage.svelte` — telemetry dashboard
 - `ui/src/lib/components/dspy/DSPyPage.svelte` — DSPy dashboard
-- `ui/src/lib/components/cf/*` — Cloudflare-focused pages
+- `ui/src/lib/components/cf/*` — Cloudflare-focused pages, including the skills marketplace and plugins tab
 - `ui/src/lib/api/client.js` — browser-side API client
 
 The UI also has i18n files in `ui/src/lib/i18n/` in the current working tree, which suggests localization is being added or updated.
@@ -40,6 +40,7 @@ The frontend is served in two ways:
 - Keep UI components aligned with the SSE and JSON shapes returned by the backend.
 - Update the API client and component props together.
 - Make sure new surfaces are wired into the main navigation, not left as orphaned components.
+- Marketplace updates usually touch both `MarketplacePage.svelte` and `PluginsPage.svelte`; verify their API paths stay in sync with `voly/web/routes/marketplace.py` and `voly/registry/marketplace.py`.
 - If localization is being extended, keep the translation files and consuming components in sync.
 
 ## Useful source files
