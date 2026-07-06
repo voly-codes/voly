@@ -121,7 +121,7 @@
   .pl-desc { font-size: 12px; color: var(--text-muted); margin: 0 0 10px; line-height: 1.5; }
   .pl-search { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; }
   .search-input { flex: 1; border: none; background: none; outline: none; color: var(--text-primary); font-size: 13px; }
-  .plugins-grid, .loading-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .plugins-grid, .loading-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
   .plugin-card { border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
   .plugin-card.skeleton { height: 84px; opacity: .5; animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 50% { opacity: .25; } }

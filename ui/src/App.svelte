@@ -138,7 +138,7 @@
   <CFPage />
 </Drawer>
 
-<Drawer bind:open={ui.marketOpen} title="Marketplace" width="600px">
+<Drawer bind:open={ui.marketOpen} title="Marketplace" width="min(920px, 96vw)">
   <div class="mkt-tabs">
     <button class="mkt-tab" class:active={marketTab === 'skills'} onclick={() => marketTab = 'skills'}>Skills</button>
     <button class="mkt-tab" class:active={marketTab === 'plugins'} onclick={() => marketTab = 'plugins'}>Plugins</button>
