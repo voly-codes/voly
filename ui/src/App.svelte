@@ -6,6 +6,7 @@
   import CostPanel from './lib/components/tasks/CostPanel.svelte'
   import RunPanel from './lib/components/tasks/RunPanel.svelte'
   import MarketplacePage from './lib/components/cf/MarketplacePage.svelte'
+  import PluginsPage from './lib/components/cf/PluginsPage.svelte'
   import CFPage from './lib/components/cf/CFPage.svelte'
   import DSPyPage from './lib/components/dspy/DSPyPage.svelte'
   import GatewayPage from './lib/components/gateway/GatewayPage.svelte'
@@ -59,6 +60,9 @@
       unreg()
     }
   })
+
+  // Marketplace drawer tab: skills | plugins
+  let marketTab = $state('skills')
 </script>
 
 <div class="app">
@@ -134,14 +138,31 @@
   <CFPage />
 </Drawer>
 
-<Drawer bind:open={ui.marketOpen} title="Skill Marketplace" width="600px">
-  <MarketplacePage />
+<Drawer bind:open={ui.marketOpen} title="Marketplace" width="600px">
+  <div class="mkt-tabs">
+    <button class="mkt-tab" class:active={marketTab === 'skills'} onclick={() => marketTab = 'skills'}>Skills</button>
+    <button class="mkt-tab" class:active={marketTab === 'plugins'} onclick={() => marketTab = 'plugins'}>Plugins</button>
+  </div>
+  {#if marketTab === 'skills'}
+    <MarketplacePage />
+  {:else}
+    <PluginsPage />
+  {/if}
 </Drawer>
 
 <!-- Toast notifications -->
 <Toast />
 
 <style>
+  .mkt-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .mkt-tab {
+    background: none; border: none; cursor: pointer;
+    padding: 8px 14px; font-size: 13px; color: var(--text-muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .mkt-tab:hover { color: var(--text-primary); }
+  .mkt-tab.active { color: var(--text-primary); border-bottom-color: var(--accent-amber); }
+
   .app {
     height: 100%;
     display: flex;

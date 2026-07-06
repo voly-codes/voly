@@ -353,6 +353,61 @@ app.post("/skills", async (c) => {
   return c.json({ id, ok: true }, 201);
 });
 
+// POST /skills/sync — bulk upsert skills into D1 (lean: no per-item R2/Vectorize).
+// Used for seeding the marketplace from a local catalog; search embeddings are
+// rebuilt separately. Mirrors /plugins/sync.
+app.post("/skills/sync", async (c) => {
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const skills = Array.isArray(body.skills)
+    ? body.skills
+    : Array.isArray(body.items)
+      ? body.items
+      : [];
+
+  const now = Date.now();
+  let upserted = 0;
+  for (const raw of skills) {
+    if (!raw || typeof raw !== "object") continue;
+    const item = raw as Record<string, unknown>;
+    const name = String(item.name ?? item.id ?? "");
+    if (!name) continue;
+    const id = String(item.id ?? name);
+    const author = typeof item.author === "object"
+      ? String((item.author as Record<string, unknown>)?.name ?? "")
+      : String(item.author ?? "");
+    await c.env.DB.prepare(`
+      INSERT INTO skills (id, name, description, content, version, author, source, status,
+        tags, capabilities, required_tools, compatible_agents, compatible_languages,
+        compatible_frameworks, downloads, usage_count, success_rate, created_at, updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(id) DO UPDATE SET
+        name=excluded.name, description=excluded.description, content=excluded.content,
+        version=excluded.version, tags=excluded.tags, capabilities=excluded.capabilities,
+        compatible_agents=excluded.compatible_agents,
+        compatible_languages=excluded.compatible_languages,
+        compatible_frameworks=excluded.compatible_frameworks,
+        source=excluded.source, status=excluded.status, updated_at=excluded.updated_at
+    `).bind(
+      id, name,
+      String(item.description ?? ""), String(item.content ?? ""),
+      String(item.version ?? "1.0.0"), author,
+      String(item.source ?? "marketplace"), String(item.status ?? "active"),
+      JSON.stringify(item.tags ?? []), JSON.stringify(item.capabilities ?? []),
+      JSON.stringify(item.required_tools ?? []), JSON.stringify(item.compatible_agents ?? []),
+      JSON.stringify(item.compatible_languages ?? []), JSON.stringify(item.compatible_frameworks ?? []),
+      0, 0, 1.0, now, now,
+    ).run();
+    upserted += 1;
+  }
+  return c.json({ upserted, total: skills.length });
+});
+
 // DELETE /skills/:id — soft delete (set status=archived)
 app.delete("/skills/:id", async (c) => {
   const id = c.req.param("id");
