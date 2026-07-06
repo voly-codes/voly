@@ -1,0 +1,21 @@
+// Telemetry dashboard page.
+export default {
+  'tel.loading': 'Loading telemetry…',
+  'tel.totalCost': 'total cost (30d)',
+  'tel.totalTokens': 'total tokens',
+  'tel.totalTasks': 'total tasks',
+  'tel.activeDays': 'active days',
+  'tel.dataHint1': 'Data is aggregated from the',
+  'tel.dataHint2': 'directory across all completed tasks. Click Refresh to update.',
+  'tel.dailySpend': 'Daily Spend (last 30 days)',
+  'tel.dailySpendHint': 'AI request cost in USD per day. Each bar is the total spend for a calendar day.',
+  'tel.dayTitle': '{date}: {cost} — {n} tasks',
+  'tel.dailyTokens': 'Daily Tokens',
+  'tel.dailyTokensHint': 'Total tokens (input + output) per day. Shows the real load on the LLM API.',
+  'tel.costUsd': 'Cost in USD',
+  'tel.tokens': 'Tokens',
+  'tel.topAgents': 'Top Agents by Spend',
+  'tel.topAgentsHint': 'Spend distribution across agent roles. Shows which roles consume most of the budget.',
+  'tel.topModels': 'Top Models by Spend',
+  'tel.topModelsHint': 'Spend distribution across LLM models. Helps understand which models are the most expensive to use.',
+}

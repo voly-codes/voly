@@ -1,4 +1,4 @@
-const BASE = ''
+const BASE = import.meta.env.VITE_VOLY_API_BASE_URL ?? ''
 
 async function get(path) {
   const res = await fetch(`${BASE}${path}`)
@@ -65,6 +65,12 @@ export const searchMarketplace = (q, limit = 20) =>
 
 export const installSkill = skill_id =>
   post(`/api/marketplace/skills/${encodeURIComponent(skill_id)}/install`, {}).then(r => r.json())
+
+export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 0) =>
+  get(`/api/marketplace/plugins?${new URLSearchParams({ status, limit, offset })}`)
+
+export const publishMarketplacePlugins = plugins =>
+  post('/api/marketplace/plugins/sync', { plugins }).then(r => r.json())
 
 // CF
 export const fetchCFWorkersStatus = () => get('/api/cf/workers/status')

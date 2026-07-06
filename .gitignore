@@ -39,3 +39,4 @@ voly/web/static/
 .voly/gateway_cache/
 docs.zip
 .voly/runs/
+.voly/catalog/

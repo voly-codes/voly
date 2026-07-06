@@ -105,15 +105,7 @@
     </div>
   </div>
 
-  {#if !configured}
-    <div class="not-configured">
-      <AlertCircleIcon size="16" strokeWidth="2" />
-      <div>
-        <div class="nc-title">Marketplace не настроен</div>
-        <div class="nc-hint">{hint || 'Укажи CF_WORKER_MARKETPLACE_URL в .env для подключения'}</div>
-      </div>
-    </div>
-  {:else if loading}
+  {#if loading}
     <div class="loading-grid">
       {#each Array(8) as _}
         <div class="skill-card skeleton"></div>
@@ -125,10 +117,26 @@
       {error}
     </div>
   {:else if skills.length === 0}
-    <div class="empty">
-      {query ? `Нет скилов по запросу «${query}»` : 'Маркетплейс пуст'}
-    </div>
+    {#if !configured}
+      <div class="not-configured">
+        <AlertCircleIcon size="16" strokeWidth="2" />
+        <div>
+          <div class="nc-title">Marketplace не настроен</div>
+          <div class="nc-hint">{hint || 'Укажи CF_WORKER_MARKETPLACE_URL в .env для подключения'}</div>
+        </div>
+      </div>
+    {:else}
+      <div class="empty">
+        {query ? `Нет скилов по запросу «${query}»` : 'Маркетплейс пуст'}
+      </div>
+    {/if}
   {:else}
+    {#if !configured}
+      <div class="local-notice">
+        <AlertCircleIcon size="13" strokeWidth="2" />
+        <span>{hint || 'Локальный реестр — задай CF_WORKER_MARKETPLACE_URL для remote-маркетплейса'}</span>
+      </div>
+    {/if}
     <div class="skills-grid">
       {#each skills as skill (skill.id ?? skill.name)}
         <div class="skill-card">
@@ -285,6 +293,13 @@
   }
   .nc-title { font-size: 13px; font-weight: 500; }
   .nc-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); }
+  .local-notice {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; margin-bottom: 12px;
+    font-size: 12px; color: var(--text-muted);
+    background: var(--bg-subtle, rgba(0,0,0,.03));
+    border-left: 2px solid var(--accent-amber); border-radius: 4px;
+  }
 
   .skills-grid {
     flex: 1;
