@@ -115,6 +115,9 @@ class MarketplaceClient:
     def publish_skill(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/skills", body=payload)
 
+    def sync_skills(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/skills/sync", body=payload)
+
     def archive_skill(self, skill_id: str) -> dict[str, Any]:
         return self._request("DELETE", f"/skills/{urllib.parse.quote(skill_id, safe='')}")
 

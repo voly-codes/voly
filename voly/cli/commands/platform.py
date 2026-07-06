@@ -206,28 +206,31 @@ def registry_import_external(
             return
         client = MarketplaceClient(url)
         loaded = load_external_catalog(out_path)
-        published_skills = 0
-        published_plugins = 0
+
+        def _batched(items: list, size: int = 40):
+            for i in range(0, len(items), size):
+                yield items[i : i + size]
+
         if publish_skills:
-            for skill in loaded.get("skills", []):
+            skills = loaded.get("skills", [])
+            done = 0
+            for batch in _batched(skills):
                 try:
-                    client.publish_skill(skill)
-                    published_skills += 1
+                    r = client.sync_skills({"skills": batch})
+                    done += int(r.get("upserted", len(batch)))
                 except Exception as exc:
-                    click.echo(f"Publish failed for skill {skill.get('id', '?')}: {exc}", err=True)
+                    click.echo(f"Skill batch failed: {exc}", err=True)
+            click.echo(f"Published {done}/{len(skills)} skill(s) to marketplace.")
         if publish_plugins:
-            for plugin in loaded.get("plugins", []):
-                if plugin.get("kind") != "claude-plugin":
-                    continue
+            plugins = [p for p in loaded.get("plugins", []) if p.get("kind") == "claude-plugin"]
+            done = 0
+            for batch in _batched(plugins):
                 try:
-                    client.publish_plugin(plugin)
-                    published_plugins += 1
+                    r = client.sync_plugins({"plugins": batch})
+                    done += int(r.get("upserted", len(batch)))
                 except Exception as exc:
-                    click.echo(f"Publish failed for plugin {plugin.get('name', '?')}: {exc}", err=True)
-        if publish_skills:
-            click.echo(f"Published {published_skills} skill(s) to marketplace.")
-        if publish_plugins:
-            click.echo(f"Published {published_plugins} plugin(s) to marketplace.")
+                    click.echo(f"Plugin batch failed: {exc}", err=True)
+            click.echo(f"Published {done}/{len(plugins)} plugin(s) to marketplace.")
 
 
 # ── Model ─────────────────────────────────────────────────────────────────────
