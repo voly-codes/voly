@@ -1,32 +1,32 @@
 # Skill Registry
 
-## Введение
+## Introduction
 
-**Skill Registry** — централизованное хранилище и система управления скиллами в VOLY. Реестр предоставляет единый API и CLI для регистрации, поиска, версионирования и автоматического создания скиллов. Любой агент VOLY обращается к реестру, чтобы найти подходящий скилл для текущей задачи на основе контекста, совместимости и атрибутов запроса.
+**Skill Registry** is the centralized skill store and management system in VOLY. The registry provides a single API and CLI for registering, searching, versioning, and auto-creating skills. Any VOLY agent uses the registry to find a suitable skill for the current task based on context, compatibility, and request attributes.
 
-## Что такое скиллы
+## What skills are
 
-**Скилл** — модульное, переиспользуемое описание способности агента выполнить конкретное действие. Скилл может представлять:
-- вызов внешнего API (например, `deploy-to-kubernetes`)
-- выполнение скрипта (`run-tests`)
-- взаимодействие с сервисами (`create-jira-ticket`)
-- последовательность команд для CI/CD
+A **skill** is a modular, reusable description of an agent's ability to perform a concrete action. A skill can represent:
+- an external API call (e.g. `deploy-to-kubernetes`)
+- a script launch (`run-tests`)
+- service interaction (`create-jira-ticket`)
+- a command sequence for CI/CD
 
-Скиллы отделены от логики агентов. Агенты *ссылаются* на скиллы, а определяются скиллы в реестре — это позволяет переиспользовать навык в разных агентах и проектах.
+Skills are separated from agent logic. Agents *reference* skills, while skills are defined in the registry — this allows reusing a capability across different agents and projects.
 
-## Источники скиллов (SkillSource)
+## Skill sources (`SkillSource`)
 
-| Источник | Описание | Приоритет |
+| Source | Description | Priority |
 |----------|----------|-----------|
-| `BUILTIN` | Встроенные скиллы ядра VOLY | Базовый |
-| `PROJECT` | Скиллы проекта из `.voly/skills/` | Высокий |
-| `ORGANIZATION` | Скиллы организации из общего репозитория | Высокий |
-| `MARKETPLACE` | Скиллы сообщества (Cloudflare Worker) | Средний |
-| `GENERATED` | Авто-генерация из успешных выполнений | Черновик до подтверждения |
+| `BUILTIN` | Built-in VOLY core skills | Base |
+| `PROJECT` | Project skills from `.voly/skills/` | High |
+| `ORGANIZATION` | Organization skills from a shared repository | High |
+| `MARKETPLACE` | Community skills (Cloudflare Worker) | Medium |
+| `GENERATED` | Auto-generated from successful runs | Draft until approved |
 
-## Встроенные скиллы
+## Built-in skills
 
-| ID | Название | Теги |
+| ID | Name | Tags |
 |----|----------|------|
 | `skill-architecture` | Software Architecture | architecture, design, system |
 | `skill-nextjs` | Next.js Development | nextjs, react, frontend |
@@ -39,35 +39,35 @@
 | `skill-temporal` | Temporal Workflows | temporal, workflow |
 | `skill-cloudflare` | Cloudflare Platform | cloudflare, serverless, edge |
 
-## Структура скилла
+## Skill structure
 
 ```python
 @dataclass
 class Skill:
-    id: str                          # уникальный идентификатор
-    name: str                        # человекочитаемое название
-    description: str                 # описание
-    source: SkillSource              # источник (builtin/project/org/marketplace/generated)
-    tags: list[str]                  # теги для поиска
-    capabilities: list[str]          # что умеет делать (architecture, frontend, testing...)
-    required_tools: list[str]        # необходимые MCP-инструменты
-    compatible_agents: list[str]     # агенты, которые могут использовать скилл
-    compatible_languages: list[str]  # языки программирования (* = все)
-    compatible_frameworks: list[str] # фреймворки (* = все)
-    content: str                     # тело скилла (инструкции / best practices)
-    version: str                     # версия скилла
-    usage_count: int                 # счётчик использований
-    success_rate: float              # доля успешных применений (0.0–1.0)
+    id: str                          # unique identifier
+    name: str                        # human-readable name
+    description: str                 # description
+    source: SkillSource              # source (builtin/project/org/marketplace/generated)
+    tags: list[str]                  # search tags
+    capabilities: list[str]          # what it can do (architecture, frontend, testing...)
+    required_tools: list[str]        # required MCP tools
+    compatible_agents: list[str]     # agents that may use the skill
+    compatible_languages: list[str]  # programming languages (* = all)
+    compatible_frameworks: list[str] # frameworks (* = all)
+    content: str                     # skill body (instructions / best practices)
+    version: str                     # skill version
+    usage_count: int                 # usage counter
+    success_rate: float              # successful application rate (0.0–1.0)
 ```
 
-## Регистрация скилла из YAML
+## Registering a skill from YAML
 
-**Шаг 1: создайте файл `.voly/skills/deploy-service.yaml`**
+**Step 1: create file `.voly/skills/deploy-service.yaml`**
 
 ```yaml
 id: deploy-service
 name: Deploy Service
-description: Деплоит сервис в Kubernetes по манифесту
+description: Deploys a service to Kubernetes from a manifest
 source: project
 tags:
   - kubernetes
@@ -86,70 +86,70 @@ compatible_languages:
 compatible_frameworks:
   - "*"
 content: |
-  Для деплоя используй kubectl apply -f <manifest>.
-  Всегда проверяй readiness probe перед финализацией деплоя.
-  Откатывай через kubectl rollout undo.
+  For deploy use kubectl apply -f <manifest>.
+  Always check readiness probe before finalizing the deploy.
+  Roll back with kubectl rollout undo.
 ```
 
-**Шаг 2: файлы из `.voly/skills/` подхватываются автоматически** при запуске `voly` из директории проекта.
+**Step 2: files from `.voly/skills/` are picked up automatically** when running `voly` from the project directory.
 
-## Поиск скиллов через CLI
+## Searching skills via CLI
 
 ```bash
-# Все скиллы
+# All skills
 voly registry skills
 
-# По тегу
+# By tag
 voly registry skills --tag kubernetes
 voly registry skills --tag deploy --tag devops
 
-# По совместимому агенту
+# By compatible agent
 voly registry skills --agent devops
 
-# По языку
+# By language
 voly registry skills --lang python
 voly registry skills --lang typescript --lang go
 
-# Комбинированный поиск
+# Combined search
 voly registry skills --tag security --agent reviewer --lang python
 ```
 
-## Авто-генерация скиллов
+## Auto-generating skills
 
-После каждого успешного выполнения задачи VOLY анализирует результат и может сгенерировать новый скилл:
+After each successful task run, VOLY analyzes the result and may generate a new skill:
 
 ```python
-# Внутри pipeline.py — вызывается автоматически
+# Inside pipeline.py — called automatically
 skill = registry.auto_generate(
-    task="задача",
-    result="результат выполнения",
+    task="task",
+    result="execution result",
     agent_name="developer",
 )
 # skill.source = SkillSource.GENERATED
 # skill.status = SkillStatus.CANDIDATE
 ```
 
-Сгенерированный скилл попадает в очередь кандидатов. Для подтверждения:
+A generated skill enters the candidate queue. To confirm:
 
 ```python
 from voly.registry.skills import SkillRegistry
 
 reg = SkillRegistry()
-reg.approve_candidate("skill-id")  # переводит в ACTIVE
-reg.reject_candidate("skill-id")   # удаляет кандидата
+reg.approve_candidate("skill-id")  # moves to ACTIVE
+reg.reject_candidate("skill-id")   # removes the candidate
 ```
 
-## Программный доступ
+## Programmatic access
 
 ```python
 from voly.registry.skills import SkillRegistry, Skill, SkillSource
 
 reg = SkillRegistry()
 
-# Поиск
+# Search
 skills = reg.search(tags=["kubernetes"], agent="devops", language="go")
 
-# Регистрация
+# Register
 reg.register(Skill(
     id="my-skill",
     name="My Skill",
@@ -160,17 +160,17 @@ reg.register(Skill(
     compatible_agents=["developer"],
     compatible_languages=["python"],
     compatible_frameworks=["*"],
-    content="Инструкции для агента...",
+    content="Instructions for the agent...",
 ))
 
-# Получить конкретный скилл
+# Get a specific skill
 skill = reg.get("skill-postgres")
 print(skill.content)
 ```
 
 ## Marketplace CLI
 
-Marketplace развёрнут как Cloudflare Worker. URL задаётся в `voly.yaml`:
+Marketplace is deployed as a Cloudflare Worker. URL is set in `voly.yaml`:
 
 ```yaml
 registry:
@@ -178,30 +178,30 @@ registry:
   marketplace_url: "${CF_WORKER_MARKETPLACE_URL}"
 ```
 
-Или через переменные окружения: `CF_WORKER_MARKETPLACE_URL`, `MARKETPLACE_URL`.
+Or via environment variables: `CF_WORKER_MARKETPLACE_URL`, `MARKETPLACE_URL`.
 
 ```bash
-# Список скиллов в marketplace
+# List skills in marketplace
 voly skill list
 
-# Локальный реестр (builtin + .voly/skills/)
+# Local registry (builtin + .voly/skills/)
 voly skill list --local
 
-# Семантический поиск
+# Semantic search
 voly skill search "react frontend"
 
-# Установка в .voly/skills/
+# Install into .voly/skills/
 voly skill install skill-nextjs
 
-# Публикация YAML
+# Publish YAML
 voly skill publish .voly/skills/my-skill.yaml
 
-# Детали скилла
+# Skill details
 voly skill show skill-nextjs
 voly skill show my-skill --local
 ```
 
-## Программный доступ к marketplace
+## Programmatic marketplace access
 
 ```python
 from voly.registry.skills import create_skill_registry
@@ -211,9 +211,9 @@ reg = create_skill_registry(
     marketplace_url="${CF_WORKER_MARKETPLACE_URL}",
 )
 
-# Установка из marketplace
+# Install from marketplace
 skill = reg.install_from_marketplace("skill-nextjs")
 
-# Публикация
+# Publish
 reg.publish_to_marketplace({"id": "my-skill", "name": "My Skill", ...})
 ```

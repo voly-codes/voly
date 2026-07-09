@@ -1,31 +1,31 @@
 # Frontend Overview
 
-UI для VOLY — Svelte 5 SPA в `ui/`. FastAPI сервирует его из `voly/web/static/`
-(built assets). В development — Vite dev server на `localhost:5173`.
+VOLY UI — Svelte 5 SPA in `ui/`. FastAPI serves it from `voly/web/static/`
+(built assets). In development — Vite dev server on `localhost:5173`.
 
 ---
 
-## Стек
+## Stack
 
-- **Svelte 5** — компоненты с `$state()`, `$derived()`, `$props()`, `{#each}`, `{#if}`
+- **Svelte 5** — components with `$state()`, `$derived()`, `$props()`, `{#each}`, `{#if}`
 - **Vite** — dev server + build (`ui/vite.config.js`)
-- **Lucide Svelte** — иконки (`ui/src/lib/icons.js`)
-- CSS custom properties — design tokens в `ui/src/app.css`
+- **Lucide Svelte** — icons (`ui/src/lib/icons.js`)
+- CSS custom properties — design tokens in `ui/src/app.css`
 
 ---
 
-## Структура
+## Structure
 
 ```
 ui/
   src/
-    App.svelte                          # корневой компонент, routing
-    app.css                             # CSS переменные + глобальные стили
-    main.js                             # точка входа
+    App.svelte                          # root component, routing
+    app.css                             # CSS variables + global styles
+    main.js                             # entry point
     lib/
       components/
         layout/
-          AppHeader.svelte              # топ-бар с навигацией
+          AppHeader.svelte              # top bar with navigation
         shared/
           CopyButton.svelte
           StatusDot.svelte
@@ -36,12 +36,12 @@ ui/
           Spinner.svelte
           Skeleton.svelte
         tasks/
-          RunPanel.svelte               # главная панель запуска задачи
-          RunParams.svelte              # параметры: executor, agent, model, cwd
-          RunResult.svelte              # вывод результата задачи
+          RunPanel.svelte               # main task run panel
+          RunParams.svelte              # params: executor, agent, model, cwd
+          RunResult.svelte              # task result output
           TaskHeader.svelte
           TaskSidebar.svelte
-          PipelineStages.svelte         # визуализация стадий pipeline
+          PipelineStages.svelte         # pipeline stage visualization
           PipelineInspector.svelte
           PipelineEmptyState.svelte
           CostPanel.svelte
@@ -52,7 +52,7 @@ ui/
 
 ---
 
-## Dev запуск
+## Dev startup
 
 ```bash
 cd ui
@@ -60,24 +60,24 @@ npm install
 npm run dev       # http://localhost:5173
 ```
 
-Требует запущенного backend: `voly ui` (порт 7788).
+Requires a running backend: `voly ui` (port 7788).
 
 ---
 
-## Build для production
+## Production build
 
 ```bash
 cd ui && npm run build
-# → voly/web/static/assets/  (не коммитить — генерируется)
+# → voly/web/static/assets/  (do not commit — generated)
 ```
 
-FastAPI сервирует `voly/web/static/` как static files.
+FastAPI serves `voly/web/static/` as static files.
 
 ---
 
-## CSS переменные (design tokens)
+## CSS variables (design tokens)
 
-Все цвета, размеры, радиусы — в `ui/src/app.css`:
+All colors, sizes, radii — in `ui/src/app.css`:
 
 ```css
 --bg-base, --bg-surface, --bg-inset
@@ -87,14 +87,14 @@ FastAPI сервирует `voly/web/static/` как static files.
 --radius-sm, --radius-md
 ```
 
-Тёмная тема по умолчанию. Светлая — через `body.light`.
+Dark theme by default. Light — via `body.light`.
 
 ---
 
-## Svelte 5 паттерны в этом проекте
+## Svelte 5 patterns in this project
 
 ```svelte
-<!-- props с $props() -->
+<!-- props with $props() -->
 let { executor = $bindable('pipeline'), running = false } = $props()
 
 <!-- state -->
@@ -107,4 +107,4 @@ let isRunning = $derived(result?.type === 'running')
 function handleRun() { dispatch('run', { task, executor }) }
 ```
 
-**Не использовать:** `export let`, `createEventDispatcher` (Svelte 4 паттерны) — везде Svelte 5 runes.
+**Do not use:** `export let`, `createEventDispatcher` (Svelte 4 patterns) — Svelte 5 runes everywhere.

@@ -1,104 +1,104 @@
 # Pipeline — Backend Reference
 
-`voly/pipeline/core.py:Pipeline` — оркестратор для **text-only** задач (inference через AIGateway).
-Для задач с записью файлов — используй `AgentRunner` + executor.
+`voly/pipeline/core.py:Pipeline` — orchestrator for **text-only** tasks (inference via AIGateway).
+For tasks that write files — use `AgentRunner` + executor.
 
 ---
 
-## Когда Pipeline, когда AgentRunner
+## When Pipeline, when AgentRunner
 
-| Сценарий | Что использовать |
+| Scenario | What to use |
 |---|---|
-| Вопрос / суммаризация / review без правок | Pipeline → AIGateway.chat() |
-| Написать/изменить файлы в проекте | AgentRunner → executor (claude-code / wrangler / zen) |
-| Web UI задача с кодом | smart dispatch: pipeline → claude-code автоматически |
-| CLI `voly run --executor cursor` | AgentRunner напрямую |
+| Question / summarization / review without edits | Pipeline → AIGateway.chat() |
+| Write/change files in a project | AgentRunner → executor (claude-code / wrangler / zen) |
+| Web UI task with code | smart dispatch: pipeline → claude-code automatically |
+| CLI `voly run --executor cursor` | AgentRunner directly |
 
 ---
 
-## Стадии Pipeline
+## Pipeline stages
 
 ```
 INIT
-  ↓ AGUI_START       — уведомить AG-UI о начале задачи (SSE events)
-  ↓ A2A_DISCOVER     — найти внешних агентов (A2A federation)
-  ↓ A2A_DELEGATE     — делегировать подзадачи если нужно
+  ↓ AGUI_START       — notify AG-UI of task start (SSE events)
+  ↓ A2A_DISCOVER     — find external agents (A2A federation)
+  ↓ A2A_DELEGATE     — delegate subtasks if needed
   ↓ ROUTE            — AgentRouter.analyze_task() + route()
-  ↓ MEMORY_RETRIEVE  — MemoryStore.search() — релевантный контекст
-  ↓ RTK_FILTER       — RTK токен-фильтрация контекста
-  ↓ SKILL_INJECT     — вставить system prompt из Catalog Skills
-  ↓ HEADROOM_COMPRESS — Headroom: сжать messages если > token limit
-  ↓ DSPY_PROGRAM_CALL — опционально: DSPyRunner.run() (shadow или active)
+  ↓ MEMORY_RETRIEVE  — MemoryStore.search() — relevant context
+  ↓ RTK_FILTER       — RTK token filtering of context
+  ↓ SKILL_INJECT     — inject system prompt from Catalog Skills
+  ↓ HEADROOM_COMPRESS — Headroom: compress messages if > token limit
+  ↓ DSPY_PROGRAM_CALL — optional: DSPyRunner.run() (shadow or active)
   ↓ MODEL_CALL        — AIGateway.chat() → response
-  ↓ MEMORY_STORE      — сохранить (task, response) в memory
-  ↓ AGUI_DONE         — закрыть AG-UI stream
+  ↓ MEMORY_STORE      — save (task, response) to memory
+  ↓ AGUI_DONE         — close AG-UI stream
   ↓ DONE / ERROR
   ↓ emit TaskEvent → telemetry
 ```
 
 ---
 
-## Авто мульти-агентность (A2A)
+## Auto multi-agent (A2A)
 
-После `ROUTE` пайплайн проверяет `_should_dispatch_a2a(analysis)`. Если A2A включён
-и задача сложная/многокомпонентная (≥ `a2a.min_flags_for_dispatch` флагов из
-`requires_code_gen/review/testing/deployment`, либо `complexity == "high"`), задача
-уходит в мульти-агентный путь `_stage_a2a_auto` вместо одиночного `MODEL_CALL`.
+After `ROUTE`, the pipeline checks `_should_dispatch_a2a(analysis)`. If A2A is enabled
+and the task is complex/multi-component (≥ `a2a.min_flags_for_dispatch` flags from
+`requires_code_gen/review/testing/deployment`, or `complexity == "high"`), the task
+goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
 
-**`a2a.execution_mode` (по умолчанию `"local"`):**
+**`a2a.execution_mode` (default `"local"`):**
 
 - **`local`** — `_run_multiagent_local`:
-  1. `TaskDecomposer` разбивает задачу на роли (architect → developer → tester →
-     reviewer → devops) с зависимостями.
-  2. **Lead-оркестратор** (`a2a/multiagent.py::LeadOrchestrator`) — сильная модель
-     (premium-тир или `a2a.lead_model`) оценивает задачу и назначает каждой роли
-     **тир модели** (`premium|standard|cheap`) и **скилы** (из registry). При сбое
-     LLM-lead — детерминированный fallback (`_ROLE_TIER` + top-скилы роли).
-  3. Тир → конкретная (model, provider) через `resolve_tier_model()`: реальный пул
-     `_PROVIDER_MODELS`, отфильтрованный `ProviderHealthChecker`
+  1. `TaskDecomposer` splits the task into roles (architect → developer → tester →
+     reviewer → devops) with dependencies.
+  2. **Lead orchestrator** (`a2a/multiagent.py::LeadOrchestrator`) — a strong model
+     (premium tier or `a2a.lead_model`) evaluates the task and assigns each role a
+     **model tier** (`premium|standard|cheap`) and **skills** (from the registry). On LLM-lead
+     failure — deterministic fallback (`_ROLE_TIER` + top skills for the role).
+  3. Tier → concrete (model, provider) via `resolve_tier_model()`: real pool
+     `_PROVIDER_MODELS`, filtered by `ProviderHealthChecker`
      (strong = anthropic/cloudflare-dynamic, weak = workers-ai/deepseek/opencode-zen/
      mimo/omniroute).
-  4. `run_local` исполняет суб-агентов **в процессе** через `AIGateway.chat()` в
-     порядке зависимостей, прокидывая результаты предыдущих ролей. Каждый агент — со
-     своей моделью, персоной и скилами.
-  5. Merge → `TaskEvent` с `a2a_dispatched=True`, `a2a_agents_used`,
-     `a2a_assignments` (роль/тир/модель/скилы/токены/стоимость).
+  4. `run_local` executes sub-agents **in-process** via `AIGateway.chat()` in
+     dependency order, passing results from previous roles. Each agent has its
+     own model, persona, and skills.
+  5. Merge → `TaskEvent` with `a2a_dispatched=True`, `a2a_agents_used`,
+     `a2a_assignments` (role/tier/model/skills/tokens/cost).
 
-- **`federation`** — суб-задачи уходят на remote-агентов (`a2a.federation_url`)
-  через `dispatch_parallel` (старый путь).
+- **`federation`** — sub-tasks go to remote agents (`a2a.federation_url`)
+  via `dispatch_parallel` (legacy path).
 
-**Промоут в вебе:** `/api/run` с `executor=pipeline` для сложной задачи больше НЕ
-промоутится в `claude-code` — `_would_dispatch_a2a()` оставляет её в пайплайне.
-Простые код-задачи (1 флаг) по-прежнему идут в `claude-code` executor.
+**Web promote:** `/api/run` with `executor=pipeline` for a complex task is no longer
+promoted to `claude-code` — `_would_dispatch_a2a()` keeps it in the pipeline.
+Simple code tasks (1 flag) still go to the `claude-code` executor.
 
 ---
 
-## Устойчивость мульти-агента (Rung A: heartbeat + watchdog)
+## Multi-agent resilience (Rung A: heartbeat + watchdog)
 
-`TaskEvent` эмитится только в **конце** прогона, поэтому зависшая/упавшая
-мульти-агентная цепочка не оставляет следа, и watchdog её не видит. Rung A
-(`voly/runtime/runs.py`) добавляет лёгкую in-flight запись:
+`TaskEvent` is emitted only at the **end** of a run, so a hung/crashed
+multi-agent chain leaves no trace and the watchdog cannot see it. Rung A
+(`voly/runtime/runs.py`) adds a lightweight in-flight record:
 
-- `run_local` пишет `RunRecord` в `telemetry.runs_dir` (`.voly/runs/<task_id>.json`)
-  при старте и обновляет **heartbeat после каждого суб-агента** (`current_role`,
-  `done_roles`, `heartbeat_at`). В конце — `status = completed | failed`.
-- `Watchdog` считает прогон **stale**, если heartbeat старше
-  `watchdog_stale_factor × a2a.task_timeout_seconds` (по умолчанию 2 × 120s).
-  Крашнувшийся процесс оставляет запись `running` со старым heartbeat → её ловит
-  watchdog.
-- Трекинг **best-effort**: любые ошибки записи глотаются и не ломают прогон
-  (как телеметрия). Запись атомарна (`tempfile` + `os.replace`).
+- `run_local` writes a `RunRecord` to `telemetry.runs_dir` (`.voly/runs/<task_id>.json`)
+  at start and updates the **heartbeat after each sub-agent** (`current_role`,
+  `done_roles`, `heartbeat_at`). At the end — `status = completed | failed`.
+- `Watchdog` treats a run as **stale** if the heartbeat is older than
+  `watchdog_stale_factor × a2a.task_timeout_seconds` (default 2 × 120s).
+  A crashed process leaves a `running` record with a stale heartbeat → the
+  watchdog picks it up.
+- Tracking is **best-effort**: any write errors are swallowed and do not break the run
+  (like telemetry). Writes are atomic (`tempfile` + `os.replace`).
 
 CLI:
 
 ```bash
-voly runs list                 # все прогоны (status/progress/age/role)
-voly runs show <task_id>       # детали одного прогона
-voly runs reap [--yes]         # найти (и пометить) прогоны без heartbeat
+voly runs list                 # all runs (status/progress/age/role)
+voly runs show <task_id>       # details of one run
+voly runs reap [--yes]         # find (and mark) runs without heartbeat
 ```
 
-Записи заодно дают эмпирику для roadmap §6 — реальную длину цепочек и частоту
-зависаний, — чтобы решить, нужны ли более дорогие рунги (checkpoint/resume).
+The records also provide empirical data for roadmap §6 — real chain lengths and hang
+frequency — to decide whether more expensive rungs (checkpoint/resume) are needed.
 
 ---
 
@@ -129,27 +129,27 @@ class PipelineResult:
 
 ```python
 analysis = router.analyze_task(task)
-# analysis.requires_code_gen — True если задача требует изменения файлов
+# analysis.requires_code_gen — True if the task requires file changes
 # analysis.task_type         — "code_generation" | "review" | "question" | ...
 
 route = router.route(analysis)
 # route.agent    — "developer" | "reviewer" | "architect" | ...
-# route.model    — конкретная модель
+# route.model    — concrete model
 # route.provider — "anthropic" | "openai" | ...
 ```
 
-`requires_code_gen = True` когда задача содержит ключевые слова: implement, create, build,
+`requires_code_gen = True` when the task contains keywords: implement, create, build,
 add, write, fix, refactor, migrate, напиши, создай, добавь, реализуй, исправь, ...
 
-Это используется в `web/routes/run.py` для smart dispatch.
+This is used in `web/routes/run.py` for smart dispatch.
 
 ---
 
-## Изменение Pipeline
+## Changing the Pipeline
 
-Правила:
-- Сохранять `PipelineResult` структуру
-- Каждая стадия — именованный метод `_stage_*`
-- Обязательно `emit TaskEvent` в telemetry
-- Нет product-specific логики в `voly/`
-- При изменении — обновить `docs/ARCHITECTURE.md` и этот файл
+Rules:
+- Preserve the `PipelineResult` structure
+- Each stage is a named `_stage_*` method
+- Always `emit TaskEvent` to telemetry
+- No product-specific logic in `voly/`
+- When changing — update `docs/ARCHITECTURE.md` and this file

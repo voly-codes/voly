@@ -1,6 +1,6 @@
 # VOLY — Agent Instructions
 
-> **Project:** VOLY — AI control plane для запуска агентов, управления стоимостью, маршрутизации задач и оркестрации.
+> **Project:** VOLY — AI control plane for running agents, managing cost, routing tasks, and orchestration.
 
 ## OpenWiki
 
@@ -13,98 +13,98 @@ OpenWiki includes repository overview, architecture notes, workflows, domain con
 
 When working in this repository, read the OpenWiki quickstart first, then follow its links to the relevant architecture, workflow, domain, operation, and testing notes.
 
-## Цель проекта
+## Project goal
 
-VOLY маршрутизирует задачи разработчика к нужному AI-агенту, управляет billing fallback chain, собирает телеметрию и предоставляет web UI + REST API.
+VOLY routes a developer's tasks to the right AI agent, manages the billing fallback chain, collects telemetry, and provides a web UI + REST API.
 
-**Ключевые компоненты:**
-- **Billing fallback chain:** `claude-code → wrangler (CF Workers AI) → zen (бесплатно)` — автоматически при ошибке биллинга
-- **Smart dispatch:** Web UI с `executor=pipeline` + code task → автопромоут в `claude-code`
-- **DSPy TaskPlanner:** рефайнит задачу перед executor, собирает (task, result) примеры для оптимизации
-- **CF AI Gateway route schema:** `/infer` endpoint в CF Worker маршрутизирует через CF Dashboard роут схему
-- **Local context:** перед executor собирает релевантные файлы проекта через grep
+**Key components:**
+- **Billing fallback chain:** `claude-code → wrangler (CF Workers AI) → zen (free)` — automatically on billing error
+- **Smart dispatch:** Web UI with `executor=pipeline` + code task → auto-promotes to `claude-code`
+- **DSPy TaskPlanner:** refines the task before the executor, collects (task, result) examples for optimization
+- **CF AI Gateway route schema:** `/infer` endpoint in the CF Worker routes via the CF Dashboard route schema
+- **Local context:** before the executor, gathers relevant project files via grep
 
-VOLY project-agnostic — нет product-specific логики в `voly/`.
-
----
-
-## Стратегическая архитектура — читай ПЕРВЫМ
-
-VOLY = два слоя с разной ценностью:
-
-- **Слой A — model gateway / routing / fallback между провайдерами моделей.** Конкурирует с OmniRoute / LiteLLM / OpenRouter — зрелая, занятая ниша. **Стабилизируется по минимуму и делегируется внешнему gateway** (VOLY уже умеет OmniRoute как upstream). НЕ источник денег и уникальности — не догонять по ширине провайдеров.
-- **Слой B — оркестрация над file-capable CLI-агентами.** Executor chain (агенты пишут файлы в проект), billing fallback между CLI, мульти-агентная декомпозиция (тир модели на роль), project-agnostic executor path, телеметрия стоимости задач. **Это уникальность продукта + фундамент монетизации — сюда весь фокус развития.**
-
-**Инвариант №1:** `AIGateway.chat()` — единственный выход к моделям. Через него идут pipeline, DSPy, суб-агенты, рантаймы — тогда кэш, DLP, spend limits, fallback и телеметрия достаются любому компоненту бесплатно. Никогда не вызывай провайдера в обход gateway (кроме executor-ов — это отдельный path).
-
-**Не делать без явного запроса:** свой workflow-движок, Temporal (при необходимости — DBOS/Restate), ранний marketplace, наращивание периферии до стабилизации ядра B.
+VOLY is project-agnostic — no product-specific logic in `voly/`.
 
 ---
 
-## Скилы — читай ПЕРЕД началом работы
+## Strategic architecture — read FIRST
 
-| Скил | Когда использовать |
+VOLY = two layers with different value:
+
+- **Layer A — model gateway / routing / fallback across model providers.** Competes with OmniRoute / LiteLLM / OpenRouter — a mature, crowded niche. **Stabilize minimally and delegate to an external gateway** (VOLY already supports OmniRoute as an upstream). NOT the source of revenue or uniqueness — do not chase provider breadth.
+- **Layer B — orchestration over file-capable CLI agents.** Executor chain (agents write files into the project), billing fallback between CLIs, multi-agent decomposition (model tier per role), project-agnostic executor path, task cost telemetry. **This is product uniqueness + the foundation of monetization — put all development focus here.**
+
+**Invariant #1:** `AIGateway.chat()` is the only path out to models. Pipeline, DSPy, sub-agents, and runtimes all go through it — so cache, DLP, spend limits, fallback, and telemetry come free to every component. Never call a provider around the gateway (except executors — that is a separate path).
+
+**Do not do without an explicit request:** a custom workflow engine, Temporal (if needed — DBOS/Restate), early marketplace, growing periphery before Layer B core is stable.
+
+---
+
+## Skills — read BEFORE starting work
+
+| Skill | When to use |
 |---|---|
-| `/voly-plan` | Создать план задачи, выбрать агентов (zen vs claude-code), запустить |
-| `/voly-backend` | Работа на Python backend: pipeline, executors, gateway, DSPy, API |
-| `/voly-frontend` | Работа на Svelte UI: компоненты, API client |
-| `/voly-report` | Создать отчёт после завершения задачи |
+| `/voly-plan` | Create a task plan, choose agents (zen vs claude-code), launch |
+| `/voly-backend` | Work on the Python backend: pipeline, executors, gateway, DSPy, API |
+| `/voly-frontend` | Work on the Svelte UI: components, API client |
+| `/voly-report` | Create a report after finishing a task |
 
 ---
 
-## Документация — читай перед изменениями
+## Documentation — read before making changes
 
 ```
 docs/
   backend/
-    pipeline.md      ← Pipeline стадии, AgentRouter, smart dispatch
-    executors.md     ← Все executors, billing fallback chain, WranglerExecutor
-    ai-gateway.md    ← AIGateway, CF route schema, провайдеры, env vars
+    pipeline.md      ← Pipeline stages, AgentRouter, smart dispatch
+    executors.md     ← All executors, billing fallback chain, WranglerExecutor
+    ai-gateway.md    ← AIGateway, CF route schema, providers, env vars
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter
-    config.md        ← voly.yaml, env vars, VOLYConfig поля
+    config.md        ← voly.yaml, env vars, VOLYConfig fields
     api.md           ← FastAPI endpoints, SSE events, CF Worker /infer
   frontend/
-    overview.md      ← Svelte 5 стек, структура ui/, dev/build
-    components.md    ← Все компоненты, их props/events
-    api-client.md    ← SSE вызовы, формат событий, обработка fallback
-  ARCHITECTURE.md    ← Высокоуровневая схема + таблицы стадий/executor
+    overview.md      ← Svelte 5 stack, ui/ structure, dev/build
+    components.md    ← All components, their props/events
+    api-client.md    ← SSE calls, event format, fallback handling
+  ARCHITECTURE.md    ← High-level diagram + stage/executor tables
 ```
 
 ---
 
-## Правило документации (ОБЯЗАТЕЛЬНО)
+## Documentation rule (MANDATORY)
 
-**Любое изменение поведения кода = обновление соответствующего doc файла.**
+**Any change in code behavior = update the corresponding doc file.**
 
-| Что изменил | Обнови |
+| What you changed | Update |
 |---|---|
-| Executor (добавил/изменил) | `docs/backend/executors.md` |
-| Pipeline стадия / PipelineResult | `docs/backend/pipeline.md` + `docs/ARCHITECTURE.md` |
-| AI Gateway / провайдер | `docs/backend/ai-gateway.md` |
-| DSPy программа / конфиг | `docs/backend/dspy.md` |
+| Executor (added/changed) | `docs/backend/executors.md` |
+| Pipeline stage / PipelineResult | `docs/backend/pipeline.md` + `docs/ARCHITECTURE.md` |
+| AI Gateway / provider | `docs/backend/ai-gateway.md` |
+| DSPy program / config | `docs/backend/dspy.md` |
 | Config / env var | `docs/backend/config.md` |
 | API endpoint | `docs/backend/api.md` |
-| Svelte компонент | `docs/frontend/components.md` |
-| API вызов из UI | `docs/frontend/api-client.md` |
+| Svelte component | `docs/frontend/components.md` |
+| API call from UI | `docs/frontend/api-client.md` |
 
 ---
 
-## Выбор агента для задачи
+## Choosing an agent for a task
 
-| Задача | Агент | Почему |
+| Task | Agent | Why |
 |---|---|---|
-| Обновить документацию | `zen` | простая задача, бесплатно |
-| Добавить label/hint в UI | `zen` | 1-2 файла |
-| Исправить опечатку/переименовать | `zen` | минимальный риск |
-| Новый executor / DSPy программа | `claude-code` | сложная архитектура |
-| Новая pipeline стадия | `claude-code` | несколько файлов + docs |
-| Интеграция провайдера | `claude-code` | gateway + config + docs |
-| Рефакторинг 3+ файлов | `claude-code` | нужен контекст |
+| Update documentation | `zen` | simple task, free |
+| Add a label/hint in the UI | `zen` | 1–2 files |
+| Fix a typo/rename | `zen` | minimal risk |
+| New executor / DSPy program | `claude-code` | complex architecture |
+| New pipeline stage | `claude-code` | multiple files + docs |
+| Provider integration | `claude-code` | gateway + config + docs |
+| Refactor 3+ files | `claude-code` | needs context |
 
 ```bash
-# Запуск через VOLY runner (этот репозиторий: /home/lanies/git/codeops/voly)
-voly run "<задача>" --executor zen --cwd /home/lanies/git/codeops/voly
-voly run "<задача>" --executor claude-code --cwd /home/lanies/git/codeops/voly
+# Run via VOLY runner (this repository: /home/lanies/git/codeops/voly)
+voly run "<task>" --executor zen --cwd /home/lanies/git/codeops/voly
+voly run "<task>" --executor claude-code --cwd /home/lanies/git/codeops/voly
 ```
 
 ---
@@ -113,11 +113,11 @@ voly run "<задача>" --executor claude-code --cwd /home/lanies/git/codeops/
 
 | Rule | Meaning |
 |---|---|
-| Project-agnostic core | Нет hardcoded путей/продуктовой логики в `voly/` |
-| Target project via `--cwd` | Executors работают на внешних репо через `--cwd` |
-| Generated state not source | Не коммитить `.voly/events/`, DSPy datasets, compiled programs |
-| Gateway first | Model calls идут через `AIGateway.chat()` — кроме executors |
-| Docs move with code | Docs обновляются вместе с кодом, в том же коммите |
+| Project-agnostic core | No hardcoded paths/product logic in `voly/` |
+| Target project via `--cwd` | Executors work on external repos via `--cwd` |
+| Generated state not source | Do not commit `.voly/events/`, DSPy datasets, compiled programs |
+| Gateway first | Model calls go through `AIGateway.chat()` — except executors |
+| Docs move with code | Docs are updated with the code, in the same commit |
 
 ---
 
@@ -129,7 +129,7 @@ pip install -e ".[dev]"
 voly status
 ```
 
-Optional: `pip install -e ".[dspy,dev]"` или `pip install -e ".[cursor,dev]"`
+Optional: `pip install -e ".[dspy,dev]"` or `pip install -e ".[cursor,dev]"`
 
 Smoke checks:
 ```bash
@@ -170,17 +170,17 @@ voly setup                  voly config               voly tunnel
 voly spend status
 ```
 
-При удалении команды: убери из `cli/main.py`, `cli/commands/__init__.py`, тесты, README, docs.
+When removing a command: remove it from `cli/main.py`, `cli/commands/__init__.py`, tests, README, docs.
 
 ---
 
 ## Testing
 
-CI: smoke gate — base install, import без DSPy, import с DSPy, runtime smoke tests.
+CI: smoke gate — base install, import without DSPy, import with DSPy, runtime smoke tests.
 
 ```bash
-pytest tests/test_dspy_runtime_smoke.py   # обязательно после любых изменений
-pytest tests/ -q                          # полный прогон
+pytest tests/test_dspy_runtime_smoke.py   # required after any changes
+pytest tests/ -q                          # full run
 ```
 
 ---
@@ -197,11 +197,11 @@ pytest tests/ -q                          # полный прогон
 
 | Problem | First check |
 |---|---|
-| `DSPy is not installed` | `pip install -e ".[dspy]"` или `dspy.enabled: false` |
-| Base install imports DSPy | Проверь top-level `import dspy` вне lazy paths |
-| Pipeline bypasses gateway | Убедись что runtime использует `AIGateway.chat()` |
-| Executor не пишет файлы | Проверь `--cwd` и credentials executor |
-| Billing fallback не срабатывает | Детекция в `voly/ai_gateway/error_classifier.py` (`_is_billing_error` делегирует туда); rate-limit 429 НЕ считается billing — только quota-exhausted/account |
-| Smart dispatch не срабатывает | Установи `VOLY_PROJECT_CWD` или `default_cwd` в `voly.yaml` |
-| Wrangler executor недоступен | Запусти `cd cf-workers/agent && wrangler dev` |
-| CI fails with test collection | Проверь `pyproject.toml` pytest config |
+| `DSPy is not installed` | `pip install -e ".[dspy]"` or `dspy.enabled: false` |
+| Base install imports DSPy | Check for top-level `import dspy` outside lazy paths |
+| Pipeline bypasses gateway | Ensure the runtime uses `AIGateway.chat()` |
+| Executor does not write files | Check `--cwd` and executor credentials |
+| Billing fallback does not trigger | Detection in `voly/ai_gateway/error_classifier.py` (`_is_billing_error` delegates there); rate-limit 429 is NOT treated as billing — only quota-exhausted/account |
+| Smart dispatch does not trigger | Set `VOLY_PROJECT_CWD` or `default_cwd` in `voly.yaml` |
+| Wrangler executor unavailable | Run `cd cf-workers/agent && wrangler dev` |
+| CI fails with test collection | Check `pyproject.toml` pytest config |

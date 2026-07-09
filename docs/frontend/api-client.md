@@ -1,12 +1,12 @@
 # API Client — Frontend Reference
 
-UI общается с backend через SSE (Server-Sent Events) и REST.
+The UI talks to the backend via SSE (Server-Sent Events) and REST.
 
 ---
 
-## POST /api/run — SSE поток
+## POST /api/run — SSE stream
 
-Основной endpoint для запуска задач.
+Main endpoint for running tasks.
 
 ```javascript
 const response = await fetch('/api/run', {
@@ -17,7 +17,7 @@ const response = await fetch('/api/run', {
     executor,   // "pipeline" | "claude-code" | "wrangler" | "zen" | ...
     agent,      // "" = auto
     model,      // "" = auto
-    cwd,        // путь к целевому проекту (можно оставить пустым)
+    cwd,        // path to target project (may be left empty)
     max_turns: 30
   })
 })
@@ -29,20 +29,20 @@ const reader = response.body.getReader()
 **SSE events:**
 
 ```javascript
-// Начало
+// Start
 { type: "start", task: "...", executor: "claude-code" }
 
-// Успех
+// Success
 {
   type: "done",
   success: true,
-  content: "...",           // вывод агента
-  executor: "zen",          // может отличаться от запрошенного (billing fallback)
-  billing_fallback: "zen",  // если был fallback
+  content: "...",           // agent output
+  executor: "zen",          // may differ from requested (billing fallback)
+  billing_fallback: "zen",  // if fallback occurred
   cost_usd: 0.012,
   duration_ms: 8500,
   num_turns: 5,
-  // для pipeline executor:
+  // for pipeline executor:
   agent: "developer",
   model: "claude-sonnet-4-6",
   provider: "anthropic",
@@ -50,20 +50,20 @@ const reader = response.body.getReader()
   stage: "DONE"
 }
 
-// Ошибка
+// Error
 { type: "error", error: "claude-code: credit balance is too low" }
 ```
 
 ---
 
-## GET /api/tasks — SSE поток обновлений
+## GET /api/tasks — SSE update stream
 
 ```javascript
 const es = new EventSource('/api/tasks')
 es.onmessage = (e) => {
   const data = JSON.parse(e.data)
   if (data.type === 'init') { tasks = data.tasks }
-  if (data.type === 'update') { /* обновить конкретную задачу */ }
+  if (data.type === 'update') { /* update a specific task */ }
 }
 ```
 
@@ -96,9 +96,9 @@ const { models } = await fetch('/api/models').then(r => r.json())
 
 ---
 
-## Обработка billing_fallback в UI
+## Handling billing_fallback in the UI
 
-Если `done.billing_fallback` присутствует — показать бейдж:
+If `done.billing_fallback` is present — show a badge:
 
 ```svelte
 {#if result?.billing_fallback}
@@ -112,10 +112,10 @@ const { models } = await fetch('/api/models').then(r => r.json())
 
 ## CORS / proxy
 
-В development Vite проксирует `/api/*` на `http://localhost:7788`:
+In development Vite proxies `/api/*` to `http://localhost:7788`:
 ```javascript
 // vite.config.js
 proxy: { '/api': 'http://localhost:7788' }
 ```
 
-В production FastAPI сервирует SPA и API на одном порту (7788).
+In production FastAPI serves SPA and API on the same port (7788).

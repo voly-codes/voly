@@ -1,13 +1,13 @@
 # API Routes — Backend Reference
 
-FastAPI сервер: `voly/web/server.py`. Запуск: `voly ui` (порт 7788).
+FastAPI server: `voly/web/server.py`. Start: `voly ui` (port 7788).
 
 ---
 
 ## Auth (JWT)
 
-По умолчанию **auth выключен** — API открыт (только localhost). При сетевом
-доступе включите JWT:
+By default **auth is disabled** — the API is open (localhost only). For network
+access, enable JWT:
 
 ```yaml
 # voly.yaml
@@ -23,10 +23,10 @@ auth:
 
 Env: `VOLY_AUTH_ENABLED=true`, `VOLY_JWT_SECRET=…`, `VOLY_AUTH_USERS=admin:pass`.
 
-Когда auth включён, все `/api/*` кроме публичных требуют
+When auth is enabled, all `/api/*` except public routes require
 `Authorization: Bearer <token>`.
 
-| Публичные | Защищённые |
+| Public | Protected |
 |---|---|
 | `POST /api/auth/login` | `POST /api/run` |
 | `GET /api/auth/status` | `GET /api/tasks` |
@@ -44,14 +44,14 @@ curl -s -X POST http://127.0.0.1:7788/api/auth/login \
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:7788/api/tasks
 ```
 
-При `auth.enabled` + `cors_origins: ["*"]` сервер автоматически сужает CORS
-до localhost-оригинов (см. `voly/web/server.py`).
+With `auth.enabled` + `cors_origins: ["*"]`, the server automatically narrows CORS
+to localhost origins (see `voly/web/server.py`).
 
 ---
 
 ## POST /api/run
 
-Запуск задачи. Возвращает SSE-поток.
+Start a task. Returns an SSE stream.
 
 ```typescript
 // Request
@@ -72,17 +72,17 @@ data: {"type": "done", "success": true, "content": "...", "billing_fallback": "z
 data: {"type": "error", "error": "..."}
 ```
 
-**Smart dispatch:** если `executor="pipeline"` и задача требует code gen,
-автоматически промоутится в `executor="claude-code"` с `cwd` из `config.default_cwd`
-или `VOLY_PROJECT_CWD` env var.
+**Smart dispatch:** if `executor="pipeline"` and the task requires code gen,
+it is automatically promoted to `executor="claude-code"` with `cwd` from `config.default_cwd`
+or the `VOLY_PROJECT_CWD` env var.
 
-Логи: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FALLBACK]`
+Logs: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FALLBACK]`
 
 ---
 
 ## GET /api/tasks
 
-Список задач из `.voly/events/`. SSE-поток обновлений.
+Task list from `.voly/events/`. SSE stream of updates.
 
 ```typescript
 // SSE events
@@ -94,7 +94,7 @@ data: {"type": "update", "task": {...}}
 
 ## GET /api/status
 
-Состояние сервера, конфигурация, версии.
+Server state, configuration, versions.
 
 ```json
 {
@@ -106,85 +106,85 @@ data: {"type": "update", "task": {...}}
 }
 ```
 
-`default_cwd` — путь из `voly.yaml` (`default_cwd`) или env `VOLY_PROJECT_CWD`. Пустая строка если не задан. Используется UI (RunPanel) для авто-заполнения поля cwd при загрузке.
+`default_cwd` — path from `voly.yaml` (`default_cwd`) or env `VOLY_PROJECT_CWD`. Empty string if unset. Used by the UI (RunPanel) to auto-fill the cwd field on load.
 
 ---
 
 ## GET /api/registry/agents
 
-Список зарегистрированных агентов из `voly/registry/`.
+List of registered agents from `voly/registry/`.
 
 ---
 
 ## GET /api/registry/skills
 
-Список скилов из `voly/catalog/`.
+List of skills from `voly/catalog/`.
 
 ---
 
 ## GET /api/models
 
-Список доступных моделей (из конфига + провайдеров).
+List of available models (from config + providers).
 
 ---
 
 ## GET /api/ai-gateway/status
 
-Состояние AI Gateway: провайдеры, spend, rate limits.
+AI Gateway state: providers, spend, rate limits.
 
 ---
 
 ## GET /api/spend/status
 
-Текущий дневной spend по агентам/провайдерам.
+Current daily spend by agents/providers.
 
 ---
 
 ## POST /api/telemetry
 
-Запись телеметрии из внешних источников.
+Write telemetry from external sources.
 
-### Контракт TaskEvent (schema_version: 1)
+### TaskEvent contract (schema_version: 1)
 
-`TaskEvent` (`voly/telemetry.py`) — публичный версионируемый формат события
-задачи; его читают внешние потребители (CF Pipelines ingest, R2, дашборды).
-Каждое событие несёт `schema_version` (сейчас `1`). Набор полей v1 заморожен
-контрактным тестом `tests/test_protocol_contracts.py` — изменение схемы
-требует бампа `TASK_EVENT_SCHEMA_VERSION`, обновления этого раздела и снимка
-в тесте. Ключевые группы полей: идентификация (`task_id`, `agent`, `executor`,
-`status`, `schema_version`), стоимость (`cost_usd`, `retry_count`,
-`retry_cost_usd`, `tokens`), диагностика (`error`, `error_class`,
+`TaskEvent` (`voly/telemetry.py`) is the public versioned task event format;
+it is consumed by external readers (CF Pipelines ingest, R2, dashboards).
+Each event carries `schema_version` (currently `1`). The v1 field set is frozen
+by the contract test `tests/test_protocol_contracts.py` — changing the schema
+requires bumping `TASK_EVENT_SCHEMA_VERSION`, updating this section, and the
+snapshot in the test. Key field groups: identification (`task_id`, `agent`, `executor`,
+`status`, `schema_version`), cost (`cost_usd`, `retry_count`,
+`retry_cost_usd`, `tokens`), diagnostics (`error`, `error_class`,
 `chain_timelog`), A2A (`a2a_*`), DSPy (`dspy_*`).
 
-Смежный контракт: spend-протокол — `docs/backend/spend-protocol.md`.
+Related contract: spend protocol — `docs/backend/spend-protocol.md`.
 
 ---
 
 ## CF Worker endpoints (`cf-workers/agent/`)
 
-Отдельный Worker для CF-native задач. Запуск: `wrangler dev`.
+Separate Worker for CF-native tasks. Start: `wrangler dev`.
 
-| Endpoint | Метод | Назначение |
+| Endpoint | Method | Purpose |
 |---|---|---|
-| `/health` | GET | Проверка доступности + pipeline/A2A callback status |
-| `/infer` | POST | CF AI Gateway inference → FILE blocks для LocalPatchApplier |
-| `/agents/:name/run` | POST | Запуск задачи + A2A callback (`task_id` optional) |
+| `/health` | GET | Availability check + pipeline/A2A callback status |
+| `/infer` | POST | CF AI Gateway inference → FILE blocks for LocalPatchApplier |
+| `/agents/:name/run` | POST | Run a task + A2A callback (`task_id` optional) |
 | `/mcp` | * | MCP tools (`run_task`) |
 
-**A2A callback:** `completeA2ATask()` POST `/tasks/:id/complete` на federation worker через
-service binding `A2A_FEDERATION` (HTTP fetch на `*.workers.dev` даёт CF error 1042).
+**A2A callback:** `completeA2ATask()` POSTs `/tasks/:id/complete` to the federation worker via
+service binding `A2A_FEDERATION` (HTTP fetch to `*.workers.dev` yields CF error 1042).
 
 ## CF Worker endpoints (`cf-workers/a2a/`)
 
-| Endpoint | Метод | Назначение |
+| Endpoint | Method | Purpose |
 |---|---|---|
 | `/health` | GET | Federation + queue status |
-| `POST /tasks` | POST | Создать задачу (`async: true` → queue dispatch) |
-| `GET /tasks/:id` | GET | Статус задачи |
-| `POST /tasks/:id/complete` | POST | Callback от agent worker (Bearer `API_TOKEN`) |
-| queue consumer | — | Dispatch через service binding `AGENT_WORKER` |
+| `POST /tasks` | POST | Create a task (`async: true` → queue dispatch) |
+| `GET /tasks/:id` | GET | Task status |
+| `POST /tasks/:id/complete` | POST | Callback from agent worker (Bearer `API_TOKEN`) |
+| queue consumer | — | Dispatch via service binding `AGENT_WORKER` |
 
-**`POST /infer`** — основной endpoint для WranglerExecutor:
+**`POST /infer`** — primary endpoint for WranglerExecutor:
 ```typescript
 // Request
 { task: string, context?: string, model?: string, system?: string, max_tokens?: number }

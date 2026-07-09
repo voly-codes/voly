@@ -1,26 +1,26 @@
 # DSPy — Backend Reference
 
-DSPy — опциональный слой оптимизации. Он может заменять или улучшать промпты
-через телепромптеры (BootstrapFewShot, MIPROv2). Весь трафик DSPy идёт через
-`AIGateway.chat()` — никакого прямого доступа к моделям.
+DSPy is an optional optimization layer. It can replace or improve prompts
+via teleprompters (BootstrapFewShot, MIPROv2). All DSPy traffic goes through
+`AIGateway.chat()` — no direct model access.
 
-Если `dspy` не установлен — всё работает как прежде через ClassicRuntime.
+If `dspy` is not installed, everything continues to work via ClassicRuntime.
 
 ---
 
-## Режимы
+## Modes
 
-| Режим | Поведение |
+| Mode | Behavior |
 |---|---|
-| `off` | DSPy не используется |
-| `shadow` | DSPy запускается параллельно, результат логируется, но не возвращается пользователю |
-| `active` | DSPy-результат заменяет классический для агентов из `config.dspy.agents` |
+| `off` | DSPy is not used |
+| `shadow` | DSPy runs in parallel; result is logged but not returned to the user |
+| `active` | DSPy result replaces the classic path for agents in `config.dspy.agents` |
 
-Проверить статус: `voly dspy status`
+Check status: `voly dspy status`
 
 ---
 
-## Два места интеграции DSPy
+## Two DSPy integration points
 
 ### 1. Pipeline path (inference)
 
@@ -28,10 +28,10 @@ DSPy — опциональный слой оптимизации. Он може
 HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL
 ```
 
-`voly/inference/runtime.py` вызывает `DSPyRunner.run()` перед финальным
-обращением к `AIGateway.chat()`. Работает для text-only задач через Pipeline.
+`voly/inference/runtime.py` calls `DSPyRunner.run()` before the final
+`AIGateway.chat()` call. Used for text-only tasks through Pipeline.
 
-Программы: `reviewer`, `architect`, `bugfixer`, `documenter`, `router`.
+Programs: `reviewer`, `architect`, `bugfixer`, `documenter`, `router`.
 
 ### 2. Executor path (AgentRunner)
 
@@ -42,33 +42,33 @@ task → _dspy_plan_task() → refined_task → executor.run() → result
                                               → datasets_dir/task_planner/
 ```
 
-`voly/runner/agent_runner.py` вызывает `TaskPlannerProgram` перед запуском
-любого executor. Активно только если `dspy.enabled=true`.
+`voly/runner/agent_runner.py` calls `TaskPlannerProgram` before starting
+any executor. Active only when `dspy.enabled=true`.
 
-После выполнения сохраняет пример `(task, refined_task, result)` в JSONL для
-последующей оптимизации.
+After execution it stores an example `(task, refined_task, result)` in JSONL for
+later optimization.
 
 ---
 
 ## TaskPlannerProgram (`voly/dspy/programs/task_planner.py`)
 
-**Сигнатура:**
-- Input: `task` (оригинальная задача), `project_context` (краткий контекст проекта)
-- Output: `refined_task` (переформулированная задача), `success_criteria`, `estimated_complexity`
+**Signature:**
+- Input: `task` (original task), `project_context` (brief project context)
+- Output: `refined_task` (rephrased task), `success_criteria`, `estimated_complexity`
 
-**Стратегия:** `ChainOfThought` — модель рассуждает пошагово перед ответом.
+**Strategy:** `ChainOfThought` — the model reasons step by step before answering.
 
-**Применение:** перед executor. Если DSPy недоступен или падает — executor
-получает оригинальный `task` (graceful fallback).
+**Usage:** before the executor. If DSPy is unavailable or fails, the executor
+receives the original `task` (graceful fallback).
 
-**Метрика оптимизации:** `task_quality_metric` — вознаграждает за специфичность
-(длина refined_task vs оригинал) и completeness (количество критериев приёмки).
+**Optimization metric:** `task_quality_metric` — rewards specificity
+(refined_task length vs original) and completeness (number of acceptance criteria).
 
 ---
 
-## Остальные программы
+## Other programs
 
-| Program ID | Агенты | Сигнатура |
+| Program ID | Agents | Signature |
 |---|---|---|
 | `task_planner` | developer, architect, bugfixer, tester, devops | task → refined_task + criteria |
 | `code-review` | reviewer | task + diff → summary + risks + bugs + patch |
@@ -81,9 +81,9 @@ task → _dspy_plan_task() → refined_task → executor.run() → result
 
 ## DSPy adapter (`voly/dspy/adapter.py`)
 
-`VOLYDSPyLM` — адаптер между DSPy и VOLY AIGateway. Реализует DSPy `BaseLM`
-интерфейс. Все DSPy-вызовы идут через `gateway.chat()` — сохраняется cache, DLP,
-rate limits, spend limits.
+`VOLYDSPyLM` — adapter between DSPy and VOLY AIGateway. Implements the DSPy `BaseLM`
+interface. All DSPy calls go through `gateway.chat()` — cache, DLP,
+rate limits, and spend limits are preserved.
 
 ```python
 lm = VOLYDSPyLM(gateway=gateway, model="claude-sonnet-4-6", provider="anthropic")
@@ -92,10 +92,10 @@ dspy.configure(lm=lm)
 
 ---
 
-## Datasets и compilation
+## Datasets and compilation
 
-Сохранённые примеры (`datasets_dir/task_planner/*.jsonl`) можно использовать для
-оптимизации через телепромптеры:
+Saved examples (`datasets_dir/task_planner/*.jsonl`) can be used for
+optimization via teleprompters:
 
 ```python
 from voly.dspy.compiler import DSPyCompiler
@@ -103,50 +103,50 @@ compiler = DSPyCompiler(config)
 compiler.compile("task_planner", optimizer="bootstrap", tag="v1")
 ```
 
-Compiled programs хранятся в `programs_dir/` — это **runtime artifacts**, не source.
-Не коммитить в git. Продвинуть в production: `voly dspy status` → promote.
+Compiled programs live in `programs_dir/` — these are **runtime artifacts**, not source.
+Do not commit them to git. Promote to production: `voly dspy status` → promote.
 
 ---
 
-## Конфиг
+## Config
 
 ```yaml
 # voly.yaml
 dspy:
-  enabled: false          # true чтобы включить
+  enabled: false          # true to enable
   mode: shadow            # off | shadow | active
-  model: llama-scout      # модель для DSPy inference (из секции models:)
-  provider: workers-ai    # провайдер для DSPy; пустая строка = из model config
-  agents: []              # empty = все агенты (в active mode)
+  model: llama-scout      # model for DSPy inference (from models: section)
+  provider: workers-ai    # provider for DSPy; empty string = from model config
+  agents: []              # empty = all agents (in active mode)
   programs_dir: .voly/dspy/programs
   datasets_dir: .voly/dspy/datasets
   active_tag: production
   shadow_tag: candidate
 ```
 
-`model` / `provider` — определяют какую модель использует DSPy для inference, **независимо** от routing модели задачи. Рекомендуется указывать дешёвую/бесплатную модель (например `llama-scout` через `workers-ai`), чтобы DSPy не конкурировал за баланс с основными executor-ами.
+`model` / `provider` — which model DSPy uses for inference, **independent** of the task’s routing model. Prefer a cheap/free model (e.g. `llama-scout` via `workers-ai`) so DSPy does not compete with main executors for budget.
 
-Логика выбора модели в `DSPyRunner._get_lm()`:
-1. `config.dspy.model` → `config.dspy.provider` если оба заданы
-2. `config.dspy.model` → provider из `get_model_config(model)` если provider пустой
-3. Route model / provider как fallback (если `dspy.model` не задан)
-
----
-
-## Телеметрия — `dspy_used`
-
-В `TaskEvent.dspy_used`:
-- `True` — DSPy успешно выполнился (в `shadow` mode — результат не возвращён пользователю, но DSPy отработал)
-- `False` — DSPy не запускался или завершился с ошибкой
-
-В `shadow` mode `dspy_used=True` означает "DSPy запустился", а не "результат использован". Поле `mode="shadow"` показывает что вывод не влиял на ответ.
+Model selection logic in `DSPyRunner._get_lm()`:
+1. `config.dspy.model` → `config.dspy.provider` if both are set
+2. `config.dspy.model` → provider from `get_model_config(model)` if provider is empty
+3. Route model / provider as fallback (if `dspy.model` is not set)
 
 ---
 
-## Правила
+## Telemetry — `dspy_used`
 
-- `AIGateway.chat()` — единственный выход к моделям
-- `shadow` mode НЕ меняет вывод для пользователя
-- `active` mode должен иметь fallback на classic
-- Compiled programs/datasets — runtime artifacts, не коммитить
-- Не импортировать `dspy` на уровне модуля — только в lazy paths
+In `TaskEvent.dspy_used`:
+- `True` — DSPy completed successfully (in `shadow` mode the result is not returned to the user, but DSPy did run)
+- `False` — DSPy was not started or failed with an error
+
+In `shadow` mode, `dspy_used=True` means “DSPy ran”, not “result was used”. The `mode="shadow"` field shows that output did not affect the response.
+
+---
+
+## Rules
+
+- `AIGateway.chat()` is the only path to models
+- `shadow` mode does NOT change user-facing output
+- `active` mode must fall back to classic
+- Compiled programs/datasets are runtime artifacts — do not commit
+- Do not import `dspy` at module level — only in lazy paths

@@ -1,8 +1,8 @@
 # DSPy Integration
 
-> **Актуальный документ:** [`docs/backend/dspy.md`](backend/dspy.md)
-> Этот файл содержит базовую информацию; полное описание включая TaskPlannerProgram
-> и интеграцию с executor path — в `docs/backend/dspy.md`.
+> **Canonical document:** [`docs/backend/dspy.md`](backend/dspy.md)
+> This file has baseline information; the full description including TaskPlannerProgram
+> and executor path integration is in `docs/backend/dspy.md`.
 
 ---
 

@@ -1,12 +1,12 @@
 # Config & Env — Backend Reference
 
-Конфиг загружается из `voly.yaml` + `.env`. Класс: `voly/config.py:VOLYConfig`.
+Config is loaded from `voly.yaml` + `.env`. Class: `voly/config.py:VOLYConfig`.
 
-Приоритет: `.env` > `voly.yaml` > defaults в коде.
+Priority: `.env` > `voly.yaml` > defaults in code.
 
 ---
 
-## Ключевые env vars
+## Key env vars
 
 ### Executors
 
@@ -28,7 +28,7 @@ WRANGLER_DEV_TOKEN=                 # optional
 ```env
 CF_ACCOUNT_ID=073ae0130b7cee5e55a1ac1a335431a8
 CF_GATEWAY_ID=default
-CF_AIG_TOKEN=<от CF Dashboard → AI Gateway → Settings>
+CF_AIG_TOKEN=<from CF Dashboard → AI Gateway → Settings>
 
 # R2 / D1 / Workers AI
 CLOUDFLARE_API_TOKEN=...
@@ -40,36 +40,36 @@ CLOUDFLARE_R2_BUCKET=...
 
 ```env
 VOLY_PROJECT_CWD=/path/to/target/project
-# cwd по умолчанию для executor-ов (или default_cwd в voly.yaml).
+# default cwd for executors (or default_cwd in voly.yaml).
 
 VOLY_A2A_TOKEN=...
-# Bearer-токен для federation-запросов к A2A/agent воркерам (a2a.token).
+# Bearer token for federation requests to A2A/agent workers (a2a.token).
 
 VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
-# Исключить провайдеров из tier-пула мульти-агента (напр. при исчерпании кредитов).
+# Exclude providers from the multi-agent tier pool (e.g. when credits are exhausted).
 ```
 
-> Порты `voly serve` (9202) и `voly ui` (7788) задаются флагом `--port`, НЕ через
-> env-переменные. Синхронизацию `docs ↔ .env.example ↔ код` проверяет CI-гейт
+> Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via
+> env variables. Sync of `docs ↔ .env.example ↔ code` is checked by the CI gate
 > `scripts/check_env_doc_sync.py`.
 
 ---
 
-## voly.yaml — ключевые поля
+## voly.yaml — key fields
 
 ```yaml
 default_agent: cursor
-default_cwd: ""          # path для executor по умолчанию (overrides VOLY_PROJECT_CWD)
+default_cwd: ""          # default path for executor (overrides VOLY_PROJECT_CWD)
 
 ai_gateway:
   provider: cloudflare   # cloudflare | custom
   cloudflare_account_id: ""
   cloudflare_gateway_id: default
-  upstream: ""           # "omniroute" → делегировать не-CF маршрутизацию внешнему gateway
-  upstream_model: ""     # "auto" = auto-combo OmniRoute; "" = passthrough модели вызывающего
-  upstream_fallback_direct: true  # при недоступности upstream — прямой адаптер провайдера
+  upstream: ""           # "omniroute" → delegate non-CF routing to external gateway
+  upstream_model: ""     # "auto" = auto-combo OmniRoute; "" = passthrough caller's model
+  upstream_fallback_direct: true  # if upstream unavailable — direct provider adapter
   cache_enabled: true
-  cache_persist_dir: .voly/gateway_cache  # disk-кэш ответов; пусто → только in-memory
+  cache_persist_dir: .voly/gateway_cache  # disk cache for responses; empty → in-memory only
   rate_limit_rpm: 60
   spend_limit_usd_per_day: 10.0
 
@@ -86,18 +86,18 @@ dspy:
 
 a2a:
   enabled: true
-  auto_dispatch: true          # авто мульти-агентность для сложных задач
-  min_flags_for_dispatch: 2    # порог capability-флагов (code_gen/review/testing/deployment)
-  execution_mode: local        # local (lead + суб-агенты in-process) | federation (remote)
-  lead_model: ""               # модель lead-оркестратора; пусто → premium из здорового пула
-  federation_url: ""           # только для execution_mode=federation
-  task_timeout_seconds: 120    # таймаут на роль; watchdog берёт его за базу
+  auto_dispatch: true          # auto multi-agent for complex tasks
+  min_flags_for_dispatch: 2    # capability-flag threshold (code_gen/review/testing/deployment)
+  execution_mode: local        # local (lead + sub-agents in-process) | federation (remote)
+  lead_model: ""               # lead orchestrator model; empty → premium from healthy pool
+  federation_url: ""           # only for execution_mode=federation
+  task_timeout_seconds: 120    # per-role timeout; watchdog uses it as base
 
 telemetry:
   enabled: true
   events_dir: .voly/events
-  runs_dir: .voly/runs          # in-flight RunRecord'ы мульти-агента (Rung A)
-  watchdog_stale_factor: 2.0    # прогон stale, если heartbeat старше factor × task_timeout
+  runs_dir: .voly/runs          # in-flight multi-agent RunRecords (Rung A)
+  watchdog_stale_factor: 2.0    # run is stale if heartbeat older than factor × task_timeout
 
 rtk:
   enabled: true
@@ -118,24 +118,24 @@ agents:
 
 ---
 
-## VOLYConfig — важные поля
+## VOLYConfig — important fields
 
 ```python
-config.default_cwd           # из voly.yaml default_cwd или VOLY_PROJECT_CWD
+config.default_cwd           # from voly.yaml default_cwd or VOLY_PROJECT_CWD
 config.dspy.enabled          # bool
 config.dspy.mode             # "off" | "shadow" | "active"
-config.dspy.datasets_dir     # путь для сохранения (task, result) примеров
+config.dspy.datasets_dir     # path for saving (task, result) examples
 config.cost_policy.max_task_cost_usd
 config.ai_gateway.spend_limit_usd_per_day
-config.auth.enabled          # bool — JWT для Web UI (default False)
+config.auth.enabled          # bool — JWT for Web UI (default False)
 config.auth.jwt_secret       # VOLY_JWT_SECRET
-config.auth.users            # {username: password} или VOLY_AUTH_USERS
+config.auth.users            # {username: password} or VOLY_AUTH_USERS
 config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 ```
 
 ### Auth env overrides
 
-| Env | Эффект |
+| Env | Effect |
 |---|---|
 | `VOLY_AUTH_ENABLED` | `true`/`false` |
 | `VOLY_JWT_SECRET` | JWT HMAC secret |
@@ -144,18 +144,18 @@ config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 
 ---
 
-## Инициализация
+## Initialization
 
 ```bash
-voly init              # интерактивно создаёт voly.yaml
-voly setup             # проверяет все нужные ключи
-voly config            # показывает текущий конфиг
-voly status            # health check всех компонентов
+voly init              # interactively creates voly.yaml
+voly setup             # checks all required keys
+voly config            # shows current config
+voly status            # health check of all components
 ```
 
 ---
 
 ## .env.example
 
-Эталон всех env vars — `.env.example` в корне проекта.
-При добавлении нового провайдера — обновить `.env.example` и этот файл.
+Canonical list of all env vars — `.env.example` at the project root.
+When adding a new provider — update `.env.example` and this file.

@@ -1,7 +1,7 @@
 # Executors — Backend Reference
 
-Executor — runtime, который **реально работает с файлами** в целевом проекте.
-Pipeline/AIGateway — только text-only inference. Executor = инструмент записи в диск.
+Executor — runtime that **actually works with files** in the target project.
+Pipeline/AIGateway — text-only inference only. Executor = tool for writing to disk.
 
 All executors inherit from `voly/executor/base.py:Executor` and return `ExecutorResult`.
 
@@ -118,27 +118,27 @@ Env: `OPENCODE_API_KEY` (optional for free Zen tier)
 
 ## Timeouts (total deadline)
 
-Все subprocess-executor-ы принимают `timeout` (секунды) и убивают подпроцесс по
-истечении (`subprocess.run(timeout=...)` + обработанный `TimeoutExpired`).
-HTTP-executor-ы (`wrangler`, `mimo`, `deepseek`) передают его в таймаут запроса.
+All subprocess executors accept `timeout` (seconds) and kill the subprocess on
+expiry (`subprocess.run(timeout=...)` + handled `TimeoutExpired`).
+HTTP executors (`wrangler`, `mimo`, `deepseek`) pass it into the request timeout.
 
-**`timeout` — общий deadline вызова, не per-attempt.** Внутренние циклы перебора
-моделей (`zen._run_cli`, `opencode._run_cli` — до ~9 моделей при billing-ошибках)
-делят deadline: каждая попытка получает **оставшееся** время; при остатке меньше
-`_MIN_ATTEMPT_SECONDS` (10s, `executor/base.py`) перебор останавливается, у
-результата выставляется `metadata["deadline_exhausted"]=true` (при billing-ошибке
-`billing_error` сохраняется — цепочка может продолжить). Без этого вызов «300s»
-молча растягивался бы до 8×300s ≈ 40 минут.
+**`timeout` is the overall call deadline, not per-attempt.** Internal model-retry
+loops (`zen._run_cli`, `opencode._run_cli` — up to ~9 models on billing errors)
+share the deadline: each attempt gets the **remaining** time; if less than
+`_MIN_ATTEMPT_SECONDS` (10s, `executor/base.py`) remains, the loop stops and the
+result sets `metadata["deadline_exhausted"]=true` (on billing error,
+`billing_error` is preserved so the chain can continue). Without this, a “300s”
+call could silently stretch to 8×300s ≈ 40 minutes.
 
-Таймаут-результаты помечаются `metadata["timeout"]=true` (для телеметрии и
-будущего watchdog этапа 2).
+Timeout results are marked `metadata["timeout"]=true` (for telemetry and the
+future stage-2 watchdog).
 
-**Проброс:** `voly run --executor X --timeout N` (default 300) и
-`voly runner --timeout N` → `AgentRunner.run(timeout=...)` → каждый executor,
-включая fallback-цепочку. Web: поле `timeout` в `POST /api/run` (default 300).
-Замечание: billing fallback-цепочка даёт каждому executor-у **свой** полный
-timeout (прозрачно через `chain_timelog`) — умножение только на видимом уровне
-цепочки, не внутри одного executor-а.
+**Propagation:** `voly run --executor X --timeout N` (default 300) and
+`voly runner --timeout N` → `AgentRunner.run(timeout=...)` → each executor,
+including the fallback chain. Web: `timeout` field in `POST /api/run` (default 300).
+Note: the billing fallback chain gives each executor its **own** full timeout
+(visible via `chain_timelog`) — multiplication only at the visible chain level,
+not inside a single executor.
 
 ---
 
@@ -158,38 +158,38 @@ if result.billing_error and executor_name in BILLING_FALLBACK_CHAIN:
 
 ### Retry-aware cost
 
-Стоимость задачи достоверна при перезапусках — два уровня сворачивания, без двойного счёта:
+Task cost stays accurate across retries — two folding levels, no double-counting:
 
-1. **Executor-level** (`zen`/`opencode`): циклы перебора моделей сворачивают
-   потраченное брошенными попытками в возвращаемый `ExecutorResult`
-   (`_fold_retry_costs` в `executor/base.py`): `cost_usd`/токены — тоталы,
-   `metadata.retry_count` / `metadata.retry_cost_usd` изолируют долю ретраев.
-2. **Chain-level** (`AgentRunner`): потраченное брошенными попытками цепочки
-   попадает в тоталы `TaskEvent` (`cost_usd`, `tokens`) и в поля
-   `retry_count` / `retry_cost_usd`; бюджет-чек (`budget_status`) считает по
-   тоталу. Каждая запись `chain_timelog` несёт свои `cost_usd` /
+1. **Executor-level** (`zen`/`opencode`): model-retry loops fold spend from
+   abandoned attempts into the returned `ExecutorResult`
+   (`_fold_retry_costs` in `executor/base.py`): `cost_usd`/tokens are totals;
+   `metadata.retry_count` / `metadata.retry_cost_usd` isolate the retry share.
+2. **Chain-level** (`AgentRunner`): spend from abandoned chain attempts goes into
+   `TaskEvent` totals (`cost_usd`, `tokens`) and the
+   `retry_count` / `retry_cost_usd` fields; the budget check (`budget_status`) uses
+   the total. Each `chain_timelog` entry carries its own `cost_usd` /
    `input_tokens` / `output_tokens`.
 
-Правило чтения: `cost_usd` — всегда полный тотал (суммирование по событиям не
-задваивает); `retry_cost_usd` — подмножество, потраченное на неудачные попытки.
+Reading rule: `cost_usd` is always the full total (summing events does not
+double-count); `retry_cost_usd` is the subset spent on failed attempts.
 
-### Error classes и метрика нераспознанных ошибок (риск R4)
+### Error classes and unrecognized-error metric (risk R4)
 
-Billing-детекция сигнатурная — если апстрим переформулирует ошибку, fallback
-молча перестанет срабатывать. Две линии защиты:
+Billing detection is signature-based — if upstream rephrases an error, fallback
+can silently stop firing. Two lines of defense:
 
-1. **Контрактные тесты** `tests/test_cli_contracts.py`: фикстуры сняты с
-   реальных CLI (claude 2.1.170 `--output-format json`, opencode 1.17.13
-   NDJSON) — при смене формата падает тест, а не продакшен. Контракт 2.1.x:
-   ключи `modelUsage` — camelCase (`inputTokens`/`outputTokens`); парсер
-   принимает оба стиля.
-2. **Метрика `error_class`**: `classify_failure()` (`executor/base.py`)
-   классифицирует финальный отказ — `billing` / `not_available` / `timeout`
-   (маркеры executor-а имеют приоритет) / `ErrorType.*` семантического
-   классификатора / **`unrecognized`**. Пишется в `TaskEvent.error_class` и в
-   каждую запись `chain_timelog`. Сводка: `voly telemetry errors` — доля
-   `unrecognized` среди failed; её рост = дрейф форматов CLI, надо обновлять
-   сигнатурные таблицы `error_classifier.py` и контрактные фикстуры.
+1. **Contract tests** `tests/test_cli_contracts.py`: fixtures captured from
+   real CLIs (claude 2.1.170 `--output-format json`, opencode 1.17.13
+   NDJSON) — a format change fails the test, not production. Contract 2.1.x:
+   `modelUsage` keys are camelCase (`inputTokens`/`outputTokens`); the parser
+   accepts both styles.
+2. **`error_class` metric**: `classify_failure()` (`executor/base.py`)
+   classifies the final failure — `billing` / `not_available` / `timeout`
+   (executor markers take priority) / `ErrorType.*` from the semantic
+   classifier / **`unrecognized`**. Written to `TaskEvent.error_class` and every
+   `chain_timelog` entry. Summary: `voly telemetry errors` — share of
+   `unrecognized` among failed; growth means CLI format drift; update
+   signature tables in `error_classifier.py` and contract fixtures.
 
 Chain logs (see `logging.getLogger("voly.chain")`):
 - `[CHAIN:START]` — first executor attempt

@@ -1,40 +1,40 @@
 # Project Scanner
 
-## Назначение
+## Purpose
 
-Project Scanner анализирует репозиторий и строит профиль проекта (`ProjectProfile`), который используется на двух уровнях:
+Project Scanner analyzes a repository and builds a project profile (`ProjectProfile`) used at two levels:
 
-1. **AgentRouter** — подбирает агентов и скиллы, соответствующие стеку
-2. **SkillRegistry** — фильтрует скиллы по совместимому языку и фреймворку
+1. **AgentRouter** — selects agents and skills that match the stack
+2. **SkillRegistry** — filters skills by compatible language and framework
 
-Без сканирования роутер работает как generic-агент без учёта контекста проекта.
+Without scanning, the router behaves as a generic agent without project context.
 
-## Что обнаруживает Scanner
+## What the Scanner detects
 
-### Языки (`LanguageInfo`)
+### Languages (`LanguageInfo`)
 
-| Поле | Описание |
+| Field | Description |
 |------|----------|
-| `name` | Название языка (Python, TypeScript...) |
-| `percentage` | Доля файлов данного языка |
-| `files_count` | Количество файлов |
-| `version` | Версия из `pyproject.toml`, `package.json`, `.tool-versions` |
+| `name` | Language name (Python, TypeScript...) |
+| `percentage` | Share of files for this language |
+| `files_count` | Number of files |
+| `version` | Version from `pyproject.toml`, `package.json`, `.tool-versions` |
 | `package_manager` | pip, npm, yarn, pnpm, cargo, go mod... |
 
-Детектируются по расширениям файлов и конфиг-файлам (`go.mod`, `Cargo.toml`, `pubspec.yaml` и т.д.)
+Detected via file extensions and config files (`go.mod`, `Cargo.toml`, `pubspec.yaml`, etc.)
 
-### Фреймворки (`FrameworkInfo`)
+### Frameworks (`FrameworkInfo`)
 
-| Поле | Описание |
+| Field | Description |
 |------|----------|
-| `name` | Название фреймворка |
-| `language` | Связанный язык |
-| `config_file` | Конфиг-файл, по которому обнаружен |
-| `version` | Версия из зависимостей |
+| `name` | Framework name |
+| `language` | Related language |
+| `config_file` | Config file used for detection |
+| `version` | Version from dependencies |
 
-Примеры паттернов детектирования:
+Example detection patterns:
 
-| Конфиг-файл | Фреймворк |
+| Config file | Framework |
 |------------|-----------|
 | `next.config.js/ts` | Next.js |
 | `pyproject.toml` + `[tool.fastapi]` | FastAPI |
@@ -45,71 +45,71 @@ Project Scanner анализирует репозиторий и строит п
 
 ### CI/CD (`CIInfo`)
 
-| Поле | Описание |
+| Field | Description |
 |------|----------|
 | `provider` | github-actions, gitlab-ci, circleci, travis... |
-| `config_path` | Путь к конфиг-файлу |
-| `has_deploy` | Есть ли deploy-шаги |
-| `has_tests` | Есть ли test-шаги |
+| `config_path` | Path to config file |
+| `has_deploy` | Whether deploy steps exist |
+| `has_tests` | Whether test steps exist |
 
-### Инфраструктура (`InfraInfo`)
+### Infrastructure (`InfraInfo`)
 
-Детектируется по наличию файлов:
+Detected by presence of files:
 
-| Файл | Инструмент |
+| File | Tool |
 |------|-----------|
 | `Dockerfile` / `docker-compose.yml` | Docker |
 | `*.tf` | Terraform |
-| `kubernetes/`, `k8s/`, `*.yaml` с `kind: Deployment` | Kubernetes |
+| `kubernetes/`, `k8s/`, `*.yaml` with `kind: Deployment` | Kubernetes |
 | `serverless.yml` | Serverless Framework |
 | `cdk.json` | AWS CDK |
 
-## ProjectProfile — полная структура
+## ProjectProfile — full structure
 
 ```python
 @dataclass
 class ProjectProfile:
-    # Базовые метаданные
-    name: str              # имя директории
-    root_path: str         # абсолютный путь
-    total_files: int       # всего файлов
-    total_lines: int       # всего строк кода
+    # Base metadata
+    name: str              # directory name
+    root_path: str         # absolute path
+    total_files: int       # total files
+    total_lines: int       # total lines of code
 
-    # Стек
-    languages: list[LanguageInfo]     # по убыванию percentage
+    # Stack
+    languages: list[LanguageInfo]     # by descending percentage
     frameworks: list[FrameworkInfo]
     ci: CIInfo | None
     infra: InfraInfo
 
-    # Типология
+    # Typology
     project_type: str      # web-app, api, library, cli, monorepo...
     has_tests: bool
     has_docs: bool
     has_docker: bool
 
-    # Рекомендации
-    recommended_agents: list[str]    # agent ids подходящие для проекта
-    recommended_skills: list[str]    # skill ids подходящие для проекта
+    # Recommendations
+    recommended_agents: list[str]    # agent ids suitable for the project
+    recommended_skills: list[str]    # skill ids suitable for the project
     complexity_score: float          # 0.0–1.0
 ```
 
 ## CLI
 
 ```bash
-# Сканировать текущую директорию
+# Scan current directory
 voly scan
 
-# Сканировать конкретный путь
+# Scan a specific path
 voly scan /path/to/project
 
-# Вывод в JSON
+# JSON output
 voly scan --json
 
-# Только языки и фреймворки (быстрый режим)
+# Languages and frameworks only (fast mode)
 voly scan --summary
 ```
 
-### Пример вывода
+### Example output
 
 ```
 Project Profile
@@ -137,13 +137,13 @@ CI/CD:  github-actions
   Deploy:    yes
 
 Infra:  Docker, Kubernetes
-  docker-compose.yml, kubernetes/
+  docker-compose.yml, k8s/
 
 Recommended Agents:  developer, architect, devops
 Recommended Skills:  skill-nextjs, skill-postgres, skill-docker, skill-kubernetes
 ```
 
-### JSON-вывод
+### JSON output
 
 ```json
 {
@@ -168,23 +168,23 @@ Recommended Skills:  skill-nextjs, skill-postgres, skill-docker, skill-kubernete
 }
 ```
 
-## Влияние на AgentRouter
+## Impact on AgentRouter
 
-После сканирования `AgentRouter` использует `ProjectProfile` при расчёте `routing_score`:
+After scanning, `AgentRouter` uses `ProjectProfile` when computing `routing_score`:
 
 ```
 routing_score = base_score × language_match × framework_match × skill_coverage
 ```
 
-- `language_match` — совпадение языка задачи с языками проекта (0.0–1.0)
-- `framework_match` — совпадение фреймворка (0.0–1.0)
-- `skill_coverage` — доля навыков агента, покрывающих стек проекта
+- `language_match` — match of task language to project languages (0.0–1.0)
+- `framework_match` — framework match (0.0–1.0)
+- `skill_coverage` — share of agent skills covering the project stack
 
-Агент с `language_match=0.9` и `framework_match=0.85` будет выбран перед generic-агентом с `routing_score=0.5`.
+An agent with `language_match=0.9` and `framework_match=0.85` is preferred over a generic agent with `routing_score=0.5`.
 
-## Расширение детектирования
+## Extending detection
 
-### Добавить новый язык
+### Add a new language
 
 ```python
 from voly.scanner import Scanner
@@ -198,18 +198,18 @@ scanner.add_language_pattern(
 )
 ```
 
-### Добавить новый фреймворк
+### Add a new framework
 
 ```python
 scanner.add_framework_pattern(
     name="Bun",
     language="TypeScript",
     config_file="bun.lockb",
-    dep_key="bun",         # ищет в package.json dependencies
+    dep_key="bun",         # looks in package.json dependencies
 )
 ```
 
-## Программный доступ
+## Programmatic access
 
 ```python
 from voly.scanner import Scanner
@@ -222,14 +222,14 @@ print(profile.complexity_score)      # 0.73
 print([l.name for l in profile.languages])   # ["TypeScript", "Python"]
 print(profile.recommended_skills)    # ["skill-nextjs", "skill-postgres"]
 
-# Экспорт в dict
+# Export to dict
 data = profile.to_dict()
 
-# Сохранить в .voly/profile.json для кэширования
+# Save to .voly/profile.json for caching
 profile.save()
 
-# Загрузить кэш без повторного сканирования
+# Load cache without re-scanning
 profile = Scanner.load_cached("/path/to/project")
 ```
 
-> **Статус**: поддерживаемая утилита ядра (решение Этапа 0, 2026-07-05). Живые потребители: `voly scan`, генерация project-скилов (`voly skill`), `Pipeline.scan_project()`. Детектирование языков и фреймворков работает; `recommended_agents`/`recommended_skills` формируются эвристически, интеграция с `routing_score` в AgentRouter — по необходимости.
+> **Status**: supported core utility (Stage 0 decision, 2026-07-05). Live consumers: `voly scan`, project skill generation (`voly skill`), `Pipeline.scan_project()`. Language and framework detection work; `recommended_agents`/`recommended_skills` are heuristic; AgentRouter `routing_score` integration is as needed.

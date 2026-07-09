@@ -1,43 +1,43 @@
 # AI Gateway
 
-> **Актуальный документ:** [`docs/backend/ai-gateway.md`](backend/ai-gateway.md)
-> Этот файл содержит базовую информацию; полное описание включая CF AI Gateway
-> route schema, CF_AIG_TOKEN, WranglerExecutor — в `docs/backend/ai-gateway.md`.
+> **Canonical document:** [`docs/backend/ai-gateway.md`](backend/ai-gateway.md)
+> This file has baseline information; the full description including CF AI Gateway
+> route schema, CF_AIG_TOKEN, WranglerExecutor is in `docs/backend/ai-gateway.md`.
 
 ---
 
-## Зачем нужен Gateway
+## Why the Gateway is needed
 
-AI Gateway — единая точка входа для всех LLM-запросов агентов. Все вызовы в VOLY идут только через него: `Pipeline` никогда не обращается к провайдерам напрямую.
+AI Gateway is the single entry point for all agent LLM requests. Every call in VOLY goes only through it: `Pipeline` never talks to providers directly.
 
-Что даёт gateway:
-- **DLP** — блокирует secrets и PII в промптах до отправки
-- **Cache** — возвращает кэшированный ответ при повторных запросах
-- **Rate limiting** — защита от burst, ограничение rpm
-- **Spend limits** — дневной бюджет в USD, глобальный и per-agent
-- **Model fallback** — автоматическая цепочка резервных моделей
-- **Метрики** — по провайдеру, модели, агенту
+What the gateway provides:
+- **DLP** — blocks secrets and PII in prompts before send
+- **Cache** — returns a cached response on repeated requests
+- **Rate limiting** — burst protection, rpm limits
+- **Spend limits** — daily USD budget, global and per-agent
+- **Model fallback** — automatic reserve model chain
+- **Metrics** — by provider, model, agent
 
-## Middleware-стек
+## Middleware stack
 
-Каждый вызов `gateway.chat()` проходит через стек в фиксированном порядке:
+Every `gateway.chat()` call goes through the stack in fixed order:
 
 ```
 DLP scan → Cache check → Rate limit → Spend limit → [LLM call]
 ```
 
-1. **DLP** — если нашёл secrets/PII, возвращает `{"dlp_blocked": true}`, дальнейшие слои не вызываются
-2. **Cache** — если есть hit, возвращает кэш (`{"cache_hit": true}`), квота не тратится
-3. **Rate limit** — проверяет requests-per-minute, при превышении `{"rate_limited": true}`
-4. **Spend limit** — проверяет дневной бюджет, при превышении `{"spend_limited": true}`
-5. **Routing** — выбирает CF Gateway или прямой вызов, выполняет запрос
+1. **DLP** — if secrets/PII are found, returns `{"dlp_blocked": true}`; further layers are not called
+2. **Cache** — on hit, returns cache (`{"cache_hit": true}`); quota is not spent
+3. **Rate limit** — checks requests-per-minute; on exceed `{"rate_limited": true}`
+4. **Spend limit** — checks daily budget; on exceed `{"spend_limited": true}`
+5. **Routing** — chooses CF Gateway or direct call, performs the request
 
-## Routing: инфраструктурные провайдеры vs LLM провайдеры
+## Routing: infrastructure providers vs LLM providers
 
-Gateway различает два уровня:
+The gateway distinguishes two levels:
 
-1. **Инфраструктурный провайдер** (`GatewayProvider`): `CLOUDFLARE` или `CUSTOM` — определяет, через какой API-слой идёт запрос.
-2. **LLM провайдер** — конкретный сервис моделей: Anthropic, OpenAI, Google, DeepSeek, MiMo, OpenCode Zen/GO.
+1. **Infrastructure provider** (`GatewayProvider`): `CLOUDFLARE` or `CUSTOM` — which API layer the request goes through.
+2. **LLM provider** — the concrete model service: Anthropic, OpenAI, Google, DeepSeek, MiMo, OpenCode Zen/GO.
 
 ```python
 # voly/ai_gateway/models.py
@@ -46,8 +46,8 @@ class GatewayProvider(Enum):
     CUSTOM = "custom"
 ```
 
-Через Cloudflare AI Gateway маршрутизируются: Anthropic, OpenAI, Google AI Studio, DeepSeek.
-Напрямую (CUSTOM): MiMo, OpenCode GO, OpenCode Zen.
+Routed via Cloudflare AI Gateway: Anthropic, OpenAI, Google AI Studio, DeepSeek.
+Direct (CUSTOM): MiMo, OpenCode GO, OpenCode Zen.
 
 ```python
 _CF_PROVIDERS = frozenset({"anthropic", "openai", "google-ai-studio", "deepseek"})
@@ -55,32 +55,32 @@ _CF_PROVIDERS = frozenset({"anthropic", "openai", "google-ai-studio", "deepseek"
 if cloudflare_enabled and provider_name in _CF_PROVIDERS:
     # → Cloudflare AI Gateway → provider API
 else:
-    # → прямой вызов provider API
+    # → direct provider API call
 ```
 
-`cloudflare_enabled` = True когда `enabled=True` И задан `account_id`.
+`cloudflare_enabled` = True when `enabled=True` AND `account_id` is set.
 
-## Таблица провайдеров
+## Provider table
 
-| Провайдер | Маршрут | Переменная окружения | Базовый URL |
+| Provider | Route | Environment variable | Base URL |
 |-----------|---------|---------------------|-------------|
-| `anthropic` | CF Gateway | `ANTHROPIC_API_KEY` | через CF |
-| `openai` | CF Gateway | `OPENAI_API_KEY` | через CF |
-| `google-ai-studio` | CF Gateway | `GOOGLE_API_KEY` | через CF |
-| `deepseek` | CF Gateway | `DEEPSEEK_API_KEY` | через CF |
+| `anthropic` | CF Gateway | `ANTHROPIC_API_KEY` | via CF |
+| `openai` | CF Gateway | `OPENAI_API_KEY` | via CF |
+| `google-ai-studio` | CF Gateway | `GOOGLE_API_KEY` | via CF |
+| `deepseek` | CF Gateway | `DEEPSEEK_API_KEY` | via CF |
 | `mimo` | Direct (OpenAI-compat) | `MIMO_API_KEY` | `MIMO_BASE_URL_OPENAI` |
 | `mimo-anthropic` | Direct (Anthropic-compat) | `MIMO_API_KEY` | `MIMO_BASE_URL_ANTHROPIC` |
 | `opencode` | Direct → opencode.ai/zen/go | `OPENCODE_API_KEY` | `OPENCODE_BASE_URL` |
 | `opencode-zen` | Direct → opencode.ai/zen | `OPENCODE_API_KEY` | `OPENCODE_ZEN_BASE_URL` |
 
-**Переменные для CF:**
+**CF variables:**
 ```
 CLOUDFLARE_ACCOUNT_ID
 CLOUDFLARE_AI_GATEWAY_ID
 CLOUDFLARE_API_TOKEN
 ```
 
-## Конфигурация в `voly.yaml`
+## Configuration in `voly.yaml`
 
 ```yaml
 ai_gateway:
@@ -92,8 +92,8 @@ ai_gateway:
 
   caching:
     enabled: true
-    ttl_seconds: 3600      # время жизни записи
-    max_entries: 1000      # максимум записей в памяти
+    ttl_seconds: 3600      # entry TTL
+    max_entries: 1000      # max in-memory entries
 
   rate_limits:
     enabled: true
@@ -102,7 +102,7 @@ ai_gateway:
   spend_limits:
     enabled: true
     daily_budget_usd: 20.0
-    per_agent_budget:      # опциональный лимит per-agent
+    per_agent_budget:      # optional per-agent limit
       architect: 5.0
       developer: 10.0
 
@@ -116,14 +116,14 @@ ai_gateway:
         model: claude-haiku-4-5
 
   dlp:
-    enabled: false          # включите если нужна защита от утечек
-    block_secrets: true     # API-ключи, JWT, SSH-ключи
-    block_pii: true         # email, SSN, номера карт
+    enabled: false          # enable if leak protection is needed
+    block_secrets: true     # API keys, JWT, SSH keys
+    block_pii: true         # email, SSN, card numbers
 ```
 
-## Пример настройки fallback-цепочки
+## Fallback chain setup example
 
-Задача: если основная модель недоступна, попробовать дешёвую альтернативу.
+Goal: if the primary model is unavailable, try a cheaper alternative.
 
 ```yaml
 fallback:
@@ -138,9 +138,9 @@ fallback:
       model: claude-haiku-4-5
 ```
 
-При каждой ошибке gateway переходит к следующему элементу цепочки. Метрика `fallbacks_used` увеличивается при каждом переключении.
+On each error the gateway moves to the next chain element. The `fallbacks_used` metric increases on every switch.
 
-## Метрики (`voly ai-gateway status`)
+## Metrics (`voly ai-gateway status`)
 
 ```
 AI Gateway: cloudflare
@@ -166,27 +166,27 @@ Metrics: {
 }
 ```
 
-## DLP — детектируемые паттерны
+## DLP — detectable patterns
 
 **Secrets:**
 - `api_key: sk-...`, `token = "..."`, `password = "..."`
-- JWT-токены (`eyJ...`)
-- OpenAI-ключи (`sk-[A-Za-z0-9]{12,}`)
+- JWT tokens (`eyJ...`)
+- OpenAI keys (`sk-[A-Za-z0-9]{12,}`)
 - GitHub PAT (`ghp_...`)
-- Slack-токены (`xox[baprs]-...`)
+- Slack tokens (`xox[baprs]-...`)
 - SSH private keys
 
 **PII:**
 - SSN: `123-45-6789`
-- Номера карт: 16 цифр
-- Email-адреса
+- Card numbers: 16 digits
+- Email addresses
 
-При обнаружении любого паттерна запрос блокируется и возвращается:
+When any pattern is found the request is blocked and returns:
 ```json
 {"dlp_blocked": true, "error": "DLP blocked: [...]", "content": ""}
 ```
 
-## Программный доступ
+## Programmatic access
 
 ```python
 from voly.ai_gateway import AIGateway
@@ -197,31 +197,31 @@ gw = AIGateway(
     api_token="...",
 )
 
-# Настройка spend limits per-agent
+# Configure spend limits per-agent
 gw.spend_limit.per_agent_budget["architect"] = 5.0
 
-# Настройка fallback
+# Configure fallback
 gw.fallback.chain = [
     {"provider": "openai", "model": "gpt-4o-mini"},
     {"provider": "deepseek", "model": "deepseek-chat"},
 ]
 
-# Включить DLP
+# Enable DLP
 gw.dlp.enabled = True
 
-# Вызов
+# Call
 result = gw.chat(
-    messages=[{"role": "user", "content": "Объясни SOLID"}],
+    messages=[{"role": "user", "content": "Explain SOLID"}],
     model="claude-sonnet-4-5-20250929",
     provider_name="anthropic",
     max_tokens=1024,
-    agent="developer",   # для per-agent spend tracking
+    agent="developer",   # for per-agent spend tracking
 )
 
 print(result["content"])
-print(result.get("cache_hit"))    # True если из кэша
-print(result.get("dlp_blocked"))  # True если заблокировано DLP
+print(result.get("cache_hit"))    # True if from cache
+print(result.get("dlp_blocked"))  # True if blocked by DLP
 print(gw.metrics.to_dict())
 ```
 
-> **Статус**: реализован. Cache, DLP, Rate/Spend limits, Fallback — работают. CF-routing требует `CLOUDFLARE_ACCOUNT_ID`. Без него запросы идут напрямую к провайдерам.
+> **Status**: implemented. Cache, DLP, Rate/Spend limits, Fallback work. CF routing requires `CLOUDFLARE_ACCOUNT_ID`. Without it, requests go directly to providers.

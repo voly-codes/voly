@@ -1,13 +1,13 @@
 # AI Gateway — Backend Reference
 
-AI Gateway — единая точка входа для всех LLM-запросов. `Pipeline` и DSPy
-обращаются только через `AIGateway.chat()`. Executors могут bypass (они запускают
-субпроцессы напрямую), но WranglerExecutor тоже проходит через CF AI Gateway
-(через маршрут в CF Dashboard).
+AI Gateway is the single entry point for all LLM requests. `Pipeline` and DSPy
+talk only through `AIGateway.chat()`. Executors may bypass (they launch
+subprocesses directly), but WranglerExecutor also goes through CF AI Gateway
+(via the route in CF Dashboard).
 
 ---
 
-## Middleware стек
+## Middleware stack
 
 ```
 AIGateway.chat(messages, agent, model)
@@ -15,18 +15,18 @@ AIGateway.chat(messages, agent, model)
 DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider → Empty-content guard
 ```
 
-1. **DLP** — блокирует secrets/PII, возвращает `{"dlp_blocked": true}`
-2. **Cache** — exact/semantic hit → `{"cache_hit": true}`, квота не тратится; ключ включает **project-state scope** (см. «Границы валидности кэша»)
+1. **DLP** — blocks secrets/PII, returns `{"dlp_blocked": true}`
+2. **Cache** — exact/semantic hit → `{"cache_hit": true}`, quota is not spent; the key includes **project-state scope** (see “Cache validity boundaries”)
 3. **Rate limit** — rpm guard → `{"rate_limited": true}`
-4. **Spend limit** — дневной бюджет → `{"spend_limited": true}`; после ответа
-   `spend_limit.record()` вызывается **только при успехе** (без `error`).
-   При наличии `usage` пишется usage-based cost, иначе — pre-call estimate.
-5. **Routing** — CF AI Gateway или прямой вызов, затем model fallback
-6. **Empty-content guard** — фейк-успех (HTTP 200 без контента) → синтетическая ошибка → model fallback
+4. **Spend limit** — daily budget → `{"spend_limited": true}`; after the response
+   `spend_limit.record()` is called **only on success** (no `error`).
+   If `usage` is present, usage-based cost is written; otherwise — the pre-call estimate.
+5. **Routing** — CF AI Gateway or direct call, then model fallback
+6. **Empty-content guard** — fake success (HTTP 200 with no content) → synthetic error → model fallback
 
 ---
 
-## Провайдеры
+## Providers
 
 | Provider | Via CF Gateway | Direct |
 |---|---|---|
@@ -34,50 +34,50 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 | `openai` | yes | no |
 | `google-ai-studio` | yes | no |
 | `deepseek` | yes | no |
-| `workers-ai` | yes (через `/compat`) | env.AI binding |
+| `workers-ai` | yes (via `/compat`) | env.AI binding |
 | `mimo` | no | yes (CUSTOM) |
 | `opencode-zen` | no | yes (CUSTOM) |
 | `opencode-go` | no | yes (CUSTOM) |
 | `omniroute` | no | yes (CUSTOM, opt-in) |
 
-Переключение `GatewayProvider.CLOUDFLARE` vs `CUSTOM` — в `voly/ai_gateway/`.
+Switching `GatewayProvider.CLOUDFLARE` vs `CUSTOM` — in `voly/ai_gateway/`.
 
 ### OmniRoute (upstream)
 
-`omniroute` — self-hosted OpenAI-совместимый gateway (237+ провайдеров, free tiers,
-auto-fallback, компрессия). VOLY видит его как **один** upstream и делегирует всю
-маршрутизацию/фолбэк самому OmniRoute (`_call_omniroute` → `<base>/v1/chat/completions`).
+`omniroute` is a self-hosted OpenAI-compatible gateway (237+ providers, free tiers,
+auto-fallback, compression). VOLY sees it as **one** upstream and delegates all
+routing/fallback to OmniRoute itself (`_call_omniroute` → `<base>/v1/chat/completions`).
 
-Два режима использования:
+Two usage modes:
 
-1. **Opt-in провайдер:** не входит в default `_TASK_PROVIDERS`-цепочки; выбирается
-   явно (provider `omniroute`), чтобы незапущенный локальный gateway не попадал в fallback.
-2. **Первоклассный upstream (делегирование слоя A):** `ai_gateway.upstream: "omniroute"`
-   в `voly.yaml` → все не-CF вызовы `chat()` идут сначала через OmniRoute
-   (`AIGateway._delegated_or_direct`). Модель — passthrough вызывающего, либо
-   `upstream_model: "auto"` (auto-combo). При ошибке/недоступности upstream —
-   `metrics.record_fallback()` и автоматический fallback на прямой адаптер
-   запрошенного провайдера (`upstream_fallback_direct: true`, default): мёртвый
-   локальный gateway не блокирует pipeline. Маркеры ответа: успех через upstream —
-   `result["upstream"]="omniroute"`, ответ после фолбэка — `result["upstream_fallback"]=true`.
-   Явный вызов provider=`omniroute` вторым hop-ом не заворачивается. Кэш, DLP,
-   spend limits и телеметрия не меняются — живут вокруг вызова. Тесты:
-   `tests/test_ai_gateway.py` («Upstream delegation»).
+1. **Opt-in provider:** not in the default `_TASK_PROVIDERS` chains; selected
+   explicitly (provider `omniroute`) so an unstarted local gateway does not enter fallback.
+2. **First-class upstream (layer A delegation):** `ai_gateway.upstream: "omniroute"`
+   in `voly.yaml` → all non-CF `chat()` calls go through OmniRoute first
+   (`AIGateway._delegated_or_direct`). Model is the caller’s passthrough, or
+   `upstream_model: "auto"` (auto-combo). On upstream error/unavailability —
+   `metrics.record_fallback()` and automatic fallback to the direct adapter of
+   the requested provider (`upstream_fallback_direct: true`, default): a dead
+   local gateway does not block the pipeline. Response markers: success via upstream —
+   `result["upstream"]="omniroute"`, response after fallback — `result["upstream_fallback"]=true`.
+   An explicit call with provider=`omniroute` is not re-wrapped as a second hop. Cache, DLP,
+   spend limits, and telemetry are unchanged — they live around the call. Tests:
+   `tests/test_ai_gateway.py` (“Upstream delegation”).
 
-- **Модель `auto`** запускает auto-combo роутинг OmniRoute.
-- **Cost:** считается по фактической модели, которую вернул OmniRoute (`data.model`);
-  при free-tier роутинге → $0. Отдельной ставки под провайдер в `_COST_RATES` нет.
+- **Model `auto`** triggers OmniRoute auto-combo routing.
+- **Cost:** computed from the actual model returned by OmniRoute (`data.model`);
+  free-tier routing → $0. There is no separate provider rate in `_COST_RATES`.
 
 Env: `OMNIROUTE_BASE_URL` (default `http://localhost:20128`), `OMNIROUTE_API_KEY`
-(опц.), `OMNIROUTE_COMBO` (опц. → заголовок `X-Omni-Combo`).
+(optional), `OMNIROUTE_COMBO` (optional → `X-Omni-Combo` header).
 
 ---
 
 ## CF AI Gateway route schema
 
-Настраивается в CF Dashboard → AI Gateway → {gateway} → Routing.
+Configured in CF Dashboard → AI Gateway → {gateway} → Routing.
 
-Пример схемы:
+Example schema:
 ```json
 [
   {
@@ -97,18 +97,18 @@ Env: `OMNIROUTE_BASE_URL` (default `http://localhost:20128`), `OMNIROUTE_API_KEY
 ]
 ```
 
-**Для Pipeline / AIGateway.chat():** схема применяется автоматически через CF Gateway.
+**For Pipeline / AIGateway.chat():** the schema is applied automatically via CF Gateway.
 
-**Для WranglerExecutor / `/infer` endpoint:** `infer.ts` вызывает:
+**For WranglerExecutor / `/infer` endpoint:** `infer.ts` calls:
 ```
 https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat/chat/completions
 model = "dynamic/ai_route"
 ```
-Если `CF_ACCOUNT_ID` + `CF_AIG_TOKEN` не заданы — fallback на `env.AI.run()` напрямую.
+If `CF_ACCOUNT_ID` + `CF_AIG_TOKEN` are not set — fallback to `env.AI.run()` directly.
 
 ---
 
-## Env vars для CF AI Gateway
+## Env vars for CF AI Gateway
 
 ```env
 CF_ACCOUNT_ID=073ae0130b7cee5e55a1ac1a335431a8
@@ -116,73 +116,73 @@ CF_GATEWAY_ID=default
 CF_AIG_TOKEN=<token from CF Dashboard → AI Gateway → Settings>
 ```
 
-Для Workers AI через wrangler dev задаются в `cf-workers/agent/wrangler.jsonc` → `[vars]`.
+For Workers AI via wrangler dev, set in `cf-workers/agent/wrangler.jsonc` → `[vars]`.
 
 ---
 
-## Model fallback в AIGateway
+## Model fallback in AIGateway
 
-Когда основная модель возвращает ошибку, Gateway автоматически пробует следующую
-в списке `fallback_models` из конфига. Это отдельно от billing fallback chain в
-AgentRunner (которая переключает целый executor, не только модель).
+When the primary model returns an error, the Gateway automatically tries the next
+in the `fallback_models` list from config. This is separate from the billing fallback chain in
+AgentRunner (which switches the whole executor, not just the model).
 
-## Границы валидности кэша (risk R1)
+## Cache validity boundaries (risk R1)
 
-Код-генерация чувствительна к состоянию репозитория: тот же промпт на изменившейся
-кодовой базе должен давать другой ответ. Поэтому ключ кэша, помимо `messages` /
-`model` / `provider` / `system`, включает **project-state scope** — отпечаток
-состояния проекта.
+Code generation is sensitive to repository state: the same prompt on a changed
+codebase must produce a different answer. Therefore the cache key, in addition to `messages` /
+`model` / `provider` / `system`, includes **project-state scope** — a fingerprint of
+project state.
 
-- **Что даёт scope:** `voly/ai_gateway/project_state.py:project_fingerprint(cwd, files=None)`.
-  Repo-level по умолчанию: git `HEAD` + сигнатура «грязного» рабочего дерева
-  (`git diff HEAD` + untracked → повторное редактирование того же файла
-  инвалидирует кэш без списка файлов). Не-git директория → идентичность по пути.
-  Опциональный `files=[...]` добавляет mtime+size+content конкретных файлов
-  (file-level precision; hook для local-context пути).
-- **Как подключается:** атрибут инстанса `AIGateway.cache_scope` выставляется один
-  раз при создании gateway из `config.default_cwd` (`pipeline/core.py`), поэтому
-  все `chat()` на этом инстансе наследуют scope без пер-call проводки. Пер-call
-  параметр `chat(..., cache_scope=...)` переопределяет инстансный. Пусто → scope
-  не участвует (поведение до R1).
-- **Что scope предотвращает:** cross-project collision (тот же task-текст на другом
-  `cwd` → чужой cache hit) и stale hit после изменения репозитория.
+- **What provides the scope:** `voly/ai_gateway/project_state.py:project_fingerprint(cwd, files=None)`.
+  Repo-level by default: git `HEAD` + signature of the “dirty” working tree
+  (`git diff HEAD` + untracked → re-editing the same file
+  invalidates the cache without a file list). Non-git directory → identity by path.
+  Optional `files=[...]` adds mtime+size+content of specific files
+  (file-level precision; hook for the local-context path).
+- **How it is wired:** the instance attribute `AIGateway.cache_scope` is set once
+  when the gateway is created from `config.default_cwd` (`pipeline/core.py`), so
+  all `chat()` calls on that instance inherit the scope without per-call plumbing. Per-call
+  parameter `chat(..., cache_scope=...)` overrides the instance value. Empty → scope
+  is not used (pre-R1 behavior).
+- **What scope prevents:** cross-project collision (same task text on another
+  `cwd` → wrong cache hit) and stale hit after repository changes.
 
-**Executor path вне этого кэша.** Executor-субпроцессы (`claude-code`, `zen`,
-`cursor`) читают и пишут файлы напрямую и **не** проходят через `AIGateway.cache`;
-`wrangler` идёт через отдельный `/infer` (CF Worker), не через этот кэш. Значит
-`AIGateway.cache` обслуживает только text-only reasoning (pipeline, суб-агенты,
-DSPy) — именно там scope и нужен. Результаты executor-ов нигде не кэшируются.
+**Executor path is outside this cache.** Executor subprocesses (`claude-code`, `zen`,
+`cursor`) read and write files directly and **do not** go through `AIGateway.cache`;
+`wrangler` goes through a separate `/infer` (CF Worker), not this cache. So
+`AIGateway.cache` only serves text-only reasoning (pipeline, sub-agents,
+DSPy) — that is exactly where scope is needed. Executor results are not cached anywhere.
 
 ## Empty-content guard
 
-Провайдер может вернуть HTTP 200 без полезного контента (`content: ""`) — «фейк-успех»,
-который иначе прошёл бы к пользователю пустым ответом. `AIGateway._empty_content_error`
-конвертирует такой ответ в синтетическую ошибку (`{"empty_content": true, "error": ...}`),
-и он уходит в обычный **model fallback** (в `_gateway_call`, `chat()`-direct и `_direct_fallback`).
+A provider may return HTTP 200 with no useful content (`content: ""`) — a “fake success”
+that would otherwise reach the user as an empty answer. `AIGateway._empty_content_error`
+converts such a response into a synthetic error (`{"empty_content": true, "error": ...}`),
+and it goes into normal **model fallback** (in `_gateway_call`, `chat()`-direct, and `_direct_fallback`).
 
-**Что НЕ считается фейк-успехом** (пропускается без fallback): пустой контент с легитимным
-терминальным стопом — `stop_reason` `max_tokens`/`tool_use` (Claude) или `finish_reason`
-`length`/`tool_calls` (OpenAI). Для этого провайдер-адаптеры в `providers.py` пробрасывают
-`stop_reason` в нормализованный результат, а детекция живёт в
+**What is NOT treated as fake success** (passed through without fallback): empty content with a legitimate
+terminal stop — `stop_reason` `max_tokens`/`tool_use` (Claude) or `finish_reason`
+`length`/`tool_calls` (OpenAI). For this, provider adapters in `providers.py` pass through
+`stop_reason` into the normalized result, and detection lives in
 `is_empty_content_response` (`voly/ai_gateway/error_classifier.py`).
 
-Это **model-level** сигнал: `empty_content` НЕ входит в `TERMINAL_BILLING_TYPES`, поэтому
-никогда не переключает executor по billing-цепочке — только следующую модель.
+This is a **model-level** signal: `empty_content` is NOT in `TERMINAL_BILLING_TYPES`, so
+it never switches the executor via the billing chain — only the next model.
 
 ---
 
 ## Pricing / cost
 
-Единственный источник правды — `_COST_RATES` в `voly/telemetry.py`.
-При добавлении нового провайдера обновляй его там же.
+The single source of truth is `_COST_RATES` in `voly/telemetry.py`.
+When adding a new provider, update it there as well.
 
 ---
 
-## Добавить нового провайдера
+## Adding a new provider
 
-1. Добавить в `voly/ai_gateway/` — адаптер для нового LLM API
-2. Обновить `GatewayProvider` и роутинг в `voly/ai_gateway/`
-3. Добавить `_COST_RATES[provider]` в `voly/telemetry.py`
-4. Обновить `voly.yaml` defaults
-5. Обновить `.env.example`
-6. Обновить этот файл и `docs/ARCHITECTURE.md`
+1. Add to `voly/ai_gateway/` — adapter for the new LLM API
+2. Update `GatewayProvider` and routing in `voly/ai_gateway/`
+3. Add `_COST_RATES[provider]` in `voly/telemetry.py`
+4. Update `voly.yaml` defaults
+5. Update `.env.example`
+6. Update this file and `docs/ARCHITECTURE.md`
