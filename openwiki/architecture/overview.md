@@ -21,14 +21,29 @@ The executor path is for tasks that must write files. `voly/runner/agent_runner.
 
 ## Public contracts
 
-The repo treats several interfaces as versioned contracts and protects them with tests. The high-signal one documented in the source is `TaskEvent` telemetry, which carries `schema_version: 1` and is referenced from `voly/telemetry.py` and `docs/backend/api.md`. The architecture docs also call out the spend protocol and A2A federation as public contracts.
+The repo treats several interfaces as versioned contracts and protects them with tests. The high-signal ones are:
+
+- **`TaskEvent` telemetry** — `schema_version: 1` (`voly/telemetry.py`, `docs/backend/api.md`)
+- **Spend protocol** — HTTP spend record/check (`docs/backend/spend-protocol.md`)
+- **A2A federation** — task create/complete/callback contracts
+
+In-gateway spend accounting is separate from the remote spend protocol: `AIGateway.chat()` records daily budget usage **only on successful** model calls.
+
+## Web surface (self-host)
+
+The FastAPI app (`voly ui`) is part of the control plane, not a separate product. Default posture is **localhost-open** (auth off + startup warning). JWT auth, CORS hardening, and login live under `voly/web/auth/` and are documented in entrypoints + `docs/backend/api.md`.
+
+## Packaging
+
+Wheel/sdist must include core packages (`voly.pipeline`, `voly.config`, `voly.cloudflare`, `voly.web.auth`, `voly.web.routes`, …) via `pyproject.toml` — editable installs hide packaging holes. See [Configuration and operations](../config-and-operations.md).
 
 ## What to watch when changing architecture
 
 - Keep VOLY project-agnostic; avoid hardcoding target-project behavior into `voly/`.
 - Route model calls through `AIGateway.chat()` so caching, DLP, limits, and telemetry stay centralized.
+- Do not charge spend on failed provider responses.
 - Treat changes to telemetry or protocol shapes as versioned contract changes.
-- Update the source docs in `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`, `docs/backend/ai-gateway.md`, and `docs/backend/api.md` alongside code changes.
+- Update `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`, `docs/backend/ai-gateway.md`, and `docs/backend/api.md` alongside code changes.
 
 ## Useful source files
 
@@ -37,4 +52,6 @@ The repo treats several interfaces as versioned contracts and protects them with
 - `voly/runner/agent_runner.py`
 - `voly/ai_gateway/gateway.py`
 - `voly/web/server.py`
+- `voly/web/auth/*`
 - `voly/telemetry.py`
+
