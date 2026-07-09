@@ -96,6 +96,9 @@ class Assignment:
     mode_reason: str = ""
     executor: str = ""            # e.g. claude-code when mode=executor
     files_touched: list[str] = field(default_factory=list)
+    # Plan gates (Rung B PR4) — status of the mirrored Plan step
+    plan_status: str = ""         # pending|running|verified|failed|…
+    plan_verify_ok: bool | None = None  # None = no checks; False = failed verify
 
     def to_event_dict(self) -> dict[str, Any]:
         return {
@@ -115,6 +118,8 @@ class Assignment:
             "mode_reason": self.mode_reason,
             "executor": self.executor or None,
             "files_touched": list(self.files_touched),
+            "plan_status": self.plan_status or None,
+            "plan_verify_ok": self.plan_verify_ok,
         }
 
 
@@ -319,6 +324,9 @@ def run_local(
     executor_roles: list[str] | None = None,
     executor_runner: Callable[..., Any] | None = None,
     skip_dependents_on_failure: bool = True,
+    # Plan gates (Rung B PR4)
+    plan_config: Any = None,
+    plan_store: Any = None,
 ) -> list[Assignment]:
     """Execute each sub-agent in dependency order.
 
@@ -328,6 +336,10 @@ def run_local(
     resolve to ``mode=executor``. PR1 accepts an injectable ``executor_runner``
     (tests / future AgentRunner). Without a runner, executor roles **fall back
     to chat** so behavior stays safe until PR2.
+
+    When ``plan_config`` has gates enabled (``enabled`` + ``mode`` shadow|active
+    + ``a2a_attach``), each role is mirrored as a Plan step: dependents start
+    only after prior steps are **verified** (not merely process-complete).
 
     Cost/token savings on the multi-agent path:
       - **temperature=0.0** → deterministic chain → the gateway response cache hits
@@ -341,10 +353,17 @@ def run_local(
     """
     from voly.a2a.decomposer import TaskDecomposer
     from voly.a2a.hybrid import hybrid_active, resolve_role_mode
+    from voly.plan.bridge import (
+        assignment_step_id,
+        assignments_to_plan,
+        plan_gates_enabled,
+        sync_assignment_plan_fields,
+    )
+    from voly.plan.engine import PlanEngine
+    from voly.plan.store import PlanStore
+    from voly.plan.types import FAILED, RUNNING, VERIFIED, VERIFYING
+    from voly.plan.verify import VerifyContext, complete_verification, git_porcelain
     from voly.telemetry import _estimate_cost
-
-    if tracker is not None and task_id:
-        tracker.start(task_id, task, [a.role for a in assignments])
 
     hybrid_on = hybrid_active(
         hybrid_code_gen=hybrid_code_gen,
@@ -353,6 +372,133 @@ def run_local(
     )
     if hybrid_code_gen and hybrid_require_cwd and not (cwd or "").strip():
         _log.info("multiagent hybrid: no cwd — all roles stay chat (hybrid_skipped_no_cwd)")
+
+    # Pre-resolve hybrid modes so the plan mirror matches execution.
+    role_modes: dict[int, str] = {}
+    for a in assignments:
+        mode, reason = resolve_role_mode(
+            a.role,
+            hybrid_enabled=hybrid_on,
+            requires_code_gen=requires_code_gen,
+            lead_execution=a.execution or None,
+            executor_roles=executor_roles,
+        )
+        a.mode = mode
+        a.mode_reason = reason
+        role_modes[a.idx] = mode
+
+    plan = None
+    engine: PlanEngine | None = None
+    store = None
+    plan_mode = "off"
+    gates_on = plan_gates_enabled(plan_config)
+    if gates_on:
+        engine = PlanEngine()
+        plan_mode = (getattr(plan_config, "mode", "shadow") or "shadow").lower()
+        plan_id = f"a2a-{task_id}" if task_id else f"a2a-{abs(hash(task)) % 10**10}"
+        plan = assignments_to_plan(
+            task,
+            assignments,
+            plan_id=plan_id,
+            task_id=task_id,
+            cwd=cwd or "",
+            plan_cfg=plan_config,
+            role_modes=role_modes,
+        )
+        try:
+            engine.validate(plan)
+        except Exception as exc:  # noqa: BLE001
+            _log.warning("plan gates disabled — invalid plan: %s", exc)
+            plan = None
+            engine = None
+            gates_on = False
+        else:
+            store = plan_store or PlanStore(
+                getattr(plan_config, "store_dir", None) or ".voly/plans"
+            )
+            store.save(plan)
+            _log.info(
+                "multiagent plan gates ON mode=%s plan_id=%s steps=%d",
+                plan_mode, plan.plan_id, len(plan.steps),
+            )
+
+    if tracker is not None and task_id:
+        tracker.start(
+            task_id,
+            task,
+            [a.role for a in assignments],
+            plan_id=plan.plan_id if plan else "",
+        )
+
+    def _step_snapshot() -> list[dict[str, Any]]:
+        if plan is None:
+            return []
+        return [{"id": s.id, "status": s.status, "role": s.role} for s in plan.steps]
+
+    def _hb(role: str, done_n: int) -> None:
+        if tracker is not None and task_id:
+            tracker.heartbeat(
+                task_id, role, done_n,
+                step_statuses=_step_snapshot() if plan is not None else None,
+            )
+
+    def _finish_step_plan(a: Assignment, *, exec_ok: bool, git_before: dict) -> None:
+        """After role execution: mark plan step done/verified/failed."""
+        if plan is None or engine is None:
+            return
+        sid = assignment_step_id(a.idx, a.role)
+        step = plan.get_step(sid)
+        step.output = a.content or ""
+        step.files_touched = list(a.files_touched or [])
+        if not exec_ok:
+            if step.status == RUNNING:
+                engine.transition(plan, sid, FAILED, error=a.error or "role failed")
+            sync_assignment_plan_fields(a, plan.get_step(sid))
+            if store is not None:
+                store.save(plan)
+            return
+
+        engine.mark_execution_finished(
+            plan, sid, success=True, output=a.content or "",
+            files_touched=a.files_touched,
+        )
+        engine.advance_after_done(plan, sid)
+        step = plan.get_step(sid)
+        if step.status == VERIFYING:
+            git_after = git_porcelain(cwd) if cwd else {}
+            ctx = VerifyContext(
+                cwd=cwd or "",
+                output=a.content or "",
+                files_touched=list(a.files_touched or []),
+                git_before=git_before,
+                git_after=git_after,
+                command_timeout=float(
+                    getattr(plan_config, "command_timeout_seconds", 120.0) or 120.0
+                ),
+            )
+            step, _results = complete_verification(
+                plan, sid, ctx, engine=engine
+            )
+            if step.status == FAILED and plan_mode == "shadow":
+                _log.warning(
+                    "plan step %s verify failed (shadow → force verified): %s",
+                    sid, step.error,
+                )
+                step.status = VERIFIED
+                engine.recompute_plan_status(plan)
+        step = plan.get_step(sid)
+        sync_assignment_plan_fields(a, step)
+        # Active: failed verify → not ok (dependents skip). Shadow soft-verify → keep ok.
+        if step.status == FAILED:
+            a.ok = False
+            if not a.error:
+                a.error = step.error or "plan verification failed"
+        elif step.status == VERIFIED and plan_mode == "shadow":
+            # Soft-opened after verify fail: process still counts as ok for dependents.
+            if step.verify_log and not all(bool(e.get("ok")) for e in step.verify_log):
+                a.ok = True
+        if store is not None:
+            store.save(plan)
 
     done: dict[int, Assignment] = {}
     for a in assignments:
@@ -366,21 +512,32 @@ def run_local(
                 a.ok = False
                 a.error = f"skipped: prior role(s) failed ({', '.join(failed_priors)})"
                 a.content = f"({a.error})"
-                a.mode, a.mode_reason = "chat", "skipped_prior_failed"
+                a.mode, a.mode_reason = a.mode or "chat", "skipped_prior_failed"
+                a.plan_status = "skipped"
                 done[a.idx] = a
-                if tracker is not None and task_id:
-                    tracker.heartbeat(task_id, a.role, len(done))
+                _hb(a.role, len(done))
                 continue
 
-        mode, reason = resolve_role_mode(
-            a.role,
-            hybrid_enabled=hybrid_on,
-            requires_code_gen=requires_code_gen,
-            lead_execution=a.execution or None,
-            executor_roles=executor_roles,
-        )
-        a.mode = mode
-        a.mode_reason = reason
+        # Plan gate: only start when depends_on steps are verified.
+        if plan is not None and engine is not None:
+            sid = assignment_step_id(a.idx, a.role)
+            if not engine.can_start(plan, sid):
+                unmet = engine.unmet_deps(plan, sid)
+                a.ok = False
+                a.error = f"blocked: plan deps not verified ({unmet})"
+                a.content = f"({a.error})"
+                a.plan_status = "blocked"
+                done[a.idx] = a
+                _hb(a.role, len(done))
+                continue
+            engine.transition(plan, sid, RUNNING)
+            a.plan_status = RUNNING
+            if store is not None:
+                store.save(plan)
+
+        mode = a.mode or role_modes.get(a.idx, "chat")
+        reason = a.mode_reason
+        git_before = git_porcelain(cwd) if cwd else {}
 
         prior = [(done[d].role, done[d].content) for d in a.depends_on if d in done and done[d].ok]
         user = TaskDecomposer.inject_prior_context(a.description, prior)
@@ -414,9 +571,9 @@ def run_local(
                     a.error = str(e)
                     a.content = f"(executor failed: {e})"
                     a.ok = False
+                    _finish_step_plan(a, exec_ok=False, git_before=git_before)
                     done[a.idx] = a
-                    if tracker is not None and task_id:
-                        tracker.heartbeat(task_id, a.role, len(done))
+                    _hb(a.role, len(done))
                     continue
 
                 if isinstance(result, dict):
@@ -432,9 +589,9 @@ def run_local(
                 else:
                     a.content = str(result or "")
                     a.ok = bool(a.content.strip())
+                _finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
                 done[a.idx] = a
-                if tracker is not None and task_id:
-                    tracker.heartbeat(task_id, a.role, len(done))
+                _hb(a.role, len(done))
                 continue
 
             # No runner yet — fall back to chat so production stays useful.
@@ -466,14 +623,17 @@ def run_local(
         except Exception as e:  # noqa: BLE001
             a.error = str(e)
             a.content = f"(failed: {e})"
+            a.ok = False
+            _finish_step_plan(a, exec_ok=False, git_before=git_before)
             done[a.idx] = a
-            if tracker is not None and task_id:
-                tracker.heartbeat(task_id, a.role, len(done))
+            _hb(a.role, len(done))
             continue
 
         if resp.get("error"):
             a.error = str(resp["error"])
             a.content = f"(failed: {a.error})"
+            a.ok = False
+            process_ok = False
         else:
             a.content = resp.get("content", "") or ""
             usage = resp.get("usage", {}) or {}
@@ -483,8 +643,11 @@ def run_local(
             # Cache hit = 0 new tokens billed → no cost this run.
             a.cost_usd = 0.0 if a.cache_hit else _estimate_cost(
                 resp.get("model", a.model), a.input_tokens, a.output_tokens)
-            a.ok = bool(a.content.strip())
-            if a.ok and memory is not None and not a.cache_hit:
+            # With plan gates, empty content is an acceptance concern (output_nonempty),
+            # not a hard process failure — so dependents can be soft-gated in shadow.
+            process_ok = True
+            a.ok = bool(a.content.strip()) if not gates_on else True
+            if a.content.strip() and memory is not None and not a.cache_hit:
                 try:
                     memory.add(
                         title=f"[{a.role}] {a.description[:80]}",
@@ -495,9 +658,9 @@ def run_local(
                     )
                 except Exception as e:  # noqa: BLE001
                     _log.debug("memory store skipped for %s: %s", a.role, e)
+        _finish_step_plan(a, exec_ok=process_ok if gates_on else a.ok, git_before=git_before)
         done[a.idx] = a
-        if tracker is not None and task_id:
-            tracker.heartbeat(task_id, a.role, len(done))
+        _hb(a.role, len(done))
 
         # Spend limit is a hard stop for the WHOLE chain: remaining sub-agents
         # would only re-hit the same exhausted budget. Mark them spend-limited
@@ -512,9 +675,18 @@ def run_local(
                     done[rest.idx] = rest
             break
 
+    if plan is not None and engine is not None:
+        engine.recompute_plan_status(plan)
+        if store is not None:
+            store.save(plan)
+
     if tracker is not None and task_id:
         any_ok = any(a.ok for a in assignments)
-        tracker.finish(task_id, status="completed" if any_ok else "failed")
+        tracker.finish(
+            task_id,
+            status="completed" if any_ok else "failed",
+            step_statuses=_step_snapshot() if plan is not None else None,
+        )
     return assignments
 
 

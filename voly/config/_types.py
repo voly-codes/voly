@@ -247,6 +247,14 @@ class PlanConfig:
     executor_default: str = "claude-code"
     step_timeout_seconds: int = 300
     max_turns: int = 30
+    # When enabled and mode != off, multi-agent run_local uses plan gates (PR4).
+    a2a_attach: bool = True
+    # Default acceptance for chat roles: non-empty model output.
+    chat_require_output: bool = True
+    # Opt-in: executor roles must leave a git dirty/diff (files_touched or porcelain).
+    executor_require_git_diff: bool = False
+    # Opt-in: tester role runs this command as acceptance (e.g. "pytest -q").
+    tester_command: str = ""
 
     VALID_MODES = frozenset({"off", "shadow", "active"})
     VALID_ON_FAIL = frozenset({"stop", "retry", "continue"})

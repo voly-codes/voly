@@ -3,11 +3,17 @@
 PR1: types, atomic store, engine (topo order, gates, transitions).
 PR2: acceptance verifiers (command, files, git, output).
 PR3: PlanRunner + CLI (voly plan run|list|show|status|validate).
-PR4+: multi-agent bridge.
+PR4: multi-agent A2A bridge (assignments → plan gates in run_local).
 
 See ``docs/proposals/plan-gate-verification.md``.
 """
 
+from voly.plan.bridge import (
+    assignment_step_id,
+    assignments_to_plan,
+    default_acceptance_for_role,
+    plan_gates_enabled,
+)
 from voly.plan.engine import PlanEngine, create_plan
 from voly.plan.loader import load_plan_dict, load_plan_file, plan_summary
 from voly.plan.runner import PlanRunResult, PlanRunner
@@ -78,10 +84,14 @@ __all__ = [
     "PlanRunResult",
     "PlanRunner",
     "all_passed",
+    "assignment_step_id",
+    "assignments_to_plan",
     "complete_verification",
     "create_plan",
+    "default_acceptance_for_role",
     "load_plan_dict",
     "load_plan_file",
+    "plan_gates_enabled",
     "plan_summary",
     "run_acceptance",
     "run_check",

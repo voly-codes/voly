@@ -1,6 +1,6 @@
 # Proposal: Plan state machine + verification gates
 
-**Status:** draft — **PR1–PR3 landed** (FSM + verifiers + PlanRunner/CLI)  
+**Status:** draft — **PR1–PR4 landed** (FSM + verifiers + CLI + A2A bridge)  
 **Layer:** B (orchestration over file-capable CLI agents)  
 **Author context:** gap analysis — «ИИ не следует плану»; Voly softens but does not enforce  
 **Related:** `voly/runtime/runs.py` (Rung A), `voly/a2a/multiagent.py`, `voly/runner/agent_runner.py`, `voly/executor/base.py` (`WorkReport`), `voly/dspy/programs/task_planner.py`, `voly/catalog/supervisor.py`, `docs/proposals/hybrid-multiagent-executor.md`
@@ -392,7 +392,7 @@ Env overrides: `VOLY_PLAN_ENABLED`, `VOLY_PLAN_MODE`.
 [x] PR1  voly/plan/{types,store,engine}.py + unit tests
 [x] PR2  voly/plan/verify.py + built-in checks + tests
 [x] PR3  CLI voly plan * + AgentRunner/gateway step runner + config
-[ ] PR4  A2A bridge + shadow/active + RunRecord/TaskEvent/UI chips
+[x] PR4  A2A bridge + shadow/active + RunRecord/TaskEvent/UI chips
 [ ] PR5  criteria compiler + scanner suggestions + user docs (+ optional landing)
 ```
 
@@ -412,3 +412,4 @@ Env overrides: `VOLY_PLAN_ENABLED`, `VOLY_PLAN_MODE`.
 | 2026-07-09 | PR1: `voly/plan/{types,store,engine}.py` + `tests/test_plan_engine.py` |
 | 2026-07-09 | PR2: `voly/plan/verify.py` + `tests/test_plan_verify.py` |
 | 2026-07-09 | PR3: `PlanRunner`, `voly plan` CLI, `PlanConfig`, tests |
+| 2026-07-10 | PR4: A2A bridge in `run_local`, RunRecord/UI plan badges |

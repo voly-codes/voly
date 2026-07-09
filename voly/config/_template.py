@@ -169,6 +169,11 @@ plan:
   executor_default: claude-code
   step_timeout_seconds: 300
   max_turns: 30
+  # PR4: attach plan gates to multi-agent A2A when enabled+mode
+  a2a_attach: true
+  chat_require_output: true
+  executor_require_git_diff: false   # opt-in
+  tester_command: ""                 # e.g. "pytest -q"
 
 # Web UI auth (optional, requires: pip install 'voly[ui]')
 # Default: disabled — API open on localhost only. Enable before any network exposure.

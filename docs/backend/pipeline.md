@@ -139,6 +139,20 @@ voly runs reap [--yes]         # find (and mark) runs without heartbeat
 The records also provide empirical data for roadmap §6 — real chain lengths and hang
 frequency — to decide whether more expensive rungs (checkpoint/resume) are needed.
 
+### Plan gates on multi-agent (Rung B PR4)
+
+When `plan.enabled=true` and `plan.mode` is `shadow` or `active` and
+`plan.a2a_attach=true`, `_run_multiagent_local` → `run_local` mirrors each role
+as a plan step (see `voly/plan/bridge.py`):
+
+- Dependents start only after prior steps are **verified** (not just `ok`).
+- `active`: failed acceptance stops the role (`ok=False`); dependents skip.
+- `shadow`: failed acceptance is logged; step is soft-verified so the chain continues.
+- Defaults: chat roles get `output_nonempty`; optional `executor_require_git_diff`,
+  `tester_command`.
+- Telemetry: `Assignment.plan_status` / `plan_verify_ok` in `a2a_assignments`;
+  `RunRecord.plan_id` + `step_statuses` (CLI: `voly runs show`).
+
 ---
 
 ## PipelineResult

@@ -44,6 +44,9 @@ class RunRecord:
     current_role: str = ""
     roles: list[str] = field(default_factory=list)
     error: str = ""
+    # Plan gates (Rung B PR4) — optional mirror of the multi-agent plan.
+    plan_id: str = ""
+    step_statuses: list[dict] = field(default_factory=list)
 
     @property
     def age_seconds(self) -> float:
@@ -78,7 +81,14 @@ class RunTracker:
         except OSError:
             pass  # best-effort: never break the run
 
-    def start(self, task_id: str, task: str, roles: list[str]) -> RunRecord:
+    def start(
+        self,
+        task_id: str,
+        task: str,
+        roles: list[str],
+        *,
+        plan_id: str = "",
+    ) -> RunRecord:
         now = time.time()
         rec = RunRecord(
             task_id=task_id,
@@ -90,20 +100,37 @@ class RunTracker:
             done_roles=0,
             current_role=roles[0] if roles else "",
             roles=list(roles),
+            plan_id=plan_id or "",
         )
         self._write(rec)
         return rec
 
-    def heartbeat(self, task_id: str, current_role: str, done_roles: int) -> None:
+    def heartbeat(
+        self,
+        task_id: str,
+        current_role: str,
+        done_roles: int,
+        *,
+        step_statuses: list[dict] | None = None,
+    ) -> None:
         rec = self.load(task_id)
         if rec is None:
             return
         rec.heartbeat_at = time.time()
         rec.current_role = current_role
         rec.done_roles = done_roles
+        if step_statuses is not None:
+            rec.step_statuses = list(step_statuses)
         self._write(rec)
 
-    def finish(self, task_id: str, status: str = COMPLETED, error: str = "") -> None:
+    def finish(
+        self,
+        task_id: str,
+        status: str = COMPLETED,
+        error: str = "",
+        *,
+        step_statuses: list[dict] | None = None,
+    ) -> None:
         rec = self.load(task_id)
         if rec is None:
             return
@@ -112,6 +139,8 @@ class RunTracker:
         rec.done_roles = rec.total_roles if status == COMPLETED else rec.done_roles
         rec.current_role = ""
         rec.error = error[:500]
+        if step_statuses is not None:
+            rec.step_statuses = list(step_statuses)
         self._write(rec)
 
     def load(self, task_id: str) -> RunRecord | None:

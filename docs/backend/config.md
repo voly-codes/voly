@@ -99,6 +99,10 @@ plan:
   executor_default: claude-code
   step_timeout_seconds: 300
   max_turns: 30
+  a2a_attach: true                 # wire gates into multi-agent when enabled
+  chat_require_output: true        # chat roles: output_nonempty acceptance
+  executor_require_git_diff: false # opt-in git_diff_nonempty for executor roles
+  tester_command: ""               # e.g. "pytest -q" for tester role
 
 a2a:
   enabled: true

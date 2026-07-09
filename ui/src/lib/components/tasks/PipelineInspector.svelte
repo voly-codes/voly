@@ -169,6 +169,12 @@
                     <span class="agent-role">{a.role}</span>
                     <span class="agent-tier tier-{a.tier}">{a.tier}</span>
                     {#if a.mode}<span class="agent-badge mode-{a.mode}">{a.mode}</span>{/if}
+                    {#if a.plan_status}
+                      <span
+                        class="agent-badge plan-status plan-{a.plan_status}"
+                        title={a.plan_verify_ok === false ? 'acceptance failed' : `plan: ${a.plan_status}`}
+                      >{a.plan_status}</span>
+                    {/if}
                     {#if a.mode === 'executor' && a.executor}
                       <span class="agent-model">{a.executor}</span>
                     {:else}
@@ -372,6 +378,12 @@
   .agent-badge.mem { color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent); }
   .agent-badge.mode-executor { color: var(--accent-blue, #3b82f6); background: color-mix(in srgb, var(--accent-blue, #3b82f6) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-blue, #3b82f6) 30%, transparent); }
   .agent-badge.mode-chat { color: var(--text-muted, #94a3b8); background: color-mix(in srgb, var(--text-muted, #94a3b8) 10%, transparent); border: 1px solid color-mix(in srgb, var(--text-muted, #94a3b8) 25%, transparent); }
+  .agent-badge.plan-status { text-transform: lowercase; border: 1px solid var(--border-default); color: var(--text-muted); }
+  .agent-badge.plan-verified { color: var(--accent-green); border-color: color-mix(in srgb, var(--accent-green) 30%, transparent); background: color-mix(in srgb, var(--accent-green) 10%, transparent); }
+  .agent-badge.plan-failed,
+  .agent-badge.plan-blocked { color: var(--accent-red); border-color: color-mix(in srgb, var(--accent-red) 30%, transparent); background: color-mix(in srgb, var(--accent-red) 10%, transparent); }
+  .agent-badge.plan-running,
+  .agent-badge.plan-verifying { color: var(--accent-amber, #f59e0b); border-color: color-mix(in srgb, var(--accent-amber, #f59e0b) 30%, transparent); background: color-mix(in srgb, var(--accent-amber, #f59e0b) 10%, transparent); }
   .agent-badge.files { color: var(--accent-orange, #f59e0b); background: color-mix(in srgb, var(--accent-orange, #f59e0b) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-orange, #f59e0b) 30%, transparent); }
   .agent-skills { display: flex; gap: 3px; flex-wrap: wrap; flex: 1; }
   .agent-skill {

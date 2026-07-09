@@ -245,6 +245,7 @@ class _PipelineStageMixin:
                 timeout=max(timeout, 30),
                 emit_event=False,
             )
+        plan_cfg = getattr(self.config, "plan", None)  # type: ignore[attr-defined]
         run_local(
             task, assignments, self.gateway, self.match_skills_for_task,  # type: ignore[attr-defined]
             memory=memory, headroom=getattr(self, 'headroom_mgr', None),
@@ -256,6 +257,7 @@ class _PipelineStageMixin:
             executor_default=getattr(a2a_cfg, "executor_default", "claude-code") or "claude-code",
             executor_roles=list(getattr(a2a_cfg, "executor_roles", None) or []),
             executor_runner=executor_runner,
+            plan_config=plan_cfg,
         )
 
         merged = merge_report(task, assignments)

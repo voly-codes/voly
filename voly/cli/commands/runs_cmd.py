@@ -73,6 +73,13 @@ def runs_show(ctx: click.Context, task_id: str) -> None:
     click.echo(f"task:      {r.task}")
     click.echo(f"progress:  {r.done_roles}/{r.total_roles}  (current: {r.current_role or '—'})")
     click.echo(f"roles:     {', '.join(r.roles)}")
+    if getattr(r, "plan_id", ""):
+        click.echo(f"plan_id:   {r.plan_id}")
+    if getattr(r, "step_statuses", None):
+        for st in r.step_statuses:
+            click.echo(
+                f"  plan-step  {st.get('id', '?'):<20} {st.get('status', '?'):<10} {st.get('role', '')}"
+            )
     click.echo(f"elapsed:   {_fmt_age(r.elapsed_seconds)}")
     click.echo(f"heartbeat: {_fmt_age(r.age_seconds)} ago")
     if r.error:

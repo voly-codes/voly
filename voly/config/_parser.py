@@ -332,6 +332,10 @@ def _parse_config(raw: dict) -> VOLYConfig:
             executor_default=str(p.get("executor_default", "claude-code") or "claude-code"),
             step_timeout_seconds=int(p.get("step_timeout_seconds", 300)),
             max_turns=int(p.get("max_turns", 30)),
+            a2a_attach=_parse_bool(p.get("a2a_attach"), True),
+            chat_require_output=_parse_bool(p.get("chat_require_output"), True),
+            executor_require_git_diff=_parse_bool(p.get("executor_require_git_diff"), False),
+            tester_command=str(p.get("tester_command", "") or ""),
         )
 
     if os.environ.get("VOLY_PLAN_ENABLED", "").lower() in ("1", "true", "yes"):
