@@ -124,9 +124,22 @@ class AIGateway(_GatewayProvidersMixin):
         else:
             result = self._delegated_or_direct(messages, model, provider_name, max_tokens, temperature, system, tools, **kwargs)
 
-        self.spend_limit.record(estimated_cost, agent)
-        cost = self._calculate_cost(model, provider_name, result.get("usage", {}))
-        self.metrics.record_request(provider_name, model, result.get("usage", {}).get("total_tokens", 0), cost)
+        # Charge spend only on success — failed calls must not inflate daily budget
+        # or trip false spend_limited blocks. Prefer usage-based cost when tokens
+        # are present; otherwise fall back to the pre-call estimate.
+        if not result.get("error"):
+            usage = result.get("usage") or {}
+            cost = self._calculate_cost(model, provider_name, usage)
+            has_tokens = bool(
+                usage.get("input_tokens")
+                or usage.get("output_tokens")
+                or usage.get("total_tokens")
+            )
+            spend = cost if has_tokens else estimated_cost
+            self.spend_limit.record(spend, agent)
+            self.metrics.record_request(
+                provider_name, model, usage.get("total_tokens", 0), spend
+            )
 
         if self.cache.enabled and not result.get("error"):
             self.cache.set(cache_key, json.dumps(result))

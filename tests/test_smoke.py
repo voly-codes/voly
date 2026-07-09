@@ -214,6 +214,13 @@ def test_all_submodules_importable() -> None:
         "voly.registry",
         "voly.model_router",
         "voly.pipeline",
+        "voly.config",
+        "voly.cloudflare",
+        "voly.web",
+        # voly.web.auth needs optional PyJWT — covered by packaging declaration test
+        "voly.web.routes",
+        "voly.spend",
+        "voly.runner",
     ]
     import importlib
 
@@ -222,6 +229,38 @@ def test_all_submodules_importable() -> None:
             importlib.import_module(pkg)
         except ImportError as e:
             pytest.fail(f"Failed to import {pkg}: {e}")
+
+
+def test_setuptools_packages_include_core() -> None:
+    """Wheel/sdist must ship pipeline/config/cloudflare/web — not only editable layout."""
+    from pathlib import Path
+
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # pragma: no cover — py<3.11
+        import tomli as tomllib  # type: ignore[no-redef]
+
+    root = Path(__file__).resolve().parents[1]
+    data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    packages = set(data["tool"]["setuptools"]["packages"])
+
+    required = {
+        "voly.pipeline",
+        "voly.config",
+        "voly.cloudflare",
+        "voly.web.auth",
+        "voly.web.routes",
+        "voly.spend",
+        "voly.runner",
+    }
+    missing = required - packages
+    assert not missing, f"setuptools packages missing core modules: {sorted(missing)}"
+    assert "voly.workflow" not in packages, "voly.workflow has no source; should not be packaged"
+
+    for pkg in required:
+        path = root.joinpath(*pkg.split("."))
+        assert path.is_dir(), f"{pkg} declared but directory missing: {path}"
+        assert any(path.glob("*.py")), f"{pkg} has no Python sources under {path}"
 
 
 # ---------------------------------------------------------------------------

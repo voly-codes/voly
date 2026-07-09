@@ -321,6 +321,73 @@ def test_empty_content_direct_path_surfaces_error(monkeypatch) -> None:
     assert result.get("error")
 
 
+# ─── Spend accounting ─────────────────────────────────────────────────────────
+
+def test_spend_not_recorded_on_provider_error(monkeypatch) -> None:
+    """Failed provider calls must not inflate daily spend / false spend_limited."""
+    gw = AIGateway()
+    gw.cache.enabled = False
+    gw.fallback.enabled = False
+    monkeypatch.setattr(gw, "_estimate_cost", lambda *a, **k: 1.5)
+    monkeypatch.setattr(
+        gw, "_direct_call",
+        lambda *a, **k: {"error": "boom", "content": ""},
+    )
+
+    result = gw.chat(
+        [{"role": "user", "content": "hi"}],
+        model="m",
+        provider_name="mimo",
+        agent="developer",
+    )
+    assert result.get("error") == "boom"
+    assert gw.spend_limit.spent_today == 0.0
+
+
+def test_spend_recorded_on_success_prefers_usage_cost(monkeypatch) -> None:
+    """Successful calls charge spend; usage-based cost wins over estimate."""
+    gw = AIGateway()
+    gw.cache.enabled = False
+    monkeypatch.setattr(gw, "_estimate_cost", lambda *a, **k: 9.0)
+    monkeypatch.setattr(gw, "_calculate_cost", lambda *a, **k: 0.25)
+    monkeypatch.setattr(
+        gw, "_direct_call",
+        lambda *a, **k: {
+            "content": "ok",
+            "usage": {"input_tokens": 100, "output_tokens": 50, "total_tokens": 150},
+        },
+    )
+
+    result = gw.chat(
+        [{"role": "user", "content": "hi"}],
+        model="m",
+        provider_name="mimo",
+        agent="developer",
+    )
+    assert not result.get("error")
+    assert gw.spend_limit.spent_today == 0.25
+
+
+def test_spend_falls_back_to_estimate_without_usage(monkeypatch) -> None:
+    """When provider omits usage tokens, charge the pre-call estimate."""
+    gw = AIGateway()
+    gw.cache.enabled = False
+    monkeypatch.setattr(gw, "_estimate_cost", lambda *a, **k: 0.4)
+    monkeypatch.setattr(gw, "_calculate_cost", lambda *a, **k: 0.0)
+    monkeypatch.setattr(
+        gw, "_direct_call",
+        lambda *a, **k: {"content": "ok", "usage": {}},
+    )
+
+    result = gw.chat(
+        [{"role": "user", "content": "hi"}],
+        model="m",
+        provider_name="mimo",
+    )
+    assert not result.get("error")
+    assert gw.spend_limit.spent_today == 0.4
+
+
 # ─── Upstream delegation (Этап 3: layer A make-vs-delegate) ───────────────────
 
 def _upstream_gw() -> AIGateway:

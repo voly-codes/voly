@@ -18,7 +18,9 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 1. **DLP** — блокирует secrets/PII, возвращает `{"dlp_blocked": true}`
 2. **Cache** — exact/semantic hit → `{"cache_hit": true}`, квота не тратится; ключ включает **project-state scope** (см. «Границы валидности кэша»)
 3. **Rate limit** — rpm guard → `{"rate_limited": true}`
-4. **Spend limit** — дневной бюджет → `{"spend_limited": true}`
+4. **Spend limit** — дневной бюджет → `{"spend_limited": true}`; после ответа
+   `spend_limit.record()` вызывается **только при успехе** (без `error`).
+   При наличии `usage` пишется usage-based cost, иначе — pre-call estimate.
 5. **Routing** — CF AI Gateway или прямой вызов, затем model fallback
 6. **Empty-content guard** — фейк-успех (HTTP 200 без контента) → синтетическая ошибка → model fallback
 

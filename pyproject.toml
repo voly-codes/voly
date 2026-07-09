@@ -69,6 +69,8 @@ packages = [
     "voly.catalog",
     "voly.cli",
     "voly.cli.commands",
+    "voly.cloudflare",
+    "voly.config",
     "voly.dspy",
     "voly.dspy.programs",
     "voly.executor",
@@ -76,6 +78,7 @@ packages = [
     "voly.inference",
     "voly.memory",
     "voly.models",
+    "voly.pipeline",
     "voly.registry",
     "voly.rtk",
     "voly.runner",
@@ -84,7 +87,9 @@ packages = [
     "voly.spend",
     "voly.tools",
     "voly.web",
-    "voly.workflow",
+    "voly.web.auth",
+    "voly.web.routes",
+    # voly.workflow removed: package has no source files (only stale __pycache__)
 ]
 
 [tool.ruff]

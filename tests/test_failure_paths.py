@@ -217,7 +217,9 @@ def test_spend_limit_halts_multiagent_chain_midway(monkeypatch):
     gw = AIGateway()
     gw.cache.enabled = False
     gw.spend_limit.daily_budget_usd = 2.5
+    # Charge $1 per successful call (estimate pre-check + actual post-charge)
     monkeypatch.setattr(gw, "_estimate_cost", lambda *a, **k: 1.0)
+    monkeypatch.setattr(gw, "_calculate_cost", lambda *a, **k: 1.0)
 
     provider_calls: list[str] = []
 
