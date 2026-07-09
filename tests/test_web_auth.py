@@ -95,6 +95,29 @@ def test_create_app_open_mode_allows_status(tmp_path: Path) -> None:
     assert r2.json()["enabled"] is False
 
 
+def test_create_app_auth_accepts_query_token_for_get(tmp_path: Path) -> None:
+    """EventSource cannot set headers — GET may pass access_token query."""
+    from fastapi.testclient import TestClient
+    from voly.web.server import create_app
+
+    cfg = VOLYConfig(
+        auth=AuthConfig(
+            enabled=True,
+            jwt_secret="unit-test-secret-key-32chars!!",
+            users={"admin": "pass"},
+            cors_origins=["http://localhost:7788"],
+        )
+    )
+    app = create_app(events_dir=tmp_path, config=cfg)
+    client = TestClient(app)
+    ok = client.post("/api/auth/login", json={"username": "admin", "password": "pass"})
+    token = ok.json()["access_token"]
+    denied = client.get("/api/tasks")
+    assert denied.status_code == 401
+    allowed = client.get(f"/api/tasks?access_token={token}")
+    assert allowed.status_code == 200
+
+
 def test_create_app_auth_blocks_and_login(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
     from voly.web.server import create_app

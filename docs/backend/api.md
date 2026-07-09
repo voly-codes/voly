@@ -33,6 +33,11 @@ When auth is enabled, all `/api/*` except public routes require
 | `GET /api/status` | registry / marketplace / … |
 | `/api/docs`, openapi | |
 
+**Web UI:** when auth is on, the Svelte app shows a sign-in modal, stores the JWT
+in `localStorage` (`voly_access_token`), and sends `Authorization` on API calls.
+`EventSource` (`/api/tasks/stream`) cannot set headers — it passes
+`?access_token=` (GET only; accepted by `JWTAuthMiddleware`).
+
 ```bash
 # login
 curl -s -X POST http://127.0.0.1:7788/api/auth/login \

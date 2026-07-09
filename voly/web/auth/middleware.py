@@ -49,6 +49,10 @@ class JWTAuthMiddleware:
             return
 
         token = _extract_bearer(request.headers.get("authorization", ""))
+        # EventSource cannot set Authorization headers — allow access_token query
+        # for GET streams only (e.g. /api/tasks/stream).
+        if token is None and request.method == "GET":
+            token = (request.query_params.get("access_token") or "").strip() or None
         if token is None:
             await _unauthorized(scope, receive, send, "Missing bearer token")
             return

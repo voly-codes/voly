@@ -33,7 +33,11 @@ Implementation details that matter for future changes:
 | `GET /api/status` | public | server health / config snapshot |
 | Other `/api/*` | protected when auth on | require `Authorization: Bearer …` |
 
-Code: `voly/web/routes/auth.py`, `voly/web/auth/*`. Tests: `tests/test_web_auth.py`.
+**UI:** sign-in modal + header when `auth.enabled`; token in `localStorage`;
+API client attaches Bearer. SSE streams use `?access_token=` (GET only).
+
+Code: `voly/web/routes/auth.py`, `voly/web/auth/*`, `ui/src/lib/api/client.js`,
+`ui/src/lib/stores/authStore.svelte.ts`. Tests: `tests/test_web_auth.py`.
 
 ## Operational entrypoints
 

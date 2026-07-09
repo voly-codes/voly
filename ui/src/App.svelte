@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import AppHeader from './lib/components/layout/AppHeader.svelte'
+  import LoginModal from './lib/components/auth/LoginModal.svelte'
+  import { auth } from './lib/stores/authStore.svelte.ts'
   import TaskSidebar from './lib/components/tasks/TaskSidebar.svelte'
   import PipelineInspector from './lib/components/tasks/PipelineInspector.svelte'
   import CostPanel from './lib/components/tasks/CostPanel.svelte'
@@ -36,23 +38,27 @@
 
   onMount(() => {
     router.init()
-    tasksStore.refresh()
-    tasksStore.startStream()
-
-    const unreg = registerShortcuts({
-      '1-false-false-false': () => router.navigate('tasks'),
-      '2-false-false-false': () => router.navigate('gateway'),
-      '3-false-false-false': () => router.navigate('telemetry'),
-      '4-false-false-false': () => router.navigate('dspy'),
-      'r-true-true-false': global(() => { ui.runOpen = true }),
-      'Escape-false-false-false': () => {
-        if (ui.activeModal) { ui.activeModal = null; return }
-        ui.closeAll()
-      },
-      '/-false-false-false': () => {
-        const el = document.querySelector<HTMLInputElement>('.sidebar-search input')
-        el?.focus()
-      },
+    let unreg = () => {}
+    auth.init().then(() => {
+      unreg = registerShortcuts({
+        '1-false-false-false': () => router.navigate('tasks'),
+        '2-false-false-false': () => router.navigate('gateway'),
+        '3-false-false-false': () => router.navigate('telemetry'),
+        '4-false-false-false': () => router.navigate('dspy'),
+        'r-true-true-false': global(() => { ui.runOpen = true }),
+        'Escape-false-false-false': () => {
+          if (auth.loginOpen && (!auth.enabled || auth.user)) {
+            auth.closeLogin()
+            return
+          }
+          if (ui.activeModal) { ui.activeModal = null; return }
+          ui.closeAll()
+        },
+        '/-false-false-false': () => {
+          const el = document.querySelector<HTMLInputElement>('.sidebar-search input')
+          el?.focus()
+        },
+      })
     })
 
     return () => {
@@ -61,11 +67,24 @@
     }
   })
 
+  // Load data when signed in (auth off ⇒ always signedIn). Restart stream after login.
+  $effect(() => {
+    if (!auth.ready) return
+    if (auth.signedIn) {
+      tasksStore.refresh()
+      tasksStore.stopStream()
+      tasksStore.startStream()
+    } else {
+      tasksStore.stopStream()
+    }
+  })
+
   // Marketplace drawer tab: skills | plugins
   let marketTab = $state('skills')
 </script>
 
 <div class="app">
+  <LoginModal />
   <AppHeader
     taskCount={tasksStore.status?.tasks_count ?? tasksStore.tasks.length}
     totalCost={tasksStore.summary?.total_cost_usd ?? 0}
