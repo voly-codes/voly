@@ -87,6 +87,7 @@ packages = [
     "voly.memory",
     "voly.models",
     "voly.pipeline",
+    "voly.plan",
     "voly.registry",
     "voly.rtk",
     "voly.runner",

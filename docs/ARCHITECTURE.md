@@ -186,7 +186,19 @@ voly.chain logger:
 
 ---
 
-## Key modules
+## Plan gates (Rung B) — in progress
+
+Enforced multi-step plans with verification gates. Design:
+[`docs/proposals/plan-gate-verification.md`](proposals/plan-gate-verification.md).
+
+| PR | Status | Module |
+|---|---|---|
+| PR1 | **landed** — types, store, FSM engine | `voly/plan/` |
+| PR2 | planned — acceptance verifiers | `voly/plan/verify.py` |
+| PR3 | planned — CLI + AgentRunner wire-up | `voly plan …` |
+| PR4 | planned — multi-agent bridge | A2A + gates |
+
+PR1 provides `Plan` / `PlanStep` state machine (`pending → running → done → verifying → verified`), dependency **gate** (next step cannot start until deps are `verified`), and atomic JSON store under `.voly/plans/`. No agent I/O yet.
 
 ### `voly/pipeline/` — central orchestrator (text path)
 
