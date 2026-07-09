@@ -2,13 +2,13 @@
 
 See ``docs/proposals/hybrid-multiagent-executor.md``.
 
-PR1 provides the policy map and resolution helpers. PR2 wires AgentRunner
-for implement roles; until then ``run_local`` may inject a mock
-``executor_runner`` or fall back to chat.
+PR1: policy map + ``run_local`` branch.
+PR2: ``make_agent_runner_executor`` wires AgentRunner + billing fallback.
 """
 from __future__ import annotations
 
-from typing import Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 RoleMode = Literal["chat", "executor"]
 
@@ -90,3 +90,70 @@ def resolve_role_mode(
         return "executor", "role_map"
 
     return "chat", "role_map_chat"
+
+
+def make_agent_runner_executor(
+    config: Any,
+    *,
+    max_turns: int = 30,
+    timeout: int = 300,
+    emit_event: bool = False,
+) -> Callable[..., dict[str, Any]]:
+    """Build an ``executor_runner`` for ``run_local`` using AgentRunner.
+
+    Passes the configured executor name (e.g. ``claude-code``) so the billing
+    fallback chain applies. Sub-role runs default to ``emit_event=False`` so the
+    parent multi-agent ``TaskEvent`` remains the primary telemetry record.
+    """
+    from voly.runner.agent_runner import AgentRunner
+
+    runner = AgentRunner(config)
+
+    def executor_runner(
+        *,
+        role: str,
+        task: str,
+        cwd: str,
+        executor: str,
+        system: str,
+        assignment: Any,
+    ) -> dict[str, Any]:
+        full_task = task
+        if system and system.strip():
+            full_task = (
+                f"{system.strip()}\n\n---\n\n"
+                f"## Sub-task ({role})\n\n{task}"
+            )
+        # Prefer explicit executor name so we do not remap roles via DEFAULT_AGENT_EXECUTOR
+        # (e.g. developer → cursor). Billing chain starts at this executor.
+        agent_key = (executor or "claude-code").strip() or "claude-code"
+        rr = runner.run(
+            full_task,
+            agent_key,
+            cwd=cwd or "",
+            max_turns=max_turns,
+            timeout=timeout,
+            emit_event=emit_event,
+        )
+        er = rr.result
+        files: list[str] = []
+        if er.report is not None:
+            files = list(
+                dict.fromkeys(
+                    list(er.report.files_changed or [])
+                    + list(er.report.files_created or [])
+                )
+            )
+        return {
+            "ok": bool(rr.success),
+            "success": bool(rr.success),
+            "content": (er.output or er.error or ""),
+            "error": (er.error or "") if not rr.success else "",
+            "cost_usd": float(er.cost_usd or 0.0),
+            "input_tokens": int(er.input_tokens or 0),
+            "output_tokens": int(er.output_tokens or 0),
+            "files_touched": files,
+            "executor": rr.executor or agent_key,
+        }
+
+    return executor_runner

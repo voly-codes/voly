@@ -322,6 +322,7 @@ class AgentRunner:
         max_turns: int = 30,
         timeout: int = 300,
         model: str = "",
+        emit_event: bool = True,
     ) -> RunnerResult:
         self.setup_rtk()
 
@@ -485,35 +486,36 @@ class AgentRunner:
             status = budget_status(total_cost_usd, self.config)
             budget_exceeded = status == "budget_exceeded"
 
-        emit_event_from_config(TaskEvent(
-            task_id=task_id,
-            agent=agent_role,
-            executor=executor_name,
-            status=status,
-            tokens=TokenMetrics(
-                input=result.input_tokens + retry_tokens_in,
-                output=result.output_tokens + retry_tokens_out,
-            ),
-            cost_usd=total_cost_usd,
-            retry_count=retry_count,
-            retry_cost_usd=round(retry_cost_usd, 6),
-            error_class=classify_failure(result),
-            duration_ms=result.duration_ms,
-            model=result.metadata.get("model") if result.metadata else (model or executor_name),
-            provider=result.metadata.get("provider") if result.metadata else executor_name,
-            task_type=task_type,
-            automation_score=automation_score,
-            manual_steps_removed=manual_steps,
-            error=result.error if not result.success else (
-                f"Budget exceeded: ${total_cost_usd:.4f} > "
-                f"${self.config.cost_policy.max_task_cost_usd:.2f}"
-                if budget_exceeded else None
-            ),
-            task_prompt=task[:2000] if task else None,
-            result=result.output[:8000] if result.output else None,
-            report=work_report.to_dict() if work_report else None,
-            chain_timelog=chain_timelog if len(chain_timelog) > 1 else [],
-        ), self.config)
+        if emit_event:
+            emit_event_from_config(TaskEvent(
+                task_id=task_id,
+                agent=agent_role,
+                executor=executor_name,
+                status=status,
+                tokens=TokenMetrics(
+                    input=result.input_tokens + retry_tokens_in,
+                    output=result.output_tokens + retry_tokens_out,
+                ),
+                cost_usd=total_cost_usd,
+                retry_count=retry_count,
+                retry_cost_usd=round(retry_cost_usd, 6),
+                error_class=classify_failure(result),
+                duration_ms=result.duration_ms,
+                model=result.metadata.get("model") if result.metadata else (model or executor_name),
+                provider=result.metadata.get("provider") if result.metadata else executor_name,
+                task_type=task_type,
+                automation_score=automation_score,
+                manual_steps_removed=manual_steps,
+                error=result.error if not result.success else (
+                    f"Budget exceeded: ${total_cost_usd:.4f} > "
+                    f"${self.config.cost_policy.max_task_cost_usd:.2f}"
+                    if budget_exceeded else None
+                ),
+                task_prompt=task[:2000] if task else None,
+                result=result.output[:8000] if result.output else None,
+                report=work_report.to_dict() if work_report else None,
+                chain_timelog=chain_timelog if len(chain_timelog) > 1 else [],
+            ), self.config)
 
         return RunnerResult(
             success=result.success and not budget_exceeded,

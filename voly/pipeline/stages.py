@@ -95,7 +95,9 @@ class _PipelineStageMixin:
         # Local mode: a strong lead orchestrator assigns model tier + skills per
         # sub-agent, then each runs in-process via AIGateway.chat(). No federation.
         if getattr(self.config.a2a, 'execution_mode', 'local') == 'local':
-            return self._run_multiagent_local(task, subtasks, agui_session_id, started, task_id)
+            return self._run_multiagent_local(
+                task, subtasks, agui_session_id, started, task_id, analysis=analysis,
+            )
 
         timeout = getattr(self.config.a2a, 'task_timeout_seconds', 120.0)  # type: ignore[attr-defined]
         a2a_tasks = self.a2a.dispatch_parallel(subtasks, timeout_seconds=timeout)  # type: ignore[attr-defined]
@@ -180,10 +182,13 @@ class _PipelineStageMixin:
         agui_session_id: str | None,
         started: float,
         task_id: str,
+        *,
+        analysis: Any = None,
     ) -> Any | None:
         """Lead orchestrator assigns model tier + skills per sub-agent; run in-process."""
         import time as _time
 
+        from voly.a2a.hybrid import make_agent_runner_executor
         from voly.a2a.multiagent import LeadOrchestrator, merge_report, run_local
         from voly.pipeline.types import PipelineResult, PipelineStage
         from voly.router import RouteDecision
@@ -215,6 +220,19 @@ class _PipelineStageMixin:
 
         a2a_cfg = self.config.a2a  # type: ignore[attr-defined]
         cwd = (getattr(self.config, "default_cwd", None) or "").strip()  # type: ignore[attr-defined]
+        requires_code_gen = bool(
+            getattr(analysis, "requires_code_gen", True) if analysis is not None else True
+        )
+        # Hybrid PR2: implement roles use AgentRunner + billing fallback (no per-role TaskEvent).
+        timeout = int(getattr(a2a_cfg, "task_timeout_seconds", 120) or 120)
+        executor_runner = None
+        if bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and cwd:
+            executor_runner = make_agent_runner_executor(
+                self.config,  # type: ignore[attr-defined]
+                max_turns=30,
+                timeout=max(timeout, 30),
+                emit_event=False,
+            )
         run_local(
             task, assignments, self.gateway, self.match_skills_for_task,  # type: ignore[attr-defined]
             memory=memory, headroom=getattr(self, 'headroom_mgr', None),
@@ -222,11 +240,10 @@ class _PipelineStageMixin:
             cwd=cwd,
             hybrid_code_gen=bool(getattr(a2a_cfg, "hybrid_code_gen", True)),
             hybrid_require_cwd=bool(getattr(a2a_cfg, "hybrid_require_cwd", True)),
-            requires_code_gen=True,  # A2A auto path is multi-capability; refine in PR2
+            requires_code_gen=requires_code_gen,
             executor_default=getattr(a2a_cfg, "executor_default", "claude-code") or "claude-code",
             executor_roles=list(getattr(a2a_cfg, "executor_roles", None) or []),
-            # PR2 wires AgentRunner; until then executor roles fall back to chat.
-            executor_runner=None,
+            executor_runner=executor_runner,
         )
 
         merged = merge_report(task, assignments)

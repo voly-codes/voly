@@ -6,10 +6,12 @@ from voly.a2a.decomposer import TaskDecomposer
 from voly.a2a.hybrid import (
     DEFAULT_EXECUTOR_ROLES,
     hybrid_active,
+    make_agent_runner_executor,
     resolve_role_mode,
 )
-from voly.a2a.multiagent import Assignment, LeadOrchestrator, run_local
+from voly.a2a.multiagent import LeadOrchestrator, run_local
 from voly.config import A2AConfig, VOLYConfig, load_config
+from voly.executor.base import ExecutorResult, WorkReport
 
 
 class _FakeAnalysis:
@@ -223,3 +225,135 @@ def test_default_executor_roles_constant() -> None:
 def test_voly_config_has_hybrid() -> None:
     cfg = VOLYConfig()
     assert cfg.a2a.hybrid_code_gen is True
+
+
+def test_make_agent_runner_executor_maps_result(monkeypatch) -> None:
+    """AgentRunner result is adapted into run_local's executor_runner dict."""
+    from voly.runner.agent_runner import RunnerResult
+    import voly.a2a.hybrid as hybrid_mod
+
+    calls: list[dict] = []
+
+    class _FakeRunner:
+        def __init__(self, config):
+            pass
+
+        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True):
+            calls.append({
+                "task": task, "agent": agent, "cwd": cwd, "emit_event": emit_event,
+            })
+            er = ExecutorResult(
+                success=True,
+                output="patched files",
+                cost_usd=0.12,
+                input_tokens=100,
+                output_tokens=50,
+                report=WorkReport(
+                    summary="ok",
+                    files_changed=["src/a.py"],
+                    files_created=["src/b.py"],
+                ),
+            )
+            return RunnerResult(
+                success=True,
+                executor="claude-code",
+                agent="claude-code",
+                task_id="t1",
+                result=er,
+            )
+
+    monkeypatch.setattr(hybrid_mod, "AgentRunner", _FakeRunner, raising=False)
+    # Patch where it's imported inside the factory
+    import voly.runner.agent_runner as runner_mod
+    monkeypatch.setattr(runner_mod, "AgentRunner", _FakeRunner)
+
+    runner = make_agent_runner_executor(VOLYConfig(), emit_event=False, timeout=60)
+    out = runner(
+        role="developer",
+        task="implement endpoint",
+        cwd="/tmp/proj",
+        executor="claude-code",
+        system="You are a developer.",
+        assignment=None,
+    )
+    assert out["ok"] is True
+    assert out["files_touched"] == ["src/a.py", "src/b.py"]
+    assert out["executor"] == "claude-code"
+    assert out["cost_usd"] == 0.12
+    assert calls and calls[0]["agent"] == "claude-code"
+    assert calls[0]["cwd"] == "/tmp/proj"
+    assert calls[0]["emit_event"] is False
+    assert "Sub-task (developer)" in calls[0]["task"]
+    assert "You are a developer" in calls[0]["task"]
+
+
+def test_run_local_with_agent_runner_factory(monkeypatch) -> None:
+    """End-to-end: hybrid run_local + make_agent_runner_executor (mocked AgentRunner)."""
+    from voly.runner.agent_runner import RunnerResult
+    import voly.runner.agent_runner as runner_mod
+
+    class _FakeRunner:
+        def __init__(self, config):
+            pass
+
+        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True):
+            return RunnerResult(
+                success=True,
+                executor=agent,
+                agent=agent,
+                task_id="x",
+                result=ExecutorResult(
+                    success=True,
+                    output=f"done by {agent}",
+                    report=WorkReport(files_changed=["f.py"]),
+                ),
+            )
+
+    monkeypatch.setattr(runner_mod, "AgentRunner", _FakeRunner)
+
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+    gw = _FakeGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+    runner = make_agent_runner_executor(VOLYConfig(), emit_event=False)
+    run_local(
+        "build",
+        assignments,
+        gw,
+        cwd="/tmp/proj",
+        hybrid_code_gen=True,
+        executor_default="claude-code",
+        executor_runner=runner,
+    )
+    dev = next(a for a in assignments if a.role == "developer")
+    assert dev.mode == "executor"
+    assert dev.ok is True
+    assert "done by" in dev.content
+    assert dev.files_touched == ["f.py"]
+
+
+def test_agent_runner_emit_event_flag(monkeypatch, tmp_path) -> None:
+    """emit_event=False must not call emit_event_from_config."""
+    from voly.runner import agent_runner as runner_mod
+    from voly.runner.agent_runner import AgentRunner
+
+    events: list = []
+    monkeypatch.setattr(runner_mod, "emit_event_from_config", lambda *a, **k: events.append(1))
+    monkeypatch.setattr(
+        runner_mod,
+        "_build_executor",
+        lambda name, model=None: type("E", (), {
+            "run": staticmethod(lambda *a, **k: ExecutorResult(success=True, output="ok")),
+            "name": name,
+        })(),
+    )
+    monkeypatch.setattr(runner_mod, "_git_porcelain", lambda cwd: set())
+    monkeypatch.setattr(runner_mod, "_build_work_report", lambda *a, **k: WorkReport())
+    monkeypatch.setattr(runner_mod, "compute_automation_metrics", lambda *a, **k: (0.5, 1))
+
+    r = AgentRunner(VOLYConfig(rtk=__import__("voly.config", fromlist=["RTKConfig"]).RTKConfig(enabled=False)))
+    out = r.run("t", "claude-code", cwd=str(tmp_path), emit_event=False)
+    assert out.success is True
+    assert events == []
+    out2 = r.run("t", "claude-code", cwd=str(tmp_path), emit_event=True)
+    assert out2.success is True
+    assert len(events) == 1

@@ -93,9 +93,16 @@ Config (`voly.yaml` → `a2a`):
 | `executor_default` | `claude-code` | First executor for implement roles |
 | `executor_roles` | developer, bugfixer, tester | Roles that prefer executor mode |
 
-**PR1 status:** mode map + `run_local` branch + injectable `executor_runner` for tests.
-Real `AgentRunner` wiring is **PR2**. Until then, executor-mode roles log
-`chat_fallback_no_runner` and still use `AIGateway.chat()`.
+**PR1:** mode map + `run_local` branch + injectable `executor_runner`.
+
+**PR2 (current):** when hybrid is active and `cwd` is set, the pipeline injects
+`make_agent_runner_executor(config)` so implement roles call **AgentRunner** with
+the billing fallback chain (`claude-code → wrangler → opencode → zen`). Sub-role
+runs use `emit_event=False` so the parent multi-agent `TaskEvent` stays primary;
+per-role cost/files land on `Assignment` (`files_touched`, `executor`, `cost_usd`).
+
+Without `cwd`, hybrid stays chat-only. Without a runner (tests can still inject
+mocks), executor-mode roles fall back to chat with `chat_fallback_no_runner`.
 
 ---
 
