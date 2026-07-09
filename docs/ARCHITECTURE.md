@@ -194,11 +194,16 @@ Enforced multi-step plans with verification gates. Design:
 | PR | Status | Module |
 |---|---|---|
 | PR1 | **landed** — types, store, FSM engine | `voly/plan/` |
-| PR2 | planned — acceptance verifiers | `voly/plan/verify.py` |
+| PR2 | **landed** — acceptance verifiers | `voly/plan/verify.py` |
 | PR3 | planned — CLI + AgentRunner wire-up | `voly plan …` |
 | PR4 | planned — multi-agent bridge | A2A + gates |
 
-PR1 provides `Plan` / `PlanStep` state machine (`pending → running → done → verifying → verified`), dependency **gate** (next step cannot start until deps are `verified`), and atomic JSON store under `.voly/plans/`. No agent I/O yet.
+PR1: `Plan` / `PlanStep` FSM (`pending → running → done → verifying → verified`), dependency **gate**, atomic store under `.voly/plans/`.
+
+PR2: `run_check` / `complete_verification` — evidence-based acceptance
+(`command`, `files_exist`, `files_missing`, `git_diff_nonempty`, `git_diff_contains`,
+`output_nonempty`, `output_regex`). Unknown types fail closed. Path checks are
+cwd-jailed; `command` runs with `shell=False` + timeout.
 
 ### `voly/pipeline/` — central orchestrator (text path)
 

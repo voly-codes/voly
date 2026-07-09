@@ -1,7 +1,8 @@
-"""Plan state machine + store (Rung B).
+"""Plan state machine + store + verifiers (Rung B).
 
 PR1: types, atomic store, engine (topo order, gates, transitions).
-PR2+: verifiers, CLI, multi-agent bridge.
+PR2: acceptance verifiers (command, files, git, output).
+PR3+: CLI, multi-agent bridge.
 
 See ``docs/proposals/plan-gate-verification.md``.
 """
@@ -32,12 +33,23 @@ from voly.plan.types import (
     PlanStep,
     PlanValidationError,
 )
+from voly.plan.verify import (
+    KNOWN_CHECK_TYPES,
+    VerifyContext,
+    VerifyResult,
+    all_passed,
+    complete_verification,
+    run_acceptance,
+    run_check,
+    verify_step,
+)
 
 __all__ = [
     "AcceptanceCheck",
     "DONE",
     "FAILED",
     "IllegalTransition",
+    "KNOWN_CHECK_TYPES",
     "LEGAL_TRANSITIONS",
     "MODE_CHAT",
     "MODE_EXECUTOR",
@@ -58,5 +70,12 @@ __all__ = [
     "SKIPPED",
     "VERIFIED",
     "VERIFYING",
+    "VerifyContext",
+    "VerifyResult",
+    "all_passed",
+    "complete_verification",
     "create_plan",
+    "run_acceptance",
+    "run_check",
+    "verify_step",
 ]
