@@ -175,3 +175,78 @@ def plan_validate(ctx: click.Context, plan_file: str) -> None:
         click.echo(f"invalid: {exc}", err=True)
         raise SystemExit(1) from exc
     click.echo(f"ok: {plan.plan_id}  steps={len(plan.steps)}  order={order}")
+
+
+@plan_cmd.command("criteria")
+@click.argument("text", required=False, default="")
+@click.option(
+    "--file",
+    "criteria_file",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="Read free-text criteria from a file",
+)
+@click.option("--yaml", "as_yaml", is_flag=True, help="Print acceptance: YAML fragment")
+@click.option("--json-out", "json_out", is_flag=True, help="Print full draft JSON")
+def plan_criteria(text: str, criteria_file: str | None, as_yaml: bool, json_out: bool) -> None:
+    """Compile free-text success criteria into a *draft* acceptance list (review required)."""
+    from voly.plan.criteria import compile_success_criteria
+
+    if criteria_file:
+        raw = Path(criteria_file).read_text(encoding="utf-8")
+    else:
+        raw = text or ""
+    if not raw.strip():
+        click.echo("Provide criteria text or --file", err=True)
+        raise SystemExit(2)
+
+    draft = compile_success_criteria(raw)
+    if json_out:
+        click.echo(json.dumps(draft.to_dict(), ensure_ascii=False, indent=2))
+        return
+    if as_yaml:
+        click.echo(draft.to_yaml_fragment())
+        return
+    click.echo(f"# DRAFT — review before active mode ({len(draft.checks)} checks)")
+    for n in draft.notes:
+        click.echo(f"# note: {n}")
+    for c in draft.checks:
+        click.echo(f"- type={c.type}  {c.to_dict()}")
+
+
+@plan_cmd.command("suggest")
+@click.option("--cwd", default=None, help="Project path to scan (default: config default_cwd)")
+@click.option("--json-out", "json_out", is_flag=True)
+@click.pass_context
+def plan_suggest(ctx: click.Context, cwd: str | None, json_out: bool) -> None:
+    """Suggest plan acceptance defaults from ProjectScanner (draft only)."""
+    from voly.plan.suggest import suggest_from_cwd
+
+    config = ctx.obj["config"]
+    path = cwd or getattr(config, "default_cwd", "") or ""
+    if not path:
+        click.echo("Need --cwd or default_cwd / VOLY_PROJECT_CWD", err=True)
+        raise SystemExit(2)
+    sug = suggest_from_cwd(path)
+    if json_out:
+        click.echo(json.dumps(sug.to_dict(), ensure_ascii=False, indent=2))
+        return
+    click.echo(f"# DRAFT suggestions for {path}")
+    for n in sug.notes:
+        click.echo(f"# note: {n}")
+    if sug.test_command:
+        click.echo(f"tester_command: {sug.test_command}")
+    if sug.lint_command:
+        click.echo(f"lint_command: {sug.lint_command}")
+    if sug.profile_summary:
+        click.echo(f"languages: {', '.join(sug.profile_summary.get('languages') or [])}")
+        click.echo(f"test_frameworks: {', '.join(sug.profile_summary.get('test_frameworks') or [])}")
+    if sug.acceptance_tester:
+        click.echo("\n# plan.yaml fragment for tester:")
+        click.echo("  acceptance:")
+        for c in sug.acceptance_tester:
+            d = c.to_dict()
+            click.echo(f"    - type: {d.get('type')}")
+            if d.get("run"):
+                click.echo(f"      run: {d['run']!r}")
+                click.echo(f"      expect_exit: {d.get('expect_exit', 0)}")

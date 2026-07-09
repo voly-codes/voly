@@ -132,6 +132,8 @@ class PlanStep:
     acceptance: list[AcceptanceCheck] = field(default_factory=list)
     # Instruction for this step (YAML/CLI). Empty → fall back to plan.task.
     task: str = ""
+    # Free-text criteria (optional). Compiler can draft acceptance from this (PR5).
+    success_criteria: str = ""
     # Filled by runners later; kept here for persistence shape stability.
     error: str = ""
     output: str = ""
@@ -151,6 +153,7 @@ class PlanStep:
             "depends_on": list(self.depends_on),
             "acceptance": [a.to_dict() for a in self.acceptance],
             "task": self.task,
+            "success_criteria": self.success_criteria,
             "error": self.error,
             "output": self.output,
             "verify_log": list(self.verify_log),
@@ -170,14 +173,31 @@ class PlanStep:
             raise PlanValidationError(f"step {data.get('id')!r}: acceptance must be a list")
         # Accept legacy/alternate keys for step instruction.
         task = data.get("task") or data.get("description") or data.get("prompt") or ""
+        criteria = (
+            data.get("success_criteria")
+            or data.get("criteria")
+            or data.get("acceptance_criteria")
+            or ""
+        )
+        acceptance = [AcceptanceCheck.from_dict(a) for a in acceptance_raw]
+        # PR5: if no explicit acceptance but free-text criteria present, draft checks.
+        if not acceptance and str(criteria).strip():
+            try:
+                from voly.plan.criteria import compile_success_criteria
+
+                draft = compile_success_criteria(str(criteria))
+                acceptance = list(draft.checks)
+            except Exception:
+                acceptance = []
         return cls(
             id=str(data["id"]),
             role=str(data.get("role") or "developer"),
             mode=str(data.get("mode") or MODE_CHAT),
             status=str(data.get("status") or PENDING),
             depends_on=[str(x) for x in (data.get("depends_on") or [])],
-            acceptance=[AcceptanceCheck.from_dict(a) for a in acceptance_raw],
+            acceptance=acceptance,
             task=str(task),
+            success_criteria=str(criteria),
             error=str(data.get("error") or ""),
             output=str(data.get("output") or ""),
             verify_log=list(data.get("verify_log") or []),

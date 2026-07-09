@@ -186,7 +186,7 @@ voly.chain logger:
 
 ---
 
-## Plan gates (Rung B) — in progress
+## Plan gates (Rung B)
 
 Enforced multi-step plans with verification gates. Design:
 [`docs/proposals/plan-gate-verification.md`](proposals/plan-gate-verification.md).
@@ -197,6 +197,9 @@ Enforced multi-step plans with verification gates. Design:
 | PR2 | **landed** — acceptance verifiers | `voly/plan/verify.py` |
 | PR3 | **landed** — CLI + PlanRunner | `voly plan …`, `voly/plan/runner.py` |
 | PR4 | **landed** — multi-agent bridge | `voly/plan/bridge.py` + `run_local` gates |
+| PR5 | **landed** — criteria + scanner DX | `criteria.py`, `suggest.py`, `docs/backend/plan.md` |
+
+User guide: [`docs/backend/plan.md`](backend/plan.md).
 
 PR1: `Plan` / `PlanStep` FSM (`pending → running → done → verifying → verified`), dependency **gate**, atomic store under `.voly/plans/`.
 
@@ -215,6 +218,10 @@ PR4: when `plan.enabled` + `mode` shadow|active + `a2a_attach`, multi-agent
 are **verified**. Defaults: chat `output_nonempty`; optional
 `executor_require_git_diff` / `tester_command`. `Assignment.plan_status` + UI badges;
 `RunRecord.plan_id` / `step_statuses`.
+
+PR5: `compile_success_criteria()` drafts acceptance from free text (always
+`review_required`); `voly plan criteria` / `suggest`; loader fills empty
+`acceptance` from step `success_criteria`; scanner can suggest `tester_command`.
 
 ### `voly/pipeline/` — central orchestrator (text path)
 
@@ -402,6 +409,7 @@ docs/backend/
   executors.md              ← Executors, billing fallback chain, WranglerExecutor
   ai-gateway.md             ← AIGateway middleware, CF route schema, providers
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
+  plan.md                   ← plan gates (shadow/active, acceptance, CLI)
   config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events
 docs/frontend/

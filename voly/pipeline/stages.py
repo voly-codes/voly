@@ -246,6 +246,17 @@ class _PipelineStageMixin:
                 emit_event=False,
             )
         plan_cfg = getattr(self.config, "plan", None)  # type: ignore[attr-defined]
+        # PR5: fill empty tester_command from project scan (does not enable plan gates).
+        if plan_cfg is not None and cwd and getattr(plan_cfg, "enabled", False):
+            try:
+                from dataclasses import replace
+
+                from voly.plan.suggest import apply_suggestions_to_plan_config, suggest_from_cwd
+
+                plan_cfg = replace(plan_cfg)
+                apply_suggestions_to_plan_config(plan_cfg, suggest_from_cwd(cwd))
+            except Exception:  # noqa: BLE001
+                pass
         run_local(
             task, assignments, self.gateway, self.match_skills_for_task,  # type: ignore[attr-defined]
             memory=memory, headroom=getattr(self, 'headroom_mgr', None),
