@@ -127,9 +127,11 @@ config.dspy.mode             # "off" | "shadow" | "active"
 config.dspy.datasets_dir     # path for saving (task, result) examples
 config.cost_policy.max_task_cost_usd
 config.ai_gateway.spend_limit_usd_per_day
-config.auth.enabled          # bool — JWT for Web UI (default False)
-config.auth.jwt_secret       # VOLY_JWT_SECRET
-config.auth.users            # {username: password} or VOLY_AUTH_USERS
+config.auth.enabled          # bool — Web UI auth (default False)
+config.auth.provider         # "local" | "clerk"
+config.auth.jwt_secret       # VOLY_JWT_SECRET (local)
+config.auth.users            # {username: password} or VOLY_AUTH_USERS (local)
+config.auth.clerk_*          # publishable_key, jwks_url, issuer (clerk)
 config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 ```
 
@@ -138,9 +140,13 @@ config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 | Env | Effect |
 |---|---|
 | `VOLY_AUTH_ENABLED` | `true`/`false` |
-| `VOLY_JWT_SECRET` | JWT HMAC secret |
+| `VOLY_AUTH_PROVIDER` | `local` \| `clerk` |
+| `VOLY_JWT_SECRET` | local JWT HMAC secret |
 | `VOLY_AUTH_USERS` | `user:pass,user2:pass2` |
 | `VOLY_AUTH_CORS` | comma-separated origins |
+| `CLERK_PUBLISHABLE_KEY` | Clerk pk_… (UI) |
+| `CLERK_ISSUER` / `CLERK_JWKS_URL` | Clerk JWT verification |
+| `CLERK_SECRET_KEY` | optional (Admin API later) |
 
 ### A2A hybrid (multi-agent → files)
 
