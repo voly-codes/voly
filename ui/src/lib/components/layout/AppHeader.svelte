@@ -11,8 +11,16 @@
     <ActivityIcon size="16" strokeWidth="2" />
     <span class="brand-name">VOLY</span>
     {#if auth.enabled}
-      <span class="auth-pill" class:ok={auth.signedIn} title={auth.signedIn ? 'JWT auth enabled' : 'Sign in required'}>
-        {auth.signedIn ? 'auth' : 'locked'}
+      <span
+        class="auth-pill"
+        class:ok={auth.signedIn}
+        title={auth.provider === 'clerk' ? 'Clerk auth' : 'Local JWT auth'}
+      >
+        {#if auth.signedIn}
+          {auth.provider === 'clerk' ? 'clerk' : 'auth'}
+        {:else}
+          locked
+        {/if}
       </span>
     {/if}
   </div>

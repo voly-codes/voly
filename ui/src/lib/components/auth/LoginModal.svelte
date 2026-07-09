@@ -7,6 +7,10 @@
 
   async function submit(e) {
     e?.preventDefault?.()
+    if (auth.provider === 'clerk') {
+      await auth.openClerkSignIn()
+      return
+    }
     if (!username.trim() || !password) return
     await auth.login(username.trim(), password)
   }
@@ -16,49 +20,49 @@
   <div class="backdrop" role="presentation">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
       <h2 id="login-title" class="title">Sign in to VOLY</h2>
-      <p class="hint">
-        JWT auth is enabled on this server. Enter credentials from
-        <code>auth.users</code> / <code>VOLY_AUTH_USERS</code>.
-      </p>
 
-      <form class="form" onsubmit={submit}>
-        <label class="field">
-          <span>Username</span>
-          <input
-            type="text"
-            autocomplete="username"
-            bind:value={username}
-            disabled={auth.loading}
-            required
-          />
-        </label>
-        <label class="field">
-          <span>Password</span>
-          <input
-            type="password"
-            autocomplete="current-password"
-            bind:value={password}
-            disabled={auth.loading}
-            required
-          />
-        </label>
-
+      {#if auth.provider === 'clerk'}
+        <p class="hint">
+          This server uses <strong>Clerk</strong>. Sign in with your organization account.
+        </p>
+        <div id="clerk-sign-in" class="clerk-host"></div>
+        <div class="actions">
+          <button type="button" class="btn primary" onclick={() => auth.openClerkSignIn()} disabled={auth.loading}>
+            {#if auth.loading}<Spinner size={12} />{/if}
+            Continue with Clerk
+          </button>
+        </div>
         {#if auth.error}
           <div class="error">{auth.error}</div>
         {/if}
-
-        <div class="actions">
-          {#if !auth.enabled || auth.user}
-            <button type="button" class="btn ghost" onclick={() => auth.closeLogin()}>Cancel</button>
+      {:else}
+        <p class="hint">
+          JWT auth is enabled. Enter credentials from
+          <code>auth.users</code> / <code>VOLY_AUTH_USERS</code>.
+        </p>
+        <form class="form" onsubmit={submit}>
+          <label class="field">
+            <span>Username</span>
+            <input type="text" autocomplete="username" bind:value={username} disabled={auth.loading} required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" autocomplete="current-password" bind:value={password} disabled={auth.loading} required />
+          </label>
+          {#if auth.error}
+            <div class="error">{auth.error}</div>
           {/if}
-          <button type="submit" class="btn primary" disabled={auth.loading || !username.trim() || !password}>
-            {#if auth.loading}
-              <Spinner size={12} />
+          <div class="actions">
+            {#if !auth.enabled || auth.user}
+              <button type="button" class="btn ghost" onclick={() => auth.closeLogin()}>Cancel</button>
             {/if}
-            Sign in
-          </button>
-        </div>
-      </form>
+            <button type="submit" class="btn primary" disabled={auth.loading || !username.trim() || !password}>
+              {#if auth.loading}<Spinner size={12} />{/if}
+              Sign in
+            </button>
+          </div>
+        </form>
+      {/if}
     </div>
   </div>
 {/if}
@@ -77,7 +81,7 @@
   }
 
   .modal {
-    width: min(380px, 100%);
+    width: min(420px, 100%);
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md, 10px);
@@ -102,6 +106,11 @@
   .hint code {
     font-family: var(--font-mono);
     font-size: 11px;
+  }
+
+  .clerk-host {
+    min-height: 40px;
+    margin-bottom: 12px;
   }
 
   .form {
@@ -137,6 +146,7 @@
     font-size: 12px;
     color: var(--accent-red, #ef4444);
     padding: 8px 10px;
+    margin-top: 10px;
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--accent-red, #ef4444) 10%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-red, #ef4444) 25%, transparent);
@@ -162,10 +172,7 @@
     cursor: pointer;
   }
 
-  .btn:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
   .btn.primary {
     background: var(--accent-blue, #3b82f6);

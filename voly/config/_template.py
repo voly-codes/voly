@@ -156,17 +156,24 @@ telemetry:
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
-# Web UI JWT auth (optional, requires: pip install 'voly[ui]')
+# Web UI auth (optional, requires: pip install 'voly[ui]')
 # Default: disabled — API open on localhost only. Enable before any network exposure.
-# Secrets: prefer VOLY_JWT_SECRET / VOLY_AUTH_USERS env vars over yaml.
+#
+# provider: local | clerk
+#   local — HS256 JWT + username/password (VOLY_JWT_SECRET, VOLY_AUTH_USERS)
+#   clerk — Clerk.com session JWTs (CLERK_PUBLISHABLE_KEY, CLERK_JWKS_URL / CLERK_ISSUER)
 auth:
   enabled: false
+  provider: local
   jwt_secret: "${VOLY_JWT_SECRET}"
   jwt_algorithm: HS256
   access_token_expire_minutes: 60
-  # username: password (MVP plaintext; override via VOLY_AUTH_USERS=user:pass,…)
   users: {}
-  # When auth is on, avoid ["*"] — middleware will fall back to localhost origins.
+  clerk_publishable_key: "${CLERK_PUBLISHABLE_KEY}"
+  clerk_secret_key: "${CLERK_SECRET_KEY}"
+  clerk_jwks_url: "${CLERK_JWKS_URL}"
+  clerk_issuer: "${CLERK_ISSUER}"
+  clerk_audience: ""
   cors_origins:
     - "http://localhost:7788"
     - "http://127.0.0.1:7788"

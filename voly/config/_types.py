@@ -190,21 +190,42 @@ class TelemetryConfig:
 
 @dataclass
 class AuthConfig:
-    """Web UI JWT auth. Disabled by default (localhost-only development).
+    """Web UI authentication. Disabled by default (localhost-only development).
 
     When ``enabled=True`` the API requires ``Authorization: Bearer <token>``
     on protected routes (everything under ``/api/*`` except login/status/docs).
-    Set ``jwt_secret`` via env ``VOLY_JWT_SECRET`` — never commit secrets.
+
+    Providers:
+      - ``local`` — HS256 JWT + username/password (VOLY_JWT_SECRET / auth.users)
+      - ``clerk`` — Clerk session JWTs verified via JWKS (CLERK_* env vars)
     """
 
     enabled: bool = False
+    # local | clerk
+    provider: str = "local"
     jwt_secret: str = ""
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
-    # username -> plaintext password (MVP; prefer env VOLY_AUTH_USERS)
+    # username -> plaintext password (MVP local provider; prefer VOLY_AUTH_USERS)
     users: dict[str, str] = field(default_factory=dict)
     # CORS allow-list. ["*"] is only appropriate when auth is disabled.
     cors_origins: list[str] = field(default_factory=lambda: ["*"])
+    # Clerk (provider=clerk)
+    clerk_publishable_key: str = ""
+    clerk_secret_key: str = ""  # optional; for future server-side Admin API
+    clerk_jwks_url: str = ""    # e.g. https://xxx.clerk.accounts.dev/.well-known/jwks.json
+    clerk_issuer: str = ""      # e.g. https://xxx.clerk.accounts.dev
+    clerk_audience: str = ""    # optional azp/aud check; empty = skip
+
+    def is_enforced(self) -> bool:
+        """True when middleware should require a valid token."""
+        if not self.enabled:
+            return False
+        prov = (self.provider or "local").strip().lower()
+        if prov == "clerk":
+            # Need JWKS (or issuer to derive JWKS) to verify session tokens server-side.
+            return bool(self.clerk_jwks_url or self.clerk_issuer)
+        return bool(self.jwt_secret)
 
 
 @dataclass

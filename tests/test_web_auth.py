@@ -82,6 +82,48 @@ def test_auth_env_overrides(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     assert cfg.auth.users == {"admin": "pw", "dev": "x"}
 
 
+def test_auth_status_clerk_mode(tmp_path: Path) -> None:
+    from fastapi.testclient import TestClient
+    from voly.web.server import create_app
+
+    cfg = VOLYConfig(
+        auth=AuthConfig(
+            enabled=True,
+            provider="clerk",
+            clerk_publishable_key="pk_test_demo",
+            clerk_issuer="https://demo.clerk.accounts.dev",
+            clerk_jwks_url="https://demo.clerk.accounts.dev/.well-known/jwks.json",
+            cors_origins=["http://localhost:7788"],
+        )
+    )
+    app = create_app(events_dir=tmp_path, config=cfg)
+    client = TestClient(app)
+    r = client.get("/api/auth/status")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["enabled"] is True
+    assert body["provider"] == "clerk"
+    assert body["mode"] == "clerk"
+    assert body["clerk"]["publishable_key"] == "pk_test_demo"
+    # Local login rejected when Clerk is on
+    bad = client.post("/api/auth/login", json={"username": "a", "password": "b"})
+    assert bad.status_code == 400
+
+
+def test_auth_config_clerk_from_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cfg_path = tmp_path / "voly.yaml"
+    cfg_path.write_text("auth:\n  enabled: true\n  provider: clerk\n", encoding="utf-8")
+    monkeypatch.setenv("CLERK_PUBLISHABLE_KEY", "pk_env")
+    monkeypatch.setenv("CLERK_ISSUER", "https://env.clerk.accounts.dev")
+    monkeypatch.delenv("CLERK_JWKS_URL", raising=False)
+    cfg = load_config(cfg_path)
+    assert cfg.auth.provider == "clerk"
+    assert cfg.auth.clerk_publishable_key == "pk_env"
+    assert cfg.auth.clerk_issuer == "https://env.clerk.accounts.dev"
+    assert cfg.auth.clerk_jwks_url.endswith("/.well-known/jwks.json")
+    assert cfg.auth.is_enforced() is True
+
+
 def test_create_app_open_mode_allows_status(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
     from voly.web.server import create_app

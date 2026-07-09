@@ -1,4 +1,4 @@
-"""ASGI middleware that enforces JWT auth on protected API routes."""
+"""ASGI middleware that enforces JWT / Clerk auth on protected API routes."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def _is_public_api_path(path: str) -> bool:
 
 
 class JWTAuthMiddleware:
-    """Reject unauthenticated requests to /api/* when auth is enabled."""
+    """Reject unauthenticated requests to /api/* when auth is enforced."""
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -39,7 +39,7 @@ class JWTAuthMiddleware:
 
         request = Request(scope, receive=receive)
         auth = _resolve_auth_config(request)
-        if auth is None or not auth.enabled or not auth.jwt_secret:
+        if auth is None or not auth.is_enforced():
             await self.app(scope, receive, send)
             return
 
@@ -57,9 +57,8 @@ class JWTAuthMiddleware:
             await _unauthorized(scope, receive, send, "Missing bearer token")
             return
 
-        jwt_auth = jwt_auth_from_config(auth)
         try:
-            payload = jwt_auth.decode_token(token)
+            subject = _verify_token(token, auth)
         except ExpiredTokenError:
             await _unauthorized(scope, receive, send, "Token expired")
             return
@@ -67,12 +66,26 @@ class JWTAuthMiddleware:
             await _unauthorized(scope, receive, send, "Invalid token")
             return
 
-        # Copy scope so we can attach the authenticated subject for downstream handlers.
         new_scope = dict(scope)
         state = dict(new_scope.get("state") or {})
-        state["auth_user"] = payload.sub
+        state["auth_user"] = subject
         new_scope["state"] = state
         await self.app(new_scope, receive, send)
+
+
+def _verify_token(token: str, auth: AuthConfig) -> str:
+    """Return authenticated subject (user id / username)."""
+    provider = (auth.provider or "local").strip().lower()
+    if provider == "clerk":
+        from voly.web.auth.clerk import decode_clerk_token
+
+        return decode_clerk_token(token, auth).sub
+
+    # local HS256 JWT
+    if not auth.jwt_secret:
+        raise InvalidTokenError("local jwt_secret not configured")
+    jwt_auth = jwt_auth_from_config(auth)
+    return jwt_auth.decode_token(token).sub
 
 
 def _resolve_auth_config(request: Request) -> AuthConfig | None:

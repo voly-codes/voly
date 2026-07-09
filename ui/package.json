@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-js": "^5.127.0",
     "@lucide/svelte": "^1.21.0",
     "svelte": "^5.0.0"
   },

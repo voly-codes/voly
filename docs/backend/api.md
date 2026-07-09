@@ -4,55 +4,65 @@ FastAPI server: `voly/web/server.py`. Start: `voly ui` (port 7788).
 
 ---
 
-## Auth (JWT)
+## Auth
 
-By default **auth is disabled** — the API is open (localhost only). For network
-access, enable JWT:
+By default **auth is off** — the API is open (localhost only). Before network
+exposure enable one of:
+
+| Provider | When to use |
+|---|---|
+| **`local`** | Self-contained HS256 JWT + username/password |
+| **`clerk`** | Clerk.com (SSO, MFA, org users) — recommended for teams |
+
+### Local JWT
 
 ```yaml
-# voly.yaml
 auth:
   enabled: true
+  provider: local
   jwt_secret: "${VOLY_JWT_SECRET}"
   users:
     admin: "change-me"
-  cors_origins:
-    - "http://localhost:7788"
-    - "http://localhost:5173"
 ```
 
-Env: `VOLY_AUTH_ENABLED=true`, `VOLY_JWT_SECRET=…`, `VOLY_AUTH_USERS=admin:pass`.
+Env: `VOLY_AUTH_ENABLED=true`, `VOLY_AUTH_PROVIDER=local`, `VOLY_JWT_SECRET`, `VOLY_AUTH_USERS`.
 
-When auth is enabled, all `/api/*` except public routes require
-`Authorization: Bearer <token>`.
+```bash
+curl -s -X POST http://127.0.0.1:7788/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"change-me"}'
+```
+
+### Clerk
+
+```yaml
+auth:
+  enabled: true
+  provider: clerk
+  clerk_publishable_key: "${CLERK_PUBLISHABLE_KEY}"
+  clerk_issuer: "${CLERK_ISSUER}"
+```
+
+Env: `VOLY_AUTH_ENABLED=true`, `VOLY_AUTH_PROVIDER=clerk`, `CLERK_PUBLISHABLE_KEY`,
+`CLERK_ISSUER` (JWKS derived as `{issuer}/.well-known/jwks.json`).
+
+Backend verifies Clerk session JWTs (RS256 / JWKS). Frontend uses `@clerk/clerk-js`.
+`GET /api/auth/status` returns `mode: "clerk"` and the publishable key.
+`POST /api/auth/login` is disabled for Clerk (use Clerk UI).
+
+### Protected routes
+
+When auth is enforced, all `/api/*` except public routes need `Authorization: Bearer`.
 
 | Public | Protected |
 |---|---|
-| `POST /api/auth/login` | `POST /api/run` |
+| `POST /api/auth/login` (local only) | `POST /api/run` |
 | `GET /api/auth/status` | `GET /api/tasks` |
 | `GET /api/status` | registry / marketplace / … |
 | `/api/docs`, openapi | |
 
-**Web UI:** when auth is on, the Svelte app shows a sign-in modal, stores the JWT
-in `localStorage` (`voly_access_token`), and sends `Authorization` on API calls.
-`EventSource` (`/api/tasks/stream`) cannot set headers — it passes
-`?access_token=` (GET only; accepted by `JWTAuthMiddleware`).
-
-```bash
-# login
-curl -s -X POST http://127.0.0.1:7788/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"change-me"}'
-# → {"access_token":"…","token_type":"bearer","expires_in":3600}
-
-# protected call
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:7788/api/tasks
-```
-
-With `auth.enabled` + `cors_origins: ["*"]`, the server automatically narrows CORS
-to localhost origins (see `voly/web/server.py`).
-
----
+Web UI stores the token in `localStorage` (`voly_access_token`). EventSource
+uses `?access_token=` (GET only). CORS `["*"]` is narrowed when auth is on.
 
 ## POST /api/run
 

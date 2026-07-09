@@ -33,11 +33,15 @@ Implementation details that matter for future changes:
 | `GET /api/status` | public | server health / config snapshot |
 | Other `/api/*` | protected when auth on | require `Authorization: Bearer …` |
 
-**UI:** sign-in modal + header when `auth.enabled`; token in `localStorage`;
-API client attaches Bearer. SSE streams use `?access_token=` (GET only).
+**Providers:** `local` (HS256 + password) or **`clerk`** (Clerk session JWT via
+JWKS). Status endpoint exposes `provider` and Clerk `publishable_key` for the UI.
 
-Code: `voly/web/routes/auth.py`, `voly/web/auth/*`, `ui/src/lib/api/client.js`,
-`ui/src/lib/stores/authStore.svelte.ts`. Tests: `tests/test_web_auth.py`.
+**UI:** sign-in modal (local form or Clerk JS); token in `localStorage`;
+API client attaches Bearer. SSE uses `?access_token=` (GET only).
+
+Code: `voly/web/routes/auth.py`, `voly/web/auth/{jwt,clerk,middleware}.py`,
+`ui/src/lib/api/client.js`, `ui/src/lib/stores/authStore.svelte.ts`.
+Tests: `tests/test_web_auth.py`.
 
 ## Operational entrypoints
 

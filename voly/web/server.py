@@ -73,7 +73,7 @@ def _resolve_cors_origins(config: "VOLYConfig | None") -> list[str]:
     if config is None:
         return ["*"]
     origins = list(getattr(config.auth, "cors_origins", None) or ["*"])
-    auth_on = bool(config.auth.enabled and config.auth.jwt_secret)
+    auth_on = bool(config.auth.is_enforced())
     if auth_on and origins == ["*"]:
         _log.warning(
             "auth is enabled with cors_origins=['*'] — "
@@ -131,20 +131,31 @@ def create_app(
     if auth_cfg is None or not auth_cfg.enabled:
         _log.warning(
             "Web UI auth is DISABLED — API (including POST /api/run) is open. "
-            "Use only on localhost. Enable with auth.enabled + VOLY_JWT_SECRET "
+            "Use only on localhost. Enable with auth.enabled + local JWT or Clerk "
             "(see docs/backend/api.md)."
         )
-    elif not auth_cfg.jwt_secret:
+    elif not auth_cfg.is_enforced():
+        prov = (auth_cfg.provider or "local").lower()
         _log.error(
-            "auth.enabled=true but jwt_secret is empty — middleware will not enforce tokens. "
-            "Set auth.jwt_secret or VOLY_JWT_SECRET."
+            "auth.enabled=true provider=%s but credentials incomplete — "
+            "middleware will NOT enforce tokens. "
+            "local: VOLY_JWT_SECRET; clerk: CLERK_PUBLISHABLE_KEY + CLERK_JWKS_URL/ISSUER.",
+            prov,
         )
     else:
-        _log.info(
-            "Web UI JWT auth enabled (users=%d, cors=%s)",
-            len(auth_cfg.users),
-            cors_origins,
-        )
+        prov = (auth_cfg.provider or "local").lower()
+        if prov == "clerk":
+            _log.info(
+                "Web UI Clerk auth enabled (jwks=%s, cors=%s)",
+                bool(auth_cfg.clerk_jwks_url or auth_cfg.clerk_issuer),
+                cors_origins,
+            )
+        else:
+            _log.info(
+                "Web UI local JWT auth enabled (users=%d, cors=%s)",
+                len(auth_cfg.users),
+                cors_origins,
+            )
 
     if _STATIC.exists():
         app.mount("/", StaticFiles(directory=str(_STATIC), html=True), name="static")
