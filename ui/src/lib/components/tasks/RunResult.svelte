@@ -92,7 +92,17 @@
             <div class="agent-dot" style="background:{a.ok ? 'var(--accent-green)' : 'var(--accent-red)'}"></div>
             <span class="agent-role">{a.role}</span>
             <span class="agent-tier tier-{a.tier}">{a.tier}</span>
-            <span class="agent-model">{a.provider}/{a.model?.split('/').pop()}</span>
+            {#if a.mode}
+              <span class="agent-badge mode-{a.mode}">{a.mode}</span>
+            {/if}
+            {#if a.mode === 'executor' && a.executor}
+              <span class="agent-model">{a.executor}</span>
+            {:else}
+              <span class="agent-model">{a.provider}/{a.model?.split('/').pop()}</span>
+            {/if}
+            {#if a.files_touched?.length}
+              <span class="agent-badge files" title={a.files_touched.join('\n')}>{a.files_touched.length} files</span>
+            {/if}
             {#if a.cache_hit}
               <span class="agent-badge cached">cached</span>
             {/if}
@@ -329,6 +339,21 @@
     font-weight: 600;
     padding: 0 5px;
     border-radius: var(--radius-sm);
+  }
+  .agent-badge.mode-executor {
+    color: var(--accent-blue, #3b82f6);
+    background: color-mix(in srgb, var(--accent-blue, #3b82f6) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-blue, #3b82f6) 30%, transparent);
+  }
+  .agent-badge.mode-chat {
+    color: var(--text-muted, #94a3b8);
+    background: color-mix(in srgb, var(--text-muted, #94a3b8) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text-muted, #94a3b8) 25%, transparent);
+  }
+  .agent-badge.files {
+    color: var(--accent-orange, #f59e0b);
+    background: color-mix(in srgb, var(--accent-orange, #f59e0b) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-orange, #f59e0b) 30%, transparent);
   }
   .agent-badge.cached {
     color: var(--accent-green);

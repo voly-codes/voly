@@ -104,6 +104,12 @@ per-role cost/files land on `Assignment` (`files_touched`, `executor`, `cost_usd
 Without `cwd`, hybrid stays chat-only. Without a runner (tests can still inject
 mocks), executor-mode roles fall back to chat with `chat_fallback_no_runner`.
 
+**PR3:** request `cwd` is passed through `pipeline.run(context={"cwd": …})` so
+hybrid file writes target the UI/API project path, not only `default_cwd`.
+SSE `start` carries `a2a` / `hybrid` / `cwd`; `done` includes a `hybrid` summary
+and assignments with `mode` / `executor` / `files_touched`. Web UI multi-agent
+panels show mode and file badges.
+
 ---
 
 ## Multi-agent resilience (Rung A: heartbeat + watchdog)

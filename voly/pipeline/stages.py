@@ -75,6 +75,7 @@ class _PipelineStageMixin:
         task_id: str,
         *,
         nested: bool = False,
+        project_cwd: str = "",
     ) -> Any | None:
         if nested:
             return None
@@ -96,7 +97,9 @@ class _PipelineStageMixin:
         # sub-agent, then each runs in-process via AIGateway.chat(). No federation.
         if getattr(self.config.a2a, 'execution_mode', 'local') == 'local':
             return self._run_multiagent_local(
-                task, subtasks, agui_session_id, started, task_id, analysis=analysis,
+                task, subtasks, agui_session_id, started, task_id,
+                analysis=analysis,
+                project_cwd=project_cwd,
             )
 
         timeout = getattr(self.config.a2a, 'task_timeout_seconds', 120.0)  # type: ignore[attr-defined]
@@ -184,8 +187,10 @@ class _PipelineStageMixin:
         task_id: str,
         *,
         analysis: Any = None,
+        project_cwd: str = "",
     ) -> Any | None:
         """Lead orchestrator assigns model tier + skills per sub-agent; run in-process."""
+        import os
         import time as _time
 
         from voly.a2a.hybrid import make_agent_runner_executor
@@ -219,7 +224,14 @@ class _PipelineStageMixin:
                 tracker = None
 
         a2a_cfg = self.config.a2a  # type: ignore[attr-defined]
-        cwd = (getattr(self.config, "default_cwd", None) or "").strip()  # type: ignore[attr-defined]
+        # Prefer per-request cwd (API / CLI), then config default_cwd / env.
+        cwd = (
+            (project_cwd or "").strip()
+            or (getattr(self.config, "default_cwd", None) or "").strip()  # type: ignore[attr-defined]
+            or os.environ.get("VOLY_PROJECT_CWD", "").strip()
+        )
+        if cwd:
+            cwd = os.path.expanduser(cwd)
         requires_code_gen = bool(
             getattr(analysis, "requires_code_gen", True) if analysis is not None else True
         )

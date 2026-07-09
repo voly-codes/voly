@@ -277,7 +277,9 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                 and self._should_dispatch_a2a(analysis, nested=a2a_nested)
             ):
                 a2a_auto_result = self._stage_a2a_auto(
-                    task, analysis, agui_session_id, started, task_id, nested=a2a_nested
+                    task, analysis, agui_session_id, started, task_id,
+                    nested=a2a_nested,
+                    project_cwd=str(context.get("cwd") or context.get("project_cwd") or ""),
                 )
                 if a2a_auto_result is not None:
                     return a2a_auto_result

@@ -331,6 +331,94 @@ def test_run_local_with_agent_runner_factory(monkeypatch) -> None:
     assert dev.files_touched == ["f.py"]
 
 
+def test_hybrid_demo_writes_file_under_cwd(monkeypatch, tmp_path) -> None:
+    """Demo acceptance: implement role writes under cwd via AgentRunner path."""
+    from voly.runner.agent_runner import RunnerResult
+    import voly.runner.agent_runner as runner_mod
+
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    target = proj / "hello_endpoint.py"
+
+    class _FakeRunner:
+        def __init__(self, config):
+            pass
+
+        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True):
+            path = __import__("pathlib").Path(cwd) / "hello_endpoint.py"
+            path.write_text("# demo endpoint\ndef ping():\n    return 'ok'\n", encoding="utf-8")
+            return RunnerResult(
+                success=True,
+                executor=agent,
+                agent=agent,
+                task_id="demo",
+                result=ExecutorResult(
+                    success=True,
+                    output=f"created {path.name}",
+                    report=WorkReport(files_created=[path.name], summary="demo write"),
+                ),
+            )
+
+    monkeypatch.setattr(runner_mod, "AgentRunner", _FakeRunner)
+
+    subs = TaskDecomposer().decompose(
+        "implement REST endpoint and unit tests",
+        _FakeAnalysis(),
+    )
+    gw = _FakeGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("demo", subs)
+    runner = make_agent_runner_executor(VOLYConfig(), emit_event=False)
+    run_local(
+        "implement REST endpoint and unit tests",
+        assignments,
+        gw,
+        cwd=str(proj),
+        hybrid_code_gen=True,
+        requires_code_gen=True,
+        executor_default="claude-code",
+        executor_runner=runner,
+    )
+    dev = next(a for a in assignments if a.role == "developer")
+    assert dev.mode == "executor"
+    assert dev.ok is True
+    assert target.is_file()
+    assert "ping" in target.read_text(encoding="utf-8")
+    assert "hello_endpoint.py" in dev.files_touched
+
+
+def test_pipeline_run_passes_request_cwd(monkeypatch, tmp_path) -> None:
+    """_pipeline_run must put req.cwd into pipeline context for hybrid."""
+    from voly.pipeline.types import PipelineResult, PipelineStage
+    import voly.pipeline as pipeline_pkg
+
+    seen: dict = {}
+
+    class _FakePipeline:
+        def __init__(self, cfg):
+            pass
+
+        def setup_environment(self):
+            return None
+
+        def shutdown(self):
+            return None
+
+        def run(self, task, context=None, **kw):
+            seen["context"] = context
+            return PipelineResult(success=True, stage=PipelineStage.DONE)
+
+    monkeypatch.setattr(pipeline_pkg, "Pipeline", _FakePipeline)
+
+    from voly.web.routes.run import RunRequest, _pipeline_run
+
+    work = tmp_path / "work"
+    work.mkdir()
+    req = RunRequest(task="x", executor="pipeline", cwd=str(work))
+    out = _pipeline_run(req, VOLYConfig())
+    assert seen.get("context", {}).get("cwd") == str(work)
+    assert out["success"] is True
+
+
 def test_agent_runner_emit_event_flag(monkeypatch, tmp_path) -> None:
     """emit_event=False must not call emit_event_from_config."""
     from voly.runner import agent_runner as runner_mod

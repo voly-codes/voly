@@ -144,9 +144,14 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
 
     pipeline = Pipeline(cfg)
     pipeline.setup_environment()
+    run_cwd = os.path.expanduser(req.cwd) if req.cwd else ""
+    context: dict[str, Any] = {}
+    if run_cwd:
+        context["cwd"] = run_cwd
     try:
         result = pipeline.run(
             req.task,
+            context=context or None,
             force_model=req.model or None,
             force_agent=req.agent or None,
             delegate_to_a2a=req.a2a_delegate,
@@ -185,6 +190,20 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
         out["a2a_dispatched"] = True
         out["a2a_agents_used"] = ev.a2a_agents_used
         out["a2a_assignments"] = ev.a2a_assignments
+        assigns = ev.a2a_assignments or []
+        exec_n = sum(1 for a in assigns if (a or {}).get("mode") == "executor")
+        chat_n = sum(1 for a in assigns if (a or {}).get("mode") == "chat")
+        out["hybrid"] = {
+            "cwd": run_cwd or getattr(cfg, "default_cwd", "") or "",
+            "executor_roles": exec_n,
+            "chat_roles": chat_n,
+            "files_touched": sorted({
+                f
+                for a in assigns
+                for f in ((a or {}).get("files_touched") or [])
+                if f
+            }),
+        }
     return out
 
 
@@ -270,8 +289,13 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
         loop = asyncio.get_event_loop()
 
         # Smart dispatch: pipeline + code task → promote to file-writing executor
-        # so the billing fallback chain (claude-code → wrangler → zen) can kick in.
+        # so the billing fallback chain can kick in; complex tasks stay multi-agent.
         effective_req = req
+        start_payload: dict[str, Any] = {
+            "task": req.task,
+            "executor": req.executor,
+            "cwd": req.cwd or "",
+        }
         if req.executor == "pipeline":
             effective_cwd = (
                 req.cwd
@@ -283,13 +307,27 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                 multiagent = await loop.run_in_executor(
                     _THREAD_POOL, _would_dispatch_a2a, req.task, config
                 )
-                needs_exec = await loop.run_in_executor(_THREAD_POOL, _needs_executor, req.task, config)
+                needs_exec = await loop.run_in_executor(
+                    _THREAD_POOL, _needs_executor, req.task, config
+                )
                 if multiagent:
+                    if effective_cwd and not req.cwd:
+                        effective_req = req.model_copy(update={"cwd": effective_cwd})
+                    a2a_cfg = getattr(config, "a2a", None) if config is not None else None
+                    cwd_eff = (effective_req.cwd or effective_cwd or "").strip()
+                    hybrid_on = bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and bool(cwd_eff)
                     _log.info(
                         "[DISPATCH] pipeline → multi-agent (A2A local)  task=%r  "
-                        "reason=complex_multi_capability",
-                        req.task[:60],
+                        "hybrid=%s cwd=%r reason=complex_multi_capability",
+                        req.task[:60], hybrid_on, cwd_eff[:80] or "(empty)",
                     )
+                    start_payload = {
+                        "task": effective_req.task,
+                        "executor": "pipeline",
+                        "a2a": True,
+                        "hybrid": hybrid_on,
+                        "cwd": cwd_eff,
+                    }
                 elif needs_exec:
                     effective_req = req.model_copy(update={
                         "executor": "claude-code",
@@ -300,15 +338,25 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                         "(set VOLY_PROJECT_CWD or cwd field to target project)",
                         req.task[:60], effective_cwd or "(empty — will use server cwd)",
                     )
+                    start_payload = {
+                        "task": effective_req.task,
+                        "executor": "claude-code",
+                        "cwd": effective_cwd,
+                    }
                 else:
                     _log.info(
                         "[DISPATCH] pipeline (text-only)  task=%r  reason=no_code_gen_needed",
                         req.task[:60],
                     )
+                    start_payload = {
+                        "task": effective_req.task,
+                        "executor": "pipeline",
+                        "cwd": effective_cwd,
+                    }
             except Exception as exc:
                 _log.debug("[DISPATCH] auto-promote check failed: %s", exc)
 
-        yield _sse("start", {"task": effective_req.task, "executor": effective_req.executor})
+        yield _sse("start", start_payload)
         try:
             if effective_req.executor == "pipeline":
                 result = await loop.run_in_executor(

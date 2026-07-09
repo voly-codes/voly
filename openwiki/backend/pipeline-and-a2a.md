@@ -20,7 +20,24 @@ The web API uses a smart-dispatch rule for `POST /api/run` when `executor=pipeli
 - complex multi-component work stays in the pipeline and is sent through the multi-agent path
 - text-only requests remain single-model calls
 
-This behavior is described in `docs/backend/pipeline.md` and in the top-level README.
+SSE `start` for multi-agent includes `a2a: true`, `hybrid: bool`, and resolved `cwd`.
+SSE `done` may include `hybrid` summary (`executor_roles`, `chat_roles`, `files_touched`)
+and per-role `a2a_assignments` with `mode` / `executor` / `files_touched`.
+
+This behavior is described in `docs/backend/pipeline.md`,
+`docs/proposals/hybrid-multiagent-executor.md`, and the top-level README.
+
+### Hybrid multi-agent (files)
+
+When `a2a.hybrid_code_gen` is true and a project `cwd` is available (request body,
+`default_cwd`, or `VOLY_PROJECT_CWD`):
+
+- **implement roles** (`developer`, `bugfixer`, `tester` by default) run via
+  `AgentRunner` + billing fallback chain and can write files under `cwd`
+- **plan/review roles** stay on `AIGateway.chat()`
+- without `cwd`, all roles remain chat-only
+
+UI multi-agent panels show mode badges (`chat` / `executor`) and file counts.
 
 ## A2A orchestration
 
