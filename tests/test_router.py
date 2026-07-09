@@ -16,15 +16,17 @@ def test_route_architecture_task() -> None:
     router = AgentRouter()
     result = router.route("Спроектируй архитектуру нового микросервиса")
     assert result.agent == "architect"
+    # First preferred provider for architecture is anthropic (claude-sonnet-4-6)
     assert result.provider == "anthropic"
-    assert "claude-opus" in result.model
+    assert "claude" in result.model
 
 
 def test_route_review_task() -> None:
     router = AgentRouter()
     result = router.route("Сделай code review пулл-реквеста")
     assert result.agent == "reviewer"
-    assert result.provider == "openai"
+    # First preferred provider for review is anthropic (health-aware chain)
+    assert result.provider == "anthropic"
 
 
 def test_route_bugfix_task() -> None:

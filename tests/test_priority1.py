@@ -141,7 +141,7 @@ def test_agent_runner_emits_telemetry(tmp_path, monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr(
         "voly.runner.agent_runner._build_executor",
-        lambda name: mock_executor,
+        lambda name, model=None: mock_executor,
     )
     monkeypatch.setattr("voly.runner.agent_runner.emit_event_from_config", capture)
 
