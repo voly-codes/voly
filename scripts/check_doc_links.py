@@ -25,7 +25,7 @@ def _iter_md() -> list[pathlib.Path]:
     for md in (ROOT / "docs").rglob("*.md"):
         seen.add(md)
         files.append(md)
-    for name in ("README.md", "README.en.md", "CLAUDE.md"):
+    for name in ("README.md", "README_ru.md", "CLAUDE.md"):
         p = ROOT / name
         if p.exists() and p not in seen:
             files.append(p)
