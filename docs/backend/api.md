@@ -6,15 +6,11 @@ FastAPI server: `voly/web/server.py`. Start: `voly ui` (port 7788).
 
 ## Auth
 
-By default **auth is off** — the API is open (localhost only). Before network
-exposure enable one of:
+By default **auth is off** — the API is open (localhost only).
 
-| Provider | When to use |
-|---|---|
-| **`local`** | Self-contained HS256 JWT + username/password |
-| **`clerk`** | Clerk.com (SSO, MFA, org users) — recommended for teams |
+### Open-core (default when locking self-host): local JWT
 
-### Local JWT
+Single-user lock without external IdP — part of the open core:
 
 ```yaml
 auth:
@@ -25,7 +21,8 @@ auth:
     admin: "change-me"
 ```
 
-Env: `VOLY_AUTH_ENABLED=true`, `VOLY_AUTH_PROVIDER=local`, `VOLY_JWT_SECRET`, `VOLY_AUTH_USERS`.
+Env: `VOLY_AUTH_ENABLED=true`, `VOLY_AUTH_PROVIDER=local` (or omit), `VOLY_JWT_SECRET`,
+`VOLY_AUTH_USERS`.
 
 ```bash
 curl -s -X POST http://127.0.0.1:7788/api/auth/login \
@@ -33,7 +30,11 @@ curl -s -X POST http://127.0.0.1:7788/api/auth/login \
   -d '{"username":"admin","password":"change-me"}'
 ```
 
-### Clerk
+### Optional SSO (`provider: clerk`)
+
+SSO (Clerk and similar) is **not** the open-core default. It is an optional
+integration aimed at team/hosted deployments and may move to a separate Team
+package. Core tests and examples use **local** JWT or auth off.
 
 ```yaml
 auth:
@@ -43,12 +44,11 @@ auth:
   clerk_issuer: "${CLERK_ISSUER}"
 ```
 
-Env: `VOLY_AUTH_ENABLED=true`, `VOLY_AUTH_PROVIDER=clerk`, `CLERK_PUBLISHABLE_KEY`,
-`CLERK_ISSUER` (JWKS derived as `{issuer}/.well-known/jwks.json`).
+Env: `VOLY_AUTH_PROVIDER=clerk`, `CLERK_PUBLISHABLE_KEY`, `CLERK_ISSUER`
+(JWKS derived as `{issuer}/.well-known/jwks.json` if `CLERK_JWKS_URL` unset).
 
-Backend verifies Clerk session JWTs (RS256 / JWKS). Frontend uses `@clerk/clerk-js`.
-`GET /api/auth/status` returns `mode: "clerk"` and the publishable key.
-`POST /api/auth/login` is disabled for Clerk (use Clerk UI).
+Backend verifies session JWTs (RS256 / JWKS). UI loads `@clerk/clerk-js` only when
+status reports `provider: clerk`. `POST /api/auth/login` is disabled in Clerk mode.
 
 ### Protected routes
 

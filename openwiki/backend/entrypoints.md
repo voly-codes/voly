@@ -33,15 +33,16 @@ Implementation details that matter for future changes:
 | `GET /api/status` | public | server health / config snapshot |
 | Other `/api/*` | protected when auth on | require `Authorization: Bearer …` |
 
-**Providers:** `local` (HS256 + password) or **`clerk`** (Clerk session JWT via
-JWKS). Status endpoint exposes `provider` and Clerk `publishable_key` for the UI.
+**Open-core auth:** `local` (HS256 + password) or auth disabled. Status endpoint
+exposes `provider`. **Optional SSO (`clerk`)** is non-default / Team-oriented
+and may move out of core later (see `CONTRIBUTING.md`).
 
-**UI:** sign-in modal (local form or Clerk JS); token in `localStorage`;
-API client attaches Bearer. SSE uses `?access_token=` (GET only).
+**UI:** sign-in modal (local form; Clerk only if status.provider=clerk); token in
+`localStorage`; API client attaches Bearer. SSE uses `?access_token=` (GET only).
 
-Code: `voly/web/routes/auth.py`, `voly/web/auth/{jwt,clerk,middleware}.py`,
-`ui/src/lib/api/client.js`, `ui/src/lib/stores/authStore.svelte.ts`.
-Tests: `tests/test_web_auth.py`.
+Code: `voly/web/routes/auth.py`, `voly/web/auth/{jwt,middleware}.py` (+ optional
+`clerk.py`), `ui/src/lib/api/client.js`, `ui/src/lib/stores/authStore.svelte.ts`.
+Tests: `tests/test_web_auth.py` (core suite does not need Clerk network).
 
 ## Operational entrypoints
 

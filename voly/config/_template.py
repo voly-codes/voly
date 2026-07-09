@@ -159,9 +159,9 @@ telemetry:
 # Web UI auth (optional, requires: pip install 'voly[ui]')
 # Default: disabled — API open on localhost only. Enable before any network exposure.
 #
-# provider: local | clerk
-#   local — HS256 JWT + username/password (VOLY_JWT_SECRET, VOLY_AUTH_USERS)
-#   clerk — Clerk.com session JWTs (CLERK_PUBLISHABLE_KEY, CLERK_JWKS_URL / CLERK_ISSUER)
+# Open-core default when locking self-host: provider=local (HS256 + users).
+# SSO (Clerk) is optional / Team-oriented — not required for core; may move to
+# a separate package later. See CONTRIBUTING.md open-core boundaries.
 auth:
   enabled: false
   provider: local
@@ -169,11 +169,12 @@ auth:
   jwt_algorithm: HS256
   access_token_expire_minutes: 60
   users: {}
-  clerk_publishable_key: "${CLERK_PUBLISHABLE_KEY}"
-  clerk_secret_key: "${CLERK_SECRET_KEY}"
-  clerk_jwks_url: "${CLERK_JWKS_URL}"
-  clerk_issuer: "${CLERK_ISSUER}"
-  clerk_audience: ""
+  # Optional SSO (non-default). Only loaded when provider=clerk.
+  # clerk_publishable_key: "${CLERK_PUBLISHABLE_KEY}"
+  # clerk_secret_key: "${CLERK_SECRET_KEY}"
+  # clerk_jwks_url: "${CLERK_JWKS_URL}"
+  # clerk_issuer: "${CLERK_ISSUER}"
+  # clerk_audience: ""
   cors_origins:
     - "http://localhost:7788"
     - "http://127.0.0.1:7788"

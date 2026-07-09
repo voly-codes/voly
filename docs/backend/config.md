@@ -140,13 +140,11 @@ config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 | Env | Effect |
 |---|---|
 | `VOLY_AUTH_ENABLED` | `true`/`false` |
-| `VOLY_AUTH_PROVIDER` | `local` \| `clerk` |
+| `VOLY_AUTH_PROVIDER` | `local` (open-core default) \| `clerk` (optional SSO) |
 | `VOLY_JWT_SECRET` | local JWT HMAC secret |
 | `VOLY_AUTH_USERS` | `user:pass,user2:pass2` |
 | `VOLY_AUTH_CORS` | comma-separated origins |
-| `CLERK_PUBLISHABLE_KEY` | Clerk pk_… (UI) |
-| `CLERK_ISSUER` / `CLERK_JWKS_URL` | Clerk JWT verification |
-| `CLERK_SECRET_KEY` | optional (Admin API later) |
+| `CLERK_*` | optional SSO only — not required for core (see api.md) |
 
 ### A2A hybrid (multi-agent → files)
 

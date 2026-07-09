@@ -1,5 +1,15 @@
 """Clerk JWT verification via JWKS (RS256).
 
+Open-core note
+--------------
+SSO (Clerk) is **not** the open-core default. Single-user self-host uses
+``auth.provider=local`` (see ``jwt.py``) or auth disabled. This module is an
+optional integration for team/hosted deployments and is a candidate for
+extraction into a separate Team package (``voly-team``).
+
+Do not import this module at package load time unless ``provider=clerk``.
+Core test suite must not require Clerk network access.
+
 Uses PyJWT's PyJWKClient — no extra dependency beyond PyJWT (voly[ui]).
 """
 from __future__ import annotations
