@@ -82,6 +82,27 @@ def test_auth_env_overrides(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     assert cfg.auth.users == {"admin": "pw", "dev": "x"}
 
 
+def test_auth_provider_registry_lists_local_and_clerk() -> None:
+    from voly.web.auth.providers import get_provider, list_provider_names
+    from voly.config import AuthConfig
+
+    names = list_provider_names()
+    assert "local" in names
+    assert "clerk" in names
+    local = get_provider(AuthConfig(enabled=True, provider="local", jwt_secret="x" * 32))
+    assert local is not None and local.name == "local"
+    assert local.supports_password_login() is True
+    clerk = get_provider(
+        AuthConfig(
+            enabled=True,
+            provider="clerk",
+            clerk_issuer="https://demo.clerk.accounts.dev",
+        )
+    )
+    assert clerk is not None and clerk.name == "clerk"
+    assert clerk.supports_password_login() is False
+
+
 def test_auth_status_clerk_mode(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
     from voly.web.server import create_app

@@ -47,6 +47,9 @@ ui = [
     "uvicorn>=0.27.0",
     "PyJWT>=2.8.0",
 ]
+# Future private Team package (SSO, org). Install separately; registers via
+# entry point group voly.auth_providers. Stub so docs/extras can reference it.
+team = []
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -60,6 +63,10 @@ all = [
 
 [project.scripts]
 voly = "voly.cli.main:main"
+
+# Auth providers: built-ins in voly.web.auth.providers; Team package may add:
+#   [project.entry-points."voly.auth_providers"]
+#   clerk = "voly_team.auth:ClerkProvider"
 
 [tool.setuptools]
 packages = [

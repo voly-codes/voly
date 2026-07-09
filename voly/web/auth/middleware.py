@@ -1,4 +1,4 @@
-"""ASGI middleware that enforces JWT / Clerk auth on protected API routes."""
+"""ASGI middleware that enforces pluggable auth on protected API routes."""
 
 from __future__ import annotations
 
@@ -8,7 +8,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from voly.web.auth.jwt import ExpiredTokenError, InvalidTokenError, jwt_auth_from_config
+from voly.web.auth.jwt import ExpiredTokenError, InvalidTokenError
+from voly.web.auth.providers import get_provider
 
 if TYPE_CHECKING:
     from voly.config import AuthConfig
@@ -27,7 +28,7 @@ def _is_public_api_path(path: str) -> bool:
 
 
 class JWTAuthMiddleware:
-    """Reject unauthenticated requests to /api/* when auth is enforced."""
+    """Reject unauthenticated requests to /api/* when a provider is enforced."""
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -39,7 +40,8 @@ class JWTAuthMiddleware:
 
         request = Request(scope, receive=receive)
         auth = _resolve_auth_config(request)
-        if auth is None or not auth.is_enforced():
+        provider = get_provider(auth) if auth is not None else None
+        if auth is None or provider is None or not provider.is_enforced(auth):
             await self.app(scope, receive, send)
             return
 
@@ -58,7 +60,8 @@ class JWTAuthMiddleware:
             return
 
         try:
-            subject = _verify_token(token, auth)
+            payload = provider.verify_token(token, auth)
+            subject = payload.sub
         except ExpiredTokenError:
             await _unauthorized(scope, receive, send, "Token expired")
             return
@@ -71,21 +74,6 @@ class JWTAuthMiddleware:
         state["auth_user"] = subject
         new_scope["state"] = state
         await self.app(new_scope, receive, send)
-
-
-def _verify_token(token: str, auth: AuthConfig) -> str:
-    """Return authenticated subject (user id / username)."""
-    provider = (auth.provider or "local").strip().lower()
-    if provider == "clerk":
-        from voly.web.auth.clerk import decode_clerk_token
-
-        return decode_clerk_token(token, auth).sub
-
-    # local HS256 JWT
-    if not auth.jwt_secret:
-        raise InvalidTokenError("local jwt_secret not configured")
-    jwt_auth = jwt_auth_from_config(auth)
-    return jwt_auth.decode_token(token).sub
 
 
 def _resolve_auth_config(request: Request) -> AuthConfig | None:

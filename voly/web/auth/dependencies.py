@@ -1,4 +1,4 @@
-"""FastAPI dependencies for JWT authentication."""
+"""FastAPI dependencies for pluggable authentication."""
 
 from __future__ import annotations
 
@@ -10,10 +10,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from voly.web.auth.jwt import (
     ExpiredTokenError,
     InvalidTokenError,
-    JWTAuth,
     TokenPayload,
-    jwt_auth_from_config,
 )
+from voly.web.auth.providers import get_provider
 
 if TYPE_CHECKING:
     from voly.config import AuthConfig
@@ -29,13 +28,6 @@ def _auth_config(request: Request) -> AuthConfig | None:
     return getattr(config, "auth", None)
 
 
-def _jwt_auth(request: Request) -> JWTAuth | None:
-    auth = _auth_config(request)
-    if auth is None or not auth.enabled or not auth.jwt_secret:
-        return None
-    return jwt_auth_from_config(auth)
-
-
 def _extract_bearer_token(
     credentials: HTTPAuthorizationCredentials | None,
 ) -> str | None:
@@ -45,9 +37,25 @@ def _extract_bearer_token(
     return token or None
 
 
-def _decode_or_401(jwt_auth: JWTAuth, token: str) -> TokenPayload:
+async def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> TokenPayload | None:
+    """Return the authenticated user when auth is enforced; None when off."""
+    auth = _auth_config(request)
+    provider = get_provider(auth) if auth is not None else None
+    if auth is None or provider is None or not provider.is_enforced(auth):
+        return None
+
+    token = _extract_bearer_token(credentials)
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
-        return jwt_auth.decode_token(token)
+        return provider.verify_token(token, auth)
     except ExpiredTokenError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,27 +70,8 @@ def _decode_or_401(jwt_auth: JWTAuth, token: str) -> TokenPayload:
         ) from exc
 
 
-async def get_current_user(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
-) -> TokenPayload | None:
-    """Return the authenticated user when auth is enabled; None when auth is off."""
-    jwt_auth = _jwt_auth(request)
-    if jwt_auth is None:
-        return None
-
-    token = _extract_bearer_token(credentials)
-    if token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return _decode_or_401(jwt_auth, token)
-
-
 async def require_auth(user: TokenPayload | None = Depends(get_current_user)) -> TokenPayload:
-    """Require a valid JWT when auth is enabled."""
+    """Require a valid token when auth is enabled."""
     if user is None:
         return TokenPayload(sub="anonymous", exp=0, iat=0)
     return user

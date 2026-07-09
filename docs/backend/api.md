@@ -34,7 +34,10 @@ curl -s -X POST http://127.0.0.1:7788/api/auth/login \
 
 SSO (Clerk and similar) is **not** the open-core default. It is an optional
 integration aimed at team/hosted deployments and may move to a separate Team
-package. Core tests and examples use **local** JWT or auth off.
+package (`voly-team`). Core tests and examples use **local** JWT or auth off.
+
+Providers are pluggable (`voly.web.auth.providers`): built-ins `local` and
+`clerk`; external packages register via entry point group `voly.auth_providers`.
 
 ```yaml
 auth:
