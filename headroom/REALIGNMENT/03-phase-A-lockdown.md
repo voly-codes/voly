@@ -403,18 +403,18 @@ None directly; Phase C builds on the Rust SSE work but doesn't depend on this Py
 
 After all 8 PRs land:
 
-- ✅ ICM no longer drops messages from cache hot zone
-- ✅ Customer `cache_control` markers honored in Rust
-- ✅ System prompt never mutated
-- ✅ Memory context routes to live-zone tail
-- ✅ Memory tool injection session-sticky
-- ✅ `anthropic-beta` mutation deterministic + session-sticky
-- ✅ Python forwarders byte-faithful
-- ✅ `x-headroom-*` stripped from upstream
-- ✅ Numeric precision preserved (RawValue + arbitrary_precision)
-- ✅ SSE thinking/signature/citations deltas handled
-- ✅ Codex `phase` preserved
-- ✅ Upstream request-id captured
-- ✅ SHA-256 byte-faithful round-trip test gating CI
+- ICM no longer drops messages from cache hot zone
+- ustomer `cache_control` markers honored in Rust
+- ystem prompt never mutated
+- emory context routes to live-zone tail
+- emory tool injection session-sticky
+- anthropic-beta` mutation deterministic + session-sticky
+- ython forwarders byte-faithful
+- x-headroom-*` stripped from upstream
+- umeric precision preserved (RawValue + arbitrary_precision)
+- SE thinking/signature/citations deltas handled
+- odex `phase` preserved
+- pstream request-id captured
+- HA-256 byte-faithful round-trip test gating CI
 
 **Phase A retires P0-1 through P0-7 and P1-8, P1-9, P5-49, P5-50, P5-57, P5-59, P6-63.**

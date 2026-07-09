@@ -87,7 +87,7 @@ class OrchestrationReport:
         ]
 
         for tr in self.tasks:
-            status = "✅" if tr.result.success else "❌"
+            status = "" if tr.result.success else ""
             lines.append(f"## {status} [{tr.agent_name}] {tr.task.label}")
             lines.append(f"*{tr.started_at} → {tr.finished_at}*")
             lines.append(f"Tokens: {tr.result.input_tokens:,}↑ {tr.result.output_tokens:,}↓ | {tr.result.duration_ms:.0f}ms")

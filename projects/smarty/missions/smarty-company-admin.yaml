@@ -47,8 +47,8 @@ tasks:
 - agent: cursor
   label: 'cursor: company admin review'
   task: "STEP 5/5 — Review Company hub vs legacy admin.\n\n{{LEGACY_GAP_REF}}\nCHECKLIST\
-    \ vs legacy SettingsLeftPanel:\n  ✅ Members list + invite (email/phone/link)\n\
-    \  ✅ Employee profile + row actions\n  ✅ Workgroups CRUD\n  ✅ Access rights matrix\n\
-    \  ✅ Admin-only; i18n en+ru\nDocument deferred: time-log, modes, billing, marks\
+    \ vs legacy SettingsLeftPanel:\n  Members list + invite (email/phone/link)\n\
+    \  mployee profile + row actions\n  Wokgroups CRUD\n  Acces rights matrix\n\
+    \  dmin-only; i18n en+ru\nDocument deferred: time-log, modes, billing, marks\
     \ (separate missions).\nUPDATE legacy-gap-audit §2.4 + CURRENT_STATUS.md.\nnpm\
     \ run build."

@@ -25,11 +25,11 @@ That gives three lever families plus a learning loop:
 
 | Lever | Mechanism | Status |
 |---|---|---|
-| **Verbosity steering** | Append a terse-style instruction to the system-prompt tail | ✅ built |
-| **Effort routing** | Lower `output_config.effort` on mechanical turns | ✅ built |
-| **Thinking-budget clamp** | Clamp legacy `thinking.budget_tokens` on mechanical turns | ✅ built |
-| **Per-user learned level** | Mine past sessions for the right verbosity per user (`learn --verbosity`) | ✅ built |
-| **Counterfactual estimator** | Honestly estimate output tokens saved + dashboard surfacing | ✅ built |
+| **Verbosity steering** | Append a terse-style instruction to the system-prompt tail | built |
+| **Effort routing** | Lower `output_config.effort` on mechanical turns | uilt |
+| **Thinking-budget clamp** | Clamp legacy `thinking.budget_tokens` on mechanical turns | uilt |
+| **Per-user learned level** | Mine past sessions for the right verbosity per user (`learn --verbosity`) | uilt |
+| **Counterfactual estimator** | Honestly estimate output tokens saved + dashboard surfacing | uilt |
 | **Runtime AIMD auto-tune** | Adjust level live from interrupt / skip signals | 🟡 controller built/tested; live signal emission off by default |
 
 ---
@@ -182,11 +182,11 @@ this project. The finding that shapes the whole design:
 
 | Signal | This user's data | Carries signal? |
 |---|---|---|
-| Explicit "be brief" keywords | **1** of 210 human msgs | ❌ almost none |
-| Explicit "explain more" keywords | **1** of 210 | ❌ almost none |
-| **Interruptions** (user cuts Claude off) | **29** (~1 per 7 turns) | ✅ strong |
-| **Fast-skips** (reply <30s after a >250-word answer) | **15 of 100 long outputs** | ✅ strong |
-| Long-output frequency | 100 outputs >250 words | ✅ context |
+| Explicit "be brief" keywords | **1** of 210 human msgs |  almost none |
+| Explicit "explain more" keywords | **1** of 210 |  almost none |
+| **Interruptions** (user cuts Claude off) | **29** (~1 per 7 turns) | trong |
+| **Fast-skips** (reply <30s after a >250-word answer) | **15 of 100 long outputs** | trong |
+| Long-output frequency | 100 outputs >250 words | ontext |
 
 **Users almost never *say* what verbosity they want — they show it
 behaviorally.** Keyword matching (the obvious approach) is nearly empty. The
@@ -291,10 +291,10 @@ The LLM judgment pass adjusts this — the table is the prior, not the verdict.
 
 | File | Status | Purpose |
 |---|---|---|
-| `headroom/proxy/output_shaper.py` | ✅ built | the shaper (steering + effort routing) |
-| `headroom/proxy/handlers/anthropic.py` | ✅ wired | invoke shaper after body mutations |
-| `tests/test_output_shaper.py` | ✅ 34 passing | unit coverage |
-| `scripts/eval_output_shaper.py` | ✅ built | live before/after eval |
+| `headroom/proxy/output_shaper.py` | uilt | the shaper (steering + effort routing) |
+| `headroom/proxy/handlers/anthropic.py` | ired | invoke shaper after body mutations |
+| `tests/test_output_shaper.py` | 4 passing | unit coverage |
+| `scripts/eval_output_shaper.py` | uilt | live before/after eval |
 | `scripts/verbosity_scan.py` | 🔬 prototype | session-mining signal extraction |
 | `headroom/learn/plugins/claude.py` (+ analyzer) | 🔜 extend | `--verbosity` analysis path |
 | `~/.headroom/verbosity.json` | 🔜 | persisted per-project learned level |
@@ -303,9 +303,9 @@ The LLM judgment pass adjusts this — the table is the prior, not the verdict.
 
 ## 6. Roadmap
 
-1. ✅ **Measure** — live eval establishes the realistic ceiling and baseline.
-2. ✅ **Effort router** — biggest win per unit risk, fully mechanical, invisible.
-3. ✅ **Verbosity ladder at fixed L2** — safe default, cache-safe tail injection.
+1. *Measure** — live eval establishes the realistic ceiling and baseline.
+2. *Effort router** — biggest win per unit risk, fully mechanical, invisible.
+3. *Verbosity ladder at fixed L2** — safe default, cache-safe tail injection.
 4. 🔜 **`learn --verbosity`** — derive the per-user starting level from sessions.
 5. 🔜 **Runtime AIMD auto-tune** — refine the level live from interrupt/skip signals.
 6. 🔭 **Waste taxonomy on the dashboard** — echo ratio, ceremony ratio,

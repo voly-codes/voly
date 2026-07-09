@@ -318,12 +318,12 @@ PR-H1.
 
 After all 5 PRs land:
 
-- ✅ Byte-level SSE parser with full state machine (handles UTF-8 split, ping, [DONE], all delta types, mid-stream errors)
-- ✅ `/v1/chat/completions` handled in Rust
-- ✅ `/v1/responses` HTTP handled in Rust
-- ✅ `/v1/responses` streaming handled in Rust (out-of-order items, all event types)
-- ✅ Conversations API awareness (warns + skips compression)
-- ✅ All Responses item types (V4A, local_shell, phase, compaction, MCP, computer, image_gen, etc.) preserved byte-equal
-- ✅ `responses_converter.py` deleted
+- Byte-level SSE parser with full state machine (handles UTF-8 split, ping, [DONE], all delta types, mid-stream errors)
+- /v1/chat/completions` handled in Rust
+- /v1/responses` HTTP handled in Rust
+- /v1/responses` streaming handled in Rust (out-of-order items, all event types)
+- onversations API awareness (warns + skips compression)
+- ll Responses item types (V4A, local_shell, phase, compaction, MCP, computer, image_gen, etc.) preserved byte-equal
+- responses_converter.py` deleted
 
 **Phase C retires P1-8 through P1-12, P1-14 through P1-17, P4-40, P4-42 through P4-44, P4-47, P4-48, P0-7 (final), P5-51.**

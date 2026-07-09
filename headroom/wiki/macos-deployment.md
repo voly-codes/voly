@@ -588,19 +588,19 @@ For single-user development, LaunchAgent is recommended for security.
 
 Store API keys securely:
 
-- ✅ Use environment variables in shell config
-- ✅ Use macOS Keychain (advanced)
-- ✅ Restrict plist file permissions: `chmod 600`
-- ❌ Don't commit API keys to version control
-- ❌ Don't store in world-readable files
+- Use environment variables in shell config
+- se macOS Keychain (advanced)
+- estrict plist file permissions: `chmod 600`
+-  Don't commit API keys to version control
+-  Don't store in world-readable files
 
 ### Network Security
 
 The proxy binds to `127.0.0.1` (localhost only) by default:
 
-- ✅ Only accessible from local machine
-- ✅ No external network exposure
-- ❌ Don't bind to `0.0.0.0` without firewall rules
+- nly accessible from local machine
+- o external network exposure
+-  Don't bind to `0.0.0.0` without firewall rules
 
 ## Advanced Configuration
 

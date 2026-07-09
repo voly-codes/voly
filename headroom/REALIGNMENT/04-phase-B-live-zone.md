@@ -456,14 +456,14 @@ None.
 
 After all 7 PRs land:
 
-- ✅ ICM + RollingWindow + ProgressiveSummarizer + scoring + relevance + ToolCrusher deleted (~10K LOC retired)
-- ✅ Live-zone block dispatcher operational
-- ✅ Type-aware compressors wired (SmartCrusher, LogCompressor, SearchCompressor, DiffCompressor, CodeCompressor)
-- ✅ Token validation gate with per-type byte thresholds and fallback
-- ✅ TOIN observation-only with per-tenant aggregation key
-- ✅ Memory routes to live-zone tail (no system mutation)
-- ✅ CCR persistent backend + always-on tool registration
-- ✅ MessageScorer Rust port (PR #338, #343) retired
+- ICM + RollingWindow + ProgressiveSummarizer + scoring + relevance + ToolCrusher deleted (~10K LOC retired)
+- ive-zone block dispatcher operational
+- ype-aware compressors wired (SmartCrusher, LogCompressor, SearchCompressor, DiffCompressor, CodeCompressor)
+- oken validation gate with per-type byte thresholds and fallback
+- OIN observation-only with per-tenant aggregation key
+- emory routes to live-zone tail (no system mutation)
+- CR persistent backend + always-on tool registration
+- essageScorer Rust port (PR #338, #343) retired
 
 **Phase B retires P0-4, P1-13, P2-18 through P2-27, P3-33, P3-34, P5-56, P6-70.**
 

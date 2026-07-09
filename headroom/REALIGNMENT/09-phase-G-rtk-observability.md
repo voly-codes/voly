@@ -178,17 +178,17 @@ None.
 
 After all 3 PRs land:
 
-- ✅ Wrap CLI coverage extends to cline, continue, goose, openhands
-- ✅ `tokens_saved_rtk` field populated end-to-end
-- ✅ Per-invocation RTK Prometheus metrics
-- ✅ Per-session cache-hit-rate metric
-- ✅ Per-block compression-ratio histogram
-- ✅ Token-validation rejection counter
-- ✅ Passthrough-bytes-modified gauge (alarm-able)
-- ✅ Rate-limit headers observed and exported
-- ✅ `service_tier` distribution metric
-- ✅ Response status (`incomplete | failed | cancelled`) logged with reason
-- ✅ Image base64 log redaction
-- ✅ `docs/rtk-architecture.md` documents the keep-RTK-on-wrap-side decision
+- Wrap CLI coverage extends to cline, continue, goose, openhands
+- tokens_saved_rtk` field populated end-to-end
+- er-invocation RTK Prometheus metrics
+- er-session cache-hit-rate metric
+- er-block compression-ratio histogram
+- oken-validation rejection counter
+- assthrough-bytes-modified gauge (alarm-able)
+- ate-limit headers observed and exported
+- service_tier` distribution metric
+- esponse status (`incomplete | failed | cancelled`) logged with reason
+- mage base64 log redaction
+- docs/rtk-architecture.md` documents the keep-RTK-on-wrap-side decision
 
 **Phase G retires P4-41, P4-42, P4-45, P5-58, P5-60, P5-61, P5-62, P6-68, P6-69, P6-72.**

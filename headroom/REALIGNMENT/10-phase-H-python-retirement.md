@@ -203,12 +203,12 @@ None.
 
 After all 3 PRs land:
 
-- ✅ Python proxy server retired
-- ✅ All Python proxy handlers deleted
-- ✅ Memory subsystem refactored or deleted
-- ✅ LiteLLM backend retired
-- ✅ Operators run only the Rust `headroom-proxy` binary
-- ✅ ~20 K LOC of Python deleted
-- ✅ Migration guide for operators
+- Python proxy server retired
+- ll Python proxy handlers deleted
+- emory subsystem refactored or deleted
+- iteLLM backend retired
+- perators run only the Rust `headroom-proxy` binary
+- 20 K LOC of Python deleted
+- igration guide for operators
 
 **Phase H is the deletion. The OSS surface area shrinks dramatically; maintenance debt drops; behavior becomes consistent across deployments.**

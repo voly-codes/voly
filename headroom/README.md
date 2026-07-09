@@ -191,13 +191,13 @@ shows an **Output Tokens Saved** card next to input compression, labelled
 
 | Agent        | `headroom wrap` | Notes                            |
 |--------------|:---------------:|----------------------------------|
-| Claude Code  | ✅              | `--memory` · `--code-graph`      |
-| Codex        | ✅              | shares memory with Claude        |
-| Cursor       | ✅              | prints config — paste once       |
-| Aider        | ✅              | starts proxy + launches          |
-| Copilot CLI  | ✅              | starts proxy + launches          |
-| OpenClaw     | ✅              | installs as ContextEngine plugin |
-| Cortex Code  | ✅              | 60–65% savings · library mode   |
+| Claude Code  |              | `--memory` · `--code-graph`      |
+| Codex        |             | shares memory with Claude        |
+| Cursor       |             | prints config — paste once       |
+| Aider        |             | starts proxy + launches          |
+| Copilot CLI  |             | starts proxy + launches          |
+| OpenClaw     |             | installs as ContextEngine plugin |
+| Cortex Code  |             | 60–65% savings · library mode   |
 
 Any OpenAI-compatible client works via `headroom proxy`. MCP-native: `headroom mcp install`.
 

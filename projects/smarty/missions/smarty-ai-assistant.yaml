@@ -104,12 +104,12 @@ tasks:
 - agent: cursor
   label: 'cursor: review smarty-ai-assistant'
   task: "STEP 10/10 — Review + gap list.\n\nProject: {{SMARTY_PROJECT}}. Spec: {{AI_ASSISTANT_SPEC}}\n\
-    \nCHECKLIST:\n✅ /assistant chat uses GET/POST /ws/:wsId/consultant/* (no mock)\n\
-    ✅ Settings: data blocks map to botPermissions via PATCH /employees/:botId\n✅ groups-tree\
-    \ context viewer\n✅ KB + skills tabs wired to bot-knowledge-bases / bot-skills\n\
-    ✅ Sidebar pi-chat-style entry (user-menu strip + PiChatIcon, not Sparkles in CRM)\n\
-    ✅ Composer UX aligned with gpt-assistant-popover (disclaimer, rounded panel)\n\
-    ✅ i18n assistant + settings en/ru\n✅ npm run build 0 errors\n\nBACKEND GAP LIST:\n\
+    \nCHECKLIST:\n /assistant chat uses GET/POST /ws/:wsId/consultant/* (no mock)\n\
+    ettings: data blocks map to botPermissions via PATCH /employees/:botId\n roups-tree\
+    \ context viewer\n KB + skills tabs wired to bot-knowledge-bases / bot-skills\n\
+    idebar pi-chat-style entry (user-menu strip + PiChatIcon, not Sparkles in CRM)\n\
+    omposer UX aligned with gpt-assistant-popover (disclaimer, rounded panel)\n\
+    18n assistant + settings en/ru\n pm run build 0 errors\n\nBACKEND GAP LIST:\n\
     \  - consultant HTTP streaming (SSE/socket)\n  - PATCH /consultant/settings convenience\
     \ endpoint\n  - botSettings.contextGroupIds explicit scope\n  - Voice attach UI\n\
     \nUPDATE docs/reports/CURRENT_STATUS.md.\nFix P0; list P1/P2."

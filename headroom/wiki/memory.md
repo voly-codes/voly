@@ -594,20 +594,20 @@ Headroom Memory uses **Protocol interfaces** (ports) for all components, enablin
 
 | Feature | Headroom | Letta | Mem0 |
 |---------|:--------:|:-----:|:----:|
-| Cross-agent sharing (proxy) | ✅ | ❌ | ❌ |
-| Agent provenance tracking | ✅ | ❌ | ❌ |
-| LLM-mediated dedup (no extra cost) | ✅ | ❌ | ❌ (uses separate LLM) |
-| Transparent proxy (zero code) | ✅ | ❌ | ❌ |
-| Hierarchical scoping | ✅ | ❌ | ❌ |
-| Temporal versioning | ✅ | ❌ | ❌ |
-| Zero-latency extraction | ✅ | ✅ | ❌ |
-| Full-text search | ✅ | ❌ | ❌ |
-| Embedded (no server) | ✅ | ❌ | ❌ |
-| One-liner integration | ✅ | ❌ | ❌ |
-| Protocol-based extensibility | ✅ | ❌ | ❌ |
-| Memory bubbling | ✅ | ❌ | ❌ |
-| Local embeddings | ✅ | ❌ | ✅ |
-| Managed service option | ❌ | ❌ | ✅ |
+| Cross-agent sharing (proxy) | |  |  |
+| Agent provenance tracking |   |  |
+| LLM-mediated dedup (no extra cost) |   |  (uses separate LLM) |
+| Transparent proxy (zero code) |   |  |
+| Hierarchical scoping |   |  |
+| Temporal versioning |   |  |
+| Zero-latency extraction |  |  |
+| Full-text search |   |  |
+| Embedded (no server) |   |  |
+| One-liner integration |   |  |
+| Protocol-based extensibility |   |  |
+| Memory bubbling |   |  |
+| Local embeddings |   | |
+| Managed service option |  |  | 
 
 ---
 

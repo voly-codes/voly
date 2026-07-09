@@ -12,7 +12,7 @@ By participating, you agree to our [Code of Conduct](CODE_OF_CONDUCT.md).
 | ✨ New feature / architectural change | **Open an issue or ask in Discord first.** |
 | 🧹 Refactor-only | **Don't.** Only if a maintainer asked, as part of a concrete fix. |
 | 🧪 Test/CI-only PR chasing a known `main` failure | **Don't.** We're tracking it. |
-| 📦 New dep or version bump | **PR with written justification.** |
+| New dep or version bump | **PR with written justification.** |
 | ❓ Question | **Discord `#help` |
 
 **Open PR cap: 10 per author.** Get existing ones merged before opening more.
@@ -40,8 +40,8 @@ We can't merge what we can't verify. Include a **`Real behavior proof`** section
 - **After-fix evidence** + **observed result**
 - **What you did *not* test**
 
-✅ Counts: screenshots, recordings, terminal output, copied live output, linked artifacts, redacted runtime logs.
-❌ Does **not** count alone: unit tests, mocks, snapshots, lint, typechecks, green CI. Have them too — but they prove the test passes, not that the feature works.
+ Counts: screenshots, recordings, terminal output, copied live output, linked artifacts, redacted runtime logs.
+ Does **not** count alone: unit tests, mocks, snapshots, lint, typechecks, green CI. Have them too — but they prove the test passes, not that the feature works.
 
 **PRs missing this may be autoclosed.**
 

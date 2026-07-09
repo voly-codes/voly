@@ -120,11 +120,11 @@ def run_mission(
     )
 
     click.echo(f"\n[Combat] Done in {report.total_duration_ms/1000:.1f}s")
-    click.echo(f"  ✅ {report.success_count} succeeded, ❌ {report.failure_count} failed")
+    click.echo(f"  {report.success_count} succeeded,  {report.failure_count} failed")
     click.echo(f"  Cost: ${report.total_cost_usd:.4f}")
 
     for tr in report.tasks:
-        icon = "✅" if tr.result.success else "❌"
+        icon = "" if tr.result.success else ""
         click.echo(f"  {icon} [{tr.agent_name}] {tr.task.label[:70]}")
         if tr.result.success and tr.result.output:
             preview = tr.result.output.strip().replace("\n", " ")[:180]

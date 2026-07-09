@@ -30,4 +30,4 @@ test-live:
 	pytest
 
 gate: lint typecheck test
-	@echo "✅ agent-evals gate PASSED"
+	@echo " agent-evals gate PASSED"

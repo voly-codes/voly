@@ -63,10 +63,10 @@ Fixes #(issue number)
 ## Algorithm Validation
 
 The canonical+commit-height algorithm was validated with test cases:
-- Canonical `0.5.25`, no prior tag, `feat:` commit → git tag `v0.6.0.0`, npm `0.6.0` ✅
-- Canonical `0.5.25`, tag `v0.5.25.2`, `fix:` commit → git tag `v0.5.25.3`, npm `0.5.26` ✅
-- Canonical `0.5.25`, no prior tag, `fix:` commit → git tag `v0.5.25.0`, npm `0.5.25` ✅
-- Manual override `1.2.3` → git tag `v1.2.3`, npm `1.2.3` ✅
+- Canonical `0.5.25`, no prior tag, `feat:` commit → git tag `v0.6.0.0`, npm `0.6.0`
+- Canonical `0.5.25`, tag `v0.5.25.2`, `fix:` commit → git tag `v0.5.25.3`, npm `0.5.26`
+- Canonical `0.5.25`, no prior tag, `fix:` commit → git tag `v0.5.25.0`, npm `0.5.25`
+- Manual override `1.2.3` → git tag `v1.2.3`, npm `1.2.3`
 
 ## Test Output
 
@@ -104,10 +104,10 @@ The git tag uses `v{canonical}.{height}` (e.g., `v0.5.25.3` = 3 commits since ca
 
 | Package | Target | Status |
 |---------|--------|--------|
-| `headroom-ai` (Python) | PyPI | ✅ via `pypa/gh-action-pypi-publish` |
-| `headroom-ai` (TypeScript SDK) | npmjs.org | ✅ via `npm publish` |
-| `headroom-openclaw` | npmjs.org | ✅ via `npm publish` |
-| `headroom-openclaw` | GitHub Package Registry | ✅ via `npm publish --registry npm.pkg.github.com` |
+| `headroom-ai` (Python) | PyPI | ia `pypa/gh-action-pypi-publish` |
+| `headroom-ai` (TypeScript SDK) | npmjs.org | ia `npm publish` |
+| `headroom-openclaw` | npmjs.org | ia `npm publish` |
+| `headroom-openclaw` | GitHub Package Registry | ia `npm publish --registry npm.pkg.github.com` |
 
 ### Safety Gates
 

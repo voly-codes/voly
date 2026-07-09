@@ -299,10 +299,10 @@ Answer concisely:"""
             print(f"   Original:  {qa['accuracy_original_html']:.3f}")
             print(f"   Extracted: {qa['accuracy_extracted']:.3f}")
             print(f"   Delta:     {qa['accuracy_delta']:+.3f}")
-            print(f"   Preserved: {'✅' if qa['accuracy_preserved'] else '❌'}")
+            print(f"   Preserved: {'' if qa['accuracy_preserved'] else ''}")
 
         print(f"\n{'=' * 60}")
-        print(f"ALL BENCHMARKS PASSED: {'✅' if summary['all_passed'] else '❌'}")
+        print(f"ALL BENCHMARKS PASSED: {'' if summary['all_passed'] else ''}")
         print(f"{'=' * 60}\n")
 
         # Assert all passed

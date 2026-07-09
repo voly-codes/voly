@@ -143,7 +143,7 @@ def smarty_run(task_name: str, parallel: bool, save: bool) -> None:
     )
 
     click.echo(f"\n[Smarty] Done in {report.total_duration_ms/1000:.1f}s")
-    click.echo(f"  ✅ {report.success_count} / ❌ {report.failure_count}")
+    click.echo(f"  {report.success_count} /  {report.failure_count}")
     if save:
         click.echo(f"  Report: {SMARTY_REPORTS}/")
 

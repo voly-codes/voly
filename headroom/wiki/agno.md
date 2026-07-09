@@ -324,12 +324,12 @@ HeadroomAgnoModel optimizes messages at the LLM call boundary. This covers:
 
 | Feature | Optimized | Notes |
 |---------|-----------|-------|
-| **User/Assistant Messages** | ✅ Yes | Full message history compressed |
-| **Tool Calls** | ✅ Yes | Tool call arguments optimized |
-| **Tool Results** | ✅ Yes | JSON responses compressed 70-90% via SmartCrusher |
-| **System Prompts** | ✅ Yes | Included in message optimization |
-| **Streaming Responses** | ✅ Yes | Both sync and async |
-| **Multi-turn Conversations** | ✅ Yes | Full history available for optimization |
+| **User/Assistant Messages** | Yes | Full message history compressed |
+| **Tool Calls** | es | Tool call arguments optimized |
+| **Tool Results** | es | JSON responses compressed 70-90% via SmartCrusher |
+| **System Prompts** | es | Included in message optimization |
+| **Streaming Responses** | es | Both sync and async |
+| **Multi-turn Conversations** | es | Full history available for optimization |
 
 ### Known Limitations
 
@@ -339,10 +339,10 @@ The integration operates at the model layer, not the agent layer. Some Agno feat
 |--------------|--------|-------------|
 | **Agent Memory** | ⚠️ Partial | Memory content is optimized when it enters messages, but the persistent memory store itself is not compressed. If you're storing large amounts of data in agent memory, consider summarizing before storage. |
 | **Knowledge Bases** | ⚠️ Partial | KB retrieval happens before messages reach the model. Retrieved context is optimized as part of the message, but we can't influence KB retrieval itself. |
-| **Agent Teams** | ❌ Not supported | Each agent's model is wrapped independently. No cross-agent optimization or team-level coordination. |
+| **Agent Teams** |  Not supported | Each agent's model is wrapped independently. No cross-agent optimization or team-level coordination. |
 | **Tool Definitions** | ⚠️ Not deduplicated | Tool schemas are sent with every request. Future versions may deduplicate repeated tool definitions. |
-| **Structured Outputs** | ✅ Supported | `response_model` works normally; optimization doesn't affect output parsing. |
-| **Reasoning Models** | ✅ Supported | Extended thinking works; we don't compress reasoning traces. |
+| **Structured Outputs** | upported | `response_model` works normally; optimization doesn't affect output parsing. |
+| **Reasoning Models** | upported | Extended thinking works; we don't compress reasoning traces. |
 
 ### Best Practices for Maximum Savings
 

@@ -60,17 +60,17 @@ tasks:
 
     CHECKLIST:
 
-    ✅ /tracker = Plane-style projects grid with TrackerProjectCard
+    /tracker = Plane-style projects grid with TrackerProjectCard
 
-    ✅ Search, create project, empty state
+    earch, create project, empty state
 
-    ✅ Sidebar projects strip or nav alignment
+    idebar projects strip or nav alignment
 
-    ✅ Real tracker API, no mock
+    eal tracker API, no mock
 
-    ✅ i18n «Проекты» en+ru
+    18n «Проекты» en+ru
 
-    ✅ npm run build 0 errors
+    pm run build 0 errors
 
 
     UPDATE CURRENT_STATUS.md.'

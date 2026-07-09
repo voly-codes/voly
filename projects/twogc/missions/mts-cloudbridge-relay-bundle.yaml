@@ -1,0 +1,109 @@
+# Combat mission: mts-cloudbridge-relay-bundle
+# Run: cd /home/lanies/git/codeops/voly && python -m projects.twogc combat run mts-cloudbridge-relay-bundle --sequential
+
+name: mts-cloudbridge-relay-bundle
+
+description: >
+  Довести бандл CloudBridge Relay до загрузки в MWS B2B Store (vendor gc2, stage):
+  OVA, Terraform VMware, bootstrap, pack, smoke-test API.
+
+tasks:
+  - agent: cursor
+    label: "cursor: OVA build pipeline"
+    task: |
+      STEP 1/5 — OVA build pipeline для CloudBridge Relay Private PoP.
+
+      {{TGC_REF}}
+
+      GOAL: подготовить воспроизводимую сборку OVA из {{RELAY_INSTALLER}}.
+
+      DO:
+      1. Изучи VM/docker-compose стек в {{RELAY_INSTALLER}} (terraform/cloud-init-optimized.yaml, ansible/, docker/).
+      2. Создай {{RELAY_INSTALLER}}/mws/ с:
+         - README.md — как собрать OVA (Packer или manual VMware export)
+         - packer/cloudbridge-relay.pkr.hcl (скелет) ИЛИ scripts/build-ova.sh
+         - cloud-init snippet для минимального стека: Docker + relay + Zitadel + Postgres
+      3. Документируй минимальные ресурсы: 4 vCPU, 8GB RAM, 80GB disk.
+      4. Не коммить секреты. Не меняй unrelated файлы.
+
+      OUTPUT: рабочий скелет сборки OVA + инструкция загрузки в Artifactory ({{ARTIFACTORY_ENDPOINT}}).
+
+  - agent: cursor
+    label: "cursor: Terraform manifest VMware"
+    task: |
+      STEP 2/5 — Terraform-манифесты под MWS VMware.
+
+      {{TGC_REF}}
+
+      READ B2B Store docs: {{B2BSTORE_DOCS}}vendor-guide/manifest-vmware/
+
+      EDIT {{BUNDLE_ROOT}}/plans/starter/manifest/:
+      1. main.tf — дополни vcd_vm, catalog_artifact_vcd, mpvm_agent_init, mpvm_agent_script
+      2. Используй backend_name = "main_vcd", artifact_name = "cloudbridge-relay-base"
+      3. Переменные из parameters.yaml (network, cpus, ram, public_key, relay_hostname, admin_email)
+      4. НЕ объявляй provider block
+      5. Добавь scripts/bootstrap-relay.sh и вызови через mpvm_agent_script
+
+      SOURCE for bootstrap logic: {{RELAY_INSTALLER}}/tools/setup/, docker-compose paths.
+
+      VALIDATE: terraform fmt на manifest/*.tf (syntax only, без локального apply если нет провайдера).
+
+  - agent: cursor
+    label: "cursor: bundle metadata + pack"
+    task: |
+      STEP 3/5 — Доработка бандла и упаковка ZIP.
+
+      Bundle root: {{BUNDLE_ROOT}}
+
+      DO:
+      1. Проверь product.yaml, plan.yaml, parameters.yaml, wizard.yaml, backends.yaml, artifacts.yaml
+      2. В artifacts.yaml оставь placeholder hash с комментарием как заменить после Artifactory upload
+      3. Обнови static/description.md и tutorial.md если менялась архитектура
+      4. Обнови {{BUNDLE_ROOT}}/BUILD.md — актуальный чеклист
+      5. Запусти {{MTS_2GC}}/bundle/pack.sh — ZIP должен быть < 50MB
+
+      FIX any YAML/structure issues per B2B Store bundle schema (bundleSchema v1).
+
+  - agent: cursor
+    label: "cursor: b2bstore API smoke test"
+    task: |
+      STEP 4/5 — Smoke-test интеграции с B2B Store API.
+
+      Working dir: {{MTS_2GC}}
+      Use .env for credentials (never print Client_Secret).
+
+      RUN:
+      python3 scripts/b2bstore.py whoami
+      python3 scripts/b2bstore.py backends
+      python3 scripts/b2bstore.py request GET /vendors/gc2/backends/schemas
+      python3 scripts/b2bstore.py products
+      python3 scripts/b2bstore.py categories
+
+      DO:
+      1. Зафиксируй результаты в {{MTS_2GC}}/docs/reports/b2bstore-smoke.md (создай)
+      2. Если backends пуст — документируй шаги создания VMware-бэкенда в консоли
+      3. Обнови {{ACCESS_DOC}} если нашёл расхождения с реальным API
+
+      Do NOT upload bundle yet unless backends exist and OVA hash is real.
+
+  - agent: cursor
+    label: "cursor: review + deployment runbook"
+    task: |
+      STEP 5/5 — Review и финальный runbook.
+
+      {{TGC_REF}}
+
+      VERIFY:
+      - {{BUNDLE_ROOT}} structure matches B2B Store standard bundle
+      - manifest/*.tf без provider block
+      - .env не в git
+      - pack.sh produces valid ZIP
+
+      WRITE {{MTS_2GC}}/docs/DEPLOYMENT.md:
+      1. Prerequisites (MWS Artifactory CLI, VMware backend, OAuth gc2)
+      2. Step-by-step: OVA → artifacts.yaml → pack → upload → test instance → publish
+      3. Links to {{B2BSTORE_DOCS}} and github.com/twogc/mts-2gc
+
+      UPDATE {{MTS_2GC}}/README.md with link to DEPLOYMENT.md.
+
+      List remaining blockers as P0/P1/P2 (OVA not built, backend missing, admin publish, etc.).

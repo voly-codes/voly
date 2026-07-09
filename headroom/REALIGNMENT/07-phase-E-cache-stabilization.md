@@ -328,11 +328,11 @@ None.
 
 After all 6 PRs land:
 
-- ✅ Tools alphabetically sorted (deterministic, idempotent)
-- ✅ JSON Schema keys recursively sorted
-- ✅ `cache_control` auto-placement on PAYG (4 markers)
-- ✅ `prompt_cache_key` auto-injection on PAYG (OpenAI)
-- ✅ Volatile-content detector + customer warning (no rewrite)
-- ✅ Cache-bust drift telemetry per session
+- Tools alphabetically sorted (deterministic, idempotent)
+- SON Schema keys recursively sorted
+- cache_control` auto-placement on PAYG (4 markers)
+- prompt_cache_key` auto-injection on PAYG (OpenAI)
+- olatile-content detector + customer warning (no rewrite)
+- ache-bust drift telemetry per session
 
 **Phase E retires P3-28 through P3-32, P3-35.**

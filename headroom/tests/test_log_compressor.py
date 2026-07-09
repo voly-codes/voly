@@ -530,7 +530,7 @@ class TestEdgeCases:
     def test_unicode_content(self):
         """Unicode characters are handled correctly."""
         content = """INFO: Processing 日本語
-ERROR: Failed with émoji 🚀
+ERROR: Failed with émoji
 WARN: Über important
 """
         compressor = LogCompressor()

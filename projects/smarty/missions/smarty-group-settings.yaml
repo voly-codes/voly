@@ -93,6 +93,6 @@ tasks:
       {{LEGACY_GAP_REF}}
       VERIFY vs legacy routesData group routes for contacts + deals minimum.
       npm run build; oxlint on src/pages/groups/, hooks/useGroups.ts.
-      UPDATE legacy-gap-audit §2.4 Group settings row → 🟡 or ✅.
+      UPDATE legacy-gap-audit §2.4 Group settings row → 🟡 or.
       UPDATE CURRENT_STATUS.md — group settings milestone.
       NOTE: unblocks smarty-custom-fields-advanced + list filters by group.

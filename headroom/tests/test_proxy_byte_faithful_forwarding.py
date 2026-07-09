@@ -375,7 +375,7 @@ def test_compression_off_unicode_preserved() -> None:
         "model": "claude-sonnet-4-6",
         "max_tokens": 64,
         "messages": [
-            {"role": "user", "content": "Hello 🔥 — 世界 — emoji is 🚀"},
+            {"role": "user", "content": "Hello 🔥 — 世界 — emoji is"},
         ],
     }
     inbound_bytes = serialize_body_canonical(inbound_dict)
@@ -921,7 +921,7 @@ def test_ws_http_fallback_uses_canonical_serializer() -> None:
     Codex client; instead we assert the helper choice yields the expected
     bytes when a tracker reports mutation.
     """
-    body = {"model": "gpt-5", "input": [{"role": "user", "content": "hi 🚀"}]}
+    body = {"model": "gpt-5", "input": [{"role": "user", "content": "hi"}]}
     out, source = prepare_outbound_body_bytes(
         body=body,
         original_body_bytes=None,

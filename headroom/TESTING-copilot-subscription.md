@@ -59,10 +59,10 @@ real enterprise tenant.
 
 | Platform | Mechanism (compress + forward) | Token **auto-discovery** from the OS secret store |
 |----------|:---:|:---:|
-| macOS (Keychain) | ✅ verified | ✅ verified (`copilot-cli`) |
-| Linux (`secret-tool`/libsecret) | ✅ expected | ❓ **needs testing** |
-| Windows (Credential Manager) | ✅ expected | ❓ **needs testing** |
-| Any OS via `GITHUB_COPILOT_TOKEN` env var | ✅ verified by tests | n/a (bypasses discovery) |
+| macOS (Keychain) | verified | verified (`copilot-cli`) |
+| Linux (`secret-tool`/libsecret) | xpected | ❓ **needs testing** |
+| Windows (Credential Manager) | xpected | ❓ **needs testing** |
+| Any OS via `GITHUB_COPILOT_TOKEN` env var | erified by tests | n/a (bypasses discovery) |
 
 The two things we want to learn:
 1. **Does it work end to end on your OS?**
@@ -90,7 +90,7 @@ pipx install --pip-args='--pre' headroom-ai     # or: pip install --pre headroom
 headroom wrap copilot --subscription -- --model gpt-4o -p "Reply with exactly: HEADROOM_OK"
 ```
 
-- **If it prints `HEADROOM_OK`** → auto-discovery works on your Linux. 🎉 Report success.
+- **If it prints `HEADROOM_OK`** → auto-discovery works on your Linux. Report success.
 - **If it errors with "no reusable bearer token"** → discovery missed your token. Please grab the **schema** so we can fix it (redact the secret), then confirm the mechanism works via the env var:
   ```bash
   secret-tool search --all 2>/dev/null | sed -E 's/^secret = .*/secret = <redacted>/'

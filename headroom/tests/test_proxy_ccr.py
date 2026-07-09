@@ -392,7 +392,7 @@ class TestCCREdgeCases:
         store = get_compression_store()
         items = [
             {"id": 1, "text": "日本語テキスト"},
-            {"id": 2, "text": "Émoji 🎉 test"},
+            {"id": 2, "text": "Émoji test"},
         ]
         hash_key = store.store(original=json.dumps(items, ensure_ascii=False), compressed="[]")
 

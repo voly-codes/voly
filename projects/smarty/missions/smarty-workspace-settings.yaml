@@ -125,13 +125,13 @@ tasks:
 - agent: cursor
   label: 'cursor: review smarty-workspace-settings'
   task: "STEP 8/8 — Review + backend gap list.\n\nProject: {{SMARTY_PROJECT}}. Spec:\
-    \ {{WORKSPACE_SETTINGS_SPEC}}\n\nCHECKLIST:\n✅ /settings Plane sidebar 250px,\
-    \ full-width content\n✅ /settings/integrations hub with categories + search\n\
-    ✅ integrations/registry.ts — all requested providers listed with correct status\n\
-    ✅ Live market providers wired (messengers + SIP) — no mock toggles\n✅ Gmail, Yandex,\
-    \ 1C, Bitrix24, amoCRM, SIPuni pages exist with honest status\n✅ 1C page covers\
-    \ CommerceML/HTTP/OData, configs, поставки phases\n✅ Profile settings link + /settings/profile\
-    \ unchanged\n✅ i18n integrations + settings en/ru\n✅ npm run build 0 errors in\
+    \ {{WORKSPACE_SETTINGS_SPEC}}\n\nCHECKLIST:\n /settings Plane sidebar 250px,\
+    \ full-width content\n /settings/integrations hub with categories + search\n\
+    ntegrations/registry.ts — all requested providers listed with correct status\n\
+    ive market providers wired (messengers + SIP) — no mock toggles\n mail, Yandex,\
+    \ 1C, Bitrix24, amoCRM, SIPuni pages exist with honest status\n 1C page covers\
+    \ CommerceML/HTTP/OData, configs, поставки phases\n Profile settings link + /settings/profile\
+    \ unchanged\n i18n integrations + settings en/ru\n npm run build 0 errors in\
     \ settings/*\n\nBACKEND GAP LIST (for separate missions):\n  - smarty-erp-sync\
     \ / 1C CommerceML\n  - amoCRM + Bitrix24 productized connectors\n  - workspace\
     \ mailbox OAuth (Gmail/Yandex)\n  - SIPuni sip provider adapter\n\nUPDATE docs/reports/CURRENT_STATUS.md\

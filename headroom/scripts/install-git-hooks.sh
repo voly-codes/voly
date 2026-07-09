@@ -69,7 +69,7 @@ if make ci-precheck; then
     exit 0
 else
     echo ""
-    echo "❌ pre-push: 'make ci-precheck' failed. Fix the issues above before pushing."
+    echo " pre-push: 'make ci-precheck' failed. Fix the issues above before pushing."
     echo "   To bypass (NOT recommended): git push --no-verify"
     exit 1
 fi
@@ -77,7 +77,7 @@ HOOK_EOF
 
 chmod +x "$HOOK_PATH"
 
-echo "✅ installed: $HOOK_PATH"
+echo " installed: $HOOK_PATH"
 echo "   Runs 'make ci-precheck' before every git push."
 echo "   Bypass (use sparingly): git push --no-verify"
 
@@ -96,8 +96,8 @@ fi
 if [[ -n "$PRE_COMMIT_BIN" ]]; then
     "$PRE_COMMIT_BIN" install
     "$PRE_COMMIT_BIN" install --hook-type commit-msg
-    echo "✅ installed: .git/hooks/pre-commit (repo pre-commit checks via pre-commit)"
-    echo "✅ installed: .git/hooks/commit-msg (conventional commit enforcement via commitlint)"
+    echo " installed: .git/hooks/pre-commit (repo pre-commit checks via pre-commit)"
+    echo " installed: .git/hooks/commit-msg (conventional commit enforcement via commitlint)"
 else
     echo "error: pre-commit not found — run 'pip install -e .[dev]' first, then re-run this script." >&2
     exit 1

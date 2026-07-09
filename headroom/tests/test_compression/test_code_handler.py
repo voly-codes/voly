@@ -263,7 +263,7 @@ class TestTreeSitterContainers:
         span, preserving the wrong characters.
         """
         code = (
-            "# café münü 🎉 comment\n"
+            "# café münü comment\n"
             "def target(x: int) -> int:\n"
             "    body_value = 9\n"
             "    return body_value\n"

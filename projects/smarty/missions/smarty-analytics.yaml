@@ -147,22 +147,22 @@ tasks:
 
     CHECKLIST:
 
-    ✅ Nav «Аналитика» / Analytics (NOT Отчёты)
+    Nav «Аналитика» / Analytics (NOT Отчёты)
 
-    ✅ /analytics/overview + /reports redirect
+    analytics/overview + /reports redirect
 
-    ✅ Overview layout matches Plane analytics/overview (TotalInsights + grid)
+    verview layout matches Plane analytics/overview (TotalInsights + grid)
 
-    ✅ 5 tabs: overview, sales, contacts, helpdesk, tracker
+     tabs: overview, sales, contacts, helpdesk, tracker
 
-    ✅ Plane-style InsightCard + TrendPiece + charts
+    lane-style InsightCard + TrendPiece + charts
 
-    ✅ Real statistic + hd/dashboard, no mock, no limit:9999
+    eal statistic + hd/dashboard, no mock, no limit:9999
 
-    ✅ i18n en+ru analytics namespace
+    18n en+ru analytics namespace
 
 
-    ANTI-PATTERNS ❌: Plane clone (cycles/wiki), sparse renamed Reports
+    ANTI-PATTERNS : Plane clone (cycles/wiki), sparse renamed Reports
 
 
     DELETE src/pages/reports/ if migrated.

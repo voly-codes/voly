@@ -311,14 +311,14 @@ class TestInMemoryBackend:
         """Backend should handle unicode content correctly."""
         entry = make_entry(
             hash_key="unicode",
-            original="日本語テスト 🎉 émojis",
+            original="日本語テスト émojis",
             compressed="日本語",
         )
         backend.set("unicode", entry)
 
         retrieved = backend.get("unicode")
         assert retrieved is not None
-        assert retrieved.original_content == "日本語テスト 🎉 émojis"
+        assert retrieved.original_content == "日本語テスト émojis"
         assert retrieved.compressed_content == "日本語"
 
     def test_large_content(self, backend: InMemoryBackend) -> None:

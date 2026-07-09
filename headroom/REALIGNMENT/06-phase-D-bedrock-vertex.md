@@ -206,16 +206,16 @@ PR-H2.
 
 After all 4 PRs land:
 
-- ✅ Native Bedrock `/model/{model}/invoke` route in Rust
-- ✅ Native Bedrock `/model/{model}/invoke-with-response-stream` (binary EventStream parsed and translated)
-- ✅ SigV4 signing post-compression
-- ✅ All Anthropic block types preserved through Bedrock (thinking, redacted_thinking, document, search_result, image, server_tool_use, mcp_tool_use)
-- ✅ `stop_sequence: null` no longer hardcoded
-- ✅ `tool_calls.function.arguments` preserved as string
-- ✅ Native Vertex `:rawPredict` and `:streamRawPredict` routes
-- ✅ ADC bearer token resolution
-- ✅ Bedrock/Vertex classified as `AuthMode::OAuth` (passthrough-prefer compression)
-- ✅ Per-Bedrock-model and per-Vertex-model Prometheus metrics
+- Native Bedrock `/model/{model}/invoke` route in Rust
+- ative Bedrock `/model/{model}/invoke-with-response-stream` (binary EventStream parsed and translated)
+- igV4 signing post-compression
+- ll Anthropic block types preserved through Bedrock (thinking, redacted_thinking, document, search_result, image, server_tool_use, mcp_tool_use)
+- stop_sequence: null` no longer hardcoded
+- tool_calls.function.arguments` preserved as string
+- ative Vertex `:rawPredict` and `:streamRawPredict` routes
+- DC bearer token resolution
+- edrock/Vertex classified as `AuthMode::OAuth` (passthrough-prefer compression)
+- er-Bedrock-model and per-Vertex-model Prometheus metrics
 
 **Phase D retires P4-37, P4-38, P4-39, P4-43.** Marketplace BYOC pitch (per project memory) becomes real.
 

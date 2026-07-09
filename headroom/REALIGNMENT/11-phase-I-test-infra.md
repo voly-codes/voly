@@ -369,16 +369,16 @@ None.
 
 After all 10 PRs land:
 
-- ✅ SHA-256 byte-faithful round-trip test gates CI
-- ✅ SSE corner-case fixtures + fuzz tests
-- ✅ Property tests for compression invariants
-- ✅ Real-traffic shadow test comparing Python vs Rust
-- ✅ Stub parity comparators promoted to real
-- ✅ `make test-parity` is a per-PR gate
-- ✅ Cache hot zone non-mutation tests
-- ✅ Tool-definition byte-stability snapshot tests
-- ✅ Cache-hit-rate Prometheus alarm
-- ✅ Real RTK in wrap E2E
+- SHA-256 byte-faithful round-trip test gates CI
+- SE corner-case fixtures + fuzz tests
+- roperty tests for compression invariants
+- eal-traffic shadow test comparing Python vs Rust
+- tub parity comparators promoted to real
+- make test-parity` is a per-PR gate
+- ache hot zone non-mutation tests
+- ool-definition byte-stability snapshot tests
+- ache-hit-rate Prometheus alarm
+- eal RTK in wrap E2E
 
 **Phase I retires P6-63 through P6-72.**
 

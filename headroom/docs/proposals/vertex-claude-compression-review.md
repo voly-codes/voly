@@ -63,10 +63,10 @@ There are **two proxies** in this repo and **three** possible routes. Only some 
 
 | Route | What it is | Compresses? | Notes |
 |---|---|---|---|
-| **Python proxy, native Vertex `:rawPredict`** (publisher = `anthropic`) | Client sends a real Vertex request to Headroom | ✅ **Yes** | Runs the full Anthropic compression pipeline, keeps the Vertex body shape, forwards the client's own Google token. `proxy_routes.py:648` |
-| **Python proxy, `--backend litellm-vertex_ai`** | Client speaks plain Anthropic; Headroom translates to Vertex | ✅ **Yes** (correct string only) | Full Anthropic↔Vertex translation incl. streaming + tools. **`litellm-vertex` is broken — must use `litellm-vertex_ai`.** |
-| **Rust proxy, native Vertex `:rawPredict`** | A separate `headroom-proxy` binary | ✅ **Yes** | Correct and well-built — **but never run by `headroom proxy`/`wrap`.** Dead code for normal users. |
-| **Python proxy, passthrough** (any *other* publisher) | Generic verbatim forward | ❌ No | Only used for non-Anthropic, non-Google publishers. `openai.py:6014` |
+| **Python proxy, native Vertex `:rawPredict`** (publisher = `anthropic`) | Client sends a real Vertex request to Headroom | **Yes** | Runs the full Anthropic compression pipeline, keeps the Vertex body shape, forwards the client's own Google token. `proxy_routes.py:648` |
+| **Python proxy, `--backend litellm-vertex_ai`** | Client speaks plain Anthropic; Headroom translates to Vertex | *Yes** (correct string only) | Full Anthropic↔Vertex translation incl. streaming + tools. **`litellm-vertex` is broken — must use `litellm-vertex_ai`.** |
+| **Rust proxy, native Vertex `:rawPredict`** | A separate `headroom-proxy` binary | *Yes** | Correct and well-built — **but never run by `headroom proxy`/`wrap`.** Dead code for normal users. |
+| **Python proxy, passthrough** (any *other* publisher) | Generic verbatim forward |  No | Only used for non-Anthropic, non-Google publishers. `openai.py:6014` |
 
 **Key takeaway:** the *compression engine* for Vertex+Claude exists and works in the
 Python proxy. The problems are getting traffic into it and one naming bug.

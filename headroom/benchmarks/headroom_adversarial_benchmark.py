@@ -526,7 +526,7 @@ def run_adversarial_benchmark(api_key: str = None) -> dict:
 
             if baseline.input_tokens > 0:
                 change = (headroom.input_tokens - baseline.input_tokens) / baseline.input_tokens
-                print(f"\n   📊 Token change: {change:+.1%}")
+                print(f"\n   Token change: {change:+.1%}")
                 if change > 0:
                     print("   ⚠️  HEADROOM INCREASED TOKENS (overhead > savings)")
                 elif change > -0.1:

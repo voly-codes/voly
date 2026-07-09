@@ -713,7 +713,7 @@ class TestSQLiteGraphStoreEdgeCases:
         """Test entity names with unicode characters."""
         entity = Entity(
             user_id="user1",
-            name="Test 你好 🚀 Ñoño",
+            name="Test 你好 Ñoño",
             entity_type="test",
         )
 
@@ -721,7 +721,7 @@ class TestSQLiteGraphStoreEdgeCases:
         retrieved = await store.get_entity(entity.id)
 
         assert retrieved is not None
-        assert retrieved.name == "Test 你好 🚀 Ñoño"
+        assert retrieved.name == "Test 你好 Ñoño"
 
     @pytest.mark.asyncio
     async def test_large_properties(self, store):

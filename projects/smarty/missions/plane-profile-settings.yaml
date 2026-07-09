@@ -143,7 +143,7 @@ tasks:
     3. Remove hardcoded displayName ''User'' / mock initials in Sidebar.tsx
 
 
-    REVIEW CHECKLIST (✅/❌/partial):
+    REVIEW CHECKLIST (//partial):
 
     - /settings/profile/:tab routes + sidebar avatar 32px + name/email header
 

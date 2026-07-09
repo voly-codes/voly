@@ -742,7 +742,7 @@ def generate_report(results: list[RegressionResult], verbose: bool = False) -> s
 
         if not result.passed:
             for failure in result.failures:
-                lines.append(f"         ❌ {failure}")
+                lines.append(f"          {failure}")
 
         if verbose and result.details:
             lines.append(f"         Details: {json.dumps(result.details, indent=2)}")

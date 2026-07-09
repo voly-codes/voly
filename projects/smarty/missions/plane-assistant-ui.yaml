@@ -89,25 +89,25 @@ tasks:
 
     CHECKLIST (compare to Plane AI /pi-chat screenshot):
 
-    ✅ Two-pane: left threads sidebar + right main (in-page, not CRM sidebar)
+    Two-pane: left threads sidebar + right main (in-page, not CRM sidebar)
 
-    ✅ Left: title, New chat, Recents, empty/list state
+    eft: title, New chat, Recents, empty/list state
 
-    ✅ Empty main: centered greeting + hero composer card + Suggestions list
+    mpty main: centered greeting + hero composer card + Suggestions list
 
-    ✅ Composer: context chip, toolbar icons, blue send button
+    omposer: context chip, toolbar icons, blue send button
 
-    ✅ Active thread: scrollable messages + bottom composer same card style
+    ctive thread: scrollable messages + bottom composer same card style
 
-    ✅ Footer disclaimer centered
+    ooter disclaimer centered
 
-    ✅ Model selector read-only in main header
+    odel selector read-only in main header
 
-    ✅ Consultant API unchanged
+    onsultant API unchanged
 
-    ✅ i18n en+ru
+    18n en+ru
 
-    ✅ npm run build 0 errors
+    pm run build 0 errors
 
 
     Fix P0 layout gaps. UPDATE docs/reports/CURRENT_STATUS.md.

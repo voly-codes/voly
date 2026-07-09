@@ -95,7 +95,7 @@ clean:
 
 ci-precheck: ci-precheck-rust ci-precheck-python ci-precheck-commitlint
 	@echo ""
-	@echo "✅ ci-precheck PASSED — safe to push."
+	@echo " ci-precheck PASSED — safe to push."
 
 ci-precheck-rust:
 	@echo "── ci-precheck-rust ────────────────────────────────────────────"

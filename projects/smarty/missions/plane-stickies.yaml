@@ -110,7 +110,7 @@ tasks:
     Project: {{SMARTY_PROJECT}}.
 
 
-    CHECKLIST (✅/❌/partial):
+    CHECKLIST (//partial):
 
     - Backend /ws/:wsId/stickies CRUD + reorder, owner-scoped
 

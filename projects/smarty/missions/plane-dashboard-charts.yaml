@@ -72,19 +72,19 @@ tasks:
 
     CHECKLIST:
 
-    ✅ ActiveSprintsWidget maps Plane active-cycles charts
+    ActiveSprintsWidget maps Plane active-cycles charts
 
-    ✅ AllIssuesWidget maps Plane all-issues summary
+    llIssuesWidget maps Plane all-issues summary
 
-    ✅ Shared chart components reused
+    hared chart components reused
 
-    ✅ Dashboard bento includes both widgets
+    ashboard bento includes both widgets
 
-    ✅ Real tracker/sprint API
+    eal tracker/sprint API
 
-    ✅ i18n en+ru
+    18n en+ru
 
-    ✅ npm run build 0 errors
+    pm run build 0 errors
 
 
     UPDATE CURRENT_STATUS.md.'

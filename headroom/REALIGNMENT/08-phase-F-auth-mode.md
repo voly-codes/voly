@@ -242,12 +242,12 @@ None.
 
 After all 4 PRs land:
 
-- ✅ `classify_auth_mode` helper detects PAYG / OAuth / Subscription
-- ✅ Per-mode compression policy gates (auto-cache_control, prompt_cache_key, lossy compressors)
-- ✅ TOIN aggregation key per `(auth_mode, model_family, structure_hash)`
-- ✅ Subscription tracker doesn't store raw OAuth bearer
-- ✅ `X-Forwarded-*` skipped on Subscription mode
-- ✅ `accept-encoding` preserved on Subscription mode
+- `classify_auth_mode` helper detects PAYG / OAuth / Subscription
+- er-mode compression policy gates (auto-cache_control, prompt_cache_key, lossy compressors)
+- OIN aggregation key per `(auth_mode, model_family, structure_hash)`
+- ubscription tracker doesn't store raw OAuth bearer
+- X-Forwarded-*` skipped on Subscription mode
+- accept-encoding` preserved on Subscription mode
 
 **Phase F retires P5-52, P5-53, P5-54, P5-55, P5-56.**
 

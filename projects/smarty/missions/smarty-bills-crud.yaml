@@ -3,7 +3,7 @@ name: smarty-bills-crud
 
 description: >
   P1: Счета (bills) на карточках contact/deal — list/create/view/edit,
-  product lines + currency. Depends on smarty-card-linked-tabs ✅.
+  product lines + currency. Depends on smarty-card-linked-tabs.
 
 tasks:
   - agent: cursor
@@ -78,11 +78,11 @@ tasks:
 
       {{LEGACY_GAP_REF}}
       CHECKLIST:
-        ✅ Bills tab on contact + deal detail
-        ✅ Create / view / edit flows
-        ✅ Real API, no mock
-        ✅ i18n en+ru
+        ills tab on contact + deal detail
+        reate / view / edit flows
+        eal API, no mock
+        18n en+ru
       npm run build.
-      UPDATE legacy-gap-audit Bills row → 🟡 or ✅.
+      UPDATE legacy-gap-audit Bills row → 🟡 or.
       UPDATE CURRENT_STATUS.md.
       Run AFTER smarty-group-settings if group-scoped bill fields needed later.

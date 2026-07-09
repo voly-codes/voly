@@ -35,7 +35,7 @@ Both live in a Cargo workspace under `crates/` at the repo root. They are built,
 
 ## Stages
 
-### Stage 0 — Foundation ✅
+### Stage 0 — Foundation
 
 Cargo workspace with four crates (`headroom-core`, `headroom-proxy`, `headroom-py`, `headroom-parity`), CI, build tooling (Makefile, GitHub Actions), and a parity test harness seeded with 125 recorded fixtures across 5 leaf transforms. No production behavior changed.
 

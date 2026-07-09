@@ -39,6 +39,6 @@ tasks:
 
     npm run build; oxlint clean on touched files.
 
-    UPDATE legacy-gap-audit matrix row dialogs → 🟡 or ✅.
+    UPDATE legacy-gap-audit matrix row dialogs → 🟡 or.
 
     UPDATE CURRENT_STATUS.md — inbox messaging milestone.'

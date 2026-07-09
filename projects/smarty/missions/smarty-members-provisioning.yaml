@@ -77,17 +77,17 @@ tasks:
 
     CHECKLIST:
 
-    ✅ Invite uses POST /employees then POST /employees/invite (not create-only)
+    Invite uses POST /employees then POST /employees/invite (not create-only)
 
-    ✅ Email / Phone / Link tabs work
+    mail / Phone / Link tabs work
 
-    ✅ Link tab returns copyable URL from API
+    ink tab returns copyable URL from API
 
-    ✅ Status column: active / invited / blocked mapped from inviteStatus
+    tatus column: active / invited / blocked mapped from inviteStatus
 
-    ✅ i18n en+ru
+    18n en+ru
 
-    ✅ npm run build 0 errors
+    pm run build 0 errors
 
 
     Fix P0. List P1/P2 (resend, block, declined badge, captcha UX).'
@@ -148,11 +148,11 @@ tasks:
 - agent: cursor
   label: 'cursor: review smarty-members-provisioning'
   task: "STEP 10/10 — Final review + backend gap list.\n\nProject: {{SMARTY_PROJECT}}.\
-    \ Spec: {{MEMBERS_PROVISIONING_SPEC}}\n\nCHECKLIST:\n✅ Members Email/Phone/Link\
-    \ invite via /employees/invite\n✅ Status badges active / invited / blocked\n✅\
-    \ Provisioning registry: Zitadel, SCIM, LDAP/AD, 1C ZUP HR\n✅ AD→workgroups mapping\
-    \ UI (config placeholder)\n✅ Honest planned/stub labels — no fake sync\n✅ i18n\
-    \ en+ru\n✅ npm run build 0 errors\n\nBACKEND GAP LIST (separate missions):\n \
+    \ Spec: {{MEMBERS_PROVISIONING_SPEC}}\n\nCHECKLIST:\n Members Email/Phone/Link\
+    \ invite via /employees/invite\n Status badges active / invited / blocked\n\
+    \ Provisioning registry: Zitadel, SCIM, LDAP/AD, 1C ZUP HR\n AD→workgroups mapping\
+    \ UI (config placeholder)\n Honest planned/stub labels — no fake sync\n i18n\
+    \ en+ru\n npm run build 0 errors\n\nBACKEND GAP LIST (separate missions):\n \
     \ - smarty-provisioning-scim (SCIM 2.0 endpoint + token)\n  - smarty-provisioning-ldap\
     \ (LDAPS sync job)\n  - smarty-provisioning-ad-workgroups (group mapping store\
     \ + cron)\n  - smarty-1c-zup-hr (OData/HTTP employee pull)\n\nUPDATE docs/reports/CURRENT_STATUS.md\

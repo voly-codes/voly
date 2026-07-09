@@ -105,32 +105,32 @@ tasks:
 
     CHECKLIST:
 
-    ✅ CRM-first: pulse, pipeline, inbox, requisitions visible by default
+    CRM-first: pulse, pipeline, inbox, requisitions visible by default
 
-    ✅ Tracker integrated (my issues), not separate product silo
+    racker integrated (my issues), not separate product silo
 
-    ✅ No limit:9999 on HomePage mount — lazy per-widget fetching
+    o limit:9999 on HomePage mount — lazy per-widget fetching
 
-    ✅ Bento full-width layout (max-w-6xl), NOT centered 800px personal feed
+    ento full-width layout (max-w-6xl), NOT centered 800px personal feed
 
-    ✅ No emoji greetings, no Plane marketing widgets
+    o emoji greetings, no Plane marketing widgets
 
-    ✅ Customize widgets (enable/order/categories)
+    ustomize widgets (enable/order/categories)
 
-    ✅ Recents for CRM entities + record on view
+    ecents for CRM entities + record on view
 
-    ✅ Quick actions wired to real routes
+    uick actions wired to real routes
 
-    ✅ Stickies/quick links optional (personal category)
+    tickies/quick links optional (personal category)
 
-    ✅ Legacy StatsRow/Recent*/QuickActions removed
+    egacy StatsRow/Recent*/QuickActions removed
 
-    ✅ i18n en+ru, Plane dark-first tokens
+    18n en+ru, Plane dark-first tokens
 
-    ✅ Real API only
+    eal API only
 
 
-    ANTI-PATTERNS (must be ❌):
+    ANTI-PATTERNS (must be ):
 
     - Blind Plane Home clone (narrow feed, wiki recents, tour widgets)
 

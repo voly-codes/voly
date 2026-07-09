@@ -53,7 +53,7 @@ async def test_text_only_request(api_key):
             data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
         )
         print(f"Response: {text[:100]}")
-        print("✅ Text-only request works")
+        print(" Text-only request works")
         return True
     else:
         print(f"Error: {response.text[:200]}")
@@ -94,7 +94,7 @@ async def test_image_request(api_key):
             data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
         )
         print(f"Response: {text[:100]}")
-        print("✅ Image request works - model processed the image")
+        print(" Image request works - model processed the image")
         return True
     else:
         print(f"Error: {response.text[:200]}")
@@ -147,7 +147,7 @@ async def test_function_calling(api_key):
         if has_function_call:
             func_call = next(p["functionCall"] for p in parts if "functionCall" in p)
             print(f"Function called: {func_call.get('name')} with args: {func_call.get('args')}")
-            print("✅ Function calling works")
+            print(" Function calling works")
             return True
         else:
             # Model might have answered directly
@@ -217,7 +217,7 @@ async def test_function_response_flow(api_key):
             data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
         )
         print(f"Response: {text[:150]}")
-        print("✅ Function response flow works - model used the function result")
+        print(" Function response flow works - model used the function result")
         return True
     else:
         print(f"Error: {response.text[:300]}")
@@ -262,7 +262,7 @@ async def test_mixed_conversation(api_key):
             data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
         )
         print(f"Response: {text[:150]}")
-        print("✅ Mixed conversation works - model saw and processed the image")
+        print(" Mixed conversation works - model saw and processed the image")
         return True
     else:
         print(f"Error: {response.text[:200]}")
@@ -309,7 +309,7 @@ async def test_through_proxy(api_key, proxy_url: str = "http://localhost:8080"):
                 .get("text", "")
             )
             print(f"Response: {text[:150]}")
-            print("✅ Proxy preserved the image and forwarded correctly!")
+            print(" Proxy preserved the image and forwarded correctly!")
             return True
         else:
             print(f"Error: {response.text[:300]}")
@@ -362,7 +362,7 @@ async def main():
     total = len(results)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = " PASS" if result else " FAIL"
         print(f"  {name}: {status}")
 
     print(f"\nTotal: {passed}/{total} passed")

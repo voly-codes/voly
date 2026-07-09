@@ -692,7 +692,7 @@ def run_full_benchmark(api_key: str = None) -> dict:
                 if baseline_result.cost_usd > 0
                 else 0
             )
-            print("\n   📊 SAVINGS:")
+            print("\n   SAVINGS:")
             print(f"   Token reduction: {token_savings:.1%}")
             print(f"   Cost reduction: {cost_savings:.1%}")
             print(

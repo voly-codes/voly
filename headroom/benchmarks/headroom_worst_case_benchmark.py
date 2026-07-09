@@ -793,7 +793,7 @@ def run_worst_case_benchmark(api_key: str = None) -> dict:
                 ) / baseline_result.input_tokens
                 quality_change = avg_headroom_score - avg_baseline_score
 
-                print("\n   📊 COMPARISON:")
+                print("\n   COMPARISON:")
                 print(
                     f"   Token change: {token_change:+.1%} ({'saved' if token_change < 0 else 'INCREASED'})"
                 )
