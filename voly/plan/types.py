@@ -130,6 +130,8 @@ class PlanStep:
     status: str = PENDING
     depends_on: list[str] = field(default_factory=list)
     acceptance: list[AcceptanceCheck] = field(default_factory=list)
+    # Instruction for this step (YAML/CLI). Empty → fall back to plan.task.
+    task: str = ""
     # Filled by runners later; kept here for persistence shape stability.
     error: str = ""
     output: str = ""
@@ -148,6 +150,7 @@ class PlanStep:
             "status": self.status,
             "depends_on": list(self.depends_on),
             "acceptance": [a.to_dict() for a in self.acceptance],
+            "task": self.task,
             "error": self.error,
             "output": self.output,
             "verify_log": list(self.verify_log),
@@ -165,6 +168,8 @@ class PlanStep:
         acceptance_raw = data.get("acceptance") or []
         if not isinstance(acceptance_raw, list):
             raise PlanValidationError(f"step {data.get('id')!r}: acceptance must be a list")
+        # Accept legacy/alternate keys for step instruction.
+        task = data.get("task") or data.get("description") or data.get("prompt") or ""
         return cls(
             id=str(data["id"]),
             role=str(data.get("role") or "developer"),
@@ -172,6 +177,7 @@ class PlanStep:
             status=str(data.get("status") or PENDING),
             depends_on=[str(x) for x in (data.get("depends_on") or [])],
             acceptance=[AcceptanceCheck.from_dict(a) for a in acceptance_raw],
+            task=str(task),
             error=str(data.get("error") or ""),
             output=str(data.get("output") or ""),
             verify_log=list(data.get("verify_log") or []),

@@ -17,6 +17,7 @@ from voly.config._types import (
     MCPConfig,
     MemoryConfig,
     ModelConfig,
+    PlanConfig,
     RTKConfig,
     RegistryConfig,
     ScannerConfig,
@@ -311,6 +312,34 @@ def _parse_config(raw: dict) -> VOLYConfig:
         config.dspy.enabled = True
     if os.environ.get("DSPY_MODE", ""):
         config.dspy.mode = os.environ["DSPY_MODE"]
+
+    if "plan" in raw:
+        p = raw["plan"]
+        mode = str(p.get("mode", "shadow") or "shadow")
+        on_fail = str(p.get("default_on_verify_fail", "stop") or "stop")
+        if mode not in PlanConfig.VALID_MODES:
+            mode = "shadow"
+        if on_fail not in PlanConfig.VALID_ON_FAIL:
+            on_fail = "stop"
+        config.plan = PlanConfig(
+            enabled=_parse_bool(p.get("enabled"), False),
+            mode=mode,
+            store_dir=str(p.get("store_dir", ".voly/plans") or ".voly/plans"),
+            max_step_retries=int(p.get("max_step_retries", 1)),
+            default_on_verify_fail=on_fail,
+            command_timeout_seconds=float(p.get("command_timeout_seconds", 120.0)),
+            allow_skip=_parse_bool(p.get("allow_skip"), False),
+            executor_default=str(p.get("executor_default", "claude-code") or "claude-code"),
+            step_timeout_seconds=int(p.get("step_timeout_seconds", 300)),
+            max_turns=int(p.get("max_turns", 30)),
+        )
+
+    if os.environ.get("VOLY_PLAN_ENABLED", "").lower() in ("1", "true", "yes"):
+        config.plan.enabled = True
+    if os.environ.get("VOLY_PLAN_MODE", "").strip():
+        m = os.environ["VOLY_PLAN_MODE"].strip().lower()
+        if m in PlanConfig.VALID_MODES:
+            config.plan.mode = m
 
     if "auth" in raw:
         a = raw["auth"]

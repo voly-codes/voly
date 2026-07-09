@@ -17,6 +17,7 @@ from .spend import spend
 from .catalog import catalog
 from .dspy_cmd import dspy_cmd
 from .ui_cmd import ui
+from .plan_cmd import plan_cmd
 
 __all__ = [
     "a2a",
@@ -48,4 +49,5 @@ __all__ = [
     "catalog",
     "dspy_cmd",
     "ui",
+    "plan_cmd",
 ]

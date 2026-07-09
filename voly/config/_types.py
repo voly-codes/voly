@@ -229,6 +229,30 @@ class AuthConfig:
 
 
 @dataclass
+class PlanConfig:
+    """Plan state machine + verification gates (Rung B). See plan-gate-verification proposal."""
+
+    enabled: bool = False
+    # off: plan subsystem not used by multi-agent (CLI still works when invoked)
+    # shadow: run verifiers and log; do not hard-block next step on verify fail
+    # active: hard gate — next step only after deps verified
+    mode: str = "shadow"
+    store_dir: str = ".voly/plans"
+    max_step_retries: int = 1
+    # stop | retry | continue — active mode; shadow treats verify fail as soft
+    default_on_verify_fail: str = "stop"
+    command_timeout_seconds: float = 120.0
+    allow_skip: bool = False
+    # Default executor for mode=executor steps without step.executor
+    executor_default: str = "claude-code"
+    step_timeout_seconds: int = 300
+    max_turns: int = 30
+
+    VALID_MODES = frozenset({"off", "shadow", "active"})
+    VALID_ON_FAIL = frozenset({"stop", "retry", "continue"})
+
+
+@dataclass
 class DSPyConfig:
     """DSPy optimizer layer — sits between Headroom and AIGateway.chat()."""
 
@@ -293,6 +317,7 @@ class VOLYConfig:
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
     telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
+    plan: PlanConfig = field(default_factory=PlanConfig)
     auth: AuthConfig = field(default_factory=AuthConfig)
     default_model: str = "claude-sonnet"
     default_agent: str = "claude"

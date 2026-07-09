@@ -156,6 +156,20 @@ telemetry:
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
+# Plan gates (Rung B): multi-step plans with acceptance checks.
+# CLI: voly plan run <file.yaml>  — see docs/proposals/plan-gate-verification.md
+plan:
+  enabled: false
+  mode: shadow                 # off | shadow | active
+  store_dir: ".voly/plans"
+  max_step_retries: 1
+  default_on_verify_fail: stop # stop | retry | continue
+  command_timeout_seconds: 120
+  allow_skip: false
+  executor_default: claude-code
+  step_timeout_seconds: 300
+  max_turns: 30
+
 # Web UI auth (optional, requires: pip install 'voly[ui]')
 # Default: disabled — API open on localhost only. Enable before any network exposure.
 #

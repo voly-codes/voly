@@ -47,6 +47,10 @@ VOLY_A2A_TOKEN=...
 
 VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
 # Exclude providers from the multi-agent tier pool (e.g. when credits are exhausted).
+
+VOLY_PLAN_ENABLED=true
+VOLY_PLAN_MODE=active
+# Plan gates (Rung B). CLI: voly plan run plan.yaml
 ```
 
 > Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via
@@ -83,6 +87,18 @@ dspy:
   model: claude-sonnet-4-6
   programs_dir: .voly/dspy/programs
   datasets_dir: .voly/dspy/datasets
+
+plan:
+  enabled: false
+  mode: shadow           # off | shadow | active (hard gates)
+  store_dir: .voly/plans
+  max_step_retries: 1
+  default_on_verify_fail: stop  # stop | retry | continue
+  command_timeout_seconds: 120
+  allow_skip: false
+  executor_default: claude-code
+  step_timeout_seconds: 300
+  max_turns: 30
 
 a2a:
   enabled: true
@@ -125,6 +141,9 @@ config.default_cwd           # from voly.yaml default_cwd or VOLY_PROJECT_CWD
 config.dspy.enabled          # bool
 config.dspy.mode             # "off" | "shadow" | "active"
 config.dspy.datasets_dir     # path for saving (task, result) examples
+config.plan.enabled          # bool — plan gates subsystem
+config.plan.mode             # "off" | "shadow" | "active"
+config.plan.store_dir        # .voly/plans
 config.cost_policy.max_task_cost_usd
 config.ai_gateway.spend_limit_usd_per_day
 config.auth.enabled          # bool — Web UI auth (default False)
