@@ -142,6 +142,23 @@ telemetry:
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
+# Web UI JWT auth (optional, requires: pip install 'voly[ui]')
+# Default: disabled — API open on localhost only. Enable before any network exposure.
+# Secrets: prefer VOLY_JWT_SECRET / VOLY_AUTH_USERS env vars over yaml.
+auth:
+  enabled: false
+  jwt_secret: "${VOLY_JWT_SECRET}"
+  jwt_algorithm: HS256
+  access_token_expire_minutes: 60
+  # username: password (MVP plaintext; override via VOLY_AUTH_USERS=user:pass,…)
+  users: {}
+  # When auth is on, avoid ["*"] — middleware will fall back to localhost origins.
+  cors_origins:
+    - "http://localhost:7788"
+    - "http://127.0.0.1:7788"
+    - "http://localhost:5173"
+    - "http://127.0.0.1:5173"
+
 # DSPy optimizer layer (optional, requires: pip install voly[dspy])
 # mode: off | shadow | active
 # shadow — runs in parallel, logs diff to telemetry, does NOT affect responses

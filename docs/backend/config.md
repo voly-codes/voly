@@ -127,7 +127,20 @@ config.dspy.mode             # "off" | "shadow" | "active"
 config.dspy.datasets_dir     # путь для сохранения (task, result) примеров
 config.cost_policy.max_task_cost_usd
 config.ai_gateway.spend_limit_usd_per_day
+config.auth.enabled          # bool — JWT для Web UI (default False)
+config.auth.jwt_secret       # VOLY_JWT_SECRET
+config.auth.users            # {username: password} или VOLY_AUTH_USERS
+config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 ```
+
+### Auth env overrides
+
+| Env | Эффект |
+|---|---|
+| `VOLY_AUTH_ENABLED` | `true`/`false` |
+| `VOLY_JWT_SECRET` | JWT HMAC secret |
+| `VOLY_AUTH_USERS` | `user:pass,user2:pass2` |
+| `VOLY_AUTH_CORS` | comma-separated origins |
 
 ---
 

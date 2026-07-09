@@ -182,6 +182,25 @@ class TelemetryConfig:
 
 
 @dataclass
+class AuthConfig:
+    """Web UI JWT auth. Disabled by default (localhost-only development).
+
+    When ``enabled=True`` the API requires ``Authorization: Bearer <token>``
+    on protected routes (everything under ``/api/*`` except login/status/docs).
+    Set ``jwt_secret`` via env ``VOLY_JWT_SECRET`` — never commit secrets.
+    """
+
+    enabled: bool = False
+    jwt_secret: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+    # username -> plaintext password (MVP; prefer env VOLY_AUTH_USERS)
+    users: dict[str, str] = field(default_factory=dict)
+    # CORS allow-list. ["*"] is only appropriate when auth is disabled.
+    cors_origins: list[str] = field(default_factory=lambda: ["*"])
+
+
+@dataclass
 class DSPyConfig:
     """DSPy optimizer layer — sits between Headroom and AIGateway.chat()."""
 
@@ -246,6 +265,7 @@ class VOLYConfig:
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
     telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
+    auth: AuthConfig = field(default_factory=AuthConfig)
     default_model: str = "claude-sonnet"
     default_agent: str = "claude"
     default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd

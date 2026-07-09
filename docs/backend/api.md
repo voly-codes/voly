@@ -4,6 +4,51 @@ FastAPI сервер: `voly/web/server.py`. Запуск: `voly ui` (порт 77
 
 ---
 
+## Auth (JWT)
+
+По умолчанию **auth выключен** — API открыт (только localhost). При сетевом
+доступе включите JWT:
+
+```yaml
+# voly.yaml
+auth:
+  enabled: true
+  jwt_secret: "${VOLY_JWT_SECRET}"
+  users:
+    admin: "change-me"
+  cors_origins:
+    - "http://localhost:7788"
+    - "http://localhost:5173"
+```
+
+Env: `VOLY_AUTH_ENABLED=true`, `VOLY_JWT_SECRET=…`, `VOLY_AUTH_USERS=admin:pass`.
+
+Когда auth включён, все `/api/*` кроме публичных требуют
+`Authorization: Bearer <token>`.
+
+| Публичные | Защищённые |
+|---|---|
+| `POST /api/auth/login` | `POST /api/run` |
+| `GET /api/auth/status` | `GET /api/tasks` |
+| `GET /api/status` | registry / marketplace / … |
+| `/api/docs`, openapi | |
+
+```bash
+# login
+curl -s -X POST http://127.0.0.1:7788/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"change-me"}'
+# → {"access_token":"…","token_type":"bearer","expires_in":3600}
+
+# protected call
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:7788/api/tasks
+```
+
+При `auth.enabled` + `cors_origins: ["*"]` сервер автоматически сужает CORS
+до localhost-оригинов (см. `voly/web/server.py`).
+
+---
+
 ## POST /api/run
 
 Запуск задачи. Возвращает SSE-поток.

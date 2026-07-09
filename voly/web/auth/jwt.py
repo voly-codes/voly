@@ -13,6 +13,7 @@ import jwt
 from voly.config import AuthConfig
 
 TOKEN_TYPE_ACCESS = "access"
+_SUPPORTED_ALGORITHMS = frozenset({"HS256", "HS384", "HS512"})
 
 
 @dataclass(frozen=True)
@@ -51,7 +52,7 @@ class JWTAuth:
     ) -> None:
         if not secret:
             raise ValueError("JWT secret must not be empty")
-        if algorithm not in jwt.get_algorithms_by_digest():
+        if algorithm not in _SUPPORTED_ALGORITHMS:
             raise ValueError(f"Unsupported JWT algorithm: {algorithm}")
         self._secret = secret
         self._algorithm = algorithm

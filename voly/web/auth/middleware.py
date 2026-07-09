@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING
 
 from starlette.requests import Request
@@ -17,6 +16,7 @@ if TYPE_CHECKING:
 PUBLIC_API_PREFIXES = (
     "/api/docs",
     "/api/openapi.json",
+    "/api/redoc",
     "/api/auth/",
     "/api/status",
 )
@@ -50,23 +50,25 @@ class JWTAuthMiddleware:
 
         token = _extract_bearer(request.headers.get("authorization", ""))
         if token is None:
-            await _unauthorized(send, "Missing bearer token")
+            await _unauthorized(scope, receive, send, "Missing bearer token")
             return
 
         jwt_auth = jwt_auth_from_config(auth)
         try:
             payload = jwt_auth.decode_token(token)
         except ExpiredTokenError:
-            await _unauthorized(send, "Token expired")
+            await _unauthorized(scope, receive, send, "Token expired")
             return
         except InvalidTokenError:
-            await _unauthorized(send, "Invalid token")
+            await _unauthorized(scope, receive, send, "Invalid token")
             return
 
-        scope = dict(scope)
-        scope["state"] = dict(scope.get("state", {}))
-        scope["state"]["auth_user"] = payload.sub
-        await self.app(scope, receive, send)
+        # Copy scope so we can attach the authenticated subject for downstream handlers.
+        new_scope = dict(scope)
+        state = dict(new_scope.get("state") or {})
+        state["auth_user"] = payload.sub
+        new_scope["state"] = state
+        await self.app(new_scope, receive, send)
 
 
 def _resolve_auth_config(request: Request) -> AuthConfig | None:
@@ -86,15 +88,10 @@ def _extract_bearer(header: str) -> str | None:
     return token or None
 
 
-async def _unauthorized(send: Send, detail: str) -> None:
-    body = json.dumps({"detail": detail}).encode()
+async def _unauthorized(scope: Scope, receive: Receive, send: Send, detail: str) -> None:
     response = JSONResponse(
         status_code=401,
         content={"detail": detail},
         headers={"WWW-Authenticate": "Bearer"},
     )
-    await response(scope={"type": "http"}, receive=_empty_receive, send=send)
-
-
-async def _empty_receive() -> dict:
-    return {"type": "http.request", "body": b"", "more_body": False}
+    await response(scope, receive, send)

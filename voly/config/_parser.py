@@ -9,6 +9,7 @@ from voly.config._types import (
     AGUIConfig,
     AIGatewayConfig,
     AgentConfig,
+    AuthConfig,
     VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
@@ -23,6 +24,32 @@ from voly.config._types import (
     TelemetryConfig,
     DEFAULT_PROXY_PORT,
 )
+
+
+def _parse_bool(value: str | bool | None, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _parse_users(raw_users: dict | str | None) -> dict[str, str]:
+    """Accept YAML map or env-style ``user:pass,user2:pass2``."""
+    if not raw_users:
+        return {}
+    if isinstance(raw_users, dict):
+        return {str(k): str(v) for k, v in raw_users.items() if k}
+    users: dict[str, str] = {}
+    for part in str(raw_users).split(","):
+        part = part.strip()
+        if not part or ":" not in part:
+            continue
+        name, _, password = part.partition(":")
+        name, password = name.strip(), password.strip()
+        if name:
+            users[name] = password
+    return users
 
 
 def _parse_config(raw: dict) -> VOLYConfig:
@@ -275,5 +302,28 @@ def _parse_config(raw: dict) -> VOLYConfig:
         config.dspy.enabled = True
     if os.environ.get("DSPY_MODE", ""):
         config.dspy.mode = os.environ["DSPY_MODE"]
+
+    if "auth" in raw:
+        a = raw["auth"]
+        config.auth = AuthConfig(
+            enabled=_parse_bool(a.get("enabled"), False),
+            jwt_secret=os.path.expandvars(str(a.get("jwt_secret", "") or "")),
+            jwt_algorithm=a.get("jwt_algorithm", "HS256"),
+            access_token_expire_minutes=int(a.get("access_token_expire_minutes", 60)),
+            users=_parse_users(a.get("users")),
+            cors_origins=list(a.get("cors_origins", ["*"])),
+        )
+
+    # Env overrides for auth (highest priority for secrets)
+    if "VOLY_AUTH_ENABLED" in os.environ:
+        config.auth.enabled = _parse_bool(os.environ.get("VOLY_AUTH_ENABLED"))
+    if os.environ.get("VOLY_JWT_SECRET", "").strip():
+        config.auth.jwt_secret = os.environ["VOLY_JWT_SECRET"].strip()
+    if os.environ.get("VOLY_AUTH_USERS", "").strip():
+        config.auth.users = _parse_users(os.environ["VOLY_AUTH_USERS"])
+    if os.environ.get("VOLY_AUTH_CORS", "").strip():
+        config.auth.cors_origins = [
+            o.strip() for o in os.environ["VOLY_AUTH_CORS"].split(",") if o.strip()
+        ]
 
     return config
