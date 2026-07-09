@@ -1,9 +1,9 @@
 # Proposal: Hybrid multi-agent → file writes
 
-**Status:** draft  
+**Status:** draft — **PR1 skeleton landed** (config + role map + `run_local` branch)  
 **Layer:** B (orchestration over file-capable CLI agents)  
 **Author context:** post-analysis roadmap item C  
-**Related:** `docs/backend/pipeline.md`, `docs/ARCHITECTURE.md`, `voly/a2a/multiagent.py`, `voly/runner/agent_runner.py`, `voly/executor/multi_agent.py`
+**Related:** `docs/backend/pipeline.md`, `docs/ARCHITECTURE.md`, `voly/a2a/multiagent.py`, `voly/a2a/hybrid.py`, `voly/runner/agent_runner.py`, `voly/executor/multi_agent.py`
 
 ---
 
@@ -326,3 +326,4 @@ Revisit before PR1 if product wants opt-in-only (`hybrid_code_gen: false` defaul
 | Date | Note |
 |---|---|
 | 2026-07-09 | Initial draft from control-plane analysis follow-up |
+| 2026-07-09 | PR1: `A2AConfig` hybrid fields, `voly/a2a/hybrid.py`, `run_local` executor branch + mock runner, tests |

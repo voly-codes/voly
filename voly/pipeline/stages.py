@@ -213,10 +213,20 @@ class _PipelineStageMixin:
             except Exception:  # noqa: BLE001
                 tracker = None
 
+        a2a_cfg = self.config.a2a  # type: ignore[attr-defined]
+        cwd = (getattr(self.config, "default_cwd", None) or "").strip()  # type: ignore[attr-defined]
         run_local(
             task, assignments, self.gateway, self.match_skills_for_task,  # type: ignore[attr-defined]
             memory=memory, headroom=getattr(self, 'headroom_mgr', None),
             task_id=task_id, tracker=tracker,
+            cwd=cwd,
+            hybrid_code_gen=bool(getattr(a2a_cfg, "hybrid_code_gen", True)),
+            hybrid_require_cwd=bool(getattr(a2a_cfg, "hybrid_require_cwd", True)),
+            requires_code_gen=True,  # A2A auto path is multi-capability; refine in PR2
+            executor_default=getattr(a2a_cfg, "executor_default", "claude-code") or "claude-code",
+            executor_roles=list(getattr(a2a_cfg, "executor_roles", None) or []),
+            # PR2 wires AgentRunner; until then executor roles fall back to chat.
+            executor_runner=None,
         )
 
         merged = merge_report(task, assignments)

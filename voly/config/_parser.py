@@ -141,6 +141,12 @@ def _parse_config(raw: dict) -> VOLYConfig:
             auto_dispatch=a.get("auto_dispatch", True),
             min_flags_for_dispatch=a.get("min_flags_for_dispatch", 2),
             task_timeout_seconds=float(a.get("task_timeout_seconds", 120.0)),
+            execution_mode=a.get("execution_mode", "local"),
+            lead_model=a.get("lead_model", ""),
+            hybrid_code_gen=_parse_bool(a.get("hybrid_code_gen"), True),
+            hybrid_require_cwd=_parse_bool(a.get("hybrid_require_cwd"), True),
+            executor_default=a.get("executor_default", "claude-code"),
+            executor_roles=list(a.get("executor_roles") or []),
         )
 
     if not config.a2a.federation_url:
@@ -152,6 +158,9 @@ def _parse_config(raw: dict) -> VOLYConfig:
 
     if not config.a2a.token:
         config.a2a.token = os.environ.get("VOLY_A2A_TOKEN", "").strip()
+
+    if "VOLY_A2A_HYBRID" in os.environ:
+        config.a2a.hybrid_code_gen = _parse_bool(os.environ.get("VOLY_A2A_HYBRID"), True)
 
     if "agui" in raw:
         g = raw["agui"]

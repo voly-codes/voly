@@ -67,6 +67,20 @@ a2a:
   agent_discovery: true
   remote_agents: []
   local_agents: []
+  auto_dispatch: true
+  min_flags_for_dispatch: 2
+  execution_mode: local          # local | federation
+  lead_model: ""                 # empty → premium from healthy pool
+  # Hybrid multi-agent: implement roles use executors when cwd is set
+  # (see docs/proposals/hybrid-multiagent-executor.md). PR1 = mode map +
+  # structure; real AgentRunner wiring is PR2.
+  hybrid_code_gen: true
+  hybrid_require_cwd: true
+  executor_default: claude-code
+  executor_roles:
+    - developer
+    - bugfixer
+    - tester
 
 agui:
   enabled: true

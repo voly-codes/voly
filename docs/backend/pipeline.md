@@ -71,6 +71,32 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
 promoted to `claude-code` — `_would_dispatch_a2a()` keeps it in the pipeline.
 Simple code tasks (1 flag) still go to the `claude-code` executor.
 
+### Hybrid multi-agent (implement roles → files) — PR1 skeleton
+
+Design: [`docs/proposals/hybrid-multiagent-executor.md`](../proposals/hybrid-multiagent-executor.md).
+
+When `a2a.hybrid_code_gen` is true **and** a project `cwd` is available
+(`default_cwd` / `VOLY_PROJECT_CWD`), each sub-agent role resolves to
+`mode=chat` or `mode=executor` via `voly/a2a/hybrid.py`:
+
+| Role | Default mode |
+|---|---|
+| architect, reviewer, devops | `chat` → `AIGateway.chat()` |
+| developer, bugfixer, tester | `executor` → AgentRunner (PR2); PR1 falls back to chat if no runner |
+
+Config (`voly.yaml` → `a2a`):
+
+| Field | Default | Meaning |
+|---|---|---|
+| `hybrid_code_gen` | `true` | Master switch (`VOLY_A2A_HYBRID` env override) |
+| `hybrid_require_cwd` | `true` | Without cwd, all roles stay chat |
+| `executor_default` | `claude-code` | First executor for implement roles |
+| `executor_roles` | developer, bugfixer, tester | Roles that prefer executor mode |
+
+**PR1 status:** mode map + `run_local` branch + injectable `executor_runner` for tests.
+Real `AgentRunner` wiring is **PR2**. Until then, executor-mode roles log
+`chat_fallback_no_runner` and still use `AIGateway.chat()`.
+
 ---
 
 ## Multi-agent resilience (Rung A: heartbeat + watchdog)

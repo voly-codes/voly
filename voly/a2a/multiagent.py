@@ -79,6 +79,8 @@ class Assignment:
     model: str
     provider: str
     skills: list[str] = field(default_factory=list)
+    # Lead may set "chat" | "executor" (hybrid policy); empty → role map.
+    execution: str = ""
     # filled after execution
     content: str = ""
     input_tokens: int = 0
@@ -89,6 +91,11 @@ class Assignment:
     cache_hit: bool = False       # gateway response cache hit → 0 new tokens billed
     mem_hits: int = 0             # semantic-memory entries injected into this sub-agent
     saved_tokens: int = 0        # tokens saved by Headroom compression on this sub-agent
+    # Hybrid multi-agent (PR1+)
+    mode: str = "chat"            # "chat" | "executor"
+    mode_reason: str = ""
+    executor: str = ""            # e.g. claude-code when mode=executor
+    files_touched: list[str] = field(default_factory=list)
 
     def to_event_dict(self) -> dict[str, Any]:
         return {
@@ -104,6 +111,10 @@ class Assignment:
             "cache_hit": self.cache_hit,
             "mem_hits": self.mem_hits,
             "saved_tokens": self.saved_tokens,
+            "mode": self.mode,
+            "mode_reason": self.mode_reason,
+            "executor": self.executor or None,
+            "files_touched": list(self.files_touched),
         }
 
 
@@ -299,8 +310,24 @@ def run_local(
     temperature: float = 0.0,
     task_id: str = "",
     tracker: Any = None,
+    # Hybrid multi-agent (docs/proposals/hybrid-multiagent-executor.md)
+    cwd: str = "",
+    hybrid_code_gen: bool = True,
+    hybrid_require_cwd: bool = True,
+    requires_code_gen: bool = True,
+    executor_default: str = "claude-code",
+    executor_roles: list[str] | None = None,
+    executor_runner: Callable[..., Any] | None = None,
+    skip_dependents_on_failure: bool = True,
 ) -> list[Assignment]:
-    """Execute each sub-agent in dependency order via AIGateway.chat().
+    """Execute each sub-agent in dependency order.
+
+    Default path: ``AIGateway.chat()`` (text).
+
+    Hybrid path (when ``hybrid_code_gen`` and cwd rules allow): implement roles
+    resolve to ``mode=executor``. PR1 accepts an injectable ``executor_runner``
+    (tests / future AgentRunner). Without a runner, executor roles **fall back
+    to chat** so behavior stays safe until PR2.
 
     Cost/token savings on the multi-agent path:
       - **temperature=0.0** → deterministic chain → the gateway response cache hits
@@ -313,13 +340,48 @@ def run_local(
     agents' outputs. Mutates and returns the assignments with usage/cost/savings.
     """
     from voly.a2a.decomposer import TaskDecomposer
+    from voly.a2a.hybrid import hybrid_active, resolve_role_mode
     from voly.telemetry import _estimate_cost
 
     if tracker is not None and task_id:
         tracker.start(task_id, task, [a.role for a in assignments])
 
+    hybrid_on = hybrid_active(
+        hybrid_code_gen=hybrid_code_gen,
+        has_cwd=bool((cwd or "").strip()),
+        hybrid_require_cwd=hybrid_require_cwd,
+    )
+    if hybrid_code_gen and hybrid_require_cwd and not (cwd or "").strip():
+        _log.info("multiagent hybrid: no cwd — all roles stay chat (hybrid_skipped_no_cwd)")
+
     done: dict[int, Assignment] = {}
     for a in assignments:
+        # Skip dependents when a required prior role failed (hybrid default).
+        if skip_dependents_on_failure and a.depends_on:
+            failed_priors = [
+                done[d].role for d in a.depends_on
+                if d in done and not done[d].ok
+            ]
+            if failed_priors:
+                a.ok = False
+                a.error = f"skipped: prior role(s) failed ({', '.join(failed_priors)})"
+                a.content = f"({a.error})"
+                a.mode, a.mode_reason = "chat", "skipped_prior_failed"
+                done[a.idx] = a
+                if tracker is not None and task_id:
+                    tracker.heartbeat(task_id, a.role, len(done))
+                continue
+
+        mode, reason = resolve_role_mode(
+            a.role,
+            hybrid_enabled=hybrid_on,
+            requires_code_gen=requires_code_gen,
+            lead_execution=a.execution or None,
+            executor_roles=executor_roles,
+        )
+        a.mode = mode
+        a.mode_reason = reason
+
         prior = [(done[d].role, done[d].content) for d in a.depends_on if d in done and done[d].ok]
         user = TaskDecomposer.inject_prior_context(a.description, prior)
 
@@ -331,6 +393,57 @@ def run_local(
         skills = _skills_block(a.skills, skill_matcher, task, a.role)
         system = f"{persona}\n\n{skills}".strip() if skills else persona
 
+        # ── Executor branch (PR1: injectable runner; PR2: AgentRunner) ────────
+        if mode == "executor":
+            a.executor = executor_default or "claude-code"
+            if executor_runner is not None:
+                _log.info(
+                    "multiagent[%d] %s → EXECUTOR %s (cwd=%s, reason=%s)",
+                    a.idx, a.role, a.executor, cwd or "(none)", reason,
+                )
+                try:
+                    result = executor_runner(
+                        role=a.role,
+                        task=user,
+                        cwd=cwd,
+                        executor=a.executor,
+                        system=system,
+                        assignment=a,
+                    )
+                except Exception as e:  # noqa: BLE001
+                    a.error = str(e)
+                    a.content = f"(executor failed: {e})"
+                    a.ok = False
+                    done[a.idx] = a
+                    if tracker is not None and task_id:
+                        tracker.heartbeat(task_id, a.role, len(done))
+                    continue
+
+                if isinstance(result, dict):
+                    a.content = str(result.get("content") or result.get("output") or "")
+                    a.ok = bool(result.get("ok", result.get("success", bool(a.content.strip()))))
+                    a.error = str(result.get("error") or "")
+                    a.cost_usd = float(result.get("cost_usd") or 0.0)
+                    a.input_tokens = int(result.get("input_tokens") or 0)
+                    a.output_tokens = int(result.get("output_tokens") or 0)
+                    a.files_touched = list(result.get("files_touched") or [])
+                    if result.get("executor"):
+                        a.executor = str(result["executor"])
+                else:
+                    a.content = str(result or "")
+                    a.ok = bool(a.content.strip())
+                done[a.idx] = a
+                if tracker is not None and task_id:
+                    tracker.heartbeat(task_id, a.role, len(done))
+                continue
+
+            # No runner yet — fall back to chat so production stays useful.
+            _log.info(
+                "multiagent[%d] %s mode=executor but no executor_runner — chat fallback",
+                a.idx, a.role,
+            )
+            a.mode_reason = f"{reason}+chat_fallback_no_runner"
+
         messages = [{"role": "user", "content": user}]
         if headroom is not None:
             try:
@@ -341,8 +454,9 @@ def run_local(
             except Exception as e:  # noqa: BLE001
                 _log.debug("headroom compress skipped: %s", e)
 
-        _log.info("multiagent[%d] %s → %s/%s (tier=%s, skills=%s, mem=%d)",
-                  a.idx, a.role, a.provider, a.model, a.tier, a.skills, a.mem_hits)
+        _log.info("multiagent[%d] %s → %s/%s (tier=%s, mode=%s, skills=%s, mem=%d)",
+                  a.idx, a.role, a.provider, a.model, a.tier, a.mode, a.skills, a.mem_hits)
+        resp: dict[str, Any] = {}
         try:
             resp = gateway.chat(
                 messages,
@@ -353,6 +467,8 @@ def run_local(
             a.error = str(e)
             a.content = f"(failed: {e})"
             done[a.idx] = a
+            if tracker is not None and task_id:
+                tracker.heartbeat(task_id, a.role, len(done))
             continue
 
         if resp.get("error"):

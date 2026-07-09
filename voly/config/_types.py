@@ -96,6 +96,13 @@ class A2AConfig:
     # Model used by the lead orchestrator to assign tiers/skills. Empty → resolve
     # a strong (premium) provider from the healthy pool automatically.
     lead_model: str = ""
+    # Hybrid multi-agent (docs/proposals/hybrid-multiagent-executor.md):
+    # implement roles may use AgentRunner+cwd; plan/review stay on chat().
+    hybrid_code_gen: bool = True
+    hybrid_require_cwd: bool = True
+    executor_default: str = "claude-code"
+    # Empty → use built-in default set (developer, bugfixer, tester).
+    executor_roles: list[str] = field(default_factory=list)
 
 
 @dataclass

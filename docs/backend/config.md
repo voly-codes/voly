@@ -142,6 +142,17 @@ config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 | `VOLY_AUTH_USERS` | `user:pass,user2:pass2` |
 | `VOLY_AUTH_CORS` | comma-separated origins |
 
+### A2A hybrid (multi-agent → files)
+
+| Field / env | Effect |
+|---|---|
+| `a2a.hybrid_code_gen` / `VOLY_A2A_HYBRID` | Enable hybrid role modes |
+| `a2a.hybrid_require_cwd` | Without cwd keep all roles on chat |
+| `a2a.executor_default` | First executor for implement roles |
+| `a2a.executor_roles` | Roles that prefer executor mode |
+
+See `docs/proposals/hybrid-multiagent-executor.md` and `docs/backend/pipeline.md`.
+
 ---
 
 ## Initialization
