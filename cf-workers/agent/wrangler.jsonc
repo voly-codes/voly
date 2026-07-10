@@ -12,7 +12,8 @@
   ],
 
   "ai": {
-    "binding": "AI"
+    "binding": "AI",
+    "remote": true
   },
 
   // CF AI Gateway route schema for /infer — provided as SECRETS (not vars) so the
