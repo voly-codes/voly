@@ -15,40 +15,16 @@ providers (workers-ai, deepseek, opencode-zen, mimo, omniroute).
 """
 from __future__ import annotations
 
-import json
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import Any
 
-from voly.ai_gateway.health import get_checker
-from voly.router import _PROVIDER_MODELS
+# Re-exported for backward compatibility — external callers import these from
+# voly.a2a.multiagent (pipeline/stages.py, telemetry, tests).
+from voly.a2a.assignment import Assignment, resolve_tier_model  # noqa: F401
+from voly.a2a.lead import LeadOrchestrator, _parse_plan  # noqa: F401
 
 _log = logging.getLogger("voly.a2a.multiagent")
-
-# ── Model tiers → ordered real-provider preference (filtered by health) ──────────
-_STRONG = ["anthropic", "cloudflare-dynamic"]
-_STANDARD = ["cloudflare-dynamic", "deepseek", "anthropic", "workers-ai"]
-_WEAK = ["workers-ai", "deepseek", "opencode-zen", "mimo", "omniroute"]
-
-_TIER_PROVIDERS: dict[str, list[str]] = {
-    "premium": _STRONG,
-    "strong": _STRONG,
-    "standard": _STANDARD,
-    "cheap": _WEAK,
-    "weak": _WEAK,
-    "free": _WEAK,
-}
-
-# Role → default tier (fallback when the lead orchestrator is unavailable) + persona.
-_ROLE_TIER: dict[str, str] = {
-    "architect": "premium",
-    "developer": "standard",
-    "tester": "cheap",
-    "reviewer": "premium",
-    "devops": "cheap",
-    "security": "premium",
-}
 
 _ROLE_PROMPT: dict[str, str] = {
     "architect": "Ты senior software architect. Спроектируй архитектуру: модули, "
@@ -64,212 +40,6 @@ _ROLE_PROMPT: dict[str, str] = {
     "security": "Ты application security engineer. Найди уязвимости в коде выше и предложи фиксы.",
 }
 _DEFAULT_PERSONA = "Ты профильный инженер. Выполни назначенную суб-задачу качественно и кратко."
-
-_VALID_TIERS = ("premium", "standard", "cheap")
-
-
-@dataclass
-class Assignment:
-    """A sub-agent with its lead-assigned model tier and skills."""
-    idx: int
-    role: str
-    description: str
-    depends_on: list[int]
-    tier: str
-    model: str
-    provider: str
-    skills: list[str] = field(default_factory=list)
-    # Lead may set "chat" | "executor" (hybrid policy); empty → role map.
-    execution: str = ""
-    # filled after execution
-    content: str = ""
-    input_tokens: int = 0
-    output_tokens: int = 0
-    cost_usd: float = 0.0
-    ok: bool = False
-    error: str = ""
-    cache_hit: bool = False       # gateway response cache hit → 0 new tokens billed
-    mem_hits: int = 0             # semantic-memory entries injected into this sub-agent
-    saved_tokens: int = 0        # tokens saved by Headroom compression on this sub-agent
-    # Hybrid multi-agent (PR1+)
-    mode: str = "chat"            # "chat" | "executor"
-    mode_reason: str = ""
-    executor: str = ""            # e.g. claude-code when mode=executor
-    files_touched: list[str] = field(default_factory=list)
-    # Plan gates (Rung B PR4) — status of the mirrored Plan step
-    plan_status: str = ""         # pending|running|verified|failed|…
-    plan_verify_ok: bool | None = None  # None = no checks; False = failed verify
-
-    def to_event_dict(self) -> dict[str, Any]:
-        return {
-            "role": self.role,
-            "tier": self.tier,
-            "model": self.model,
-            "provider": self.provider,
-            "skills": self.skills,
-            "input_tokens": self.input_tokens,
-            "output_tokens": self.output_tokens,
-            "cost_usd": round(self.cost_usd, 6),
-            "ok": self.ok,
-            "cache_hit": self.cache_hit,
-            "mem_hits": self.mem_hits,
-            "saved_tokens": self.saved_tokens,
-            "mode": self.mode,
-            "mode_reason": self.mode_reason,
-            "executor": self.executor or None,
-            "files_touched": list(self.files_touched),
-            "plan_status": self.plan_status or None,
-            "plan_verify_ok": self.plan_verify_ok,
-        }
-
-
-def _excluded_providers() -> set[str]:
-    """Providers to skip when resolving a tier (e.g. out of credits).
-
-    Set via VOLY_A2A_EXCLUDE_PROVIDERS="anthropic,openai" (comma-separated).
-    """
-    import os
-    raw = os.environ.get("VOLY_A2A_EXCLUDE_PROVIDERS", "")
-    return {p.strip() for p in raw.split(",") if p.strip()}
-
-
-def resolve_tier_model(tier: str, checker: Any = None) -> tuple[str, str]:
-    """Resolve a (model, provider) for the given tier from the healthy real pool."""
-    checker = checker or get_checker()
-    excluded = _excluded_providers()
-
-    def _ok(provider: str) -> bool:
-        return provider not in excluded and checker.check(provider).healthy
-
-    for provider in _TIER_PROVIDERS.get(tier, _WEAK):
-        if provider in _PROVIDER_MODELS and _ok(provider):
-            return _PROVIDER_MODELS[provider]
-    # No healthy provider in the requested tier → any healthy, non-excluded provider.
-    for provider, pair in _PROVIDER_MODELS.items():
-        if _ok(provider):
-            _log.warning("tier %r: no healthy provider in tier, using %s", tier, pair[1])
-            return pair
-    # Last resort — anthropic (call will surface a clear auth error if unconfigured).
-    return _PROVIDER_MODELS["anthropic"]
-
-
-class LeadOrchestrator:
-    """Strong lead agent that assigns a model tier + skills to each sub-agent."""
-
-    def __init__(
-        self,
-        gateway: Any,
-        skill_matcher: Callable[[str, str], list[Any]] | None = None,
-        checker: Any = None,
-        lead_model: str = "",
-    ):
-        self.gateway = gateway
-        self.skill_matcher = skill_matcher
-        self.checker = checker or get_checker()
-        self.lead_model = lead_model
-
-    def _candidate_skills(self, task: str, role: str) -> list[tuple[str, str]]:
-        """Return [(skill_id, name)] candidates for a role, from the registry."""
-        if not self.skill_matcher:
-            return []
-        out: list[tuple[str, str]] = []
-        seen: set[str] = set()
-        for s in self.skill_matcher(task, role)[:6]:
-            sid = getattr(s, "id", "")
-            if sid and sid not in seen:
-                seen.add(sid)
-                out.append((sid, getattr(s, "name", sid)))
-        return out
-
-    def assign(self, task: str, subtasks: list[Any]) -> list[Assignment]:
-        """Produce an Assignment per sub-task. LLM-lead first, deterministic fallback."""
-        skill_candidates = {
-            i: self._candidate_skills(task, st.agent) for i, st in enumerate(subtasks)
-        }
-        plan = self._ask_lead(task, subtasks, skill_candidates)
-        assignments: list[Assignment] = []
-        for i, st in enumerate(subtasks):
-            entry = plan.get(i, {}) if plan else {}
-            tier = entry.get("tier") or _ROLE_TIER.get(st.agent, "standard")
-            if tier not in _VALID_TIERS:
-                tier = _ROLE_TIER.get(st.agent, "standard")
-            valid_ids = {sid for sid, _ in skill_candidates[i]}
-            skills = [s for s in entry.get("skills", []) if s in valid_ids]
-            if not skills:
-                skills = [sid for sid, _ in skill_candidates[i][:2]]
-            model, provider = resolve_tier_model(tier, self.checker)
-            assignments.append(Assignment(
-                idx=i, role=st.agent, description=st.description,
-                depends_on=list(getattr(st, "depends_on", [])),
-                tier=tier, model=model, provider=provider, skills=skills,
-            ))
-        return assignments
-
-    def _ask_lead(
-        self, task: str, subtasks: list[Any], skill_candidates: dict[int, list[tuple[str, str]]]
-    ) -> dict[int, dict[str, Any]]:
-        """Call a strong model to assign tier + skills. Returns {idx: {tier, skills}}."""
-        model, provider = (
-            (self.lead_model, _provider_for_model(self.lead_model))
-            if self.lead_model else resolve_tier_model("premium", self.checker)
-        )
-        roles_block = "\n".join(
-            f"{i}. role={st.agent}; task={st.description[:160]}; "
-            f"skills_available={[sid for sid, _ in skill_candidates[i]] or 'none'}"
-            for i, st in enumerate(subtasks)
-        )
-        system = (
-            "Ты lead-оркестратор. Для каждой суб-задачи назначь уровень модели (tier) и "
-            "релевантные скилы. Критерии: сложное проектирование/ревью/безопасность → "
-            "'premium'; обычная реализация → 'standard'; рутинные тесты/деплой/батч → 'cheap'. "
-            "Скилы выбирай ТОЛЬКО из skills_available каждой роли (можно пусто). "
-            "Ответь СТРОГО JSON-массивом без пояснений: "
-            '[{"idx":0,"tier":"premium","skills":["id1"]}, ...]'
-        )
-        user = f"Задача: {task}\n\nСуб-задачи:\n{roles_block}"
-        try:
-            resp = self.gateway.chat(
-                [{"role": "user", "content": user}],
-                model=model, provider_name=provider, system=system,
-                agent="lead", max_tokens=1024, temperature=0.0,
-            )
-            content = resp.get("content", "") or ""
-            if resp.get("error"):
-                _log.warning("lead orchestrator error, using deterministic fallback: %s", resp["error"])
-                return {}
-            return _parse_plan(content)
-        except Exception as e:  # noqa: BLE001 — fall back to deterministic assignment
-            _log.warning("lead orchestrator call failed (%s), deterministic fallback", e)
-            return {}
-
-
-def _parse_plan(content: str) -> dict[int, dict[str, Any]]:
-    """Extract the JSON array from the lead response into {idx: {tier, skills}}."""
-    start, end = content.find("["), content.rfind("]")
-    if start == -1 or end == -1 or end <= start:
-        return {}
-    try:
-        arr = json.loads(content[start:end + 1])
-    except (json.JSONDecodeError, ValueError):
-        return {}
-    plan: dict[int, dict[str, Any]] = {}
-    for item in arr if isinstance(arr, list) else []:
-        if isinstance(item, dict) and "idx" in item:
-            try:
-                plan[int(item["idx"])] = {
-                    "tier": item.get("tier"),
-                    "skills": item.get("skills", []) if isinstance(item.get("skills"), list) else [],
-                }
-            except (TypeError, ValueError):
-                continue
-    return plan
-
-
-def _provider_for_model(model: str) -> str:
-    for _model, provider in _PROVIDER_MODELS.values():
-        if _model == model:
-            return provider
-    return "anthropic"
 
 
 def _skills_block(skill_ids: list[str], skill_matcher: Callable[[str, str], list[Any]] | None,
@@ -365,13 +135,14 @@ def run_local(
     from voly.plan.verify import VerifyContext, complete_verification, git_porcelain
     from voly.telemetry import _estimate_cost
 
+    has_cwd = bool((cwd or "").strip())
     hybrid_on = hybrid_active(
         hybrid_code_gen=hybrid_code_gen,
-        has_cwd=bool((cwd or "").strip()),
+        has_cwd=has_cwd,
         hybrid_require_cwd=hybrid_require_cwd,
     )
-    if hybrid_code_gen and hybrid_require_cwd and not (cwd or "").strip():
-        _log.info("multiagent hybrid: no cwd — all roles stay chat (hybrid_skipped_no_cwd)")
+    if hybrid_code_gen and not has_cwd:
+        _log.warning("multiagent hybrid: no cwd — all roles stay chat (hybrid_skipped_no_cwd)")
 
     # Pre-resolve hybrid modes so the plan mirror matches execution.
     role_modes: dict[int, str] = {}
@@ -383,6 +154,10 @@ def run_local(
             lead_execution=a.execution or None,
             executor_roles=executor_roles,
         )
+        # Executors never run without an explicit project cwd, even when
+        # hybrid_require_cwd is off — never invent a project path.
+        if mode == "executor" and not has_cwd:
+            mode, reason = "chat", "no_cwd"
         a.mode = mode
         a.mode_reason = reason
         role_modes[a.idx] = mode
