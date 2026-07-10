@@ -158,8 +158,10 @@ def test_create_app_open_mode_allows_status(tmp_path: Path) -> None:
     assert r2.json()["enabled"] is False
 
 
-def test_create_app_auth_accepts_query_token_for_get(tmp_path: Path) -> None:
-    """EventSource cannot set headers — GET may pass access_token query."""
+def test_create_app_auth_accepts_query_token_only_on_stream_path(tmp_path: Path) -> None:
+    """EventSource cannot set headers, so /api/tasks/stream alone accepts a
+    query token — every other GET route must still use the Authorization
+    header, and a leaked stream ticket can't be replayed elsewhere."""
     from fastapi.testclient import TestClient
     from voly.web.server import create_app
 
@@ -175,10 +177,40 @@ def test_create_app_auth_accepts_query_token_for_get(tmp_path: Path) -> None:
     client = TestClient(app)
     ok = client.post("/api/auth/login", json={"username": "admin", "password": "pass"})
     token = ok.json()["access_token"]
+
     denied = client.get("/api/tasks")
     assert denied.status_code == 401
-    allowed = client.get(f"/api/tasks?access_token={token}")
+    allowed = client.get("/api/tasks", headers={"Authorization": f"Bearer {token}"})
     assert allowed.status_code == 200
+
+    # A regular (or leaked) access token in the query string no longer works
+    # on a non-stream route — only the Authorization header does.
+    not_allowed = client.get(f"/api/tasks?access_token={token}")
+    assert not_allowed.status_code == 401
+
+    # The stream endpoint accepts a dedicated short-lived ticket minted via
+    # POST /api/tasks/stream-token (requires a normal bearer header).
+    ticket_res = client.post(
+        "/api/tasks/stream-token", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert ticket_res.status_code == 200
+    stream_token = ticket_res.json()["stream_token"]
+    assert stream_token and stream_token != token
+
+    # /api/tasks/stream is an infinite generator — use client.stream() to
+    # check just the response status without waiting for it to finish.
+    with client.stream("GET", f"/api/tasks/stream?access_token={stream_token}") as resp:
+        assert resp.status_code == 200
+
+    # A stream ticket must not work as a general bearer token elsewhere.
+    stream_denied = client.get(
+        "/api/tasks", headers={"Authorization": f"Bearer {stream_token}"}
+    )
+    assert stream_denied.status_code == 401
+
+    # Minting a ticket without auth is rejected like any other protected route.
+    no_auth_ticket = client.post("/api/tasks/stream-token")
+    assert no_auth_ticket.status_code == 401
 
 
 def test_create_app_auth_blocks_and_login(tmp_path: Path) -> None:

@@ -11,6 +11,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
+from voly.web.auth.providers import get_provider
+
 router = APIRouter()
 
 
@@ -115,6 +117,33 @@ def get_summary(request: Request) -> dict[str, Any]:
         "by_status": by_status,
         "by_model": by_model,
     }
+
+
+@router.post("/api/tasks/stream-token")
+def issue_stream_token(request: Request) -> dict[str, Any]:
+    """Mint a short-lived ticket for the `access_token` query param on the SSE
+    stream — EventSource can't send an Authorization header, so this avoids
+    putting a long-lived, full-privilege bearer token in a URL (server logs,
+    browser history, proxy logs). Requires a normal Authorization header,
+    same as any other /api/tasks/* route.
+    """
+    config = getattr(_state(request), "config", None)
+    auth = getattr(config, "auth", None) if config is not None else None
+    provider = get_provider(auth) if auth is not None else None
+    if auth is None or provider is None or not provider.is_enforced(auth):
+        # Auth not enforced: no token is needed for the stream at all.
+        return {"stream_token": "", "expires_in": 0}
+
+    subject = getattr(request.state, "auth_user", None)
+    if not subject:
+        raise HTTPException(401, "Missing bearer token")
+
+    ticket = provider.issue_stream_ticket(subject, auth)
+    if ticket is None:
+        # Provider can't mint a scoped ticket (e.g. external SSO) — caller
+        # falls back to its existing access token.
+        return {"stream_token": "", "expires_in": 0}
+    return {"stream_token": ticket, "expires_in": 60}
 
 
 @router.get("/api/tasks/stream")

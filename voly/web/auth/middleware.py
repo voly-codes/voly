@@ -22,6 +22,12 @@ PUBLIC_API_PREFIXES = (
     "/api/status",
 )
 
+# EventSource cannot set an Authorization header, so these GET endpoints alone
+# accept a token via the `access_token` query param — restricted to exactly
+# these paths (not every GET route) to limit exposure of a URL-embedded
+# token, and verified as a short-lived stream ticket, not a full access token.
+QUERY_TOKEN_STREAM_PATHS = frozenset({"/api/tasks/stream"})
+
 
 def _is_public_api_path(path: str) -> bool:
     return any(path == prefix or path.startswith(prefix) for prefix in PUBLIC_API_PREFIXES)
@@ -51,16 +57,24 @@ class JWTAuthMiddleware:
             return
 
         token = _extract_bearer(request.headers.get("authorization", ""))
-        # EventSource cannot set Authorization headers — allow access_token query
-        # for GET streams only (e.g. /api/tasks/stream).
-        if token is None and request.method == "GET":
+        use_stream_ticket = False
+        if (
+            token is None
+            and request.method == "GET"
+            and path in QUERY_TOKEN_STREAM_PATHS
+        ):
             token = (request.query_params.get("access_token") or "").strip() or None
+            use_stream_ticket = token is not None
         if token is None:
             await _unauthorized(scope, receive, send, "Missing bearer token")
             return
 
         try:
-            payload = provider.verify_token(token, auth)
+            payload = (
+                provider.verify_stream_ticket(token, auth)
+                if use_stream_ticket
+                else provider.verify_token(token, auth)
+            )
             subject = payload.sub
         except ExpiredTokenError:
             await _unauthorized(scope, receive, send, "Token expired")

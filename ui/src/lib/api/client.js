@@ -148,13 +148,26 @@ export const fetchDSPyStatus = () => get('/api/dspy/status')
 // Gateway
 export const fetchGatewayStatus = () => get('/api/gateway/status')
 
-// SSE task stream (token via query — EventSource cannot set Authorization)
-export function taskStream() {
+// SSE task stream (token via query — EventSource cannot set Authorization).
+// A short-lived, stream-only ticket is minted via a normal authenticated POST
+// first, so the URL never carries the caller's long-lived access token.
+export async function taskStream() {
   const token = getToken()
-  const qs = token ? `?access_token=${encodeURIComponent(token)}` : ''
+  let qs = ''
+  if (token) {
+    let streamToken = token
+    try {
+      const res = await post('/api/tasks/stream-token', {})
+      const data = await res.json()
+      if (data?.stream_token) streamToken = data.stream_token
+    } catch {
+      // stream-token endpoint unavailable (e.g. auth disabled) — fall back
+      // to the caller's own access token so the stream still connects.
+    }
+    qs = `?access_token=${encodeURIComponent(streamToken)}`
+  }
   const url = `${BASE}/api/tasks/stream${qs}`
-  const source = new EventSource(url)
-  return source
+  return new EventSource(url)
 }
 
 // Telemetry

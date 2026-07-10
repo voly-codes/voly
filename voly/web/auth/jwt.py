@@ -13,6 +13,12 @@ import jwt
 from voly.config import AuthConfig
 
 TOKEN_TYPE_ACCESS = "access"
+# Short-lived, single-purpose token for EventSource query-string auth (it
+# can't set an Authorization header). Kept separate from TOKEN_TYPE_ACCESS so
+# a URL leaked into logs/history/proxies is only ever usable to open a stream
+# for a few seconds, never as a general-purpose bearer token.
+TOKEN_TYPE_STREAM = "stream"
+_STREAM_TOKEN_TTL_SECONDS = 60
 _SUPPORTED_ALGORITHMS = frozenset({"HS256", "HS384", "HS512"})
 
 
@@ -75,7 +81,20 @@ class JWTAuth:
             payload.update(extra_claims)
         return jwt.encode(payload, self._secret, algorithm=self._algorithm)
 
-    def decode_token(self, token: str) -> TokenPayload:
+    def create_stream_token(self, subject: str) -> str:
+        """Mint a short-lived token scoped only for opening an SSE stream."""
+        now = datetime.now(UTC)
+        payload: dict[str, Any] = {
+            "sub": subject,
+            "iat": int(now.timestamp()),
+            "exp": int((now + timedelta(seconds=_STREAM_TOKEN_TTL_SECONDS)).timestamp()),
+            "type": TOKEN_TYPE_STREAM,
+        }
+        return jwt.encode(payload, self._secret, algorithm=self._algorithm)
+
+    def decode_token(
+        self, token: str, *, expected_type: str = TOKEN_TYPE_ACCESS
+    ) -> TokenPayload:
         try:
             data = jwt.decode(
                 token,
@@ -89,7 +108,7 @@ class JWTAuth:
             raise InvalidTokenError("invalid token") from exc
 
         token_type = data.get("type", TOKEN_TYPE_ACCESS)
-        if token_type != TOKEN_TYPE_ACCESS:
+        if token_type != expected_type:
             raise InvalidTokenError("invalid token type")
 
         return TokenPayload(

@@ -78,9 +78,9 @@ function markAllSeen() {
   unseenIds = new Set()
 }
 
-function startStream() {
+async function startStream() {
   try {
-    const es = taskStream()
+    const es = await taskStream()
     es.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data)

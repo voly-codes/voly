@@ -64,8 +64,19 @@ When auth is enforced, all `/api/*` except public routes need `Authorization: Be
 | `GET /api/status` | registry / marketplace / … |
 | `/api/docs`, openapi | |
 
-Web UI stores the token in `localStorage` (`voly_access_token`). EventSource
-uses `?access_token=` (GET only). CORS `["*"]` is narrowed when auth is on.
+Web UI stores the token in `localStorage` (`voly_access_token`). CORS `["*"]`
+is narrowed when auth is on.
+
+**Stream tickets:** `GET /api/tasks/stream` is the *only* route that accepts
+`?access_token=` (EventSource cannot set an Authorization header). The UI
+first calls `POST /api/tasks/stream-token` (normal `Authorization: Bearer`)
+to mint a short-lived (60s), stream-scoped ticket via
+`AuthProvider.issue_stream_ticket()`, and puts *that* — never the caller's
+real access token — in the stream URL. `local` provider mints a distinct
+JWT `type: "stream"` ticket that `verify_stream_ticket()` requires (a
+regular access token is rejected on this path, and vice versa). Providers
+that can't mint tokens they didn't issue (e.g. `clerk`) return `None` from
+`issue_stream_ticket()`, and the UI falls back to the existing access token.
 
 ## POST /api/run
 

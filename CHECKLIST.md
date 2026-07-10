@@ -11,7 +11,7 @@ Per `CLAUDE.md`'s documentation rule, update the linked doc in the same commit a
 - [x] **`hybrid_warning` SSE event is only half-wired.** The backend sets `start_payload["hybrid_warning"] = "hybrid_skipped_no_cwd"` on the `start` SSE event (`voly/web/routes/run.py:331`), but nothing in `ui/src` reads `hybrid_warning` or the `start` event type at all. Users get no visible indication that hybrid execution silently degraded to chat-only.
   Update: `docs/frontend/api-client.md`, `docs/backend/api.md`
 
-- [ ] **JWT access token passed as an SSE URL query parameter.** `ui/src/lib/api/client.js:152-157` (`taskStream`) appends `?access_token=...` to the SSE URL because `EventSource` can't set headers. The token ends up in server access logs, browser history, and any intermediary proxy logs.
+- [x] **JWT access token passed as an SSE URL query parameter.** `ui/src/lib/api/client.js:152-157` (`taskStream`) appends `?access_token=...` to the SSE URL because `EventSource` can't set headers. The token ends up in server access logs, browser history, and any intermediary proxy logs.
   Update: `docs/frontend/api-client.md` (add a security note / consider a short-lived one-time stream token instead)
 
 - [ ] **Empty `onerror` handler, no polling fallback.** `ui/src/lib/stores/tasksStore.svelte.ts:92-95` has an `es.onerror` handler that only contains a comment claiming a "fallback to polling after 3 failures" — no failure counter or polling fallback is actually implemented. A flaky SSE connection leaves the UI silently stale.

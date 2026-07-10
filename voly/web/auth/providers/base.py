@@ -27,6 +27,25 @@ class AuthProvider(Protocol):
         """Validate bearer token; raise ExpiredTokenError / InvalidTokenError."""
         ...
 
+    def issue_stream_ticket(self, subject: str, auth: AuthConfig) -> str | None:
+        """Mint a short-lived token for EventSource query-string auth.
+
+        Returns ``None`` when the provider cannot mint one (e.g. an external
+        SSO provider that only verifies tokens it doesn't issue) — callers
+        then fall back to passing the caller's existing access token.
+        """
+        ...
+
+    def verify_stream_ticket(self, token: str, auth: AuthConfig) -> TokenPayload:
+        """Validate a token presented via query string for a streaming GET.
+
+        Providers that mint a dedicated, scoped ticket in
+        ``issue_stream_ticket`` must reject a regular access token here (and
+        vice versa); providers without a dedicated ticket type may delegate
+        to :meth:`verify_token`.
+        """
+        ...
+
     def status_payload(self, auth: AuthConfig) -> dict[str, Any]:
         """Public ``GET /api/auth/status`` body when this provider is selected."""
         ...

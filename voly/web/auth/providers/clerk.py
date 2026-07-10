@@ -105,6 +105,14 @@ class ClerkProvider:
     def verify_token(self, token: str, auth: AuthConfig) -> TokenPayload:
         return decode_clerk_token(token, auth)
 
+    def issue_stream_ticket(self, subject: str, auth: AuthConfig) -> str | None:
+        # Clerk session tokens are issued by Clerk, not voly — nothing to
+        # mint locally. Callers fall back to the client's existing token.
+        return None
+
+    def verify_stream_ticket(self, token: str, auth: AuthConfig) -> TokenPayload:
+        return self.verify_token(token, auth)
+
     def status_payload(self, auth: AuthConfig) -> dict[str, Any]:
         if not self.is_enforced(auth):
             return {

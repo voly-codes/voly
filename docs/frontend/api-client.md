@@ -61,14 +61,19 @@ const reader = response.body.getReader()
 
 ---
 
-## GET /api/tasks — SSE update stream
+## GET /api/tasks/stream — SSE update stream
+
+`taskStream()` in `client.js` is `async`: when auth is on, it first calls
+`POST /api/tasks/stream-token` (normal Bearer header) to mint a short-lived
+stream ticket, then opens the `EventSource` with that ticket in the query
+string — the caller's real access token never appears in the URL.
 
 ```javascript
-const es = new EventSource('/api/tasks')
+const es = await taskStream()
 es.onmessage = (e) => {
   const data = JSON.parse(e.data)
-  if (data.type === 'init') { tasks = data.tasks }
-  if (data.type === 'update') { /* update a specific task */ }
+  if (data.type === 'new') { /* merge data.tasks */ }
+  if (data.type === 'heartbeat') { /* keep-alive, no-op */ }
 }
 ```
 
