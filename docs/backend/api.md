@@ -95,6 +95,8 @@ For the multi-agent (A2A local) path, `start` also carries `a2a: true`,
 `cwd` resolved — `hybrid_warning: "hybrid_skipped_no_cwd"`. `done` includes a
 `hybrid` summary (`executor_roles`, `chat_roles`, `files_touched`) and per-role
 `a2a_assignments` with `mode` / `executor` / `files_touched`.
+`hybrid_warning` is surfaced to the user as a visible warning banner by
+`RunPanel.svelte` (see `docs/frontend/api-client.md`).
 
 **Smart dispatch:** if `executor="pipeline"` and the task requires code gen,
 it is automatically promoted to `executor="claude-code"` with `cwd` from `config.default_cwd`

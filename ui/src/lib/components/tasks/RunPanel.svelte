@@ -17,7 +17,12 @@
   let running = $state(false)
   let result = $state(null)
   let error = $state(null)
+  let warning = $state(null)
   let startedAt = $state(null)
+
+  const HYBRID_WARNING_LABELS = {
+    hybrid_skipped_no_cwd: 'Hybrid code generation skipped (no cwd set) — running chat-only.',
+  }
 
   let agents = $state([])
   let models = $state([])
@@ -63,6 +68,7 @@
     running = true
     result = null
     error = null
+    warning = null
     startedAt = Date.now()
 
     const runId = crypto.randomUUID()
@@ -70,7 +76,11 @@
 
     try {
       for await (const event of runTask({ task, executor, agent, model, cwd, max_turns: 30 })) {
-        if (event.type === 'done') {
+        if (event.type === 'start') {
+          if (event.hybrid_warning) {
+            warning = HYBRID_WARNING_LABELS[event.hybrid_warning] ?? event.hybrid_warning
+          }
+        } else if (event.type === 'done') {
           result = event
           onTaskComplete?.()
         } else if (event.type === 'error') {
@@ -110,6 +120,12 @@
       <div class="run-status running-pulse">
         <ZapIcon size="13" strokeWidth="2" />
         Running via <strong>{executor}</strong>… {elapsedDisplay}
+      </div>
+    {/if}
+
+    {#if warning}
+      <div class="run-warning">
+        <strong>Warning:</strong> {warning}
       </div>
     {/if}
 
@@ -187,6 +203,15 @@
     padding: 8px 10px;
     background: color-mix(in srgb, var(--accent-red) 10%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-red) 25%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  .run-warning {
+    font-size: 12px;
+    color: var(--accent-amber);
+    padding: 8px 10px;
+    background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 25%, transparent);
     border-radius: var(--radius-sm);
   }
 

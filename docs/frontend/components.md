@@ -17,7 +17,9 @@ claude-code → wrangler → zen → cursor → opencode → pipeline → deepse
 
 **Props:** `config`, `agents`, `models`
 
-**Events:** SSE stream from `POST /api/run` — types: `start`, `done`, `error`
+**Events:** SSE stream from `POST /api/run` — types: `start`, `done`, `error`.
+A `start` event carrying `hybrid_warning` is rendered as a visible amber
+warning banner (e.g. "Hybrid code generation skipped (no cwd set)...").
 
 **Auto-fill cwd:** on component mount, if `cwd` is empty, requests `GET /api/status` and fills in `default_cwd` (from `voly.yaml` or `VOLY_PROJECT_CWD`).
 

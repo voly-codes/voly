@@ -31,6 +31,11 @@ const reader = response.body.getReader()
 ```javascript
 // Start
 { type: "start", task: "...", executor: "claude-code" }
+// Multi-agent dispatch may add a hybrid_warning when hybrid code-gen was
+// requested but skipped (e.g. no cwd set) — RunPanel.svelte surfaces this
+// as a visible warning banner ("Hybrid code generation skipped...").
+{ type: "start", task: "...", executor: "pipeline", a2a: true, hybrid: false,
+  cwd: "", hybrid_warning: "hybrid_skipped_no_cwd" }
 
 // Success
 {
