@@ -222,7 +222,6 @@ def test_all_submodules_importable() -> None:
         "voly.config",
         "voly.cloudflare",
         "voly.web",
-        # voly.web.auth needs optional PyJWT — covered by packaging declaration test
         "voly.web.routes",
         "voly.spend",
         "voly.runner",
@@ -254,7 +253,6 @@ def test_setuptools_packages_include_core() -> None:
         "voly.plan",
         "voly.config",
         "voly.cloudflare",
-        "voly.web.auth",
         "voly.web.routes",
         "voly.spend",
         "voly.runner",

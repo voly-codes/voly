@@ -63,10 +63,9 @@ const reader = response.body.getReader()
 
 ## GET /api/tasks/stream — SSE update stream
 
-`taskStream()` in `client.js` is `async`: when auth is on, it first calls
-`POST /api/tasks/stream-token` (normal Bearer header) to mint a short-lived
-stream ticket, then opens the `EventSource` with that ticket in the query
-string — the caller's real access token never appears in the URL.
+`taskStream()` in `client.js` opens a plain `EventSource` to the stream (the
+open-core UI has no authentication — auth is a closed Team-tier feature in
+voly-cloud). It is `async` to keep a stable signature across distributions.
 
 ```javascript
 const es = await taskStream()

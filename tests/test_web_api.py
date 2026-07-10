@@ -8,11 +8,10 @@ from pathlib import Path
 import pytest
 
 pytest.importorskip("fastapi")
-pytest.importorskip("jwt")  # JWTAuthMiddleware imports PyJWT at module load
 
 from fastapi.testclient import TestClient
 
-from voly.config import AuthConfig, VOLYConfig
+from voly.config import VOLYConfig
 from voly.web.server import create_app
 
 
@@ -40,7 +39,7 @@ def events_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture()
 def client(events_dir: Path) -> TestClient:
-    cfg = VOLYConfig(auth=AuthConfig(enabled=False))
+    cfg = VOLYConfig()
     app = create_app(events_dir=events_dir, config=cfg)
     return TestClient(app)
 

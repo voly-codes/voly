@@ -1,7 +1,6 @@
 <script>
   import { MoonIcon, SunIcon, ActivityIcon } from '../../icons.js'
   import { theme } from '../../stores/themeStore.svelte.ts'
-  import { auth } from '../../stores/authStore.svelte.ts'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
 
   let { taskCount = 0, totalCost = 0 } = $props()
@@ -11,19 +10,6 @@
   <div class="brand">
     <ActivityIcon size="16" strokeWidth="2" />
     <span class="brand-name">VOLY</span>
-    {#if auth.enabled}
-      <span
-        class="auth-pill"
-        class:ok={auth.signedIn}
-        title={auth.provider === 'clerk' ? 'Clerk auth' : 'Local JWT auth'}
-      >
-        {#if auth.signedIn}
-          {auth.provider === 'clerk' ? t('auth.clerk') : t('auth.local')}
-        {:else}
-          {t('auth.locked')}
-        {/if}
-      </span>
-    {/if}
   </div>
 
   <div class="header-stats">
@@ -39,18 +25,6 @@
   </div>
 
   <div class="header-actions">
-    {#if auth.enabled}
-      {#if auth.signedIn}
-        <button class="text-btn" onclick={() => auth.logout()} title={t('auth.signOut')}>
-          {t('auth.signOut')}
-        </button>
-      {:else}
-        <button class="text-btn primary" onclick={() => auth.openLogin()} title={t('auth.signIn')}>
-          {t('auth.signIn')}
-        </button>
-      {/if}
-    {/if}
-
     <div class="lang-switch" role="group" aria-label={t('header.switchLang')}>
       <button
         class="lang-btn"
@@ -101,24 +75,6 @@
 
   .brand-name { letter-spacing: -0.01em; }
 
-  .auth-pill {
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 2px 6px;
-    border-radius: 999px;
-    color: var(--accent-orange, #f59e0b);
-    background: color-mix(in srgb, var(--accent-orange, #f59e0b) 12%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent-orange, #f59e0b) 30%, transparent);
-  }
-
-  .auth-pill.ok {
-    color: var(--accent-green, #22c55e);
-    background: color-mix(in srgb, var(--accent-green, #22c55e) 12%, transparent);
-    border-color: color-mix(in srgb, var(--accent-green, #22c55e) 30%, transparent);
-  }
-
   .header-stats {
     display: flex;
     align-items: center;
@@ -155,22 +111,6 @@
     display: flex;
     align-items: center;
     gap: 6px;
-  }
-
-  .text-btn {
-    background: none;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    cursor: pointer;
-  }
-  .text-btn:hover { color: var(--text-primary); border-color: var(--border-strong, var(--border-default)); }
-  .text-btn.primary {
-    color: var(--accent-teal, #14b8a6);
-    border-color: color-mix(in srgb, var(--accent-teal, #14b8a6) 40%, transparent);
   }
 
   .lang-switch {

@@ -41,21 +41,19 @@ sides, the boundary is public:
 
 **Open core (this repository):** orchestration, executor chain, billing
 fallback chain, multi-agent decomposition, AI Gateway (cache, limits,
-fallback), telemetry, CLI, **single-user web UI**, and **local** auth
-(`auth.provider=local` JWT or auth disabled for localhost). PRs that improve the
-core are always welcome.
+fallback), telemetry, CLI, and the **single-user, localhost-only web UI**
+(no authentication). PRs that improve the core are always welcome.
 
-**Commercial shell (outside this repository / future Team package):** team hosted
-control plane — organizational spend dashboards, org-level spend limits, **SSO
-(e.g. Clerk and other IdPs)**, audit log, managed-hosting federation, multi-seat
-roles. PRs that implement such features as **required** core paths will most
-likely be politely declined — not because the contribution is bad, but so the
-boundary stays predictable.
+**Commercial shell (closed `voly-cloud` distribution):** team hosted control
+plane — **all authentication (local JWT + SSO/Clerk)**, organizational spend
+dashboards, org-level spend limits, audit log, managed-hosting federation,
+multi-seat roles. This code lives in the closed repo, **not here**. PRs that
+add auth/SSO or other commercial features to this repository will be declined
+— not because the contribution is bad, but so the boundary stays predictable.
 
-**Auth note:** self-host locking with local JWT is core. Hosted SSO integrations
-may exist in-tree as optional `provider=clerk` for migration only; they are
-**not** the open-core default and are candidates for a separate Team package
-(`voly-team`). Prefer local JWT for public examples and tests.
+**Hard rule:** commercial / cloud code must never land in this public repo.
+The open-core web UI ships with **no auth** (the API is open, localhost only);
+authenticated team deployments run the closed `voly-cloud` distribution.
 
 Borderline cases should be discussed in an issue before writing code — that saves
 time for you and for maintainers. Protocols through which the core talks to any

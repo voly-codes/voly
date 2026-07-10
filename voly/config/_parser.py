@@ -9,7 +9,6 @@ from voly.config._types import (
     AGUIConfig,
     AIGatewayConfig,
     AgentConfig,
-    AuthConfig,
     VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
@@ -33,24 +32,6 @@ def _parse_bool(value: str | bool | None, default: bool = False) -> bool:
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() in ("1", "true", "yes", "on")
-
-
-def _parse_users(raw_users: dict | str | None) -> dict[str, str]:
-    """Accept YAML map or env-style ``user:pass,user2:pass2``."""
-    if not raw_users:
-        return {}
-    if isinstance(raw_users, dict):
-        return {str(k): str(v) for k, v in raw_users.items() if k}
-    users: dict[str, str] = {}
-    for part in str(raw_users).split(","):
-        part = part.strip()
-        if not part or ":" not in part:
-            continue
-        name, _, password = part.partition(":")
-        name, password = name.strip(), password.strip()
-        if name:
-            users[name] = password
-    return users
 
 
 def _parse_config(raw: dict) -> VOLYConfig:
@@ -344,70 +325,5 @@ def _parse_config(raw: dict) -> VOLYConfig:
         m = os.environ["VOLY_PLAN_MODE"].strip().lower()
         if m in PlanConfig.VALID_MODES:
             config.plan.mode = m
-
-    if "auth" in raw:
-        a = raw["auth"]
-        config.auth = AuthConfig(
-            enabled=_parse_bool(a.get("enabled"), False),
-            provider=str(a.get("provider", "local") or "local"),
-            jwt_secret=os.path.expandvars(str(a.get("jwt_secret", "") or "")),
-            jwt_algorithm=a.get("jwt_algorithm", "HS256"),
-            access_token_expire_minutes=int(a.get("access_token_expire_minutes", 60)),
-            users=_parse_users(a.get("users")),
-            cors_origins=list(a.get("cors_origins", ["*"])),
-            clerk_publishable_key=os.path.expandvars(
-                str(a.get("clerk_publishable_key", "") or "")
-            ),
-            clerk_secret_key=os.path.expandvars(str(a.get("clerk_secret_key", "") or "")),
-            clerk_jwks_url=os.path.expandvars(str(a.get("clerk_jwks_url", "") or "")),
-            clerk_issuer=os.path.expandvars(str(a.get("clerk_issuer", "") or "")),
-            clerk_audience=str(a.get("clerk_audience", "") or ""),
-        )
-
-    # Env overrides for auth (highest priority for secrets)
-    if "VOLY_AUTH_ENABLED" in os.environ:
-        config.auth.enabled = _parse_bool(os.environ.get("VOLY_AUTH_ENABLED"))
-    if os.environ.get("VOLY_AUTH_PROVIDER", "").strip():
-        config.auth.provider = os.environ["VOLY_AUTH_PROVIDER"].strip().lower()
-    if os.environ.get("VOLY_JWT_SECRET", "").strip():
-        config.auth.jwt_secret = os.environ["VOLY_JWT_SECRET"].strip()
-    if os.environ.get("VOLY_AUTH_USERS", "").strip():
-        config.auth.users = _parse_users(os.environ["VOLY_AUTH_USERS"])
-    if os.environ.get("VOLY_AUTH_CORS", "").strip():
-        config.auth.cors_origins = [
-            o.strip() for o in os.environ["VOLY_AUTH_CORS"].split(",") if o.strip()
-        ]
-    # Clerk env (CLERK_* official names + VOLY_CLERK_* aliases)
-    if os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip():
-        config.auth.clerk_publishable_key = os.environ["CLERK_PUBLISHABLE_KEY"].strip()
-    if os.environ.get("VOLY_CLERK_PUBLISHABLE_KEY", "").strip():
-        config.auth.clerk_publishable_key = os.environ["VOLY_CLERK_PUBLISHABLE_KEY"].strip()
-    if os.environ.get("CLERK_SECRET_KEY", "").strip():
-        config.auth.clerk_secret_key = os.environ["CLERK_SECRET_KEY"].strip()
-    if os.environ.get("VOLY_CLERK_SECRET_KEY", "").strip():
-        config.auth.clerk_secret_key = os.environ["VOLY_CLERK_SECRET_KEY"].strip()
-    if os.environ.get("CLERK_JWKS_URL", "").strip():
-        config.auth.clerk_jwks_url = os.environ["CLERK_JWKS_URL"].strip()
-    if os.environ.get("VOLY_CLERK_JWKS_URL", "").strip():
-        config.auth.clerk_jwks_url = os.environ["VOLY_CLERK_JWKS_URL"].strip()
-    if os.environ.get("CLERK_ISSUER", "").strip():
-        config.auth.clerk_issuer = os.environ["CLERK_ISSUER"].strip()
-    if os.environ.get("VOLY_CLERK_ISSUER", "").strip():
-        config.auth.clerk_issuer = os.environ["VOLY_CLERK_ISSUER"].strip()
-    if os.environ.get("CLERK_JWT_KEY", "").strip() and not config.auth.clerk_jwks_url:
-        # PEM public key path is advanced; prefer JWKS URL. Ignore bare JWT key here.
-        pass
-    # Auto-enable clerk provider when publishable key present and provider still local
-    if (
-        config.auth.clerk_publishable_key
-        and (config.auth.provider or "local").lower() == "local"
-        and config.auth.enabled
-        and not config.auth.jwt_secret
-    ):
-        config.auth.provider = "clerk"
-    # Derive JWKS URL from issuer when missing
-    if config.auth.clerk_issuer and not config.auth.clerk_jwks_url:
-        iss = config.auth.clerk_issuer.rstrip("/")
-        config.auth.clerk_jwks_url = f"{iss}/.well-known/jwks.json"
 
     return config

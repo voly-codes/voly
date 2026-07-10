@@ -175,30 +175,9 @@ plan:
   executor_require_git_diff: false   # opt-in
   tester_command: ""                 # e.g. "pytest -q"
 
-# Web UI auth (optional, requires: pip install 'voly[ui]')
-# Default: disabled — API open on localhost only. Enable before any network exposure.
-#
-# Open-core default when locking self-host: provider=local (HS256 + users).
-# SSO (Clerk) is optional / Team-oriented — not required for core; may move to
-# a separate package later. See CONTRIBUTING.md open-core boundaries.
-auth:
-  enabled: false
-  provider: local
-  jwt_secret: "${VOLY_JWT_SECRET}"
-  jwt_algorithm: HS256
-  access_token_expire_minutes: 60
-  users: {}
-  # Optional SSO (non-default). Only loaded when provider=clerk.
-  # clerk_publishable_key: "${CLERK_PUBLISHABLE_KEY}"
-  # clerk_secret_key: "${CLERK_SECRET_KEY}"
-  # clerk_jwks_url: "${CLERK_JWKS_URL}"
-  # clerk_issuer: "${CLERK_ISSUER}"
-  # clerk_audience: ""
-  cors_origins:
-    - "http://localhost:7788"
-    - "http://127.0.0.1:7788"
-    - "http://localhost:5173"
-    - "http://127.0.0.1:5173"
+# Web UI is open on localhost only. Authentication (JWT / SSO), team dashboards,
+# and org spend governance are commercial Team-tier features — they live in the
+# closed voly-cloud distribution, not in this open-core repo.
 
 # DSPy optimizer layer (optional, requires: pip install voly[dspy])
 # mode: off | shadow | active

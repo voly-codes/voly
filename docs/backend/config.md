@@ -168,24 +168,12 @@ config.plan.mode             # "off" | "shadow" | "active"
 config.plan.store_dir        # .voly/plans
 config.cost_policy.max_task_cost_usd
 config.ai_gateway.spend_limit_usd_per_day
-config.auth.enabled          # bool — Web UI auth (default False)
-config.auth.provider         # "local" | "clerk"
-config.auth.jwt_secret       # VOLY_JWT_SECRET (local)
-config.auth.users            # {username: password} or VOLY_AUTH_USERS (local)
-config.auth.clerk_*          # publishable_key, jwks_url, issuer (clerk)
-config.auth.cors_origins     # list[str]; avoid ["*"] when auth is on
 ```
 
-### Auth env overrides
-
-| Env | Effect |
-|---|---|
-| `VOLY_AUTH_ENABLED` | `true`/`false` |
-| `VOLY_AUTH_PROVIDER` | `local` (open-core default) \| `clerk` (optional SSO) |
-| `VOLY_JWT_SECRET` | local JWT HMAC secret |
-| `VOLY_AUTH_USERS` | `user:pass,user2:pass2` |
-| `VOLY_AUTH_CORS` | comma-separated origins |
-| `CLERK_*` | optional SSO only — not required for core (see api.md) |
+> **No auth config in open-core.** Web UI authentication (JWT/SSO), team
+> dashboards, and org spend governance are commercial Team-tier features in
+> the closed voly-cloud distribution — the open-core API is open, localhost
+> only. See `docs/backend/api.md`.
 
 ### A2A hybrid (multi-agent → files)
 

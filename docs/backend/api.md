@@ -6,77 +6,13 @@ FastAPI server: `voly/web/server.py`. Start: `voly ui` (port 7788).
 
 ## Auth
 
-By default **auth is off** — the API is open (localhost only).
+**Open-core has no authentication** — the API is open and intended for
+localhost use only. All `/api/*` routes are unprotected and CORS is `["*"]`.
 
-### Open-core (default when locking self-host): local JWT
-
-Single-user lock without external IdP — part of the open core:
-
-```yaml
-auth:
-  enabled: true
-  provider: local
-  jwt_secret: "${VOLY_JWT_SECRET}"
-  users:
-    admin: "change-me"
-```
-
-Env: `VOLY_AUTH_ENABLED=true`, `VOLY_AUTH_PROVIDER=local` (or omit), `VOLY_JWT_SECRET`,
-`VOLY_AUTH_USERS`.
-
-```bash
-curl -s -X POST http://127.0.0.1:7788/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"change-me"}'
-```
-
-### Optional SSO (`provider: clerk`)
-
-SSO (Clerk and similar) is **not** the open-core default. It is an optional
-integration aimed at team/hosted deployments and may move to a separate Team
-package (`voly-team`). Core tests and examples use **local** JWT or auth off.
-
-Providers are pluggable (`voly.web.auth.providers`): built-ins `local` and
-`clerk`; external packages register via entry point group `voly.auth_providers`.
-
-```yaml
-auth:
-  enabled: true
-  provider: clerk
-  clerk_publishable_key: "${CLERK_PUBLISHABLE_KEY}"
-  clerk_issuer: "${CLERK_ISSUER}"
-```
-
-Env: `VOLY_AUTH_PROVIDER=clerk`, `CLERK_PUBLISHABLE_KEY`, `CLERK_ISSUER`
-(JWKS derived as `{issuer}/.well-known/jwks.json` if `CLERK_JWKS_URL` unset).
-
-Backend verifies session JWTs (RS256 / JWKS). UI loads `@clerk/clerk-js` only when
-status reports `provider: clerk`. `POST /api/auth/login` is disabled in Clerk mode.
-
-### Protected routes
-
-When auth is enforced, all `/api/*` except public routes need `Authorization: Bearer`.
-
-| Public | Protected |
-|---|---|
-| `POST /api/auth/login` (local only) | `POST /api/run` |
-| `GET /api/auth/status` | `GET /api/tasks` |
-| `GET /api/status` | registry / marketplace / … |
-| `/api/docs`, openapi | |
-
-Web UI stores the token in `localStorage` (`voly_access_token`). CORS `["*"]`
-is narrowed when auth is on.
-
-**Stream tickets:** `GET /api/tasks/stream` is the *only* route that accepts
-`?access_token=` (EventSource cannot set an Authorization header). The UI
-first calls `POST /api/tasks/stream-token` (normal `Authorization: Bearer`)
-to mint a short-lived (60s), stream-scoped ticket via
-`AuthProvider.issue_stream_ticket()`, and puts *that* — never the caller's
-real access token — in the stream URL. `local` provider mints a distinct
-JWT `type: "stream"` ticket that `verify_stream_ticket()` requires (a
-regular access token is rejected on this path, and vice versa). Providers
-that can't mint tokens they didn't issue (e.g. `clerk`) return `None` from
-`issue_stream_ticket()`, and the UI falls back to the existing access token.
+Authentication (local JWT + SSO), team dashboards, org spend governance, and
+the hosted control plane are commercial **Team-tier** features that live in
+the closed **voly-cloud** distribution, not in this open-core repo. Do not add
+auth/SSO or other commercial code here — see `CONTRIBUTING.md`.
 
 ## POST /api/run
 
