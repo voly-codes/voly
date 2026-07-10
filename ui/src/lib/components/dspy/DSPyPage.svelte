@@ -40,11 +40,11 @@
         <span class="mode-badge mode-{data.config.mode}">{modeLabel(data.config.mode)}</span>
       {/if}
     </div>
-    <p class="header-desc">Слой оптимизации промптов. Компилирует агентские программы против датасетов телеметрии. Все вызовы идут через AIGateway — DLP, кэш и лимиты сохраняются.</p>
+    <p class="header-desc">{t('dspy.headerDesc')}</p>
   </div>
 
   {#if loading}
-    <div class="loading">Загрузка…</div>
+    <div class="loading">{t('common.loading')}</div>
   {:else if error}
     <div class="error-msg"><AlertCircleIcon size="13" strokeWidth="2" />{error}</div>
   {:else if data}
@@ -52,34 +52,34 @@
 
       <!-- Status strip -->
       <section class="section">
-        <div class="section-title">Статус</div>
+        <div class="section-title">{t('dspy.status')}</div>
         <div class="status-strip">
           <div class="status-item">
-            <span class="sl">Включён</span>
+            <span class="sl">{t('dspy.enabled')}</span>
             {#if data.config.enabled}
-              <span class="sv ok">да</span>
+              <span class="sv ok">{t('common.yes')}</span>
             {:else}
-              <span class="sv muted">нет</span>
+              <span class="sv muted">{t('common.no')}</span>
             {/if}
           </div>
           <div class="status-item">
-            <span class="sl">Режим</span>
+            <span class="sl">{t('dspy.mode')}</span>
             <span class="sv mode-{data.config.mode}">{modeLabel(data.config.mode)}</span>
           </div>
           <div class="status-item">
-            <span class="sl">Пакет dspy</span>
+            <span class="sl">{t('dspy.package')}</span>
             {#if data.package.installed}
               <span class="sv ok">v{data.package.version}</span>
             {:else}
-              <span class="sv warn">не установлен</span>
+              <span class="sv warn">{t('dspy.notInstalled')}</span>
             {/if}
           </div>
           <div class="status-item">
-            <span class="sl">Программы</span>
+            <span class="sl">{t('dspy.programs')}</span>
             <span class="sv">{data.programs.length}</span>
           </div>
           <div class="status-item">
-            <span class="sl">Датасеты</span>
+            <span class="sl">{t('dspy.datasets')}</span>
             <span class="sv">{data.datasets.length}</span>
           </div>
         </div>
@@ -87,9 +87,9 @@
         {#if !data.package.installed}
           <div class="install-hint">
             <AlertCircleIcon size="12" strokeWidth="2" />
-            Установи пакет:
+            {t('dspy.installPkg')}
             <code>pip install -e ".[dspy]"</code>
-            или
+            {t('common.or')}
             <code>pip install "dspy&gt;=2.5.0"</code>
           </div>
         {/if}
@@ -99,7 +99,7 @@
 
       <!-- Config -->
       <section class="section">
-        <div class="section-title">Конфигурация</div>
+        <div class="section-title">{t('dspy.config')}</div>
         <div class="config-grid">
           <div class="cfg-row"><span class="cfg-k">optimizer</span><code class="cfg-v">{data.config.optimizer}</code></div>
           <div class="cfg-row"><span class="cfg-k">compile_budget</span><code class="cfg-v">{data.config.compile_budget}</code></div>
@@ -114,7 +114,7 @@
                   <span class="agent-chip">{a}</span>
                 {/each}
               {:else}
-                <span class="muted-text">все агенты</span>
+                <span class="muted-text">{t('dspy.allAgents')}</span>
               {/if}
             </span>
           </div>
@@ -127,20 +127,20 @@
       <section class="section">
         <div class="section-title">
           <LayersIcon size="12" strokeWidth="2" />
-          Скомпилированные программы
+          {t('dspy.compiledPrograms')}
         </div>
         {#if data.programs.length === 0}
           <div class="empty-hint">
-            Нет скомпилированных программ. Сначала собери датасет, затем запусти
+            {t('dspy.noPrograms')}
             <code>voly dspy compile --agent reviewer</code>
           </div>
         {:else}
           <div class="programs-table">
             <div class="table-head">
               <span>Program ID</span>
-              <span>Агенты</span>
-              <span>Версии</span>
-              <span>Теги</span>
+              <span>{t('dspy.agents')}</span>
+              <span>{t('dspy.versions')}</span>
+              <span>{t('dspy.tags')}</span>
             </div>
             {#each data.programs as p}
               <div class="table-row">
@@ -172,20 +172,20 @@
       <section class="section">
         <div class="section-title">
           <DatabaseIcon size="12" strokeWidth="2" />
-          Датасеты
+          {t('dspy.datasets')}
         </div>
         {#if data.datasets.length === 0}
           <div class="empty-hint">
-            Нет датасетов. Запусти
+            {t('dspy.noDatasets')}
             <code>voly dspy dataset build</code>
-            чтобы собрать из событий телеметрии.
+            {t('dspy.noDatasetsHint')}
           </div>
         {:else}
           <div class="datasets-list">
             {#each data.datasets as ds}
               <div class="ds-row">
                 <span class="ds-name">{ds.name}</span>
-                <span class="ds-count">{ds.examples} примеров</span>
+                <span class="ds-count">{ds.examples} {t('dspy.examples')}</span>
               </div>
             {/each}
           </div>
@@ -194,7 +194,7 @@
 
       <!-- Lifecycle -->
       <section class="section">
-        <div class="section-title">Жизненный цикл программы</div>
+        <div class="section-title">{t('dspy.lifecycle')}</div>
         <div class="lifecycle">
           {#each lifecycleSteps as step, i}
             <div class="lc-step">

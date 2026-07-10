@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { SearchIcon, AlertCircleIcon } from '../../icons.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
   import { fetchMarketplacePlugins } from '../../api/client.js'
 
   let plugins = $state([])
@@ -62,10 +63,10 @@
 
 <div class="plugins">
   <div class="pl-header">
-    <p class="pl-desc">Плагины — наборы скилов и агентов, опубликованные в Cloudflare D1. Один плагин может нести несколько скилов; установка плагина ставит все его скилы.</p>
+    <p class="pl-desc">{t('mkt.pluginsDesc')}</p>
     <div class="pl-search">
       <SearchIcon size="13" strokeWidth="2" />
-      <input type="text" placeholder="Поиск плагинов…" bind:value={query} class="search-input" />
+      <input type="text" placeholder={t("mkt.pluginsSearch")} bind:value={query} class="search-input" />
     </div>
   </div>
 
@@ -80,18 +81,18 @@
       <div class="not-configured">
         <AlertCircleIcon size="16" strokeWidth="2" />
         <div>
-          <div class="nc-title">Marketplace не настроен</div>
-          <div class="nc-hint">{hint || 'Укажи CF_WORKER_MARKETPLACE_URL в .env для подключения'}</div>
+          <div class="nc-title">{t('mkt.notConfigured')}</div>
+          <div class="nc-hint">{hint || t('mkt.configureHint')}</div>
         </div>
       </div>
     {:else}
-      <div class="empty">{query ? `Нет плагинов по запросу «${query}»` : 'Плагинов пока нет'}</div>
+      <div class="empty">{query ? t('mkt.noPluginsQuery', { q: query }) : t('mkt.pluginsEmpty')}</div>
     {/if}
   {:else}
     {#if !configured}
       <div class="local-notice">
         <AlertCircleIcon size="13" strokeWidth="2" />
-        <span>{hint || 'Локальный каталог — задай CF_WORKER_MARKETPLACE_URL для remote-маркетплейса'}</span>
+        <span>{hint || t('mkt.localHint')}</span>
       </div>
     {/if}
     <div class="plugins-grid">

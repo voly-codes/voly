@@ -17,7 +17,7 @@
       <div class="toast toast-{t.type}">
         <Icon size="14" strokeWidth="2" />
         <span class="toast-msg">{t.message}</span>
-        <button class="toast-close" onclick={() => toast.dismiss(t.id)} aria-label="Закрыть">
+        <button class="toast-close" onclick={() => toast.dismiss(t.id)} aria-label="Close">
           <XIcon size="12" strokeWidth="2" />
         </button>
       </div>

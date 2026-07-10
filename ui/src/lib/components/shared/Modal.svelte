@@ -25,7 +25,7 @@
       {#if title}
         <div class="modal-header">
           <span class="modal-title">{title}</span>
-          <button class="modal-close" onclick={() => open = false} aria-label="Закрыть">✕</button>
+          <button class="modal-close" onclick={() => open = false} aria-label="Close">✕</button>
         </div>
       {/if}
       <div class="modal-body">

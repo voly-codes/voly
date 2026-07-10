@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { SearchIcon, DownloadIcon, CheckIcon, AlertCircleIcon } from '../../icons.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
   import { fetchMarketplaceSkills, searchMarketplace, installSkill, fetchInstalledSkills } from '../../api/client.js'
 
   let skills = $state([])
@@ -65,7 +66,7 @@
       await installSkill(id)
       installed[id] = true
     } catch (e) {
-      error = `Не удалось установить ${id}: ${e.message}`
+      error = t('mkt.installFailed', { id, error: e.message })
     } finally {
       installing[id] = false
     }
@@ -90,14 +91,14 @@
           <span class="total-badge">{total}</span>
         {/if}
       </div>
-      <p class="mkt-header-desc">Скилы — наборы инструкций, хранящихся в Cloudflare D1. После установки автоматически инжектируются в pipeline когда задача совпадает по тематике. Поиск через FTS + Vectorize.</p>
+      <p class="mkt-header-desc">{t('mkt.headerDesc')}</p>
     </div>
 
     <div class="mkt-search">
       <SearchIcon size="13" strokeWidth="2" />
       <input
         type="text"
-        placeholder="Поиск по имени, тегам, технологии…"
+        placeholder={t("mkt.search")}
         bind:value={query}
         oninput={onSearch}
         class="search-input"
@@ -121,20 +122,20 @@
       <div class="not-configured">
         <AlertCircleIcon size="16" strokeWidth="2" />
         <div>
-          <div class="nc-title">Marketplace не настроен</div>
-          <div class="nc-hint">{hint || 'Укажи CF_WORKER_MARKETPLACE_URL в .env для подключения'}</div>
+          <div class="nc-title">{t('mkt.notConfigured')}</div>
+          <div class="nc-hint">{hint || t('mkt.configureHint')}</div>
         </div>
       </div>
     {:else}
       <div class="empty">
-        {query ? `Нет скилов по запросу «${query}»` : 'Маркетплейс пуст'}
+        {query ? t('mkt.noResults', { q: query }) : t('mkt.empty')}
       </div>
     {/if}
   {:else}
     {#if !configured}
       <div class="local-notice">
         <AlertCircleIcon size="13" strokeWidth="2" />
-        <span>{hint || 'Локальный реестр — задай CF_WORKER_MARKETPLACE_URL для remote-маркетплейса'}</span>
+        <span>{hint || t('mkt.localHint')}</span>
       </div>
     {/if}
     <div class="skills-grid">
@@ -179,17 +180,17 @@
               onclick={() => install(skill)}
               disabled={!!installing[skill.id] || !!installed[skill.id]}
               title={installed[skill.id]
-                ? 'Установлен в .voly/skills/ — будет активен при следующем запуске pipeline'
-                : 'Скачать скил в .voly/skills/ — после этого он будет автоматически добавляться в контекст агента'}
+                ? t('mkt.installedHint')
+                : t('mkt.installHint')}
             >
               {#if installed[skill.id]}
                 <CheckIcon size="11" strokeWidth="2.5" />
-                Установлен
+                {t('mkt.installed')}
               {:else if installing[skill.id]}
-                Установка…
+                {t('mkt.installing')}
               {:else}
                 <DownloadIcon size="11" strokeWidth="2" />
-                Установить
+                {t('mkt.install')}
               {/if}
             </button>
           </div>
@@ -199,9 +200,9 @@
 
     {#if total > LIMIT && !query}
       <div class="pagination">
-        <button onclick={prevPage} disabled={page === 1}>← Назад</button>
-        <span class="page-info">Стр. {page} из {Math.ceil(total / LIMIT)}</span>
-        <button onclick={nextPage} disabled={page * LIMIT >= total}>Вперёд →</button>
+        <button onclick={prevPage} disabled={page === 1}>← {t('mkt.prev')}</button>
+        <span class="page-info">{t('mkt.page', { page, pages: Math.ceil(total / LIMIT) })}</span>
+        <button onclick={nextPage} disabled={page * LIMIT >= total}>{t('mkt.next')} →</button>
       </div>
     {/if}
   {/if}

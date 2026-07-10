@@ -5,7 +5,7 @@
     BarChart2Icon, BookOpenIcon,
   } from '../../icons.js'
   import { statusRu, calcPct } from '../../utils/format.js'
-  import { t } from '../../i18n/localeStore.svelte.ts'
+  import { i18n, t } from '../../i18n/localeStore.svelte.ts'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import PipelineEmptyState from './PipelineEmptyState.svelte'
   import TaskHeader from './TaskHeader.svelte'
@@ -19,6 +19,7 @@
 
   // Token flow bar segments
   let tokenBar = $derived.by(() => {
+    void i18n.locale
     if (!task) return []
     const tokens = task.tokens ?? {}
     const rtkSaved  = tokens.saved_rtk ?? 0
@@ -31,93 +32,105 @@
     return [
       { label: 'RTK',     value: rtkSaved, pct: seg(rtkSaved), color: 'var(--accent-teal)' },
       { label: 'Headroom',value: hrSaved,  pct: seg(hrSaved),  color: 'var(--accent-purple)' },
-      { label: 'Вход',    value: input,    pct: seg(input),    color: 'var(--accent-blue)' },
-      { label: 'Выход',   value: output,   pct: seg(output),   color: 'var(--accent-indigo)' },
+      { label: t('tokens.input'),  value: input,  pct: seg(input),  color: 'var(--accent-blue)' },
+      { label: t('tokens.output'), value: output, pct: seg(output), color: 'var(--accent-indigo)' },
     ].filter(s => s.value > 0)
   })
 
   let stages = $derived.by(() => {
+    void i18n.locale
     if (!task) return []
-    const t = task
-    const tokens = t.tokens ?? {}
-    const gw = t.gateway ?? {}
+    const tk = task
+    const tokens = tk.tokens ?? {}
+    const gw = tk.gateway ?? {}
     const totalIn = tokens.input ?? 0
     const savedRtk = tokens.saved_rtk ?? 0
     const savedHr = tokens.saved_headroom ?? 0
 
     return [
       {
-        id: 'route', label: 'Маршрутизация',
-        hint: 'Выбирает лучшего агента и модель по ключевым словам, routing score, ограничениям по стоимости и возможностям агента.',
-        icon: RouteIcon, detail: `${t.agent} → ${t.model}`, meta: t.provider ?? '',
-        badge: t.routing_score ? `score ${(t.routing_score * 100).toFixed(0)}%` : null, ok: true,
+        id: 'route', label: t('stage.route'),
+        hint: t('stage.route.hint'),
+        icon: RouteIcon, detail: `${tk.agent} → ${tk.model}`, meta: tk.provider ?? '',
+        badge: tk.routing_score ? `score ${(tk.routing_score * 100).toFixed(0)}%` : null, ok: true,
       },
       {
-        id: 'memory', label: 'Извлечение памяти',
-        hint: 'Ищет релевантный контекст из прошлых задач в семантической памяти (Vectorize + D1). Совпавшие фрагменты инжектируются в промпт.',
-        icon: DatabaseIcon, detail: t.memory_hits ? `совпадений: ${t.memory_hits}` : 'нет совпадений',
-        meta: '', badge: t.memory_hits ? `+${t.memory_hits}` : null,
-        badgeColor: t.memory_hits ? 'var(--accent-blue)' : null, ok: true,
+        id: 'memory', label: t('stage.memory'),
+        hint: t('stage.memory.hint'),
+        icon: DatabaseIcon,
+        detail: tk.memory_hits ? t('stage.memory.hits', { n: tk.memory_hits }) : t('stage.memory.none'),
+        meta: '', badge: tk.memory_hits ? `+${tk.memory_hits}` : null,
+        badgeColor: tk.memory_hits ? 'var(--accent-blue)' : null, ok: true,
       },
       {
-        id: 'rtk', label: 'RTK Фильтр',
-        hint: 'Rust Token Killer — удаляет малоценные токены (debug-вывод, стек-трейсы, тестовый boilerplate) до отправки в модель. Снижает стоимость без потери контекста.',
+        id: 'rtk', label: t('stage.rtk'),
+        hint: t('stage.rtk.hint'),
         icon: ZapIcon,
-        detail: savedRtk ? `сэкономлено ${savedRtk.toLocaleString()} токенов` : 'нет экономии',
-        meta: savedRtk ? `${calcPct(savedRtk, totalIn)}% сокращение` : '',
+        detail: savedRtk ? t('stage.rtk.saved', { n: savedRtk.toLocaleString() }) : t('stage.rtk.none'),
+        meta: savedRtk ? t('stage.reduction', { n: calcPct(savedRtk, totalIn) }) : '',
         badge: savedRtk ? `-${savedRtk.toLocaleString()}` : null,
         badgeColor: savedRtk ? 'var(--accent-teal)' : null, ok: true,
       },
       {
-        id: 'skill_inject', label: 'Инъекция скилов',
-        hint: 'Сопоставляет установленные скилы из .voly/skills/ с задачей и инжектирует их инструкции в системный промпт агента.',
+        id: 'skill_inject', label: t('stage.skills'),
+        hint: t('stage.skills.hint'),
         icon: BookOpenIcon,
-        detail: t.skill_ids?.length ? `инжектировано: ${t.skill_ids.length}` : 'скилы не подошли',
-        meta: t.skill_ids?.join(', ') ?? '',
-        badge: t.skill_ids?.length ? `+${t.skill_ids.length}` : null,
-        badgeColor: t.skill_ids?.length ? 'var(--accent-teal)' : null, ok: true,
+        detail: tk.skill_ids?.length
+          ? t('stage.skills.injected', { n: tk.skill_ids.length })
+          : t('stage.skills.none'),
+        meta: tk.skill_ids?.join(', ') ?? '',
+        badge: tk.skill_ids?.length ? `+${tk.skill_ids.length}` : null,
+        badgeColor: tk.skill_ids?.length ? 'var(--accent-teal)' : null, ok: true,
       },
       {
-        id: 'headroom', label: 'Сжатие контекста',
-        hint: 'Сжимает контекст чтобы уместиться в лимит токенов модели. Использует семантическое разбиение для сохранения смысла.',
+        id: 'headroom', label: t('stage.headroom'),
+        hint: t('stage.headroom.hint'),
         icon: LayersIcon,
-        detail: savedHr ? `сжато ${savedHr.toLocaleString()} токенов` : 'нет сжатия',
-        meta: savedHr ? `${calcPct(savedHr, totalIn)}% сокращение` : '',
+        detail: savedHr ? t('stage.headroom.saved', { n: savedHr.toLocaleString() }) : t('stage.headroom.none'),
+        meta: savedHr ? t('stage.reduction', { n: calcPct(savedHr, totalIn) }) : '',
         badge: savedHr ? `-${savedHr.toLocaleString()}` : null,
         badgeColor: savedHr ? 'var(--accent-purple)' : null, ok: true,
       },
-      ...(t.dspy_enabled ? [{
-        id: 'dspy', label: 'DSPy Программа',
-        hint: 'Оптимизированная prompt-программа, скомпилированная DSPy. В режиме shadow запускается параллельно для сбора обучающих данных.',
-        icon: BrainCircuitIcon, detail: t.dspy_program_id ?? 'включён',
-        meta: `режим: ${t.dspy_mode ?? 'shadow'} · тег: ${t.dspy_program_tag ?? '—'}`,
-        badge: t.dspy_mode, ok: true,
+      ...(tk.dspy_enabled ? [{
+        id: 'dspy', label: t('stage.dspy'),
+        hint: t('stage.dspy.hint'),
+        icon: BrainCircuitIcon, detail: tk.dspy_program_id ?? t('stage.dspy.enabled'),
+        meta: t('stage.dspy.meta', { mode: tk.dspy_mode ?? 'shadow', tag: tk.dspy_program_tag ?? '—' }),
+        badge: tk.dspy_mode, ok: true,
       }] : []),
       {
-        id: 'model_call', label: 'Вызов модели',
-        hint: 'Реальный LLM API вызов через AI Gateway. Gateway добавляет DLP-сканирование, кэш ответов, лимиты расходов и автоматический fallback.',
+        id: 'model_call', label: t('stage.model'),
+        hint: t('stage.model.hint'),
         icon: MessageSquareIcon,
-        detail: `${totalIn.toLocaleString()} вход · ${(tokens.output ?? 0).toLocaleString()} выход`,
+        detail: t('stage.model.tokens', {
+          in: totalIn.toLocaleString(),
+          out: (tokens.output ?? 0).toLocaleString(),
+        }),
         meta: [
-          gw.cache_hit ? 'кэш попадание' : null,
+          gw.cache_hit ? t('stage.model.cacheHit') : null,
           gw.fallback_used ? `fallback → ${gw.fallback_model || '?'}` : null,
-          gw.dlp_blocked ? 'DLP заблокировал' : null,
-        ].filter(Boolean).join(' · ') || `${t.provider ?? ''}`,
-        badge: gw.cache_hit ? 'кэш' : (gw.fallback_used ? 'fallback' : null),
+          gw.dlp_blocked ? t('stage.model.dlpBlocked') : null,
+        ].filter(Boolean).join(' · ') || `${tk.provider ?? ''}`,
+        badge: gw.cache_hit ? t('stage.model.cacheBadge') : (gw.fallback_used ? 'fallback' : null),
         badgeColor: gw.cache_hit ? 'var(--accent-green)' : (gw.fallback_used ? 'var(--accent-amber)' : null),
         ok: !gw.dlp_blocked,
       },
       {
-        id: 'memory_store', label: 'Сохранение в память',
-        hint: 'Сохраняет результат задачи и ключевые факты в семантическую память (Vectorize + D1).',
-        icon: SaveIcon, detail: t.status === 'completed' ? 'сохранено в память' : 'пропущено', ok: t.status === 'completed',
+        id: 'memory_store', label: t('stage.store'),
+        hint: t('stage.store.hint'),
+        icon: SaveIcon,
+        detail: tk.status === 'completed' ? t('stage.store.saved') : t('stage.store.skipped'),
+        ok: tk.status === 'completed',
       },
       {
-        id: 'telemetry', label: 'Телеметрия',
-        hint: 'Записывает стоимость, токены, длительность и данные стадий в CF Telemetry Worker.',
+        id: 'telemetry', label: t('stage.telemetry'),
+        hint: t('stage.telemetry.hint'),
         icon: BarChart2Icon,
-        detail: t.duration_ms ? `${(t.duration_ms / 1000).toFixed(2)}s итого` : '—',
-        meta: `статус: ${statusRu[t.status] ?? t.status}`, ok: t.status === 'completed',
+        detail: tk.duration_ms
+          ? t('stage.telemetry.total', { s: (tk.duration_ms / 1000).toFixed(2) })
+          : '—',
+        meta: t('stage.telemetry.status', { s: statusRu[tk.status] ?? tk.status }),
+        ok: tk.status === 'completed',
       },
     ]
   })
@@ -137,7 +150,7 @@
       <div class="right-pane">
         {#if task.task_prompt}
           <div class="task-prompt-field">
-            <span class="task-prompt-label">Задача</span>
+            <span class="task-prompt-label">{t('inspector.task')}</span>
             <div class="task-prompt-text">{task.task_prompt}</div>
           </div>
         {/if}
@@ -200,26 +213,26 @@
             {@const gw = task.gateway}
             <ExtrasSection title={t("inspector.gateway")}>
               <div class="extras-grid">
-                <div class="extra-row"><span class="extra-k">{t("inspector.cache")}</span><span class="extra-v" class:ok={gw.cache_hit} class:muted={!gw.cache_hit}>{gw.cache_hit ? 'попадание ✓' : 'промах'}</span></div>
+                <div class="extra-row"><span class="extra-k">{t('inspector.cache')}</span><span class="extra-v" class:ok={gw.cache_hit} class:muted={!gw.cache_hit}>{gw.cache_hit ? t('inspector.cacheHit') : t('inspector.cacheMiss')}</span></div>
                 <div class="extra-row">
-                  <span class="extra-k">Fallback</span>
+                  <span class="extra-k">{t('inspector.fallback')}</span>
                   <span class="extra-v" class:warn={gw.fallback_used} class:muted={!gw.fallback_used}>
                     {#if gw.fallback_used}
-                      использован → {gw.fallback_model || '?'}{gw.fallback_provider ? ` (${gw.fallback_provider})` : ''}
+                      {t('inspector.fallbackUsed')} {gw.fallback_model || '?'}{gw.fallback_provider ? ` (${gw.fallback_provider})` : ''}
                     {:else}
-                      не нужен
+                      {t('inspector.fallbackNotNeeded')}
                     {/if}
                   </span>
                 </div>
                 {#if gw.fallback_used && gw.fallback_reason}
                   <div class="extra-row fallback-reason-row">
-                    <span class="extra-k">Причина</span>
+                    <span class="extra-k">{t('inspector.reason')}</span>
                     <span class="extra-v err fallback-reason" title={gw.fallback_reason}>{gw.fallback_reason}</span>
                   </div>
                 {/if}
-                <div class="extra-row"><span class="extra-k">DLP</span><span class="extra-v" class:err={gw.dlp_blocked} class:muted={!gw.dlp_blocked}>{gw.dlp_blocked ? 'заблокировал' : 'пропущено'}</span></div>
+                <div class="extra-row"><span class="extra-k">DLP</span><span class="extra-v" class:err={gw.dlp_blocked} class:muted={!gw.dlp_blocked}>{gw.dlp_blocked ? t('inspector.dlpBlocked') : t('inspector.dlpPassed')}</span></div>
                 {#if task.provider}
-                  <div class="extra-row"><span class="extra-k">Провайдер</span><span class="extra-v">{task.provider}</span></div>
+                  <div class="extra-row"><span class="extra-k">{t('inspector.provider')}</span><span class="extra-v">{task.provider}</span></div>
                 {/if}
               </div>
             </ExtrasSection>
@@ -264,24 +277,24 @@
           {#if task.dspy_enabled}
             <ExtrasSection title="DSPy">
               <div class="extras-grid">
-                <div class="extra-row"><span class="extra-k">Режим</span><span class="extra-v">{task.dspy_mode ?? '—'}</span></div>
-                {#if task.dspy_program_id}<div class="extra-row"><span class="extra-k">Программа</span><span class="extra-v mono">{task.dspy_program_id}</span></div>{/if}
-                {#if task.dspy_program_version}<div class="extra-row"><span class="extra-k">Версия</span><span class="extra-v">v{task.dspy_program_version}</span></div>{/if}
-                {#if task.dspy_program_tag}<div class="extra-row"><span class="extra-k">Тег</span><span class="extra-v">{task.dspy_program_tag}</span></div>{/if}
+                <div class="extra-row"><span class="extra-k">{t('inspector.mode')}</span><span class="extra-v">{task.dspy_mode ?? '—'}</span></div>
+                {#if task.dspy_program_id}<div class="extra-row"><span class="extra-k">{t('inspector.program')}</span><span class="extra-v mono">{task.dspy_program_id}</span></div>{/if}
+                {#if task.dspy_program_version}<div class="extra-row"><span class="extra-k">{t('inspector.version')}</span><span class="extra-v">v{task.dspy_program_version}</span></div>{/if}
+                {#if task.dspy_program_tag}<div class="extra-row"><span class="extra-k">{t('inspector.tag')}</span><span class="extra-v">{task.dspy_program_tag}</span></div>{/if}
                 {#if task.dspy_score != null}<div class="extra-row"><span class="extra-k">Score</span><span class="extra-v ok">{(task.dspy_score * 100).toFixed(1)}%</span></div>{/if}
                 {#if task.dspy_shadow_delta != null}<div class="extra-row"><span class="extra-k">Shadow delta</span><span class="extra-v">{task.dspy_shadow_delta > 0 ? '+' : ''}{task.dspy_shadow_delta.toFixed(3)}</span></div>{/if}
               </div>
             </ExtrasSection>
           {/if}
 
-          <ExtrasSection title="Метаданные">
+          <ExtrasSection title={t('inspector.metadata')}>
             <div class="extras-grid">
               <div class="extra-row"><span class="extra-k">Task ID</span><span class="extra-v mono">{task.task_id}</span></div>
-              {#if task.task_type}<div class="extra-row"><span class="extra-k">Тип</span><span class="extra-v">{task.task_type}</span></div>{/if}
+              {#if task.task_type}<div class="extra-row"><span class="extra-k">{t('inspector.type')}</span><span class="extra-v">{task.task_type}</span></div>{/if}
               {#if task.routing_score}<div class="extra-row"><span class="extra-k">Routing</span><span class="extra-v">{(task.routing_score * 100).toFixed(1)}%</span></div>{/if}
-              {#if task.automation_score}<div class="extra-row"><span class="extra-k">Автоматизация</span><span class="extra-v">{(task.automation_score * 100).toFixed(0)}%</span></div>{/if}
-              {#if task.manual_steps_removed}<div class="extra-row"><span class="extra-k">Шагов убрано</span><span class="extra-v ok">{task.manual_steps_removed}</span></div>{/if}
-              {#if task.skill_ids?.length}<div class="extra-row"><span class="extra-k">Скилы</span><span class="extra-v mono">{task.skill_ids.join(', ')}</span></div>{/if}
+              {#if task.automation_score}<div class="extra-row"><span class="extra-k">{t('inspector.automation')}</span><span class="extra-v">{(task.automation_score * 100).toFixed(0)}%</span></div>{/if}
+              {#if task.manual_steps_removed}<div class="extra-row"><span class="extra-k">{t('inspector.stepsRemoved')}</span><span class="extra-v ok">{task.manual_steps_removed}</span></div>{/if}
+              {#if task.skill_ids?.length}<div class="extra-row"><span class="extra-k">{t('inspector.skills')}</span><span class="extra-v mono">{task.skill_ids.join(', ')}</span></div>{/if}
             </div>
           </ExtrasSection>
         </div>

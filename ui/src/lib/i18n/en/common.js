@@ -33,6 +33,7 @@ export default {
   'common.yes': 'yes',
   'common.no': 'no',
   'common.auto': 'auto',
+  'common.or': 'or',
 
   // Task statuses
   'status.completed': 'completed',

@@ -1,7 +1,8 @@
 <script>
   import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon } from '../../icons.js'
-  import { fmtTokens, fmtDur } from '../../utils/format.js'
+  import { fmtTokens, fmtDur, statusLabel } from '../../utils/format.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
+  import { t } from '../../i18n/localeStore.svelte.ts'
 
   let summary = $derived(tasksStore.summary)
   let task = $derived(tasksStore.selected)
@@ -22,34 +23,34 @@
 <div class="cost-panel">
   {#if summary}
     <section class="panel-section">
-      <div class="section-title">Обзор</div>
+      <div class="section-title">{t('cost.overview')}</div>
       <div class="cards">
         <div class="card">
           <CoinsIcon size="13" strokeWidth="2" />
           <span class="card-value">${(summary.total_cost_usd ?? 0).toFixed(4)}</span>
-          <span class="card-label">расходы</span>
+          <span class="card-label">{t('cost.spend')}</span>
         </div>
         <div class="card">
           <CpuIcon size="13" strokeWidth="2" />
           <span class="card-value">{fmtTokens(summary.total_input_tokens + summary.total_output_tokens)}</span>
-          <span class="card-label">токенов</span>
+          <span class="card-label">{t('cost.tokens')}</span>
         </div>
         <div class="card">
           <TrendingUpIcon size="13" strokeWidth="2" />
           <span class="card-value">{fmtTokens(summary.total_saved_tokens)}</span>
-          <span class="card-label">сэкономлено</span>
+          <span class="card-label">{t('cost.saved')}</span>
         </div>
         <div class="card">
           <TimerIcon size="13" strokeWidth="2" />
           <span class="card-value">{fmtDur(summary.avg_duration_ms)}</span>
-          <span class="card-label">среднее время</span>
+          <span class="card-label">{t('cost.avgTime')}</span>
         </div>
       </div>
     </section>
 
     {#if byAgent.length}
       <section class="panel-section">
-        <div class="section-title">По агентам</div>
+        <div class="section-title">{t('cost.byAgent')}</div>
         <div class="bar-list">
           {#each byAgent as [agent, count]}
             {@const pct = Math.round((count / summary.total_tasks) * 100)}
@@ -67,7 +68,7 @@
 
     {#if byModel.length}
       <section class="panel-section">
-        <div class="section-title">По моделям</div>
+        <div class="section-title">{t('cost.byModel')}</div>
         <div class="bar-list">
           {#each byModel.slice(0, 5) as [model, count]}
             {@const pct = Math.round((count / summary.total_tasks) * 100)}
@@ -84,13 +85,12 @@
     {/if}
 
     <section class="panel-section">
-      <div class="section-title">Статусы</div>
+      <div class="section-title">{t('cost.statuses')}</div>
       <div class="status-grid">
         {#each Object.entries(summary.by_status ?? {}) as [s, n]}
-          {@const r = { completed: 'выполнено', failed: 'ошибка', running: 'в работе', error: 'ошибка' }}
           <div class="status-chip status-{s}">
             <span class="status-n">{n}</span>
-            <span class="status-name">{r[s] ?? s}</span>
+            <span class="status-name">{statusLabel(s)}</span>
           </div>
         {/each}
       </div>
@@ -99,22 +99,22 @@
 
   {#if task}
     <section class="panel-section">
-      <div class="section-title">Выбранная задача</div>
+      <div class="section-title">{t('cost.selectedTask')}</div>
       <div class="task-detail-rows">
-        <div class="detail-row"><span class="dr-label">Стоимость</span><span class="dr-val accent">${(task.cost_usd ?? 0).toFixed(6)}</span></div>
-        <div class="detail-row"><span class="dr-label">Токены вход</span><span class="dr-val">{fmtTokens(task.tokens?.input)}</span></div>
-        <div class="detail-row"><span class="dr-label">Токены выход</span><span class="dr-val">{fmtTokens(task.tokens?.output)}</span></div>
+        <div class="detail-row"><span class="dr-label">{t('cost.cost')}</span><span class="dr-val accent">${(task.cost_usd ?? 0).toFixed(6)}</span></div>
+        <div class="detail-row"><span class="dr-label">{t('cost.tokensIn')}</span><span class="dr-val">{fmtTokens(task.tokens?.input)}</span></div>
+        <div class="detail-row"><span class="dr-label">{t('cost.tokensOut')}</span><span class="dr-val">{fmtTokens(task.tokens?.output)}</span></div>
         {#if (task.tokens?.saved_rtk ?? 0) > 0}
-          <div class="detail-row"><span class="dr-label">RTK экономия</span><span class="dr-val saved">{fmtTokens(task.tokens.saved_rtk)}</span></div>
+          <div class="detail-row"><span class="dr-label">{t('cost.rtkSaved')}</span><span class="dr-val saved">{fmtTokens(task.tokens.saved_rtk)}</span></div>
         {/if}
         {#if (task.tokens?.saved_headroom ?? 0) > 0}
-          <div class="detail-row"><span class="dr-label">Headroom экон.</span><span class="dr-val saved">{fmtTokens(task.tokens.saved_headroom)}</span></div>
+          <div class="detail-row"><span class="dr-label">{t('cost.headroomSaved')}</span><span class="dr-val saved">{fmtTokens(task.tokens.saved_headroom)}</span></div>
         {/if}
         {#if task.executor === 'pipeline'}
-          <div class="detail-row"><span class="dr-label">Кэш</span><span class="dr-val">{task.gateway?.cache_hit ? 'да' : 'нет'}</span></div>
+          <div class="detail-row"><span class="dr-label">{t('cost.cache')}</span><span class="dr-val">{task.gateway?.cache_hit ? t('common.yes') : t('common.no')}</span></div>
         {/if}
-        <div class="detail-row"><span class="dr-label">Длительность</span><span class="dr-val">{fmtDur(task.duration_ms)}</span></div>
-        {#if task.automation_score != null}<div class="detail-row"><span class="dr-label">Автоматизация</span><span class="dr-val">{(task.automation_score * 100).toFixed(0)}%</span></div>{/if}
+        <div class="detail-row"><span class="dr-label">{t('cost.duration')}</span><span class="dr-val">{fmtDur(task.duration_ms)}</span></div>
+        {#if task.automation_score != null}<div class="detail-row"><span class="dr-label">{t('cost.automation')}</span><span class="dr-val">{(task.automation_score * 100).toFixed(0)}%</span></div>{/if}
       </div>
     </section>
   {/if}

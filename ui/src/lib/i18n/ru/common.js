@@ -29,6 +29,7 @@ export default {
   'common.yes': 'да',
   'common.no': 'нет',
   'common.auto': 'авто',
+  'common.or': 'или',
 
   'status.completed': 'выполнено',
   'status.failed': 'ошибка',
