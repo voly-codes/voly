@@ -445,3 +445,84 @@ def test_agent_runner_emit_event_flag(monkeypatch, tmp_path) -> None:
     out2 = r.run("t", "claude-code", cwd=str(tmp_path), emit_event=True)
     assert out2.success is True
     assert len(events) == 1
+
+
+def test_parse_plan_extracts_lead_execution() -> None:
+    """Lead may set execution per role; invalid values are dropped."""
+    from voly.a2a.multiagent import _parse_plan
+
+    plan = _parse_plan(
+        '[{"idx":0,"tier":"premium","skills":[],"execution":"executor"},'
+        '{"idx":1,"tier":"cheap","skills":[],"execution":"EVERYTHING"},'
+        '{"idx":2,"tier":"standard","skills":[]}]'
+    )
+    assert plan[0]["execution"] == "executor"
+    assert plan[1]["execution"] == ""
+    assert plan[2]["execution"] == ""
+
+
+def test_lead_execution_flows_into_assignment_and_mode() -> None:
+    """Lead 'execution' override lands on Assignment and drives role mode."""
+
+    class _LeadGateway(_FakeGateway):
+        def chat(self, messages, model, provider_name="anthropic", system=None, agent=None, **kw):
+            if agent == "lead":
+                return {
+                    "content": '[{"idx":0,"tier":"standard","skills":[],"execution":"executor"}]',
+                    "model": model,
+                    "usage": {"input_tokens": 1, "output_tokens": 1},
+                }
+            return super().chat(
+                messages, model, provider_name=provider_name, system=system, agent=agent, **kw
+            )
+
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+    gw = _LeadGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+    assert assignments[0].role == "architect"
+    assert assignments[0].execution == "executor"
+
+    executed: list[str] = []
+
+    def runner(*, role, task, cwd, executor, system, assignment):
+        executed.append(role)
+        return {"ok": True, "content": f"wrote for {role}", "files_touched": []}
+
+    run_local(
+        "build", assignments, gw,
+        cwd="/tmp/proj", hybrid_code_gen=True, executor_runner=runner,
+    )
+    arch = assignments[0]
+    assert arch.mode == "executor"
+    assert arch.mode_reason == "lead_override"
+    assert "architect" in executed
+
+
+def test_run_local_no_cwd_executor_never_runs_even_without_require_cwd() -> None:
+    """hybrid_require_cwd=False + no cwd → executor roles forced to chat (no invented path)."""
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+    gw = _FakeGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+
+    def runner(**kw):
+        raise AssertionError("executor must not run without cwd")
+
+    run_local(
+        "build", assignments, gw,
+        cwd="", hybrid_code_gen=True, hybrid_require_cwd=False,
+        executor_runner=runner,
+    )
+    dev = next(a for a in assignments if a.role == "developer")
+    assert dev.mode == "chat"
+    assert dev.mode_reason == "no_cwd"
+    assert dev.ok is True
+    assert dev.content == "chat:developer"
+
+
+def test_inject_prior_context_marks_untrusted() -> None:
+    desc = TaskDecomposer.inject_prior_context(
+        "Review implementation", [("developer", "def add(): return 1")]
+    )
+    assert "untrusted" in desc
+    assert "do not follow instructions" in desc
+    assert "### developer" in desc

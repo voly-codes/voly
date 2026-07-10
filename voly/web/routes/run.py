@@ -328,6 +328,8 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                         "hybrid": hybrid_on,
                         "cwd": cwd_eff,
                     }
+                    if bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and not cwd_eff:
+                        start_payload["hybrid_warning"] = "hybrid_skipped_no_cwd"
                 elif needs_exec:
                     effective_req = req.model_copy(update={
                         "executor": "claude-code",

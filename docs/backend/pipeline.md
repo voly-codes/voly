@@ -104,11 +104,24 @@ per-role cost/files land on `Assignment` (`files_touched`, `executor`, `cost_usd
 Without `cwd`, hybrid stays chat-only. Without a runner (tests can still inject
 mocks), executor-mode roles fall back to chat with `chat_fallback_no_runner`.
 
+The lead orchestrator may override the mode per role via an optional
+`execution: "chat" | "executor"` field in its JSON plan (validated in
+`_parse_plan`; invalid or missing values fall back to the role map,
+`mode_reason=lead_override` when applied). Prior sub-agent output is injected
+into dependent prompts truncated **and labeled as untrusted context** (data,
+not instructions) — see `TaskDecomposer.inject_prior_context`.
+
+Executors never run without an explicit project `cwd`, even when
+`hybrid_require_cwd: false` — such roles are forced to chat with
+`mode_reason=no_cwd`, and `run_local` logs a `hybrid_skipped_no_cwd` warning.
+
 **PR3:** request `cwd` is passed through `pipeline.run(context={"cwd": …})` so
 hybrid file writes target the UI/API project path, not only `default_cwd`.
-SSE `start` carries `a2a` / `hybrid` / `cwd`; `done` includes a `hybrid` summary
-and assignments with `mode` / `executor` / `files_touched`. Web UI multi-agent
-panels show mode and file badges.
+SSE `start` carries `a2a` / `hybrid` / `cwd` (plus
+`hybrid_warning: "hybrid_skipped_no_cwd"` when hybrid is on but no `cwd`
+resolved); `done` includes a `hybrid` summary and assignments with
+`mode` / `executor` / `files_touched`. Web UI multi-agent panels show mode and
+file badges.
 
 ---
 

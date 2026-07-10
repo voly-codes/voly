@@ -163,6 +163,11 @@ class RoleOutcome:
 Prior context for the next role = existing-style injection over truncated
 `RoleOutcome` content (mark prior output as untrusted context).
 
+> **As landed:** `RoleOutcome` is realized as fields on `Assignment`
+> (`mode`, `mode_reason`, `executor`, `files_touched`, `cost_usd`, …) plus the
+> dict contract returned by `executor_runner` — one type instead of two.
+> Untrusted labeling lives in `TaskDecomposer.inject_prior_context`.
+
 ---
 
 ## Configuration
@@ -183,7 +188,7 @@ a2a:
 | Field | Default | Meaning |
 |---|---|---|
 | `hybrid_code_gen` | `true` | Master switch for hybrid behavior |
-| `hybrid_require_cwd` | `true` | If no cwd, skip executors (chat only) |
+| `hybrid_require_cwd` | `true` | If no cwd, skip executors (chat only). Note: even when `false`, executors never run without an explicit cwd (invariant 1) — roles are forced to chat with `mode_reason=no_cwd` |
 | `executor_default` | `claude-code` | First executor for implement roles |
 | `executor_roles` | see table | Roles that default to executor mode |
 
@@ -329,3 +334,4 @@ Revisit before PR1 if product wants opt-in-only (`hybrid_code_gen: false` defaul
 | 2026-07-09 | PR1: `A2AConfig` hybrid fields, `voly/a2a/hybrid.py`, `run_local` executor branch + mock runner, tests |
 | 2026-07-09 | PR2: `make_agent_runner_executor`, `AgentRunner.run(emit_event=…)`, pipeline wires real executor path |
 | 2026-07-09 | PR3: request cwd → hybrid, SSE hybrid metadata, UI mode/files badges, demo test, OpenWiki |
+| 2026-07-10 | Review fixes: lead `execution` override wired end-to-end (prompt + `_parse_plan` + `assign`); prior context labeled untrusted; executor hard-gated on cwd (`mode_reason=no_cwd`); `hybrid_skipped_no_cwd` now warning + SSE `hybrid_warning` |
