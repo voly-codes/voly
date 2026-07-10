@@ -6,6 +6,19 @@ Priority: `.env` > `voly.yaml` > defaults in code.
 
 ---
 
+## Discovery (`voly/config/_loader.py`)
+
+`_find_config_path`/`_load_dotenv` walk upward from the target `--cwd` (or
+`Path.cwd()`) looking for `voly.yaml`/`.env`. The walk is bounded — it stops
+as soon as it reaches a directory containing `.git` (the target project's own
+VCS root), with a fixed `_MAX_UPWARD_LEVELS` (20) depth cap as a backstop for
+`--cwd` paths outside any git repo. This matters because VOLY runs against
+arbitrary external projects via `--cwd`: without a boundary, an unrelated
+`voly.yaml`/`.env` (and its credentials) in an ancestor directory on a
+multi-project machine would be silently picked up.
+
+---
+
 ## Key env vars
 
 ### Executors

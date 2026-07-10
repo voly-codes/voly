@@ -17,7 +17,7 @@ Per `CLAUDE.md`'s documentation rule, update the linked doc in the same commit a
 - [x] **Empty `onerror` handler, no polling fallback.** `ui/src/lib/stores/tasksStore.svelte.ts:92-95` has an `es.onerror` handler that only contains a comment claiming a "fallback to polling after 3 failures" — no failure counter or polling fallback is actually implemented. A flaky SSE connection leaves the UI silently stale.
   Update: `docs/frontend/api-client.md`
 
-- [ ] **Unbounded upward config/`.env` discovery.** `_find_config_path` and `_load_dotenv` (`voly/config/_loader.py:14-60`) walk up the directory tree with no depth bound, all the way to filesystem root. Since VOLY runs against arbitrary external projects via `--cwd`, an unrelated `voly.yaml`/`.env` in any ancestor directory gets silently loaded — including credentials from an unrelated project.
+- [x] **Unbounded upward config/`.env` discovery.** `_find_config_path` and `_load_dotenv` (`voly/config/_loader.py:14-60`) walk up the directory tree with no depth bound, all the way to filesystem root. Since VOLY runs against arbitrary external projects via `--cwd`, an unrelated `voly.yaml`/`.env` in any ancestor directory gets silently loaded — including credentials from an unrelated project.
   Update: `docs/backend/config.md`
 
 ## Medium

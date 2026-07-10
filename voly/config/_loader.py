@@ -11,16 +11,32 @@ from voly.config._types import VOLYConfig, DEFAULT_CONFIG_FILENAME
 from voly.config._parser import _parse_config
 
 
+# VOLY runs against arbitrary external projects via --cwd. Walking all the way
+# to the filesystem root risks silently picking up an unrelated ancestor
+# directory's voly.yaml/.env (and its credentials) on a multi-project machine.
+# Stop at the target project's own VCS root, with a fixed depth cap as a
+# backstop for --cwd paths that aren't inside a git repo at all.
+_MAX_UPWARD_LEVELS = 20
+
+
+def _is_repo_root(path: Path) -> bool:
+    """True once we've reached the top of the target project (git root)."""
+    return (path / ".git").exists()
+
+
 def _find_config_path(start_dir: Path | None = None) -> Path | None:
     current = start_dir or Path.cwd()
-    while True:
+    for _ in range(_MAX_UPWARD_LEVELS):
         candidate = current / DEFAULT_CONFIG_FILENAME
         if candidate.exists():
             return candidate
+        if _is_repo_root(current):
+            return None
         parent = current.parent
         if parent == current:
             return None
         current = parent
+    return None
 
 
 def _load_dotenv(start_dir: Path | None = None) -> None:
@@ -47,13 +63,16 @@ def _load_dotenv(start_dir: Path | None = None) -> None:
     if pkg_env.exists():
         _apply(pkg_env)
 
-    # Also walk up from start_dir/cwd to merge any project-level .env
+    # Also walk up from start_dir/cwd to merge any project-level .env, bounded
+    # the same way as _find_config_path (see _MAX_UPWARD_LEVELS above).
     current = start_dir or Path.cwd()
     visited = {pkg_env.resolve()} if pkg_env.exists() else set()
-    while True:
+    for _ in range(_MAX_UPWARD_LEVELS):
         env_file = current / ".env"
         if env_file.exists() and env_file.resolve() not in visited:
             _apply(env_file)
+        if _is_repo_root(current):
+            break
         parent = current.parent
         if parent == current:
             break

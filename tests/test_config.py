@@ -1,5 +1,6 @@
 """Tests for VOLY config module."""
 
+import os
 import tempfile
 from pathlib import Path
 
@@ -114,3 +115,50 @@ def test_agui_config_defaults() -> None:
     assert cfg.port == 9101
     assert cfg.streaming is True
     assert cfg.session_timeout_seconds == 3600
+
+
+# ─── Upward discovery is bounded at the target project's own VCS root ────────
+# VOLY runs against arbitrary --cwd projects; walking to the filesystem root
+# risked silently loading an unrelated ancestor's voly.yaml/.env (and its
+# credentials) on a multi-project machine.
+def test_find_config_path_stops_at_git_root(tmp_path: Path) -> None:
+    from voly.config._loader import _find_config_path
+
+    # unrelated-parent/voly.yaml must NOT be visible to a git-rooted child
+    # project that doesn't have its own voly.yaml.
+    (tmp_path / "voly.yaml").write_text("default_model: from-ancestor\n")
+    project = tmp_path / "some-project"
+    (project / ".git").mkdir(parents=True)
+    nested = project / "src" / "pkg"
+    nested.mkdir(parents=True)
+
+    assert _find_config_path(nested) is None
+
+
+def test_find_config_path_finds_own_config_within_git_root(tmp_path: Path) -> None:
+    from voly.config._loader import _find_config_path
+
+    project = tmp_path / "some-project"
+    (project / ".git").mkdir(parents=True)
+    (project / "voly.yaml").write_text("default_model: from-project\n")
+    nested = project / "src" / "pkg"
+    nested.mkdir(parents=True)
+
+    found = _find_config_path(nested)
+    assert found == project / "voly.yaml"
+
+
+def test_load_dotenv_does_not_cross_git_root(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from voly.config._loader import _load_dotenv
+
+    (tmp_path / ".env").write_text("VOLY_ANCESTOR_SECRET=leaked\n")
+    project = tmp_path / "some-project"
+    (project / ".git").mkdir(parents=True)
+    nested = project / "src"
+    nested.mkdir(parents=True)
+
+    monkeypatch.delenv("VOLY_ANCESTOR_SECRET", raising=False)
+    _load_dotenv(nested)
+    assert "VOLY_ANCESTOR_SECRET" not in os.environ
