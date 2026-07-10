@@ -108,6 +108,41 @@ If `CF_ACCOUNT_ID` + `CF_AIG_TOKEN` are not set — fallback to `env.AI.run()` d
 
 ---
 
+## BYOK (Store Keys) — provider keys in CF Secrets Store
+
+Design: [`docs/proposals/byok-cf-secrets.md`](../proposals/byok-cf-secrets.md).
+
+With `ai_gateway.byok_enabled: true`, provider API keys are **not** read from
+env for BYOK-eligible providers. Instead `_direct_call` routes the request
+through the gateway `/compat` endpoint with `model = "{provider_slug}/{model}"`;
+AI Gateway resolves the key stored in CF Secrets Store
+(named `{gateway_id}_{provider_slug}_{alias}`). The client authenticates with
+the gateway token only (`cf-aig-authorization`).
+
+| VOLY provider | CF slug | BYOK |
+|---|---|---|
+| `anthropic` | `anthropic` | yes |
+| `openai` | `openai` | yes |
+| `google`, `google-ai-studio` | `google-ai-studio` | yes |
+| `deepseek` | `deepseek` | yes |
+| `mimo`, `opencode`, `opencode-zen`, `omniroute` | — | no (env keys as before) |
+| `workers-ai`, `cloudflare-dynamic` | — | native CF paths, unchanged |
+
+Resolution logic lives in `voly/ai_gateway/credentials.py`
+(`byok_active`, `byok_provider_slug`). BYOK activates only when
+`byok_enabled` **and** account id **and** a gateway token
+(`CF_AIG_TOKEN` / `api_token` / `CLOUDFLARE_API_TOKEN`) are present;
+otherwise the env path is used unchanged. `byok_providers` (list) restricts
+BYOK to a subset; empty = all supported. Env override: `VOLY_BYOK=1|0`.
+
+Setup: CF Dashboard → AI Gateway → your gateway → enable **Authentication**
+(take the gateway token → `CF_AIG_TOKEN`), then **Provider Keys → Add API Key**
+per provider. After that the corresponding `*_API_KEY` entries in `.env` can be
+removed. Executors (claude-code CLI etc.) are unaffected — they authenticate
+themselves.
+
+---
+
 ## Env vars for CF AI Gateway
 
 ```env

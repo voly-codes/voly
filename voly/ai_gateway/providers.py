@@ -218,35 +218,30 @@ class _GatewayProvidersMixin:
             },
         }
 
-    def _call_cloudflare_dynamic(
+    def _call_cloudflare_compat(
         self,
+        compat_model: str,
         messages: list[dict[str, Any]],
-        model: str,
         max_tokens: int,
         temperature: float,
         system: str | None,
         tools: list[dict[str, Any]] | None = None,
-        **kwargs: Any,
     ) -> dict[str, Any]:
-        """CF AI Gateway dynamic routing — CF applies per-gateway routing rules.
+        """CF AI Gateway ``/compat`` endpoint (OpenAI-compatible proxy).
 
-        Requires dynamic routing rules configured in CF Dashboard:
-        AI Gateway → {gateway_id} → Routing (Beta) → Add rules
+        ``compat_model`` selects the routing mode:
+        - ``dynamic/{route}`` — per-gateway routing rules from the CF Dashboard;
+        - ``{provider_slug}/{model}`` — BYOK: the gateway resolves the provider
+          key stored in Secrets Store, no provider key leaves this process.
         """
         account_id = self.account_id or os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")  # type: ignore[attr-defined]
         gateway_id = self.gateway_id or os.environ.get("CLOUDFLARE_AI_GATEWAY_ID", "default")  # type: ignore[attr-defined]
         token      = self.api_token  or os.environ.get("CLOUDFLARE_API_TOKEN", "")   # type: ignore[attr-defined]
         if not account_id:
-            return {"error": "cloudflare-dynamic: CLOUDFLARE_ACCOUNT_ID not set", "content": ""}
+            return {"error": "cloudflare-compat: CLOUDFLARE_ACCOUNT_ID not set", "content": ""}
 
-        # CF AI Gateway dynamic routing uses the /compat endpoint.
-        # model = "dynamic/<route_name>" where route_name is set in CF Dashboard
-        # (AI Gateway → {gateway_id} → Routing → route name).
-        # CF_AIG_ROUTE env overrides the route name; defaults to "ai_route".
-        route_name = os.environ.get("CF_AIG_ROUTE", "ai_route")
         # /compat is an OpenAI-compat proxy; full chat URL — no /v1 prefix appended
-        url       = f"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat/chat/completions"
-        dyn_model = model if model.startswith("dynamic/") else f"dynamic/{route_name}"
+        url = f"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat/chat/completions"
         # /compat with authentication:true requires cf-aig-authorization header.
         # User-Agent is required to pass CF bot protection at the edge.
         aig_token = os.environ.get("CF_AIG_TOKEN", token)
@@ -261,7 +256,7 @@ class _GatewayProvidersMixin:
         if system:
             msgs.insert(0, {"role": "system", "content": system})
         body: dict[str, Any] = {
-            "model": dyn_model,
+            "model": compat_model,
             "messages": msgs,
             "max_tokens": max_tokens,
             "temperature": temperature,
@@ -269,7 +264,7 @@ class _GatewayProvidersMixin:
         if tools:
             body["tools"] = tools
 
-        _log.info("CF dynamic routing: %s → %s", dyn_model, url)
+        _log.info("CF compat: %s → %s", compat_model, url)
         req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=hdrs, method="POST")
         try:
             with urllib.request.urlopen(req, timeout=120.0) as resp:
@@ -285,7 +280,7 @@ class _GatewayProvidersMixin:
         choice = (data.get("choices") or [{}])[0]
         return {
             "content": choice.get("message", {}).get("content", ""),
-            "model": data.get("model", dyn_model),
+            "model": data.get("model", compat_model),
             "stop_reason": choice.get("finish_reason", ""),
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
@@ -293,6 +288,29 @@ class _GatewayProvidersMixin:
                 "total_tokens":  data.get("usage", {}).get("total_tokens", 0),
             },
         }
+
+    def _call_cloudflare_dynamic(
+        self,
+        messages: list[dict[str, Any]],
+        model: str,
+        max_tokens: int,
+        temperature: float,
+        system: str | None,
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """CF AI Gateway dynamic routing — CF applies per-gateway routing rules.
+
+        Requires dynamic routing rules configured in CF Dashboard:
+        AI Gateway → {gateway_id} → Routing (Beta) → Add rules.
+        model = "dynamic/<route_name>"; CF_AIG_ROUTE env overrides the route
+        name, defaults to "ai_route".
+        """
+        route_name = os.environ.get("CF_AIG_ROUTE", "ai_route")
+        dyn_model = model if model.startswith("dynamic/") else f"dynamic/{route_name}"
+        return self._call_cloudflare_compat(
+            dyn_model, messages, max_tokens, temperature, system, tools=tools
+        )
 
     def _call_omniroute(
         self,
@@ -389,7 +407,17 @@ class _GatewayProvidersMixin:
         system: str | None,
         tools: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
+        from voly.ai_gateway.credentials import byok_active, byok_provider_slug
+
         try:
+            # BYOK: provider key is stored in CF Secrets Store and resolved by
+            # the gateway — route through /compat, never read the env key.
+            slug = byok_provider_slug(provider_name, getattr(self, "byok_providers", None))
+            if slug and byok_active(self):
+                return self._call_cloudflare_compat(
+                    f"{slug}/{model}", messages, max_tokens, temperature, system, tools=tools
+                )
+
             if provider_name == "anthropic":
                 key  = os.environ.get("ANTHROPIC_API_KEY", "")
                 base = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com")

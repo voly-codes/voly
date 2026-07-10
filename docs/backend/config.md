@@ -90,6 +90,8 @@ ai_gateway:
   upstream: ""           # "omniroute" → delegate non-CF routing to external gateway
   upstream_model: ""     # "auto" = auto-combo OmniRoute; "" = passthrough caller's model
   upstream_fallback_direct: true  # if upstream unavailable — direct provider adapter
+  byok_enabled: false    # provider keys from CF Secrets Store via gateway (VOLY_BYOK env override)
+  byok_providers: []     # restrict BYOK to a subset; empty = all supported
   cache_enabled: true
   cache_persist_dir: .voly/gateway_cache  # disk cache for responses; empty → in-memory only
   rate_limit_rpm: 60

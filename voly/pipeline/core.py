@@ -129,6 +129,8 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             gw.upstream = self.config.ai_gateway.upstream
             gw.upstream_model = self.config.ai_gateway.upstream_model
             gw.upstream_fallback_direct = self.config.ai_gateway.upstream_fallback_direct
+            gw.byok_enabled = getattr(self.config.ai_gateway, "byok_enabled", False)
+            gw.byok_providers = list(getattr(self.config.ai_gateway, "byok_providers", None) or [])
             gw._enabled = self.config.ai_gateway.enabled
             # Scope the persistent cache to the project's repo state (R1): the same
             # task text on a changed repo — or a different project — must miss.

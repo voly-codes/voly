@@ -219,6 +219,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
             upstream=g.get("upstream", ""),
             upstream_model=g.get("upstream_model", ""),
             upstream_fallback_direct=g.get("upstream_fallback_direct", True),
+            byok_enabled=_parse_bool(g.get("byok_enabled"), False),
+            byok_providers=list(g.get("byok_providers") or []),
             cache_enabled=g.get("caching", {}).get("enabled", True),
             cache_ttl_seconds=g.get("caching", {}).get("ttl_seconds", 3600),
             cache_max_entries=g.get("caching", {}).get("max_entries", 1000),
@@ -234,6 +236,9 @@ def _parse_config(raw: dict) -> VOLYConfig:
             dlp_block_secrets=g.get("dlp", {}).get("block_secrets", True),
             dlp_block_pii=g.get("dlp", {}).get("block_pii", True),
         )
+
+    if "VOLY_BYOK" in os.environ:
+        config.ai_gateway.byok_enabled = _parse_bool(os.environ.get("VOLY_BYOK"), False)
 
     if "cost_policy" in raw:
         cp = raw["cost_policy"]

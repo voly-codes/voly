@@ -52,6 +52,10 @@ class AIGateway(_GatewayProvidersMixin):
         self.upstream = ""
         self.upstream_model = ""          # "" → passthrough caller's model
         self.upstream_fallback_direct = True
+        # BYOK (Store Keys): provider keys live in CF Secrets Store; the
+        # gateway resolves them per request. See voly/ai_gateway/credentials.py.
+        self.byok_enabled = False
+        self.byok_providers: list[str] = []   # empty = all BYOK-supported
         # Project-state fingerprint folded into every cache key on this instance
         # (VOLY risk R1). Set once per project run — see voly/ai_gateway/
         # project_state.py and pipeline/core.py. Empty → no scope (prior behaviour).
@@ -484,6 +488,7 @@ class AIGateway(_GatewayProvidersMixin):
             "gateway_id": self.gateway_id,
             "enabled":    self.enabled,
             "upstream":   self.upstream,
+            "byok":       self.byok_enabled,
             "cache":      self.cache.to_dict(),
             "rate_limit": self.rate_limit.to_dict(),
             "spend_limit":self.spend_limit.to_dict(),
@@ -500,6 +505,8 @@ class AIGateway(_GatewayProvidersMixin):
         self.upstream   = config.get("upstream",   self.upstream)
         self.upstream_model = config.get("upstream_model", self.upstream_model)
         self.upstream_fallback_direct = config.get("upstream_fallback_direct", self.upstream_fallback_direct)
+        self.byok_enabled   = config.get("byok_enabled",   self.byok_enabled)
+        self.byok_providers = config.get("byok_providers", self.byok_providers)
 
         if c := config.get("caching"):
             self.cache.enabled     = c.get("enabled",     True)
