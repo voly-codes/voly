@@ -122,7 +122,7 @@ ai_gateway:
   # BYOK (Store Keys): provider API keys live in CF Secrets Store and are
   # resolved by the gateway per request — no provider keys in .env needed.
   # Requires an authenticated gateway + CF_AIG_TOKEN. VOLY_BYOK env overrides.
-  # See docs/proposals/byok-cf-secrets.md.
+  # See docs/backend/ai-gateway.md § BYOK (Store Keys).
   byok_enabled: false
   byok_providers: []          # empty = all supported (anthropic, openai, google-ai-studio, deepseek)
   caching:

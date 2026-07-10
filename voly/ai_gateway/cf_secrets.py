@@ -1,6 +1,6 @@
 """CF Secrets Store client for AI Gateway BYOK provider keys.
 
-Flow (docs/proposals/byok-cf-secrets.md, PR4): secrets are created in the
+Flow (docs/backend/ai-gateway.md § BYOK): secrets are created in the
 account's Secrets Store with the BYOK naming convention
 ``{gateway_id}_{provider_slug}_{alias}`` and the ``ai_gateway`` scope;
 AI Gateway resolves them at runtime **by name** (the ``secret_id`` is not used

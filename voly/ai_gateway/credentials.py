@@ -1,6 +1,6 @@
 """Provider credential routing: CF AI Gateway BYOK vs local env keys.
 
-See ``docs/proposals/byok-cf-secrets.md``.
+See ``docs/backend/ai-gateway.md`` § BYOK (Store Keys).
 
 BYOK (Store Keys): provider API keys live in Cloudflare Secrets Store
 (named ``{gateway_id}_{provider_slug}_{alias}``) and are resolved by the

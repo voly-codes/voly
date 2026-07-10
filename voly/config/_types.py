@@ -150,7 +150,7 @@ class AIGatewayConfig:
     upstream_model: str = ""            # override model sent upstream ("auto" = OmniRoute auto-combo)
     upstream_fallback_direct: bool = True
     # BYOK (Store Keys): provider API keys live in CF Secrets Store, the
-    # gateway resolves them per request (docs/proposals/byok-cf-secrets.md).
+    # gateway resolves them per request (docs/backend/ai-gateway.md § BYOK).
     byok_enabled: bool = False
     byok_providers: list[str] = field(default_factory=list)  # empty = all supported
     cache_enabled: bool = True

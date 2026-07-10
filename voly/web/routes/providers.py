@@ -1,6 +1,6 @@
 """Routes: /api/providers/keys — BYOK provider keys in CF Secrets Store.
 
-Security invariants (docs/proposals/byok-cf-secrets.md, PR4):
+Security invariants (docs/backend/ai-gateway.md § BYOK):
 - key values transit this process once (POST body → CF API) and are never
   logged or written to disk; list/GET return names only (CF cannot read values);
 - endpoints are localhost-only: this is a self-host management surface, not a

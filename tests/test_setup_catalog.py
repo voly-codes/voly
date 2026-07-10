@@ -1,4 +1,4 @@
-"""`voly setup` hosted catalog opt-in (PR5, docs/proposals/byok-cf-secrets.md)."""
+"""`voly setup` hosted catalog opt-in (see docs/backend/config.md)."""
 
 from __future__ import annotations
 

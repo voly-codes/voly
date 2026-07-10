@@ -1,6 +1,6 @@
 """BYOK (CF AI Gateway Store Keys): credential routing + /compat wiring.
 
-See docs/proposals/byok-cf-secrets.md.
+See docs/backend/ai-gateway.md § BYOK (Store Keys).
 """
 
 from __future__ import annotations

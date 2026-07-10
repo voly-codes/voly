@@ -129,7 +129,7 @@ Current daily spend by agents/providers.
 ## /api/providers/keys — BYOK provider keys (localhost-only)
 
 Manage AI provider keys stored in **CF Secrets Store** (BYOK,
-`docs/proposals/byok-cf-secrets.md`). All three endpoints reject non-localhost
+`docs/backend/ai-gateway.md` § BYOK). All three endpoints reject non-localhost
 clients with 403. Key values are write-only: never logged, never returned.
 Requires `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Secrets Store Edit).
 

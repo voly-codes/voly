@@ -110,7 +110,7 @@ If `CF_ACCOUNT_ID` + `CF_AIG_TOKEN` are not set — fallback to `env.AI.run()` d
 
 ## BYOK (Store Keys) — provider keys in CF Secrets Store
 
-Design: [`docs/proposals/byok-cf-secrets.md`](../proposals/byok-cf-secrets.md).
+Reference: CF docs — AI Gateway BYOK (Store Keys), Secrets Store.
 
 With `ai_gateway.byok_enabled: true`, provider API keys are **not** read from
 env for BYOK-eligible providers. Instead `_direct_call` routes the request
