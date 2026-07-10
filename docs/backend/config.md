@@ -64,6 +64,11 @@ VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
 VOLY_PLAN_ENABLED=true
 VOLY_PLAN_MODE=active
 # Plan gates (Rung B). CLI: voly plan run plan.yaml
+
+VOLY_RUN_POOL_WORKERS=16
+# Thread pool size for POST /api/run (web/routes/run.py). Executor calls are
+# I/O-bound subprocess waits, not CPU-bound, so a larger pool is cheap and
+# reduces invisible queuing under concurrent requests.
 ```
 
 > Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via

@@ -16,7 +16,17 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
-_THREAD_POOL = ThreadPoolExecutor(max_workers=4)
+# Executor calls are blocking (subprocess.run) but I/O-bound, not CPU-bound —
+# a small fixed pool queued concurrent /api/run requests invisibly behind
+# whatever was already running. VOLY_RUN_POOL_WORKERS lets deployments size
+# it to their concurrency needs.
+_THREAD_POOL = ThreadPoolExecutor(
+    max_workers=int(os.environ.get("VOLY_RUN_POOL_WORKERS", "16"))
+)
+# How often to send an SSE heartbeat while waiting on the blocking call —
+# keeps proxies/browsers from idling out the connection during a long queue
+# wait or a long-running executor, same pattern as /api/tasks/stream.
+_RUN_HEARTBEAT_SECONDS = 15
 _log = logging.getLogger("voly.web.run")
 
 # Code extensions to search when gathering context
@@ -360,15 +370,22 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
 
         yield _sse("start", start_payload)
         try:
-            if effective_req.executor == "pipeline":
-                result = await loop.run_in_executor(
-                    _THREAD_POOL, _pipeline_run, effective_req, config
-                )
-            else:
-                result = await loop.run_in_executor(
-                    _THREAD_POOL, _executor_run, effective_req, config
-                )
-            yield _sse("done", result)
+            fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
+            future = loop.run_in_executor(_THREAD_POOL, fn, effective_req, config)
+            while True:
+                done, _pending = await asyncio.wait({future}, timeout=_RUN_HEARTBEAT_SECONDS)
+                if future in done:
+                    yield _sse("done", future.result())
+                    break
+                if await request.is_disconnected():
+                    # Python can't force-cancel a blocking subprocess.run() in
+                    # the thread pool, so the underlying call still runs to
+                    # completion in the background — but there's no client
+                    # left to stream to, so stop here instead of holding the
+                    # connection (and this generator) open indefinitely.
+                    _log.info("[RUN] client disconnected, abandoning SSE stream")
+                    return
+                yield _sse("heartbeat", {})
         except Exception as exc:
             yield _sse("error", {"error": str(exc)})
 

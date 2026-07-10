@@ -97,9 +97,22 @@ Start a task. Returns an SSE stream.
 
 // SSE events
 data: {"type": "start", "task": "...", "executor": "claude-code"}
+data: {"type": "heartbeat"}
 data: {"type": "done", "success": true, "content": "...", "billing_fallback": "zen"}
 data: {"type": "error", "error": "..."}
 ```
+
+The blocking `pipeline`/executor call runs in a `ThreadPoolExecutor`
+(`_THREAD_POOL` in `run.py`, sized by `VOLY_RUN_POOL_WORKERS`, default 16 —
+executor calls are I/O-bound subprocess waits, not CPU-bound, so a larger
+pool doesn't cost much). While waiting, the stream emits a `heartbeat` event
+every 15s (`_RUN_HEARTBEAT_SECONDS`) so proxies/browsers don't idle out the
+connection during a long queue wait or a long-running task, and checks
+`request.is_disconnected()` on each wait cycle — if the client is gone, the
+generator returns immediately instead of holding the SSE connection open.
+The underlying call keeps running in its worker thread either way (Python
+can't force-cancel a blocking `subprocess.run()`), but no further stream
+writes are attempted on a dead connection.
 
 For the multi-agent (A2A local) path, `start` also carries `a2a: true`,
 `hybrid: bool`, resolved `cwd`, and — when `a2a.hybrid_code_gen` is on but no

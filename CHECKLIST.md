@@ -22,7 +22,7 @@ Per `CLAUDE.md`'s documentation rule, update the linked doc in the same commit a
 
 ## Medium
 
-- [ ] **Single global thread pool for all SSE `/api/run` requests, no disconnect handling.** `voly/web/routes/run.py:19` — `ThreadPoolExecutor(max_workers=4)` is shared by every client. A 5th concurrent request queues invisibly (client only sees the initial `start` event, then a silent gap that can trip proxy/browser idle timeouts). There's no `request.is_disconnected()` check, so a client that disconnects doesn't free its worker slot.
+- [x] **Single global thread pool for all SSE `/api/run` requests, no disconnect handling.** `voly/web/routes/run.py:19` — `ThreadPoolExecutor(max_workers=4)` is shared by every client. A 5th concurrent request queues invisibly (client only sees the initial `start` event, then a silent gap that can trip proxy/browser idle timeouts). There's no `request.is_disconnected()` check, so a client that disconnects doesn't free its worker slot.
   Update: `docs/backend/api.md`
 
 - [ ] **DSPy example filename collision.** `_dspy_store_example` (`voly/runner/agent_runner.py:207-209`) names dataset files `f"{int(time.time())}.jsonl"` opened with mode `"w"`. Two examples produced within the same wall-clock second (plausible with the 4-worker pool above) silently overwrite each other.
