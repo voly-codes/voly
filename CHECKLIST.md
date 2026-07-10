@@ -28,7 +28,7 @@ Per `CLAUDE.md`'s documentation rule, update the linked doc in the same commit a
 - [x] **DSPy example filename collision.** `_dspy_store_example` (`voly/runner/agent_runner.py:207-209`) names dataset files `f"{int(time.time())}.jsonl"` opened with mode `"w"`. Two examples produced within the same wall-clock second (plausible with the 4-worker pool above) silently overwrite each other.
   Update: `docs/backend/dspy.md`
 
-- [ ] **Asymmetric path-escape guard in the patch executor.** `voly/executor/patch.py` protects the write path (`_write`, ~line 168) against `../` escapes but not the diff-apply read path (`_apply_diff_section`, ~line 130-136) — a model-produced diff header with `../` can read a file outside the project sandbox before the (safe) write is rejected.
+- [x] **Asymmetric path-escape guard in the patch executor.** `voly/executor/patch.py` protects the write path (`_write`, ~line 168) against `../` escapes but not the diff-apply read path (`_apply_diff_section`, ~line 130-136) — a model-produced diff header with `../` can read a file outside the project sandbox before the (safe) write is rejected.
   Update: `docs/backend/executors.md`
 
 - [ ] **Redundant executor rebuild in the fallback loop.** `voly/runner/agent_runner.py:404` and `:427` call `_build_executor(fallback_name)` twice per fallback iteration — once to check `is_available()`, then again right before `.run()` — re-importing the module and re-reading credential env vars each time. Not incorrect, just wasteful on the hot billing-fallback path.

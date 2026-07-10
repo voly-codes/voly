@@ -129,7 +129,11 @@ class LocalPatchApplier:
 
     def _apply_diff_section(self, rel_path: str, diff_text: str) -> str | None:
         """Apply a single-file unified diff section. Returns new content or None."""
-        full = os.path.join(self.cwd, rel_path)
+        try:
+            full = self._resolve_safe_path(rel_path)
+        except ValueError as exc:
+            _log.error("patch read error: %s", exc)
+            return None
         try:
             original = Path(full).read_text(encoding="utf-8").splitlines(keepends=True)
         except FileNotFoundError:
@@ -159,15 +163,26 @@ class LocalPatchApplier:
 
         return "".join(lines) if lines else None
 
-    # ── Writer ────────────────────────────────────────────────────────────────
+    # ── Path safety ──────────────────────────────────────────────────────────
 
-    def _write(self, rel_path: str, content: str, result: PatchResult) -> None:
-        # Safety: never escape cwd
+    def _resolve_safe_path(self, rel_path: str) -> str:
+        """Resolve rel_path under self.cwd; raise ValueError on escape.
+
+        Used for both reads and writes — a model-supplied diff path with
+        `../` must not be able to read a file outside the sandbox any more
+        than it can write one.
+        """
         rel_path = rel_path.lstrip("/")
         full = os.path.realpath(os.path.join(self.cwd, rel_path))
         if not full.startswith(self.cwd + os.sep) and full != self.cwd:
             raise ValueError(f"path escape attempt: {rel_path}")
+        return full
 
+    # ── Writer ────────────────────────────────────────────────────────────────
+
+    def _write(self, rel_path: str, content: str, result: PatchResult) -> None:
+        rel_path = rel_path.lstrip("/")
+        full = self._resolve_safe_path(rel_path)
         exists = os.path.exists(full)
         os.makedirs(os.path.dirname(full), exist_ok=True)
 

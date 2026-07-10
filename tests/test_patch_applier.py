@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -60,6 +61,34 @@ def test_path_escape_rejected(tmp_path: Path) -> None:
         assert str(full).startswith(str(tmp_path.resolve()))
     if result.errors:
         assert any("escape" in e.lower() or "passwd" in e or ".." in e for e in result.errors)
+
+
+def test_diff_apply_read_path_escape_rejected(tmp_path: Path) -> None:
+    """The unified-diff apply path reads the target file before writing it —
+    that read must be jailed exactly like the write, or a model-supplied
+    diff with `../` can read (and, via the diff hunk, exfiltrate fragments
+    of) a file outside the sandboxed cwd even though the final write to that
+    path is separately rejected."""
+    outside_dir = tmp_path.parent / "outside_secret"
+    outside_dir.mkdir(exist_ok=True)
+    secret = outside_dir / "secret.txt"
+    secret.write_text("TOP-SECRET-CONTENT\n")
+
+    cwd = tmp_path / "project"
+    cwd.mkdir()
+    applier = LocalPatchApplier(str(cwd))
+
+    rel_escape = os.path.relpath(secret, cwd)
+    diff = f"""diff --git a/{rel_escape} b/{rel_escape}
+--- a/{rel_escape}
++++ b/{rel_escape}
+@@ -1,1 +1,1 @@
+-TOP-SECRET-CONTENT
++PWNED
+"""
+    result = applier.apply(diff)
+    assert result.applied == []
+    assert secret.read_text() == "TOP-SECRET-CONTENT\n"
 
 
 def test_multiple_files(tmp_path: Path) -> None:

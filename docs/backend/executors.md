@@ -105,7 +105,11 @@ Parses LLM response and writes files to disk. Supports two formats:
 @@ -10,4 +10,6 @@
 ```
 
-Security: path traversal check — `full_path.startswith(cwd + os.sep)` required.
+Security: path traversal check — `full_path.startswith(cwd + os.sep)` required
+(`_resolve_safe_path`). Applied to **both** reads and writes: the unified-diff
+path reads the target file before computing the patched content, so a
+model-supplied `+++ b/../../etc/passwd` diff header is rejected before the
+read happens, not just before the (separately guarded) write.
 
 Returns `PatchResult` with `.applied` list and `.summary()` method.
 
