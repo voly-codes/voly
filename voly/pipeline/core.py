@@ -41,7 +41,6 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         self._model_router: Any = None
         self._project_profile: Any = None
         self.mcp = MCPManager()
-        self._provider: Any = None
         self._metrics = PipelineMetrics()
         self._stage_hooks: dict[PipelineStage, list[Callable]] = {
             stage: [] for stage in PipelineStage
@@ -384,13 +383,6 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             )
 
     # ── Internal ──────────────────────────────────────────────────────────────
-
-    def _get_provider(self, name: str) -> Any:
-        if self._provider is None:
-            from voly.models.providers import create_provider
-            model_cfg = self.config.get_model_config()
-            self._provider = create_provider(name, api_key=model_cfg.api_key, base_url=model_cfg.base_url)
-        return self._provider
 
     def _fire(self, stage: PipelineStage, **kwargs: Any) -> None:
         elapsed = round((time.monotonic() - self._run_started) * 1000) if self._run_started else 0

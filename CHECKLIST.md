@@ -35,4 +35,4 @@ Per `CLAUDE.md`'s documentation rule, update the linked doc in the same commit a
 
 ## Low / Cleanup
 
-- [ ] **Dead code violates Invariant #1.** `Pipeline._get_provider()` (`voly/pipeline/core.py:388-393`) builds a raw provider client via `create_provider(...)`, bypassing `AIGateway.chat()` entirely (no cache/DLP/spend-limit/telemetry). No current callers — but it sits directly on top of the project's core invariant and is a landmine if wired up later without review. Remove it or gate it so it can't be called unreviewed.
+- [x] **Dead code violates Invariant #1.** `Pipeline._get_provider()` (`voly/pipeline/core.py:388-393`) builds a raw provider client via `create_provider(...)`, bypassing `AIGateway.chat()` entirely (no cache/DLP/spend-limit/telemetry). No current callers — but it sits directly on top of the project's core invariant and is a landmine if wired up later without review. Remove it or gate it so it can't be called unreviewed.
