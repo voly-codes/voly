@@ -126,6 +126,11 @@ When the primary model returns an error, the Gateway automatically tries the nex
 in the `fallback_models` list from config. This is separate from the billing fallback chain in
 AgentRunner (which switches the whole executor, not just the model).
 
+Terminal-billing text classification (`is_terminal_billing_error`, `"402"`/`"billing"`
+signals) is documented in `docs/backend/executors.md` under "Billing fallback chain" —
+it requires HTTP-status-style framing or a specific billing phrase, not a bare
+substring match, to avoid misclassifying unrelated errors as billing failures.
+
 ## Cache validity boundaries (risk R1)
 
 Code generation is sensitive to repository state: the same prompt on a changed

@@ -23,7 +23,11 @@ claude-code  →  wrangler  →  opencode  →  zen
 Detection: `ExecutorResult.billing_error = True` — `_is_billing_error` in
 `voly/executor/base.py` delegates to the semantic classifier
 (`voly/ai_gateway/error_classifier.py`): fires only for terminal quota/account
-states; a transient rate-limit 429 is NOT billing.
+states; a transient rate-limit 429 is NOT billing. The `"402"` and `"billing"`
+text signals require HTTP-status-style framing (`"error 402"`, `"402: payment
+required"`) or a specific billing phrase (`"billing issue"`, `"billing
+error"`, …) — a bare `"402"` inside an unrelated number (port, PID) or a
+passing mention of the word "billing" does not trigger a false positive.
 
 Only file-writing executors are in the chain. `deepseek`/`workers-ai` are text-only and cannot apply file changes — they must NOT appear here.
 

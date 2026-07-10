@@ -34,6 +34,20 @@ def test_legacy_billing_patterns_still_flagged(text):
     assert _is_billing_error(text) is True
 
 
+# ─── False-positive guards: bare "402"/"billing" substrings must not fire ────
+@pytest.mark.parametrize(
+    "text",
+    [
+        "connection refused on port 4402",
+        "worker pid 402 exited unexpectedly",
+        "see our billing FAQ for more information",
+        "please check your billing settings page",
+    ],
+)
+def test_bare_numeric_and_word_matches_do_not_trigger_billing(text):
+    assert _is_billing_error(text) is False
+
+
 # ─── The core R4 improvement: rate-limit is NOT a billing error ──────────────
 def test_bare_rate_limit_is_not_billing():
     # A plain per-minute 429 must not skip the executor down the billing chain.

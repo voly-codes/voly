@@ -71,7 +71,11 @@ _CREDITS_EXHAUSTED_SIGNALS: tuple[str, ...] = (
     # VOLY originals (kept for backward compatibility)
     "credit balance is too low",
     "insufficient credits",
-    "billing",
+    "billing error",
+    "billing issue",
+    "billing problem",
+    "update your billing",
+    "billing details required",
 )
 
 _ACCOUNT_DEACTIVATED_SIGNALS: tuple[str, ...] = (
@@ -135,6 +139,15 @@ _CONTEXT_OVERFLOW_REGEX = re.compile(
             "messages exceed",
         )
     ),
+    re.IGNORECASE,
+)
+
+# A bare "402" substring matches unrelated numbers (ports, PIDs, line numbers)
+# in free-form CLI error text. Only trust it in explicit HTTP-status framing or
+# right next to "payment required".
+_HTTP_402_REGEX = re.compile(
+    r"\b(?:http|https|status(?:\s*code)?|error\s*code|code)\s*[:#]?\s*402\b"
+    r"|\b402\b\s*[:\-]?\s*payment required",
     re.IGNORECASE,
 )
 
@@ -319,6 +332,6 @@ def is_terminal_billing_error(text: str, status_code: int | None = None) -> bool
     # A bare HTTP 402 is always terminal even without a recognizable body.
     if status_code == 402:
         return True
-    if "402" in text or "payment required" in text.lower():
+    if _HTTP_402_REGEX.search(text) or "payment required" in text.lower():
         return True
     return classify_provider_error(status_code, text) in TERMINAL_BILLING_TYPES
