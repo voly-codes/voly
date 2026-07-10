@@ -202,9 +202,14 @@ def _dspy_store_example(
         "cost_usd": result.cost_usd,
     }
 
-    # Append to JSONL
+    # One file per example. Unix-second timestamp alone collides when two
+    # examples are produced within the same second (plausible with the
+    # concurrent /api/run thread pool) and mode "w" silently overwrites the
+    # earlier one — add a random suffix to guarantee uniqueness while keeping
+    # the timestamp prefix for chronological sorting.
     import time as _time
-    fname = os.path.join(datasets_dir, f"{int(_time.time())}.jsonl")
+    import uuid as _uuid
+    fname = os.path.join(datasets_dir, f"{int(_time.time())}-{_uuid.uuid4().hex[:8]}.jsonl")
     with open(fname, "w") as f:
         f.write(json.dumps(example) + "\n")
 

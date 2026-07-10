@@ -95,7 +95,11 @@ dspy.configure(lm=lm)
 ## Datasets and compilation
 
 Saved examples (`datasets_dir/task_planner/*.jsonl`) can be used for
-optimization via teleprompters:
+optimization via teleprompters. Each example is one file, named
+`{unix_seconds}-{8 hex chars}.jsonl` — the random suffix guarantees
+uniqueness even when two examples are produced within the same second
+(possible with the concurrent `/api/run` thread pool), which a
+timestamp-only filename would silently overwrite (mode `"w"`).
 
 ```python
 from voly.dspy.compiler import DSPyCompiler
