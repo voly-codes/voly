@@ -4,25 +4,26 @@
     LayersIcon, MessageSquareIcon, SaveIcon, BarChart2Icon,
     ChevronRightIcon,
   } from '../../icons.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
 
-  const stages = [
-    { icon: RouteIcon,        label: 'Маршрут' },
-    { icon: DatabaseIcon,     label: 'Память' },
-    { icon: ZapIcon,          label: 'RTK' },
-    { icon: BookOpenIcon,     label: 'Скилы' },
-    { icon: LayersIcon,       label: 'Headroom' },
-    { icon: MessageSquareIcon,label: 'Модель' },
-    { icon: SaveIcon,         label: 'Запись' },
-    { icon: BarChart2Icon,    label: 'Телеметрия' },
-  ]
+  const stages = $derived([
+    { icon: RouteIcon,         label: t('empty.route') },
+    { icon: DatabaseIcon,      label: t('empty.memory') },
+    { icon: ZapIcon,           label: t('empty.rtk') },
+    { icon: BookOpenIcon,      label: t('empty.skills') },
+    { icon: LayersIcon,        label: t('empty.headroom') },
+    { icon: MessageSquareIcon, label: t('empty.model') },
+    { icon: SaveIcon,          label: t('empty.store') },
+    { icon: BarChart2Icon,     label: t('empty.telemetry') },
+  ])
 </script>
 
 <div class="empty-state">
   <div class="empty-icon">
     <ChevronRightIcon size="28" strokeWidth="1.5" />
   </div>
-  <p class="empty-title">Выберите задачу для инспекции</p>
-  <p class="empty-sub">Детали pipeline, токены, расходы и стадии выполнения</p>
+  <p class="empty-title">{t('empty.title')}</p>
+  <p class="empty-sub">{t('empty.sub')}</p>
 
   <div class="empty-flow">
     {#each stages as s, i}
@@ -40,68 +41,48 @@
 
 <style>
   .empty-state {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
     gap: 8px;
+    height: 100%;
     color: var(--text-muted);
-    padding: 32px;
   }
-
-  .empty-icon { color: var(--border-default); }
-
+  .empty-icon { opacity: 0.35; margin-bottom: 8px; }
   .empty-title {
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--text-secondary);
     margin: 0;
   }
-
-  .empty-sub {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin: 0 0 16px;
-  }
-
+  .empty-sub { font-size: 12px; margin: 0 0 20px; max-width: 280px; line-height: 1.4; }
   .empty-flow {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    align-items: center;
     justify-content: center;
-    max-width: 480px;
+    gap: 4px;
+    max-width: 420px;
   }
-
   .ef-step {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
   }
-
   .ef-icon {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
   }
-
-  .ef-label {
-    font-size: 9px;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-
-  .ef-arrow {
-    font-size: 11px;
-    color: var(--border-default);
-    margin-bottom: 12px;
-  }
+  .ef-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .ef-arrow { font-size: 11px; color: var(--text-muted); opacity: 0.5; margin-bottom: 14px; }
 </style>

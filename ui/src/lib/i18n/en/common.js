@@ -22,6 +22,8 @@ export default {
   'header.totalCost': 'total cost',
   'header.toggleTheme': 'Toggle dark mode',
   'header.switchLang': 'Switch language',
+  'header.langEn': 'EN',
+  'header.langRu': 'RU',
 
   // Common
   'common.close': 'Close',

@@ -22,19 +22,22 @@
   import { toast } from './lib/stores/toastStore.svelte'
   import { router } from './lib/stores/routerStore.svelte'
   import { registerShortcuts, global } from './lib/utils/keyboard.js'
+  import { i18n, t } from './lib/i18n/localeStore.svelte.ts'
 
-  const navItems = [
-    { id: 'tasks',     label: 'Tasks' },
-    { id: 'gateway',   label: 'Gateway' },
-    { id: 'telemetry', label: 'Telemetry' },
-    { id: 'dspy',      label: 'DSPy' },
-  ]
+  // Re-read locale so nav labels update on language switch
+  const navItems = $derived([
+    { id: 'tasks',     label: t('nav.tasks') },
+    { id: 'gateway',   label: t('nav.gateway') },
+    { id: 'telemetry', label: t('nav.telemetry') },
+    { id: 'dspy',      label: t('nav.dspy') },
+  ])
 
-  const drawerBtns = [
-    { open: () => ui.runOpen    = true, icon: PlayIcon,        label: 'Run' },
-    { open: () => ui.cfOpen     = true, icon: CloudUploadIcon, label: 'CF' },
-    { open: () => ui.marketOpen = true, icon: BookOpenIcon,    label: 'Skills' },
-  ]
+  const drawerBtns = $derived([
+    { open: () => ui.runOpen    = true, icon: PlayIcon,        label: t('nav.run') },
+    { open: () => ui.cfOpen     = true, icon: CloudUploadIcon, label: t('nav.cf') },
+    { open: () => ui.marketOpen = true, icon: BookOpenIcon,    label: t('nav.skills') },
+  ])
+  void i18n.locale
 
   onMount(() => {
     router.init()
@@ -119,15 +122,15 @@
 
   {#if tasksStore.error && router.page === 'tasks'}
     <div class="error-banner">
-      Нет соединения с VOLY API: {tasksStore.error}
-      <button onclick={() => { tasksStore.refresh(); toast.info('Refreshing...') }}>Повторить</button>
+      {t('app.apiError', { error: tasksStore.error })}
+      <button onclick={() => { tasksStore.refresh(); toast.info(t('app.refreshing')) }}>{t('common.retry')}</button>
     </div>
   {/if}
 
   <div class="body">
     {#if router.page === 'tasks'}
       {#if tasksStore.loading && tasksStore.tasks.length === 0}
-        <div class="loading"><Spinner size={24} /> Загрузка задач…</div>
+        <div class="loading"><Spinner size={24} /> {t('app.loadingTasks')}</div>
       {:else}
         <TaskSidebar />
         <main class="main">
@@ -149,18 +152,18 @@
 </div>
 
 <!-- Drawers -->
-<Drawer bind:open={ui.runOpen} title="Запустить задачу" width="480px">
+<Drawer bind:open={ui.runOpen} title={t('app.runDrawerTitle')} width="480px">
   <RunPanel onTaskComplete={() => { ui.runOpen = false; tasksStore.refresh() }} />
 </Drawer>
 
-<Drawer bind:open={ui.cfOpen} title="Cloudflare" width="520px">
+<Drawer bind:open={ui.cfOpen} title={t('app.cfDrawerTitle')} width="520px">
   <CFPage />
 </Drawer>
 
-<Drawer bind:open={ui.marketOpen} title="Marketplace" width="min(920px, 96vw)">
+<Drawer bind:open={ui.marketOpen} title={t('app.marketDrawerTitle')} width="min(920px, 96vw)">
   <div class="mkt-tabs">
-    <button class="mkt-tab" class:active={marketTab === 'skills'} onclick={() => marketTab = 'skills'}>Skills</button>
-    <button class="mkt-tab" class:active={marketTab === 'plugins'} onclick={() => marketTab = 'plugins'}>Plugins</button>
+    <button class="mkt-tab" class:active={marketTab === 'skills'} onclick={() => marketTab = 'skills'}>{t('mkt.skills')}</button>
+    <button class="mkt-tab" class:active={marketTab === 'plugins'} onclick={() => marketTab = 'plugins'}>{t('mkt.plugins')}</button>
   </div>
   {#if marketTab === 'skills'}
     <MarketplacePage />

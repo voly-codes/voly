@@ -9,6 +9,7 @@
   } from '../../icons.js'
   import { fetchGatewayStatus, fetchProviderHealth } from '../../api/client.js'
   import { fmtTokens } from '../../utils/format.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
 
   let gw = $state(null)
   let health = $state(null)
@@ -47,13 +48,13 @@
 
 <div class="gateway-page">
   {#if loading}
-    <div class="loading">Загрузка статуса Gateway…</div>
+    <div class="loading">{t('gw.loading')}</div>
 
   {:else if error}
     <div class="error-block">
       <AlertCircleIcon size="16" strokeWidth="2" />
       <span>{error}</span>
-      <button onclick={load}>Повторить</button>
+      <button onclick={load}>{t('common.retry')}</button>
     </div>
 
   {:else if gw}
@@ -61,10 +62,10 @@
     <div class="status-bar" class:enabled={gw.enabled} class:disabled={!gw.enabled}>
       {#if gw.enabled}
         <CheckCircle2Icon size="16" strokeWidth="2" />
-        <span>Gateway active — {gw.provider} / {gw.gateway_id}</span>
+        <span>{t('gw.active', { name: gw.provider + ' / ' + gw.gateway_id })}</span>
       {:else}
         <AlertCircleIcon size="16" strokeWidth="2" />
-        <span>Gateway disabled</span>
+        <span>{t('gw.disabled')}</span>
       {/if}
       <button class="refresh-btn" onclick={load} title="Refresh">
         <RefreshCwIcon size="13" strokeWidth="2" />
@@ -90,7 +91,7 @@
           <div class="bar-track" title="Hits: {gw.metrics?.cache_hits} · Misses: {gw.metrics?.cache_misses}">
             <div class="bar-fill green" style:width="{cachePct()}%"></div>
           </div>
-          <div class="card-hint">Кэш ответов LLM. Попадание в кэш не тратит бюджет и ускоряет повторные запросы.</div>
+          <div class="card-hint">{t('gw.cacheHint')}</div>
         </div>
       </section>
 
@@ -109,7 +110,7 @@
           <div class="kv"><span class="k">Limit</span><span class="v">{gw.rate_limit?.requests_per_minute} rpm</span></div>
           <div class="kv"><span class="k">Current</span><span class="v">{gw.metrics?.rpm} rpm</span></div>
           <div class="kv"><span class="k">Rate limited</span><span class="v warn">{gw.metrics?.rate_limited}</span></div>
-          <div class="card-hint">Защита от burst-нагрузки. При превышении RPM запросы блокируются до следующего окна.</div>
+          <div class="card-hint">{t('gw.rateHint')}</div>
         </div>
       </section>
 
@@ -130,7 +131,7 @@
           <div class="bar-track" title="{spentPct()}% of daily budget">
             <div class="bar-fill amber" style:width="{spentPct()}%"></div>
           </div>
-          <div class="card-hint">Дневной бюджет в USD. При превышении новые запросы отклоняются до сброса счётчика (24ч).</div>
+          <div class="card-hint">{t('gw.spendHint')}</div>
         </div>
       </section>
 
@@ -156,7 +157,7 @@
               {/each}
             </div>
           {/if}
-          <div class="card-hint">Цепочка резервных моделей при отказе основной. Каждая ошибка переключает на следующий элемент.</div>
+          <div class="card-hint">{t('gw.fallbackHint')}</div>
         </div>
       </section>
 
@@ -175,7 +176,7 @@
           <div class="kv"><span class="k">Block secrets</span><span class="v">{gw.dlp?.block_secrets ? 'yes' : 'no'}</span></div>
           <div class="kv"><span class="k">Block PII</span><span class="v">{gw.dlp?.block_pii ? 'yes' : 'no'}</span></div>
           <div class="kv"><span class="k">Blocks</span><span class="v err">{gw.metrics?.dlp_blocks}</span></div>
-          <div class="card-hint">Блокирует secrets (API-ключи, JWT, SSH-ключи) и PII (email, SSN) до отправки в LLM.</div>
+          <div class="card-hint">{t('gw.dlpHint')}</div>
         </div>
       </section>
 
@@ -188,7 +189,7 @@
         <div class="card-body">
           <div class="big-num err">{gw.metrics?.errors}</div>
           <div class="big-label">total errors</div>
-          <div class="card-hint">Общее количество ошибок при вызовах LLM (сетевые, таймауты, отказы провайдера).</div>
+          <div class="card-hint">{t('gw.errorsHint')}</div>
         </div>
       </section>
     </div>
@@ -221,7 +222,7 @@
     <div class="breakdown-blocks">
       {#if Object.keys(gw.metrics?.by_provider ?? {}).length}
         <section class="breakdown-section">
-          <div class="section-title">По провайдерам</div>
+          <div class="section-title">{t('gw.byProvider')}</div>
           <div class="bar-list">
             {#each Object.entries(gw.metrics.by_provider) as [prov, count]}
               {@const pct = gw.metrics.total_requests ? Math.round((count / gw.metrics.total_requests) * 100) : 0}
@@ -239,7 +240,7 @@
 
       {#if Object.keys(gw.metrics?.by_model ?? {}).length}
         <section class="breakdown-section">
-          <div class="section-title">По моделям</div>
+          <div class="section-title">{t('gw.byModel')}</div>
           <div class="bar-list">
             {#each Object.entries(gw.metrics.by_model) as [model, count]}
               {@const pct = gw.metrics.total_requests ? Math.round((count / gw.metrics.total_requests) * 100) : 0}
@@ -258,7 +259,7 @@
       <!-- Provider Health — third block, tiles / bricks -->
       {#if health}
         <section class="breakdown-section">
-          <div class="section-title">Провайдеры — состояние ключей</div>
+          <div class="section-title">{t('gw.providerHealth')}</div>
           <div class="health-bricks">
             {#each Object.entries(health.providers) as [prov, st]}
               <div class="health-brick" class:healthy={st.healthy} class:unhealthy={!st.healthy}>
@@ -271,7 +272,7 @@
             {/each}
           </div>
           <div class="health-hint">
-            Маршрутизатор обходит нездоровые провайдеры автоматически.
+            {t('gw.healthHint')}
           </div>
         </section>
       {/if}

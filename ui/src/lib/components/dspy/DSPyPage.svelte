@@ -1,4 +1,6 @@
 <script>
+  import { t } from '../../i18n/localeStore.svelte.ts'
+
   import { onMount } from 'svelte'
   import { AlertCircleIcon, ZapIcon, DatabaseIcon, LayersIcon } from '../../icons.js'
   import { fetchDSPyStatus } from '../../api/client.js'
@@ -17,19 +19,15 @@
     }
   })
 
-  const modeRu = { off: 'выключен', shadow: 'наблюдение', active: 'активный' }
-  const modeDesc = {
-    off: 'DSPy не запускается. Pipeline использует AIGateway напрямую.',
-    shadow: 'DSPy запускается параллельно. Результат логируется в телеметрию, но ответ пользователю всегда классический. Безопасный режим для сбора данных.',
-    active: 'DSPy заменяет AIGateway для агентов из allowlist. При ошибке — автоматический fallback на классику.',
-  }
+  const modeLabel = (m) => t('dspy.mode.' + (m || 'off'))
+  const modeDescOf = (m) => t('dspy.mode.' + (m || 'off') + '.desc')
 
-  const lifecycleSteps = [
-    { label: 'Собрать датасет', cmd: 'voly dspy dataset build', desc: 'Из событий телеметрии по агентам' },
-    { label: 'Скомпилировать программу', cmd: 'voly dspy compile --agent reviewer', desc: 'Запускает DSPy optimizer' },
-    { label: 'Оценить результат', cmd: 'voly dspy eval --agent reviewer', desc: 'Средний score на датасете' },
-    { label: 'Повысить до production', cmd: 'voly dspy promote reviewer.v1 --tag production', desc: 'После успешной оценки' },
-  ]
+  const lifecycleSteps = $derived([
+    { label: t('dspy.action.dataset'), cmd: 'voly dspy dataset build', desc: t('dspy.action.dataset.desc') },
+    { label: t('dspy.action.compile'), cmd: 'voly dspy compile --agent reviewer', desc: t('dspy.action.compile.desc') },
+    { label: t('dspy.action.eval'), cmd: 'voly dspy eval --agent reviewer', desc: t('dspy.action.eval.desc') },
+    { label: t('dspy.action.promote'), cmd: 'voly dspy promote reviewer.v1 --tag production', desc: t('dspy.action.promote.desc') },
+  ])
 </script>
 
 <div class="dspy-page">
@@ -39,7 +37,7 @@
       <ZapIcon size="15" strokeWidth="2" />
       <span class="page-title">DSPy Optimizer</span>
       {#if data}
-        <span class="mode-badge mode-{data.config.mode}">{modeRu[data.config.mode] ?? data.config.mode}</span>
+        <span class="mode-badge mode-{data.config.mode}">{modeLabel(data.config.mode)}</span>
       {/if}
     </div>
     <p class="header-desc">Слой оптимизации промптов. Компилирует агентские программы против датасетов телеметрии. Все вызовы идут через AIGateway — DLP, кэш и лимиты сохраняются.</p>
@@ -66,7 +64,7 @@
           </div>
           <div class="status-item">
             <span class="sl">Режим</span>
-            <span class="sv mode-{data.config.mode}">{modeRu[data.config.mode] ?? data.config.mode}</span>
+            <span class="sv mode-{data.config.mode}">{modeLabel(data.config.mode)}</span>
           </div>
           <div class="status-item">
             <span class="sl">Пакет dspy</span>
@@ -96,7 +94,7 @@
           </div>
         {/if}
 
-        <p class="mode-desc">{modeDesc[data.config.mode]}</p>
+        <p class="mode-desc">{modeDescOf(data.config.mode)}</p>
       </section>
 
       <!-- Config -->

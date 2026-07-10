@@ -1,6 +1,7 @@
 <script>
   import { AlertCircleIcon } from '../../icons.js'
   import { fmtRel, statusRu } from './lib/utils.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
 
   let { task } = $props()
 </script>
@@ -19,19 +20,19 @@
 
   <div class="meta-strip">
     {#if task.agent}
-      <span class="meta-badge meta-agent"><span class="meta-k">агент</span><span class="meta-v">{task.agent}</span></span>
+      <span class="meta-badge meta-agent"><span class="meta-k">{t('meta.agent')}</span><span class="meta-v">{task.agent}</span></span>
     {/if}
     {#if task.model}
-      <span class="meta-badge meta-model"><span class="meta-k">модель</span><span class="meta-v">{task.model}</span></span>
+      <span class="meta-badge meta-model"><span class="meta-k">{t('meta.model')}</span><span class="meta-v">{task.model}</span></span>
     {/if}
     {#if task.provider}
-      <span class="meta-badge meta-provider"><span class="meta-k">провайдер</span><span class="meta-v">{task.provider}</span></span>
+      <span class="meta-badge meta-provider"><span class="meta-k">{t('meta.provider')}</span><span class="meta-v">{task.provider}</span></span>
     {/if}
     {#if task.executor}
-      <span class="meta-badge meta-executor"><span class="meta-k">executor</span><span class="meta-v">{task.executor}</span></span>
+      <span class="meta-badge meta-executor"><span class="meta-k">{t('meta.executor')}</span><span class="meta-v">{task.executor}</span></span>
     {/if}
     {#if task.task_type}
-      <span class="meta-badge meta-type"><span class="meta-k">тип</span><span class="meta-v">{task.task_type}</span></span>
+      <span class="meta-badge meta-type"><span class="meta-k">{t('meta.type')}</span><span class="meta-v">{task.task_type}</span></span>
     {/if}
   </div>
 

@@ -5,6 +5,7 @@
     BarChart2Icon, BookOpenIcon,
   } from '../../icons.js'
   import { statusRu, calcPct } from '../../utils/format.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import PipelineEmptyState from './PipelineEmptyState.svelte'
   import TaskHeader from './TaskHeader.svelte'
@@ -155,13 +156,13 @@
 
         <div class="right-sections">
           {#if task.result}
-            <ExtrasSection title="Вывод" chip="{(task.tokens?.output ?? 0).toLocaleString()} tok" collapsible bind:expanded={outputExpanded}>
+            <ExtrasSection title={t("inspector.output")} chip="{(task.tokens?.output ?? 0).toLocaleString()} tok" collapsible bind:expanded={outputExpanded}>
               <div class="text-block output-block">{task.result}</div>
             </ExtrasSection>
           {/if}
 
           {#if task.a2a_dispatched && task.a2a_assignments?.length}
-            <ExtrasSection title="Мульти-агенты" chip="{task.a2a_assignments.length} ролей">
+            <ExtrasSection title={t("inspector.multiAgents")} chip="{task.a2a_assignments.length} {t('inspector.roles', { n: task.a2a_assignments.length })}">
               <div class="agents-list">
                 {#each task.a2a_assignments as a}
                   <div class="agent-row">
@@ -197,9 +198,9 @@
 
           {#if task.gateway}
             {@const gw = task.gateway}
-            <ExtrasSection title="Gateway">
+            <ExtrasSection title={t("inspector.gateway")}>
               <div class="extras-grid">
-                <div class="extra-row"><span class="extra-k">Кэш</span><span class="extra-v" class:ok={gw.cache_hit} class:muted={!gw.cache_hit}>{gw.cache_hit ? 'попадание ✓' : 'промах'}</span></div>
+                <div class="extra-row"><span class="extra-k">{t("inspector.cache")}</span><span class="extra-v" class:ok={gw.cache_hit} class:muted={!gw.cache_hit}>{gw.cache_hit ? 'попадание ✓' : 'промах'}</span></div>
                 <div class="extra-row">
                   <span class="extra-k">Fallback</span>
                   <span class="extra-v" class:warn={gw.fallback_used} class:muted={!gw.fallback_used}>

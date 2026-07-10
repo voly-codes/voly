@@ -4,6 +4,7 @@
   import { fmtDur, fmtRel } from '../../utils/format.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import { ui } from '../../stores/uiStore.svelte'
+  import { i18n, t } from '../../i18n/localeStore.svelte.ts'
 
   let query = $state('')
   let sortBy = $state('date')
@@ -37,18 +38,19 @@
     return sorted
   })
 
-  const sortOptions = [
-    { id: 'date',     label: 'Date' },
-    { id: 'cost',     label: 'Cost' },
-    { id: 'duration', label: 'Duration' },
-  ]
+  const sortOptions = $derived([
+    { id: 'date',     label: t('sidebar.sortDate') },
+    { id: 'cost',     label: t('sidebar.sortCost') },
+    { id: 'duration', label: t('sidebar.sortDuration') },
+  ])
 
-  const statusOptions = [
-    { id: '',           label: 'All' },
-    { id: 'completed',  label: 'Completed' },
-    { id: 'failed',     label: 'Failed' },
-    { id: 'running',    label: 'Running' },
-  ]
+  const statusOptions = $derived([
+    { id: '',           label: t('sidebar.statusAll') },
+    { id: 'completed',  label: t('sidebar.statusCompleted') },
+    { id: 'failed',     label: t('sidebar.statusFailed') },
+    { id: 'running',    label: t('sidebar.statusRunning') },
+  ])
+  void i18n.locale
 </script>
 
 <aside class="sidebar">
@@ -56,7 +58,7 @@
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
     <input
       type="text"
-      placeholder="Search: agent, model, ID…"
+      placeholder={t('sidebar.searchPlaceholder')}
       bind:value={query}
       class="search-input"
     />
@@ -80,9 +82,9 @@
   </div>
 
   <div class="task-count">
-    {filtered.length} задач{filtered.length === 1 ? 'а' : filtered.length < 5 ? 'и' : ''}
+    {filtered.length} {t('sidebar.tasks', { n: filtered.length })}
     {#if tasks.length !== filtered.length}
-      <span class="count-desc">из {tasks.length}</span>
+      <span class="count-desc">{t('sidebar.of', { n: tasks.length })}</span>
     {/if}
   </div>
 
@@ -92,7 +94,7 @@
         <div class="task-row-top">
           <StatusDot status="running" size={7} />
           <span class="task-agent">{run.agent}</span>
-          <span class="running-badge">выполняется</span>
+          <span class="running-badge">{t('sidebar.running')}</span>
         </div>
         <div class="task-row-mid">
           <span class="task-model">{run.model}</span>
@@ -117,11 +119,11 @@
       >
         <div class="task-row-top">
           <StatusDot status={task.status} size={7} />
-          <span class="task-agent">{task.agent ?? 'неизвестно'}</span>
+          <span class="task-agent">{task.agent ?? t('sidebar.unknown')}</span>
           {#if isNew}
             <span class="new-badge">new</span>
           {/if}
-          <span class="task-cost" title="Стоимость AI API">${(task.cost_usd ?? 0).toFixed(4)}</span>
+          <span class="task-cost" title={t('sidebar.costTitle')}>${(task.cost_usd ?? 0).toFixed(4)}</span>
         </div>
         <div class="task-row-mid">
           <span class="task-model">{task.model ?? '—'}</span>
@@ -138,7 +140,7 @@
     {/each}
 
     {#if filtered.length === 0 && ui.activeRuns.length === 0}
-      <div class="empty">Задачи не найдены</div>
+      <div class="empty">{t('sidebar.noTasks')}</div>
     {/if}
   </div>
 </aside>

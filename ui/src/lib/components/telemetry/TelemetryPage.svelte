@@ -10,6 +10,7 @@
   import { fetchTelemetry } from '../../api/client.js'
   import { fmtTokens } from '../../utils/format.js'
   import Spinner from '../shared/Spinner.svelte'
+  import { t } from '../../i18n/localeStore.svelte.ts'
 
   let data = $state<any>(null)
   let loading = $state(true)
@@ -54,13 +55,13 @@
 
 <div class="telemetry-page">
   {#if loading}
-    <div class="center-loading"><Spinner size={24} /> Loading telemetry…</div>
+    <div class="center-loading"><Spinner size={24} /> {t('tel.loading')}</div>
 
   {:else if error}
     <div class="error-block">
       <AlertCircleIcon size="16" strokeWidth="2" />
       <span>{error}</span>
-      <button onclick={load}>Retry</button>
+      <button onclick={load}>{t('common.retry')}</button>
     </div>
 
   {:else if data}
@@ -69,31 +70,31 @@
       <div class="summary-card">
         <CoinsIcon size="14" strokeWidth="2" />
         <span class="sc-val">${data.total_cost.toFixed(4)}</span>
-        <span class="sc-lbl">total cost (30d)</span>
+        <span class="sc-lbl">{t('tel.totalCost')}</span>
       </div>
       <div class="summary-card">
         <CpuIcon size="14" strokeWidth="2" />
         <span class="sc-val">{fmtTokens(data.total_tokens)}</span>
-        <span class="sc-lbl">total tokens</span>
+        <span class="sc-lbl">{t('tel.totalTokens')}</span>
       </div>
       <div class="summary-card">
         <BarChart2Icon size="14" strokeWidth="2" />
         <span class="sc-val">{data.total_tasks}</span>
-        <span class="sc-lbl">total tasks</span>
+        <span class="sc-lbl">{t('tel.totalTasks')}</span>
       </div>
       <div class="summary-card">
         <TrendingUpIcon size="14" strokeWidth="2" />
         <span class="sc-val">{data.daily.length}</span>
-        <span class="sc-lbl">active days</span>
+        <span class="sc-lbl">{t('tel.activeDays')}</span>
       </div>
     </div>
 
-    <div class="section-hint">Данные собраны из директории <code>.voly/events/</code> по всем выполненным задачам. Обновляется при нажатии Refresh.</div>
+    <div class="section-hint">{t('tel.dataHint1')} <code>.voly/events/</code> {t('tel.dataHint2')}</div>
 
     <!-- Daily spend chart -->
     <section class="chart-section">
-      <div class="chart-title">Daily Spend (last 30 days)</div>
-      <div class="chart-hint">Стоимость AI-запросов в USD по дням. Каждый столбец — суммарный spend за календарный день.</div>
+      <div class="chart-title">{t('tel.dailySpend')}</div>
+      <div class="chart-hint">{t('tel.dailySpendHint')}</div>
       <div class="bar-chart">
         {#each data.daily as day}
           {@const pct = dailyMax() ? (day.cost / dailyMax()) * 100 : 0}
@@ -111,8 +112,8 @@
 
     <!-- Tokens chart -->
     <section class="chart-section">
-      <div class="chart-title">Daily Tokens</div>
-      <div class="chart-hint">Общее количество токенов (input + output) по дням. Показывает реальную нагрузку на LLM API.</div>
+      <div class="chart-title">{t('tel.dailyTokens')}</div>
+      <div class="chart-hint">{t('tel.dailyTokensHint')}</div>
       <div class="bar-chart">
         {#each data.daily as day}
           {@const pct = (day.tokens / tokenMax()) * 100}
@@ -128,8 +129,8 @@
       <!-- Top by agent -->
       {#if data.by_agent?.length}
         <section class="chart-section">
-          <div class="chart-title">Top Agents by Spend</div>
-          <div class="chart-hint">Распределение расходов по agent-ролям. Показывает, какие роли потребляют больше всего бюджета.</div>
+          <div class="chart-title">{t('tel.topAgents')}</div>
+          <div class="chart-hint">{t('tel.topAgentsHint')}</div>
           <div class="bar-list">
             {#each data.by_agent as a}
               {@const pct = agentMax() ? (a.cost / agentMax()) * 100 : 0}
@@ -148,8 +149,8 @@
       <!-- Top by model -->
       {#if data.by_model?.length}
         <section class="chart-section">
-          <div class="chart-title">Top Models by Spend</div>
-          <div class="chart-hint">Распределение расходов по LLM-моделям. Помогает понять, какие модели дороже всего в использовании.</div>
+          <div class="chart-title">{t('tel.topModels')}</div>
+          <div class="chart-hint">{t('tel.topModelsHint')}</div>
           <div class="bar-list">
             {#each data.by_model.slice(0, 8) as m}
               {@const pct = modelMax() ? (m.cost / modelMax()) * 100 : 0}

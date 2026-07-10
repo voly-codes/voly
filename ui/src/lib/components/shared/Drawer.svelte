@@ -14,7 +14,7 @@
   <div class="drawer" style:width role="dialog" aria-modal="true">
     <div class="drawer-header">
       <span class="drawer-title">{title}</span>
-      <button class="drawer-close" onclick={() => open = false} aria-label="Закрыть">✕</button>
+      <button class="drawer-close" onclick={() => open = false} aria-label="Close">✕</button>
     </div>
     <div class="drawer-body">
       {@render children()}

@@ -11,6 +11,21 @@ VOLY UI — Svelte 5 SPA in `ui/`. FastAPI serves it from `voly/web/static/`
 - **Vite** — dev server + build (`ui/vite.config.js`)
 - **Lucide Svelte** — icons (`ui/src/lib/icons.js`)
 - CSS custom properties — design tokens in `ui/src/app.css`
+- **i18n** — English default + Russian (`ui/src/lib/i18n/`), switcher in header, `localStorage` key `voly-lang`
+
+### Languages
+
+| Locale | Role | Catalog |
+|---|---|---|
+| `en` | **default** | `ui/src/lib/i18n/en/*.js` |
+| `ru` | optional | `ui/src/lib/i18n/ru/*.js` |
+
+```js
+import { i18n, t } from './lib/i18n/localeStore.svelte.ts'
+t('nav.tasks')           // "Tasks" | "Задачи"
+i18n.set('ru')           // switch
+i18n.locale              // 'en' | 'ru'
+```
 
 ---
 

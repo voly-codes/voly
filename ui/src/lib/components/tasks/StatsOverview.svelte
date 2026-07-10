@@ -1,6 +1,7 @@
 <script>
   import { CoinsIcon, CpuIcon, ZapIcon, ClockIcon, ActivityIcon } from '../../icons.js'
   import { fmtTokens, fmtDur } from './lib/utils.js'
+  import { t } from '../../i18n/localeStore.svelte.ts'
 
   let { costUsd = 0, inputTokens = 0, outputTokens = 0, savedTokens = 0, durationMs, routingScore, tokenBar = [] } = $props()
 </script>
@@ -9,24 +10,24 @@
   <div class="stat-card">
     <CoinsIcon size="12" strokeWidth="2" />
     <span class="stat-val">${costUsd.toFixed(5)}</span>
-    <span class="stat-lbl">стоимость</span>
+    <span class="stat-lbl">{t('stats.cost')}</span>
   </div>
   <div class="stat-card">
     <CpuIcon size="12" strokeWidth="2" />
     <span class="stat-val">{fmtTokens(inputTokens + outputTokens)}</span>
-    <span class="stat-lbl">токенов</span>
+    <span class="stat-lbl">{t('stats.tokens')}</span>
   </div>
   {#if savedTokens > 0}
     <div class="stat-card saved">
       <ZapIcon size="12" strokeWidth="2" />
       <span class="stat-val">{fmtTokens(savedTokens)}</span>
-      <span class="stat-lbl">сэкономлено</span>
+      <span class="stat-lbl">{t('stats.saved')}</span>
     </div>
   {/if}
   <div class="stat-card">
     <ClockIcon size="12" strokeWidth="2" />
     <span class="stat-val">{fmtDur(durationMs)}</span>
-    <span class="stat-lbl">время</span>
+    <span class="stat-lbl">{t('stats.time')}</span>
   </div>
   {#if routingScore}
     <div class="stat-card">

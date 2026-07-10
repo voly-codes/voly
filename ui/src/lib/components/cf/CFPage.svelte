@@ -1,4 +1,6 @@
 <script>
+  import { t } from '../../i18n/localeStore.svelte.ts'
+
   import { onMount } from 'svelte'
   import { CheckIcon, AlertCircleIcon, CoinsIcon } from '../../icons.js'
   import { fetchCFWorkersStatus, fetchCFSpend } from '../../api/client.js'
@@ -59,12 +61,12 @@
   <section class="cf-section">
     <div class="section-header">
       <span class="section-title">Cloudflare Workers</span>
-      <span class="section-sub">Зелёный — подключён, серый — не настроен</span>
+      <span class="section-sub">{t('cf.workersSub')}</span>
     </div>
-    <p class="section-desc">Каждый воркер — отдельный Cloudflare Worker. Укажи URL в .env (напр. <code>CF_WORKER_MARKETPLACE_URL</code>) чтобы подключить его к VOLY.</p>
+    <p class="section-desc">{t('cf.workersDesc')}</p>
 
     {#if loadingWorkers}
-      <div class="loading-text">Загрузка…</div>
+      <div class="loading-text">{t('cf.loading')}</div>
     {:else}
       <div class="workers-grid">
         {#each Object.entries(workers) as [key, w]}
@@ -85,7 +87,7 @@
               {#if w.configured}
                 <CheckIcon size="12" strokeWidth="2.5" style="color: var(--accent-green)" />
               {:else}
-                <span class="not-set">не задан</span>
+                <span class="not-set">{t('cf.notSet')}</span>
               {/if}
             </div>
           </div>
@@ -112,10 +114,10 @@
       </div>
     </div>
 
-    <p class="section-desc">AI API расходы по агентам через Durable Objects. Данные накапливаются в реальном времени. Установи <code>CF_WORKER_SPEND_URL</code> для подключения.</p>
+    <p class="section-desc">{t('cf.spendDesc')}</p>
 
     {#if loadingSpend}
-      <div class="loading-text">Загрузка расходов…</div>
+      <div class="loading-text">{t('cf.loadingSpend')}</div>
     {:else if spendError}
       <div class="spend-error">
         <AlertCircleIcon size="13" strokeWidth="2" />
@@ -133,7 +135,7 @@
       <div class="spend-summary">
         <div class="spend-total">
           <span class="spend-val">${(spend.total ?? 0).toFixed(4)}</span>
-          <span class="spend-label">за {spendDays} дн.</span>
+          <span class="spend-label">{t('cf.forDays', { n: spendDays })}</span>
         </div>
 
         {#if spend.agents?.length}
@@ -154,7 +156,7 @@
         {/if}
 
         {#if spend.daily}
-          <div class="daily-title">По дням</div>
+          <div class="daily-title">{t('cf.byDay')}</div>
           <div class="daily-chart">
             {#each spend.daily as day}
               {@const max = Math.max(...spend.daily.map(d => d.total ?? 0), 0.001)}
