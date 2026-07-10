@@ -77,6 +77,14 @@ es.onmessage = (e) => {
 }
 ```
 
+**Polling fallback:** `tasksStore.svelte.ts` (`startStream`) counts consecutive
+`onerror` events. The browser's `EventSource` auto-reconnects on its own, but
+after 3 straight failures the store stops waiting on it, closes the
+connection, and falls back to polling `refresh()` (`GET /api/tasks` +
+`/api/tasks/stats/summary` + `/api/status`) every 10s so the task list
+doesn't go silently stale. Any successful `onopen`/`onmessage` resets the
+failure counter and cancels polling.
+
 ---
 
 ## GET /api/status

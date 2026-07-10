@@ -10,6 +10,22 @@ let error = $state<string | null>(null)
 let unseenIds = $state<Set<string>>(new Set())
 
 let _es: EventSource | null = null
+let _pollTimer: ReturnType<typeof setInterval> | null = null
+let _sseFailures = 0
+const MAX_SSE_FAILURES = 3
+const POLL_INTERVAL_MS = 10_000
+
+function _startPolling() {
+  if (_pollTimer) return
+  _pollTimer = setInterval(refresh, POLL_INTERVAL_MS)
+}
+
+function _stopPolling() {
+  if (_pollTimer) {
+    clearInterval(_pollTimer)
+    _pollTimer = null
+  }
+}
 
 // Merge new SSE tasks into the list (deduplicate by task_id, sort by mtime desc)
 function _mergeNew(incoming: any[]) {
@@ -81,7 +97,13 @@ function markAllSeen() {
 async function startStream() {
   try {
     const es = await taskStream()
+    es.onopen = () => {
+      _sseFailures = 0
+      _stopPolling()
+    }
     es.onmessage = (e) => {
+      _sseFailures = 0
+      _stopPolling()
       try {
         const msg = JSON.parse(e.data)
         if (msg.type === 'new' && msg.tasks?.length) {
@@ -90,19 +112,28 @@ async function startStream() {
       } catch {}
     }
     es.onerror = () => {
-      // EventSource auto-reconnects; fallback to polling after 3 failures
+      // EventSource auto-reconnects on its own; if it keeps failing, stop
+      // waiting on it and fall back to polling so the UI doesn't go stale.
+      _sseFailures += 1
+      if (_sseFailures >= MAX_SSE_FAILURES) {
+        es.close()
+        if (_es === es) _es = null
+        _startPolling()
+      }
     }
     _es = es
   } catch {
     // Fallback: poll every 10s if EventSource not available
-    const iv = setInterval(refresh, 10_000)
-    window.addEventListener('beforeunload', () => clearInterval(iv))
+    _startPolling()
   }
+  window.addEventListener('beforeunload', _stopPolling)
 }
 
 function stopStream() {
   _es?.close()
   _es = null
+  _stopPolling()
+  window.removeEventListener('beforeunload', _stopPolling)
 }
 
 export const tasksStore = {
