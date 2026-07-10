@@ -429,7 +429,6 @@ class AgentRunner:
                     "[CHAIN:BILLING_FALLBACK] %s → %s  reason=%s  detail=%r",
                     executor_name, fallback_name, reason, (result.error or "")[:120],
                 )
-                fallback_executor = _build_executor(fallback_name)
                 fb_t0 = time.monotonic()
                 fb_result = fallback_executor.run(effective_task, cwd=cwd, max_turns=max_turns, timeout=timeout)
                 if fb_result.duration_ms <= 0:
