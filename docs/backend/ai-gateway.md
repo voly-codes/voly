@@ -135,11 +135,24 @@ Resolution logic lives in `voly/ai_gateway/credentials.py`
 otherwise the env path is used unchanged. `byok_providers` (list) restricts
 BYOK to a subset; empty = all supported. Env override: `VOLY_BYOK=1|0`.
 
-Setup: CF Dashboard → AI Gateway → your gateway → enable **Authentication**
-(take the gateway token → `CF_AIG_TOKEN`), then **Provider Keys → Add API Key**
-per provider. After that the corresponding `*_API_KEY` entries in `.env` can be
-removed. Executors (claude-code CLI etc.) are unaffected — they authenticate
-themselves.
+### BYOK setup
+
+1. CF Dashboard → AI Gateway → your gateway → enable **Authentication**;
+   put the gateway token into `CF_AIG_TOKEN`.
+2. Add provider keys, either way:
+   - **Dashboard:** gateway → **Provider Keys → Add API Key**;
+   - **VOLY UI / API:** CF page → *Provider Keys (BYOK)* panel, or
+     `POST /api/providers/keys` — creates the Secrets Store secret
+     (`{gateway_id}_{provider_slug}_{alias}`, scope `ai_gateway`) via
+     `voly/ai_gateway/cf_secrets.py`. Requires `CLOUDFLARE_API_TOKEN` with
+     **Account → Secrets Store → Edit**.
+3. Set `ai_gateway.byok_enabled: true` in `voly.yaml` (or `VOLY_BYOK=1`).
+4. Remove the now-unneeded `*_API_KEY` entries from `.env`.
+
+Key values are write-only end-to-end: the UI sends the value once, the backend
+forwards it to the CF API without logging or persisting it, and no CF or VOLY
+endpoint can read it back. Executors (claude-code CLI etc.) are unaffected —
+they authenticate themselves.
 
 System awareness (PR2): `ProviderHealthChecker` treats BYOK-covered providers
 as healthy without env keys (`reason="byok: …"`; synced from config via

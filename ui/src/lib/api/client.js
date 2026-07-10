@@ -88,9 +88,22 @@ export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 
 export const publishMarketplacePlugins = plugins =>
   post('/api/marketplace/plugins/sync', { plugins }).then(r => r.json())
 
+async function del(path) {
+  const res = await fetch(`${BASE}${path}`, { method: 'DELETE' })
+  if (!res.ok) throw await parseError(res)
+  return res.json()
+}
+
 // CF
 export const fetchCFWorkersStatus = () => get('/api/cf/workers/status')
 export const fetchCFSpend = (days = 7) => get(`/api/cf/spend/summary?days=${days}`)
+
+// Provider keys (BYOK — keys live in CF Secrets Store, write-only)
+export const fetchProviderKeys = () => get('/api/providers/keys')
+export const createProviderKey = (provider, key, alias = 'default') =>
+  post('/api/providers/keys', { provider, key, alias }).then(r => r.json())
+export const deleteProviderKey = (provider, alias = 'default') =>
+  del(`/api/providers/keys/${encodeURIComponent(provider)}?alias=${encodeURIComponent(alias)}`)
 
 // DSPy
 export const fetchDSPyStatus = () => get('/api/dspy/status')

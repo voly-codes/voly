@@ -97,6 +97,17 @@ Data from the `done` SSE event.
 
 ---
 
+## ProviderKeysPanel.svelte
+
+BYOK provider keys section on the CF page (`cf/ProviderKeysPanel.svelte`,
+mounted at the bottom of `CFPage.svelte`). Masked (`type=password`) input +
+provider select (anthropic / openai / google-ai-studio / deepseek), list of
+stored key names with delete. Talks to `/api/providers/keys`; shows the
+`byok_enabled` state and a setup hint when CF credentials are missing. The key
+value is sent once on save and never rendered back.
+
+---
+
 ## Shared components
 
 | Component | Purpose |

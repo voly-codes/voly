@@ -126,6 +126,24 @@ Current daily spend by agents/providers.
 
 ---
 
+## /api/providers/keys — BYOK provider keys (localhost-only)
+
+Manage AI provider keys stored in **CF Secrets Store** (BYOK,
+`docs/proposals/byok-cf-secrets.md`). All three endpoints reject non-localhost
+clients with 403. Key values are write-only: never logged, never returned.
+Requires `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Secrets Store Edit).
+
+| Method | Path | Body / params | Result |
+|---|---|---|---|
+| GET | `/api/providers/keys` | — | `{configured, byok_enabled, keys: [{name, provider, alias}]}` |
+| POST | `/api/providers/keys` | `{provider, key, alias?}` | `{ok, name}` — creates `{gateway_id}_{slug}_{alias}` secret with `ai_gateway` scope |
+| DELETE | `/api/providers/keys/{provider}?alias=` | — | `{ok}` |
+
+`provider` must be BYOK-eligible (`anthropic`, `openai`, `google-ai-studio`,
+`deepseek`) — others get 400.
+
+---
+
 ## POST /api/telemetry
 
 Write telemetry from external sources.

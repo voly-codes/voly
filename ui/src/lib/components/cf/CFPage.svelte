@@ -4,6 +4,7 @@
   import { onMount } from 'svelte'
   import { CheckIcon, AlertCircleIcon, CoinsIcon } from '../../icons.js'
   import { fetchCFWorkersStatus, fetchCFSpend } from '../../api/client.js'
+  import ProviderKeysPanel from './ProviderKeysPanel.svelte'
 
   let workers = $state({})
   let spend = $state(null)
@@ -176,6 +177,8 @@
       </div>
     {/if}
   </section>
+
+  <ProviderKeysPanel />
 </div>
 
 <style>

@@ -113,6 +113,21 @@ const { models } = await fetch('/api/models').then(r => r.json())
 
 ---
 
+## Provider keys (BYOK)
+
+```javascript
+import { fetchProviderKeys, createProviderKey, deleteProviderKey } from '../api/client.js'
+
+const { configured, byok_enabled, keys } = await fetchProviderKeys()
+await createProviderKey('anthropic', 'sk-ant-…')          // → {ok, name}
+await deleteProviderKey('anthropic')                       // alias 'default'
+```
+
+The key value goes straight to the backend → CF Secrets Store and is never
+returned by any endpoint. Localhost-only API (403 otherwise).
+
+---
+
 ## Handling billing_fallback in the UI
 
 If `done.billing_fallback` is present — show a badge:

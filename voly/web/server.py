@@ -74,7 +74,7 @@ def create_app(
     from fastapi.staticfiles import StaticFiles
 
     from voly.web.deps import AppState
-    from voly.web.routes import cf, dspy, marketplace, registry, run, tasks, gateway, telemetry
+    from voly.web.routes import cf, dspy, marketplace, providers, registry, run, tasks, gateway, telemetry
 
     app = FastAPI(title="VOLY UI", version="0.1.0", docs_url="/api/docs")
 
@@ -101,6 +101,7 @@ def create_app(
     app.include_router(dspy.router)
     app.include_router(gateway.router)
     app.include_router(telemetry.router)
+    app.include_router(providers.router)
 
     _log.warning(
         "Web UI has no authentication (open-core) — the API, including POST "
