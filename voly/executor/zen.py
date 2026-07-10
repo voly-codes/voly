@@ -19,6 +19,7 @@ from voly.executor.base import (
     Executor,
     ExecutorResult,
     _MIN_ATTEMPT_SECONDS,
+    _build_opencode_run_cmd,
     _extract_cli_error,
     _fold_retry_costs,
     _is_billing_error,
@@ -159,13 +160,14 @@ class ZenExecutor(Executor):
         timeout: int = 600,
     ) -> ExecutorResult:
         """Single attempt with one model. Returns ExecutorResult with billing_error set."""
-        cmd = ["opencode", "run", "--format", "json", "-m", model_id, task]
+        work_dir = os.path.abspath(os.path.expanduser(cwd)) if cwd else None
+        cmd = _build_opencode_run_cmd(task, model_id=model_id, cwd=work_dir)
 
-        logger.info("zen._run_cli_one model=%s cwd=%s", model_id, cwd)
+        logger.info("zen._run_cli_one model=%s cwd=%s cmd=%s", model_id, work_dir, cmd[:8])
         started = time.monotonic()
         try:
             proc = subprocess.run(
-                cmd, cwd=cwd, env={**os.environ},  # noqa: S603
+                cmd, cwd=work_dir, env={**os.environ},  # noqa: S603
                 capture_output=True, text=True, timeout=timeout,
             )
             duration_ms = (time.monotonic() - started) * 1000

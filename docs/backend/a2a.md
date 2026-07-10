@@ -88,6 +88,7 @@ def add(): return 1
 | Layer | Mechanism |
 |---|---|
 | `pipeline_server.py` | `force_agent=agent` on `Pipeline.run()` |
+| `voly a2a call` (local) | `Pipeline.run(force_agent=agent_name, context={cwd, project_cwd})` — not `agent=` |
 | `cf-workers/agent/pipeline.ts` | passes `agent` to `/run` and `/infer` |
 | `cf-workers/agent/infer.ts` | system prompt prefix: `You are the {agent} agent...` |
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -30,6 +31,28 @@ class WorkReport:
 # shared across attempts; below this floor the loop stops instead of launching
 # a subprocess that would be killed almost immediately.
 _MIN_ATTEMPT_SECONDS = 10
+
+
+def _build_opencode_run_cmd(
+    task: str,
+    *,
+    model_id: str,
+    cwd: str | None = None,
+    extra_args: list[str] | None = None,
+) -> list[str]:
+    """Build ``opencode run`` argv with project directory bound via ``--dir``.
+
+    Subprocess ``cwd`` alone is not enough: OpenCode resolves the project root
+    (git root / session dir) independently and may write outside the sandbox.
+    ``--dir`` pins the workspace explicitly (see ``opencode run --help``).
+    """
+    cmd = ["opencode", "run", "--format", "json", "-m", model_id]
+    if extra_args:
+        cmd.extend(extra_args)
+    if cwd:
+        cmd.extend(["--dir", os.path.abspath(os.path.expanduser(cwd))])
+    cmd.append(task)
+    return cmd
 
 
 @dataclass

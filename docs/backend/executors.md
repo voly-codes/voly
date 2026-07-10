@@ -114,6 +114,11 @@ Used as the final fallback in the billing chain — always available without pai
 
 Env: `OPENCODE_API_KEY` (optional for free Zen tier)
 
+**Project cwd:** both `ZenExecutor` and `OpenCodeExecutor` pass `opencode run --dir <abs_cwd>`
+(via `_build_opencode_run_cmd` in `executor/base.py`) in addition to subprocess `cwd=`.
+Subprocess cwd alone is not enough — OpenCode can resolve a different project root
+(e.g. git root) and write outside the intended sandbox.
+
 ---
 
 ## Timeouts (total deadline)

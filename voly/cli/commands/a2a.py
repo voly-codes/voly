@@ -127,8 +127,19 @@ def a2a_call(ctx: click.Context, agent_name: str, task: str, remote: bool, cwd: 
     click.echo(f"Agent: {agent_name}")
     click.echo(f"State: {task_obj.state.value}")
 
+    # Pipeline.run uses force_agent (not agent=) and optional context.cwd for
+    # hybrid A2A / project-scoped stages.
+    run_context: dict = {}
+    if cwd:
+        run_context["cwd"] = cwd
+        run_context["project_cwd"] = cwd
+
     try:
-        result = pipeline.run(task, agent=agent_name)
+        result = pipeline.run(
+            task,
+            context=run_context or None,
+            force_agent=agent_name,
+        )
         if result.success:
             content = result.response.content if result.response else ""
             backend = getattr(orch, "_federation", None)

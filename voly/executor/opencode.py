@@ -22,6 +22,7 @@ from voly.executor.base import (
     Executor,
     ExecutorResult,
     _MIN_ATTEMPT_SECONDS,
+    _build_opencode_run_cmd,
     _extract_cli_error,
     _fold_retry_costs,
     _is_billing_error,
@@ -146,14 +147,15 @@ class OpenCodeExecutor(Executor):
         cwd: str | None = None,
         timeout: int = 600,
     ) -> ExecutorResult:
-        cmd = ["opencode", "run", "--format", "json", "-m", model_id, task]
+        work_dir = os.path.abspath(os.path.expanduser(cwd)) if cwd else None
+        cmd = _build_opencode_run_cmd(task, model_id=model_id, cwd=work_dir)
 
-        _log.info("opencode._run_cli_one model=%s cwd=%s", model_id, cwd)
+        _log.info("opencode._run_cli_one model=%s cwd=%s cmd=%s", model_id, work_dir, cmd[:8])
         started = time.monotonic()
         try:
             proc = subprocess.run(
                 cmd,
-                cwd=cwd,
+                cwd=work_dir,
                 env={**os.environ},
                 capture_output=True,
                 text=True,
