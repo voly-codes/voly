@@ -2,11 +2,53 @@
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 
 import click
 
 from voly.config import create_default_config
+
+# Official hosted catalog/marketplace workers (opt-in via `voly setup` or
+# .env.example — never enabled silently; self-deploy from cf-workers/ instead).
+OFFICIAL_CATALOG_URL = "https://voly-catalog.margolanies.workers.dev"
+OFFICIAL_MARKETPLACE_URL = "https://voly-marketplace.margolanies.workers.dev"
+
+
+def _offer_official_catalog(env_path: Path | None = None) -> bool:
+    """Opt-in prompt: write hosted catalog/marketplace URLs into .env.
+
+    Returns True when something was written. Skips silently when the vars are
+    already set, or stdin is not a TTY (CI / scripted runs must not block).
+    """
+    if os.environ.get("CF_WORKER_CATALOG_URL") and os.environ.get("CF_WORKER_MARKETPLACE_URL"):
+        return False
+    if not sys.stdin.isatty():
+        return False
+    if not click.confirm(
+        "\nUse the official hosted VOLY catalog & marketplace?\n"
+        f"  (catalog/skill queries will go to {OFFICIAL_CATALOG_URL})",
+        default=False,
+    ):
+        return False
+
+    path = env_path or (Path.cwd() / ".env")
+    existing = path.read_text(encoding="utf-8") if path.exists() else ""
+    lines = []
+    if "CF_WORKER_CATALOG_URL" not in existing:
+        lines.append(f"CF_WORKER_CATALOG_URL={OFFICIAL_CATALOG_URL}")
+    if "CF_WORKER_MARKETPLACE_URL" not in existing:
+        lines.append(f"CF_WORKER_MARKETPLACE_URL={OFFICIAL_MARKETPLACE_URL}")
+    if not lines:
+        return False
+    with path.open("a", encoding="utf-8") as f:
+        if existing and not existing.endswith("\n"):
+            f.write("\n")
+        f.write("# Official hosted VOLY catalog/marketplace (added by `voly setup`)\n")
+        f.write("\n".join(lines) + "\n")
+    click.echo(f"  Catalog URLs written to {path}")
+    return True
 
 
 @click.command()
@@ -99,5 +141,7 @@ def setup(ctx: click.Context, rtk: bool, headroom: bool, a2a: bool, agui: bool) 
             card = orch.register_remote_agent(url)
             status = f"✓ {card.name}" if card else "✗ unreachable"
             click.echo(f"  {url}: {status}")
+
+    _offer_official_catalog()
 
     click.echo("\nSetup complete.")

@@ -259,6 +259,26 @@ VOLY_AUTH_USERS=admin:change-me
 OMNIROUTE_BASE_URL=http://localhost:20128 # if using the OmniRoute adapter
 ```
 
+### BYOK — provider keys in Cloudflare (optional)
+
+With `ai_gateway.byok_enabled: true`, keys for anthropic / openai /
+google-ai-studio / deepseek are stored in **CF Secrets Store** and resolved by
+the AI Gateway per request — no provider keys in `.env`, only `CF_AIG_TOKEN`.
+See `docs/backend/ai-gateway.md` § BYOK (Store Keys).
+
+### Hosted catalog & marketplace (optional, opt-in)
+
+You can use the official hosted skill catalog / marketplace instead of
+deploying your own workers from `cf-workers/`:
+
+```env
+CF_WORKER_CATALOG_URL=https://voly-catalog.margolanies.workers.dev
+CF_WORKER_MARKETPLACE_URL=https://voly-marketplace.margolanies.workers.dev
+```
+
+`voly setup` offers to write these for you. Privacy note: catalog/skill
+queries then go to those workers; nothing is sent unless you opt in.
+
 ## Core commands
 
 ```bash

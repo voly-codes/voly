@@ -92,6 +92,10 @@ ai_gateway:
   upstream_fallback_direct: true  # if upstream unavailable — direct provider adapter
   byok_enabled: false    # provider keys from CF Secrets Store via gateway (VOLY_BYOK env override)
   byok_providers: []     # restrict BYOK to a subset; empty = all supported
+
+# Hosted catalog/marketplace (opt-in): CF_WORKER_CATALOG_URL /
+# CF_WORKER_MARKETPLACE_URL env vars — real official URLs are pre-filled
+# (commented) in .env.example; `voly setup` offers to write them.
   cache_enabled: true
   cache_persist_dir: .voly/gateway_cache  # disk cache for responses; empty → in-memory only
   rate_limit_rpm: 60
