@@ -97,6 +97,20 @@ _OAUTH_INVALID_TOKEN_SIGNALS: tuple[str, ...] = (
     "invalid credentials",
 )
 
+# CF AI Gateway auth / BYOK misconfiguration: the gateway token is wrong or a
+# provider key is missing from Secrets Store. An operator problem — must never
+# be read as a provider billing state (would wrongly fire the billing chain).
+_GATEWAY_CONFIG_SIGNALS: tuple[str, ...] = (
+    "cf-aig-authorization",
+    "cf-aig",
+    "gateway authentication",
+    "invalid gateway token",
+    "provider key not found",
+    "no provider key",
+    "provider key not configured",
+    "byok",
+)
+
 # 429 disambiguation: a bare 429 is a rate-limit; only an explicit keyword makes
 # it a long-period quota exhaustion. Kept specific on purpose (a bare
 # "quota reached" would also flag transient per-minute limits).
@@ -183,6 +197,12 @@ def is_account_deactivated(text: str) -> bool:
 def is_oauth_invalid_token(text: str) -> bool:
     low = text.lower()
     return any(sig in low for sig in _OAUTH_INVALID_TOKEN_SIGNALS)
+
+
+def is_gateway_config_error(text: str) -> bool:
+    """CF AI Gateway auth / BYOK misconfiguration (fix setup, not billing)."""
+    low = (text or "").lower()
+    return any(sig in low for sig in _GATEWAY_CONFIG_SIGNALS)
 
 
 def is_daily_quota_exhausted(text: str) -> bool:
@@ -281,6 +301,12 @@ def classify_provider_error(
     credits = is_credits_exhausted(text)
     deactivated = is_account_deactivated(text)
     oauth_invalid = is_oauth_invalid_token(text)
+
+    # Gateway auth / BYOK misconfiguration outranks status-code semantics: it is
+    # an operator problem, never a provider billing state. A relayed provider
+    # billing body (credits/deactivated) still wins — that IS a billing state.
+    if not credits and not deactivated and is_gateway_config_error(text):
+        return ErrorType.UNAUTHORIZED
 
     # Status-code-driven semantics (when available).
     if status_code is not None:

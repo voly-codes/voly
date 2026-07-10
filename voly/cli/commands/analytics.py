@@ -371,6 +371,26 @@ def balance(as_json: bool) -> None:
         "url": "https://console.anthropic.com/settings/billing",
     })
 
+    # BYOK: keys for these providers live in CF Secrets Store — a missing local
+    # env key does not mean "not configured" (balance stays provider-side).
+    try:
+        from voly.ai_gateway.credentials import BYOK_PROVIDER_SLUGS
+        from voly.config import load_config
+
+        cfg = load_config()
+        if getattr(cfg.ai_gateway, "byok_enabled", False):
+            restricted = list(getattr(cfg.ai_gateway, "byok_providers", None) or [])
+            covered = sorted({
+                slug for name, slug in BYOK_PROVIDER_SLUGS.items()
+                if not restricted or name in restricted or slug in restricted
+            })
+            for r in results:
+                r_provider = str(r.get("provider", "")).lower()
+                if r.get("balance") is None and any(s.split("-")[0] in r_provider for s in covered):
+                    r["note"] = "via cf-byok (key stored in CF gateway)"
+    except Exception:  # noqa: BLE001 — balance must not fail on config problems
+        pass
+
     if as_json:
         click.echo(json.dumps(results, indent=2))
         return

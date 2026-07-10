@@ -131,6 +131,10 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             gw.upstream_fallback_direct = self.config.ai_gateway.upstream_fallback_direct
             gw.byok_enabled = getattr(self.config.ai_gateway, "byok_enabled", False)
             gw.byok_providers = list(getattr(self.config.ai_gateway, "byok_providers", None) or [])
+            # Health checker must see BYOK providers as configured even without
+            # env keys — otherwise a2a tier resolution demotes premium roles.
+            from voly.ai_gateway.health import get_checker
+            get_checker().configure_byok(gw.byok_enabled, gw.byok_providers)
             gw._enabled = self.config.ai_gateway.enabled
             # Scope the persistent cache to the project's repo state (R1): the same
             # task text on a changed repo — or a different project — must miss.

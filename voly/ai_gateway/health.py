@@ -50,14 +50,49 @@ _PROVIDER_KEYS: dict[str, list[str]] = {
 }
 
 
+def _byok_env_default() -> bool:
+    return os.environ.get("VOLY_BYOK", "").strip().lower() in ("1", "true", "yes", "on")
+
+
 class ProviderHealthChecker:
     def __init__(self) -> None:
         self._cache: dict[str, ProviderStatus] = {}
+        # None → follow the VOLY_BYOK env default; set via configure_byok()
+        # when a gateway is built from config (pipeline/core.py).
+        self._byok_enabled: bool | None = None
+        self._byok_providers: list[str] = []
+
+    def configure_byok(self, enabled: bool, providers: list[str] | None = None) -> None:
+        """Sync BYOK state from config; resets cached statuses."""
+        self._byok_enabled = enabled
+        self._byok_providers = list(providers or [])
+        self._cache.clear()
+
+    def _byok_healthy(self, provider: str) -> bool:
+        """True when the provider's key lives in the CF gateway (no env key needed)."""
+        enabled = self._byok_enabled if self._byok_enabled is not None else _byok_env_default()
+        if not enabled:
+            return False
+        from voly.ai_gateway.credentials import byok_provider_slug
+
+        if not byok_provider_slug(provider, self._byok_providers or None):
+            return False
+        account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
+        token = (
+            os.environ.get("CF_AIG_TOKEN", "").strip()
+            or os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
+        )
+        return bool(account and token)
 
     def check(self, provider: str) -> ProviderStatus:
         cached = self._cache.get(provider)
         if cached and not cached.expired():
             return cached
+
+        if self._byok_healthy(provider):
+            st = ProviderStatus(name=provider, healthy=True, reason="byok: key stored in CF gateway")
+            self._cache[provider] = st
+            return st
 
         keys = _PROVIDER_KEYS.get(provider)
         if not keys:

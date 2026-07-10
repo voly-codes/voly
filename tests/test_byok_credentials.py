@@ -208,3 +208,78 @@ def test_gateway_from_config_and_to_dict() -> None:
 def test_slug_map_has_no_executor_or_unsupported_entries() -> None:
     for name in ("mimo", "opencode", "opencode-zen", "omniroute", "workers-ai", "cloudflare-dynamic"):
         assert name not in BYOK_PROVIDER_SLUGS
+
+
+def test_health_checker_byok_provider_healthy_without_env_key(monkeypatch) -> None:
+    """PR2: BYOK-covered provider is healthy with no env key (a2a tier resolution)."""
+    from voly.ai_gateway.health import ProviderHealthChecker
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "acct")
+    monkeypatch.setenv("CF_AIG_TOKEN", "aig")
+
+    checker = ProviderHealthChecker()
+    assert checker.check("anthropic").healthy is False  # BYOK off
+
+    checker.configure_byok(True)
+    st = checker.check("anthropic")
+    assert st.healthy is True
+    assert "byok" in st.reason
+    # non-BYOK provider still needs its env key
+    monkeypatch.delenv("MIMO_API_KEY", raising=False)
+    assert checker.check("mimo").healthy is False
+
+
+def test_health_checker_byok_respects_restriction_and_env_default(monkeypatch) -> None:
+    from voly.ai_gateway.health import ProviderHealthChecker
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "acct")
+    monkeypatch.setenv("CF_AIG_TOKEN", "aig")
+
+    checker = ProviderHealthChecker()
+    checker.configure_byok(True, ["anthropic"])
+    assert checker.check("anthropic").healthy is True
+    assert checker.check("openai").healthy is False
+
+    # VOLY_BYOK env default applies when configure_byok was never called
+    env_checker = ProviderHealthChecker()
+    monkeypatch.setenv("VOLY_BYOK", "1")
+    assert env_checker.check("anthropic").healthy is True
+
+
+def test_health_checker_byok_needs_cf_creds(monkeypatch) -> None:
+    from voly.ai_gateway.health import ProviderHealthChecker
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.delenv("CF_AIG_TOKEN", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_API_TOKEN", raising=False)
+
+    checker = ProviderHealthChecker()
+    checker.configure_byok(True)
+    assert checker.check("anthropic").healthy is False
+
+
+def test_gateway_config_error_not_billing() -> None:
+    """PR2: cf-aig / missing provider key ≠ provider billing state."""
+    from voly.ai_gateway.error_classifier import (
+        ErrorType,
+        classify_provider_error,
+        is_gateway_config_error,
+        is_terminal_billing_error,
+    )
+
+    for text in (
+        "CF-dynamic 401: invalid cf-aig-authorization header",
+        "gateway authentication failed",
+        "provider key not found for anthropic (BYOK)",
+    ):
+        assert is_gateway_config_error(text) is True
+        assert classify_provider_error(401, text) == ErrorType.UNAUTHORIZED
+        assert is_terminal_billing_error(text, 401) is False
+
+    # a provider billing body relayed through the gateway is still billing
+    relayed = "cf-aig gateway: your credit balance is too low"
+    assert is_terminal_billing_error(relayed, 400) is True

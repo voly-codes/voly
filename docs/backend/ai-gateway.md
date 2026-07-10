@@ -141,6 +141,15 @@ per provider. After that the corresponding `*_API_KEY` entries in `.env` can be
 removed. Executors (claude-code CLI etc.) are unaffected — they authenticate
 themselves.
 
+System awareness (PR2): `ProviderHealthChecker` treats BYOK-covered providers
+as healthy without env keys (`reason="byok: …"`; synced from config via
+`configure_byok()` when the pipeline builds the gateway, or the `VOLY_BYOK`
+env default) — so a2a tier resolution keeps premium roles on premium models.
+`error_classifier.is_gateway_config_error()` marks cf-aig auth / missing
+provider-key errors as `unauthorized` (operator fix), never as a billing state
+— the billing fallback chain does not fire on gateway misconfiguration.
+`voly balance` labels such providers `via cf-byok`.
+
 ---
 
 ## Env vars for CF AI Gateway
