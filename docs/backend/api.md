@@ -84,6 +84,21 @@ data: {"type": "heartbeat"}              // every 5s when nothing changed
 
 ---
 
+## GET /api/runs · GET /api/runs/{task_id}
+
+In-flight run records (`.voly/runs/`, RunTracker heartbeats) — tasks that are
+**still executing**, including ones launched from the CLI. `?active=1` filters
+to `status=running`; each record carries `task`, `current_role`, `roles`,
+`done_roles/total_roles`, `step_statuses` (plan mirror), `elapsed_seconds`,
+`age_seconds` (heartbeat freshness). Executor runs heartbeat every ~10s from
+`AgentRunner`; multi-agent runs after every role.
+
+Note: the CLI writes records relative to its own cwd — runs launched from a
+different directory than the server's project keep their records in that
+project's `.voly/runs` (same rule as TaskEvents).
+
+---
+
 ## GET /api/status
 
 Server state, configuration, versions.

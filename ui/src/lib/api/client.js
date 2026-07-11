@@ -111,6 +111,11 @@ export const fetchDSPyStatus = () => get('/api/dspy/status')
 // Gateway
 export const fetchGatewayStatus = () => get('/api/gateway/status')
 
+// In-flight runs (RunTracker heartbeats — tasks still executing, incl. CLI)
+export const fetchRuns = (active = true, limit = 50) =>
+  get(`/api/runs?${new URLSearchParams({ active: active ? '1' : '', limit })}`)
+export const fetchRun = taskId => get(`/api/runs/${encodeURIComponent(taskId)}`)
+
 // SSE task stream
 export async function taskStream() {
   return new EventSource(`${BASE}/api/tasks/stream`)

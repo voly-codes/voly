@@ -78,6 +78,15 @@ Each stage is a colored badge. A failed stage is highlighted red.
 
 ---
 
+## ActiveRuns.svelte
+
+"In progress" block at the top of `TaskSidebar`: polls `/api/runs?active=1`
+every 4s and lists runs that are still executing (including CLI-launched
+ones) — task text, current role/executor, progress `done/total`, elapsed.
+Click expands a drill-down: task id, heartbeat age (red when >60s), role
+chips (done/current), plan `step_statuses`, error. When the last active run
+finishes, the store refreshes so the completed task appears in the list.
+
 ## TaskSidebar.svelte
 
 List of previous tasks. Data from `GET /api/tasks` (SSE).

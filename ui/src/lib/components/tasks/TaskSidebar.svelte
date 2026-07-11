@@ -1,5 +1,6 @@
 <script>
   import { SearchIcon } from '../../icons.js'
+  import ActiveRuns from './ActiveRuns.svelte'
   import StatusDot from '../shared/StatusDot.svelte'
   import { fmtDur, fmtRel } from '../../utils/format.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
@@ -54,6 +55,7 @@
 </script>
 
 <aside class="sidebar">
+  <ActiveRuns />
   <div class="sidebar-search">
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
     <input

@@ -1,4 +1,6 @@
 export default {
+  'runs.inProgress': 'В работе',
+  'runs.heartbeat': 'heartbeat',
   'sidebar.searchPlaceholder': 'Поиск: agent, model, ID…',
   'sidebar.sortDate': 'Дата',
   'sidebar.sortCost': 'Цена',

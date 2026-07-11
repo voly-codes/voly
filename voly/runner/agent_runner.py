@@ -351,6 +351,33 @@ class AgentRunner:
             task[:80], executor_name, cwd or "(empty)",
         )
 
+        # In-flight visibility (Rung A): a RunRecord with a background heartbeat
+        # so CLI/web can see the run while the blocking executor subprocess works.
+        # Best-effort — tracker failures must never break the run.
+        tracker = None
+        hb_stop = None
+        hb_state = {"executor": executor_name}
+        if getattr(getattr(self.config, "telemetry", None), "enabled", True):
+            try:
+                import threading
+
+                from voly.runtime.runs import RunTracker
+
+                tracker = RunTracker(self.config.telemetry.runs_dir)
+                tracker.start(task_id, task, [executor_name])
+                hb_stop = threading.Event()
+
+                def _hb_loop() -> None:
+                    while not hb_stop.wait(10.0):
+                        try:
+                            tracker.heartbeat(task_id, hb_state["executor"], 0)
+                        except Exception:  # noqa: BLE001
+                            pass
+
+                threading.Thread(target=_hb_loop, daemon=True).start()
+            except Exception:  # noqa: BLE001
+                tracker = None
+
         # DSPy task planning stage: refine the task before handing to executor.
         # Active only when dspy.enabled and the task_planner program exists in registry.
         effective_task = task
@@ -458,6 +485,7 @@ class AgentRunner:
                 retry_tokens_in += result.input_tokens
                 retry_tokens_out += result.output_tokens
                 executor_name = fallback_name
+                hb_state["executor"] = fallback_name
                 result = fb_result
                 chain_timelog.append({
                     "executor": fallback_name,
@@ -530,6 +558,18 @@ class AgentRunner:
         if result.success:
             status = budget_status(total_cost_usd, self.config)
             budget_exceeded = status == "budget_exceeded"
+
+        if hb_stop is not None:
+            hb_stop.set()
+        if tracker is not None:
+            try:
+                tracker.finish(
+                    task_id,
+                    status="completed" if result.success else "failed",
+                    error=(result.error or "")[:500] if not result.success else "",
+                )
+            except Exception:  # noqa: BLE001
+                pass
 
         if emit_event:
             emit_event_from_config(TaskEvent(

@@ -128,6 +128,19 @@ returned by any endpoint. Localhost-only API (403 otherwise).
 
 ---
 
+## In-flight runs
+
+```javascript
+import { fetchRuns, fetchRun } from '../api/client.js'
+const { runs, active } = await fetchRuns(true)   // active only
+const rec = await fetchRun(taskId)               // single RunRecord
+```
+
+Polled by `ActiveRuns.svelte` (4s) — no SSE; records update via RunTracker
+heartbeats on disk.
+
+---
+
 ## Run report fields in `done`
 
 Besides `content`/`cost_usd`/`usage`, the executor path returns `report`
