@@ -9,6 +9,7 @@ from voly.config._types import (
     AGUIConfig,
     AIGatewayConfig,
     AgentConfig,
+    CloudConfig,
     VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
@@ -283,6 +284,30 @@ def _parse_config(raw: dict) -> VOLYConfig:
             if env_url:
                 config.telemetry.pipeline_url = env_url.rstrip("/")
                 break
+
+    if "cloud" in raw:
+        c = raw["cloud"]
+        config.cloud = CloudConfig(
+            enabled=_parse_bool(c.get("enabled"), False),
+            base_url=os.path.expandvars(str(c.get("base_url", "") or "")).strip(),
+            tenant_id=os.path.expandvars(str(c.get("tenant_id", "") or "")).strip(),
+            token=os.path.expandvars(str(c.get("token", "") or "")).strip(),
+            user_id=os.path.expandvars(str(c.get("user_id", "") or "")).strip(),
+            timeout_seconds=float(c.get("timeout_seconds", 5.0)),
+        )
+
+    # Env overrides for the cloud link (secrets belong in env, not yaml)
+    for env_key, attr in (
+        ("VOLY_CLOUD_URL", "base_url"),
+        ("VOLY_CLOUD_TENANT_ID", "tenant_id"),
+        ("VOLY_CLOUD_TOKEN", "token"),
+        ("VOLY_CLOUD_USER_ID", "user_id"),
+    ):
+        env_value = os.environ.get(env_key, "").strip()
+        if env_value:
+            setattr(config.cloud, attr, env_value)
+    if "VOLY_CLOUD_ENABLED" in os.environ:
+        config.cloud.enabled = _parse_bool(os.environ.get("VOLY_CLOUD_ENABLED"), False)
 
     if "dspy" in raw:
         d = raw["dspy"]

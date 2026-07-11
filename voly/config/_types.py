@@ -195,6 +195,24 @@ class MCPConfig:
 
 
 @dataclass
+class CloudConfig:
+    """Link to a VOLY Cloud control plane — local runs report into the shared
+    org history (voly-cloud ``POST /cloud/v1/tenants/{id}/runs/report``).
+
+    ``token`` is the tenant edge JWT from the org manifest, not a user session
+    token. Reporting is best-effort telemetry: metadata only (task text capped,
+    cost, files touched), never file contents.
+    """
+
+    enabled: bool = False
+    base_url: str = ""      # control plane, e.g. http://127.0.0.1:7790
+    tenant_id: str = ""
+    token: str = ""         # prefer env VOLY_CLOUD_TOKEN over yaml
+    user_id: str = ""       # optional attribution shown in the org timeline
+    timeout_seconds: float = 5.0
+
+
+@dataclass
 class TelemetryConfig:
     enabled: bool = True
     events_dir: str = ".voly/events"
@@ -305,6 +323,7 @@ class VOLYConfig:
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
     executor_safety: ExecutorSafetyConfig = field(default_factory=ExecutorSafetyConfig)
     telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
+    cloud: CloudConfig = field(default_factory=CloudConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)
     default_model: str = "claude-sonnet"

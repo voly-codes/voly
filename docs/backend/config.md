@@ -69,6 +69,17 @@ VOLY_RUN_POOL_WORKERS=16
 # Thread pool size for POST /api/run (web/routes/run.py). Executor calls are
 # I/O-bound subprocess waits, not CPU-bound, so a larger pool is cheap and
 # reduces invisible queuing under concurrent requests.
+
+VOLY_CLOUD_ENABLED=true
+VOLY_CLOUD_URL=http://127.0.0.1:7790
+VOLY_CLOUD_TENANT_ID=...
+VOLY_CLOUD_TOKEN=...
+VOLY_CLOUD_USER_ID=...
+# VOLY Cloud link (voly/cloud_link.py): report finished local runs into the
+# org's shared history (control plane POST .../runs/report, tenant edge JWT).
+# Metadata only — task text capped at 500 chars, cost, files touched; never
+# file contents. Env overrides the `cloud:` yaml section; best-effort
+# delivery, failures never break the run.
 ```
 
 > Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via
@@ -148,6 +159,14 @@ telemetry:
   events_dir: .voly/events
   runs_dir: .voly/runs          # in-flight multi-agent RunRecords (Rung A)
   watchdog_stale_factor: 2.0    # run is stale if heartbeat older than factor × task_timeout
+
+cloud:                          # VOLY Cloud link — local runs → shared org history
+  enabled: false
+  base_url: ""                  # control plane, e.g. http://127.0.0.1:7790
+  tenant_id: ""
+  token: "${VOLY_CLOUD_TOKEN}"  # tenant edge JWT (org manifest), not a user session token
+  user_id: ""                   # optional attribution in the org timeline
+  timeout_seconds: 5
 
 rtk:
   enabled: true

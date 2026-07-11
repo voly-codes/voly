@@ -359,6 +359,12 @@ def emit_event_from_config(event: TaskEvent, config: Any | None = None) -> Path 
         record_task_spend(event, config)
     except Exception:
         pass
+    try:
+        from voly.cloud_link import report_run_event
+
+        report_run_event(event, config)
+    except Exception:
+        pass
     return path
 
 

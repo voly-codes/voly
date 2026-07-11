@@ -172,6 +172,17 @@ telemetry:
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
+# VOLY Cloud link — report finished local runs into the shared org history
+# (metadata only: task text capped, cost, files touched — never file contents).
+# Env overrides: VOLY_CLOUD_ENABLED / _URL / _TENANT_ID / _TOKEN / _USER_ID.
+cloud:
+  enabled: false
+  base_url: ""                 # control plane, e.g. http://127.0.0.1:7790
+  tenant_id: ""
+  token: "${VOLY_CLOUD_TOKEN}" # tenant edge JWT from the org manifest
+  user_id: ""                  # optional attribution in the org timeline
+  timeout_seconds: 5
+
 # Plan gates (Rung B): multi-step plans with acceptance checks.
 # CLI: voly plan run <file.yaml>  — see docs/proposals/plan-gate-verification.md
 plan:
