@@ -1,7 +1,14 @@
 <script>
   import { CpuIcon, ClockIcon, BookOpenIcon, LinkIcon, LayersIcon } from '../../icons.js'
+  import WorkReport from './WorkReport.svelte'
 
   let { result } = $props()
+
+  let hybridSummary = $derived(
+    result?.hybrid && (result.hybrid.executor_roles || result.hybrid.chat_roles)
+      ? result.hybrid
+      : null
+  )
 
   const STATUS_COLOR = {
     success:       'var(--accent-green)',
@@ -34,6 +41,15 @@
       <span class="meta-chip {result.success ? 'ok' : 'err'}">
         {result.success ? 'completed' : 'failed'}
       </span>
+      {#if result.dry_run}
+        <span class="meta-chip dry" title="all file changes were rolled back">dry-run</span>
+      {/if}
+      {#if result.safety_violation}
+        <span class="meta-chip err" title={result.safety_violation}>safety</span>
+      {/if}
+      {#if result.billing_fallback}
+        <span class="meta-chip warn" title="billing fallback">→ {result.billing_fallback}</span>
+      {/if}
     </div>
     <div class="result-stats">
       {#if result.duration_ms}
@@ -130,6 +146,37 @@
     </div>
   {/if}
 
+  {#if hybridSummary}
+    <div class="hybrid-summary">
+      <LayersIcon size="11" strokeWidth="2" />
+      <span>Hybrid:</span>
+      <span class="hy-stat">{hybridSummary.executor_roles ?? 0} executor</span>
+      <span class="hy-sep">·</span>
+      <span class="hy-stat">{hybridSummary.chat_roles ?? 0} chat</span>
+      {#if hybridSummary.files_touched?.length}
+        <span class="hy-sep">·</span>
+        <span class="hy-stat" title={hybridSummary.files_touched.join('\n')}>
+          {hybridSummary.files_touched.length} files
+        </span>
+      {/if}
+    </div>
+  {/if}
+
+  <WorkReport report={result.report} />
+
+  {#if result.safety_rolled_back?.length}
+    <div class="safety-note">
+      rolled back: {result.safety_rolled_back.join(', ')}
+    </div>
+  {/if}
+
+  {#if result.dry_run_diff}
+    <details class="diff-block">
+      <summary>Diff preview (dry-run — changes were rolled back)</summary>
+      <pre class="diff-content">{result.dry_run_diff}</pre>
+    </details>
+  {/if}
+
   {#if result.injected_skills?.length}
     <div class="injected-skills">
       <BookOpenIcon size="11" strokeWidth="2" />
@@ -180,6 +227,53 @@
   .meta-chip.model { color: var(--accent-purple); border-color: color-mix(in srgb, var(--accent-purple) 30%, transparent); }
   .meta-chip.ok { color: var(--accent-green); border-color: color-mix(in srgb, var(--accent-green) 30%, transparent); }
   .meta-chip.err { color: var(--accent-red); border-color: color-mix(in srgb, var(--accent-red) 30%, transparent); }
+  .meta-chip.dry,
+  .meta-chip.warn { color: var(--accent-amber); border-color: color-mix(in srgb, var(--accent-amber) 30%, transparent); }
+
+  .hybrid-summary {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-muted);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .hy-stat { font-variant-numeric: tabular-nums; }
+  .hy-sep { color: var(--text-muted); }
+
+  .safety-note {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-muted);
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    color: var(--accent-amber);
+    word-break: break-all;
+  }
+
+  .diff-block {
+    border-bottom: 1px solid var(--border-muted);
+  }
+  .diff-block summary {
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .diff-block summary:hover { color: var(--text-primary); }
+  .diff-content {
+    margin: 0;
+    padding: 8px 10px;
+    max-height: 320px;
+    overflow: auto;
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    line-height: 1.5;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    white-space: pre;
+  }
 
   .result-stats {
     display: flex;

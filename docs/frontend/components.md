@@ -53,12 +53,18 @@ Hint: `cwd ? 'executor writes here' : 'leave empty for text-only'`
 
 ## RunResult.svelte
 
-Renders the task result. Shows:
-- success/error status
-- `content` — agent output
-- `billing_fallback` — if fallback occurred (e.g. "zen")
-- cost_usd, duration_ms, num_turns
-- WorkReport (files: created/changed/deleted)
+The run report screen — renders everything the `done` SSE payload carries:
+- header chips: agent / model / executor / status, plus `dry-run` (amber),
+  `safety` (red, tooltip = violation text), `→ <executor>` billing fallback
+- stats: duration, tokens, cost_usd, num_turns
+- billing chain timelog (per-attempt executor / model / status / duration)
+- multi-agent panel: role / tier / mode / plan status / executor or
+  provider+model / files / cached / mem / skills / tokens / cost per agent
+- hybrid summary row: N executor / M chat roles, union of files touched
+- `WorkReport` (files created/changed/deleted, summary, actions)
+- `safety_rolled_back` note and a collapsible **dry-run diff preview**
+  (`dry_run_diff`, max-height scroll)
+- injected skills, content, error
 
 ---
 

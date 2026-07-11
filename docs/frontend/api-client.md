@@ -128,6 +128,16 @@ returned by any endpoint. Localhost-only API (403 otherwise).
 
 ---
 
+## Run report fields in `done`
+
+Besides `content`/`cost_usd`/`usage`, the executor path returns `report`
+(WorkReport: `files_changed/created/deleted`, `summary`, `actions`) and, when
+the safety policy acted, `dry_run`, `dry_run_diff`, `safety_violation`,
+`safety_rolled_back`. The multi-agent path returns `a2a_assignments` and a
+`hybrid` summary. `RunResult.svelte` renders all of them.
+
+---
+
 ## Handling billing_fallback in the UI
 
 If `done.billing_fallback` is present — show a badge:

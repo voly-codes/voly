@@ -263,6 +263,10 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
     for key in ("dry_run", "dry_run_diff", "safety_violation", "safety_rolled_back"):
         if meta.get(key):
             out[key] = meta[key]
+    # WorkReport → run report screen (files changed/created/deleted, summary).
+    rep = result.result.report
+    if rep is not None:
+        out["report"] = rep.to_dict() if hasattr(rep, "to_dict") else rep
     return out
 
 
