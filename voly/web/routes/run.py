@@ -51,6 +51,9 @@ class RunRequest(BaseModel):
     # Total executor deadline in seconds, incl. internal model-fallback loops.
     timeout: int = 300
     a2a_delegate: bool = False
+    # Run the executor but roll back all file changes afterwards; the diff
+    # preview lands in result metadata (executor safety policy).
+    dry_run: bool = False
 
 
 def _sse(event_type: str, data: dict[str, Any]) -> str:
@@ -239,9 +242,10 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
     result = runner.run(
         task, req.executor, cwd=work_dir,
         max_turns=req.max_turns, timeout=req.timeout, model=req.model or "",
+        dry_run=req.dry_run,
     )
     meta = result.result.metadata or {}
-    return {
+    out = {
         "success": result.success,
         "executor": result.executor,
         "agent": result.agent,
@@ -255,6 +259,11 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "billing_fallback": meta.get("billing_fallback_to"),
         "chain_timelog": meta.get("chain_timelog"),
     }
+    # Executor safety policy artifacts (dry-run preview / rollback details).
+    for key in ("dry_run", "dry_run_diff", "safety_violation", "safety_rolled_back"):
+        if meta.get(key):
+            out[key] = meta[key]
+    return out
 
 
 def _needs_executor(task: str, config: Any) -> bool:

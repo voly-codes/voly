@@ -28,7 +28,8 @@ Start a task. Returns an SSE stream.
   cwd?: string,        // target project path (overrides config.default_cwd)
   max_turns?: number,  // default 30
   timeout?: number,    // default 300 — total executor deadline (s), incl. internal model fallback
-  a2a_delegate?: bool  // delegate to A2A federation
+  a2a_delegate?: bool, // delegate to A2A federation
+  dry_run?: bool       // run executor, then roll back all file changes (diff preview in result)
 }
 
 // SSE events
@@ -49,6 +50,10 @@ generator returns immediately instead of holding the SSE connection open.
 The underlying call keeps running in its worker thread either way (Python
 can't force-cancel a blocking `subprocess.run()`), but no further stream
 writes are attempted on a dead connection.
+
+When the executor safety policy acts, `done` additionally carries `dry_run`,
+`dry_run_diff` (truncated preview), `safety_violation` and
+`safety_rolled_back` (see `docs/backend/executors.md` § Safety policy).
 
 For the multi-agent (A2A local) path, `start` also carries `a2a: true`,
 `hybrid: bool`, resolved `cwd`, and — when `a2a.hybrid_code_gen` is on but no

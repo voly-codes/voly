@@ -144,6 +144,16 @@ ai_gateway:
     block_secrets: true
     block_pii: true
 
+# Guardrails for file-writing executors (rollback is git-based; requires a
+# git repo in cwd). dry_run reverts all changes after the run, keeping a diff
+# preview in the result. protected_paths: fnmatch, empty = built-in defaults
+# (.env*, *.pem, *.key, id_rsa*, .git/**).
+executor_safety:
+  enabled: true
+  dry_run: false
+  protected_paths: []
+  max_files_touched: 0     # 0 = unlimited; exceeding rolls back the whole run
+
 cost_policy:
   enabled: true
   max_task_cost_usd: 1.00

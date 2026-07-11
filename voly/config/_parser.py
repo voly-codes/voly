@@ -12,6 +12,7 @@ from voly.config._types import (
     VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
+    ExecutorSafetyConfig,
     HeadroomConfig,
     MCPConfig,
     MemoryConfig,
@@ -239,6 +240,15 @@ def _parse_config(raw: dict) -> VOLYConfig:
 
     if "VOLY_BYOK" in os.environ:
         config.ai_gateway.byok_enabled = _parse_bool(os.environ.get("VOLY_BYOK"), False)
+
+    if "executor_safety" in raw:
+        es = raw["executor_safety"]
+        config.executor_safety = ExecutorSafetyConfig(
+            enabled=_parse_bool(es.get("enabled"), True),
+            dry_run=_parse_bool(es.get("dry_run"), False),
+            protected_paths=list(es.get("protected_paths") or []),
+            max_files_touched=int(es.get("max_files_touched", 0) or 0),
+        )
 
     if "cost_policy" in raw:
         cp = raw["cost_policy"]

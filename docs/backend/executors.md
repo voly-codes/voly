@@ -254,3 +254,27 @@ the web UI knows where to write files.
 3. Add to `EXECUTOR_NAMES` and `_build_executor()` factory in `agent_runner.py`
 4. If file-capable and has its own billing: add to `BILLING_FALLBACK_CHAIN` in correct order
 5. Update this doc and `docs/ARCHITECTURE.md`
+
+---
+
+## Safety policy (`voly/executor/safety.py`)
+
+Guardrails enforced in `AgentRunner.run` **after** the executor finishes,
+git-based (a pre-run `git stash create` snapshot lets rollback restore the
+exact pre-run content, including files that were already dirty). Only files
+whose `git status` changed during the run are ever touched; without a git
+repo in `cwd` the policy degrades to a no-op with a warning.
+
+| Policy (`executor_safety` in voly.yaml) | Trigger | Effect |
+|---|---|---|
+| `dry_run: true` (or `voly run --dry-run` / `RunRequest.dry_run`) | always | run executes normally, then **all** file changes are rolled back; `metadata.dry_run=true`, `metadata.dry_run_diff` keeps a truncated preview; `WorkReport` still lists the files; `success` unchanged |
+| `protected_paths` (fnmatch; empty = defaults `.env*`, `*.pem`, `*.key`, `id_rsa*`, `id_ed25519*`, `*.p12`, `.git/**`) | protected file touched | only the protected files are rolled back; `success=false`, `error="safety: protected path(s) modified…"`, `metadata.safety_violation`; the billing chain is NOT triggered |
+| `max_files_touched` (0 = unlimited) | run touched more files | runaway change — the **whole** run is rolled back; `success=false` |
+
+Log marker: `[CHAIN:SAFETY]`. Rolled-back paths land in
+`metadata.safety_rolled_back`; `/api/run` responses surface `dry_run`,
+`dry_run_diff`, `safety_violation`, `safety_rolled_back` when present.
+
+Known limit (v1): a file that was already dirty before the run and modified
+again by the executor keeps the same porcelain status, so the delta detector
+does not flag it — phase 2 (content-hash detection / secret scan) covers this.

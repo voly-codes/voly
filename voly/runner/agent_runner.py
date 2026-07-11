@@ -328,6 +328,7 @@ class AgentRunner:
         timeout: int = 300,
         model: str = "",
         emit_event: bool = True,
+        dry_run: bool = False,
     ) -> RunnerResult:
         self.setup_rtk()
 
@@ -353,6 +354,13 @@ class AgentRunner:
                 logging.getLogger("voly.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
 
         git_before = _git_porcelain(cwd)
+        # Pre-run snapshot for the safety policy: lets rollback restore the
+        # exact pre-run content even of files that were already dirty.
+        from voly.executor.safety import apply_safety_policy, git_snapshot
+        safety_cfg = getattr(self.config, "executor_safety", None)
+        safety_snapshot = ""
+        if cwd and safety_cfg is not None and getattr(safety_cfg, "enabled", True):
+            safety_snapshot = git_snapshot(cwd)
         t0 = time.monotonic()
         result = executor.run(
             effective_task,
@@ -475,6 +483,30 @@ class AgentRunner:
         git_after = _git_porcelain(cwd)
         work_report = _build_work_report(result.output or "", git_before, git_after)
         result.report = work_report
+
+        # Safety policy: dry-run rollback / protected paths / max files touched.
+        safety = apply_safety_policy(
+            cwd=cwd,
+            policy=safety_cfg,
+            snapshot=safety_snapshot,
+            before=git_before,
+            after=git_after,
+            dry_run=dry_run,
+        )
+        if safety.dry_run:
+            result.metadata["dry_run"] = True
+            if safety.diff_preview:
+                result.metadata["dry_run_diff"] = safety.diff_preview
+        if safety.rolled_back:
+            result.metadata["safety_rolled_back"] = safety.rolled_back
+        if safety.violations:
+            result.metadata["safety_violation"] = "; ".join(safety.violations)
+            result.success = False
+            result.error = "safety: " + "; ".join(safety.violations) + (
+                f" (rolled back: {', '.join(safety.rolled_back[:10])})"
+                if safety.rolled_back else ""
+            )
+            _chain_log.warning("[CHAIN:SAFETY] %s", result.error[:200])
 
         automation_score, manual_steps = compute_automation_metrics(
             executor_name, result, task_type=task_type

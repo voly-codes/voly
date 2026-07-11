@@ -27,6 +27,10 @@ import click
     help="Executor timeout in seconds (total deadline, incl. internal model fallback)",
 )
 @click.option("--a2a-delegate", is_flag=True, help="Delegate to A2A agents")
+@click.option(
+    "--dry-run", is_flag=True,
+    help="Run the executor but roll back all file changes afterwards (diff preview kept)",
+)
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def run(
@@ -39,12 +43,15 @@ def run(
     max_turns: int,
     timeout: int,
     a2a_delegate: bool,
+    dry_run: bool,
     output_json: bool,
 ) -> None:
     """Run a task through the VOLY pipeline."""
     if executor:
-        _run_with_executor(task, executor, cwd, max_turns, timeout, output_json, ctx)
+        _run_with_executor(task, executor, cwd, max_turns, timeout, output_json, ctx, dry_run=dry_run)
         return
+    if dry_run:
+        click.echo("--dry-run applies to executor runs; ignored on the pipeline path", err=True)
 
     from voly.pipeline import Pipeline
 
@@ -104,6 +111,8 @@ def _run_with_executor(
     timeout: int,
     output_json: bool,
     ctx: click.Context,
+    *,
+    dry_run: bool = False,
 ) -> None:
     from voly.runner.agent_runner import AgentRunner
 
@@ -121,6 +130,7 @@ def _run_with_executor(
             cwd=work_dir,
             max_turns=max_turns,
             timeout=timeout,
+            dry_run=dry_run,
         )
     except ValueError as exc:
         click.echo(str(exc), err=True)

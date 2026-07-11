@@ -173,6 +173,22 @@ class AIGatewayConfig:
 
 
 @dataclass
+class ExecutorSafetyConfig:
+    """Guardrails for file-writing executors (docs/backend/executors.md § Safety)."""
+
+    enabled: bool = True
+    # Run executors normally but roll back all file changes afterwards,
+    # keeping the diff preview in result metadata. Per-call override:
+    # `voly run --dry-run` / RunRequest.dry_run.
+    dry_run: bool = False
+    # fnmatch patterns (repo-relative path or basename); empty → built-in
+    # defaults (.env*, *.pem, *.key, id_rsa*, .git/** …).
+    protected_paths: list[str] = field(default_factory=list)
+    # 0 = unlimited; exceeding rolls back the whole run.
+    max_files_touched: int = 0
+
+
+@dataclass
 class MCPConfig:
     servers: list[dict[str, Any]] = field(default_factory=list)
     tools_allowlist: list[str] = field(default_factory=list)
@@ -287,6 +303,7 @@ class VOLYConfig:
     ai_gateway: AIGatewayConfig = field(default_factory=AIGatewayConfig)
     mcp: MCPConfig = field(default_factory=MCPConfig)
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
+    executor_safety: ExecutorSafetyConfig = field(default_factory=ExecutorSafetyConfig)
     telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)

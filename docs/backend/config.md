@@ -101,6 +101,12 @@ ai_gateway:
   rate_limit_rpm: 60
   spend_limit_usd_per_day: 10.0
 
+executor_safety:          # guardrails for file-writing executors (git-based rollback)
+  enabled: true
+  dry_run: false          # run + roll back all changes, keep diff preview (CLI --dry-run overrides per call)
+  protected_paths: []     # fnmatch; empty = defaults (.env*, *.pem, *.key, id_rsa*, .git/**)
+  max_files_touched: 0    # 0 = unlimited; exceeding rolls back the whole run
+
 cost_policy:
   max_task_cost_usd: 2.0
   warn_threshold_usd: 1.0
