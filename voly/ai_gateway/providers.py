@@ -426,15 +426,16 @@ class _GatewayProvidersMixin:
         system: str | None,
         tools: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        from voly.ai_gateway.credentials import byok_active, byok_provider_slug
+        from voly.ai_gateway.credentials import byok_active, byok_provider_slug, gateway_model
 
         try:
             # BYOK: provider key is stored in CF Secrets Store and resolved by
-            # the gateway — route through /compat, never read the env key.
+            # the gateway — route through the CF endpoint, never read the env key.
             slug = byok_provider_slug(provider_name, getattr(self, "byok_providers", None))
             if slug and byok_active(self):
                 return self._call_cloudflare_compat(
-                    f"{slug}/{model}", messages, max_tokens, temperature, system, tools=tools
+                    f"{slug}/{gateway_model(slug, model)}",
+                    messages, max_tokens, temperature, system, tools=tools,
                 )
 
             if provider_name == "anthropic":

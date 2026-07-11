@@ -126,6 +126,13 @@ key leaves the process.
 escape hatch while the REST path settles; `cloudflare-dynamic` routing uses
 the same transport switch.
 
+Model naming: the gateway catalog spells Anthropic minor versions with a dot
+(`anthropic/claude-sonnet-4.6`); `credentials.gateway_model()` normalizes
+VOLY's hyphen ids automatically (live-verified 2026-07-11 for openai,
+deepseek and anthropic). Known catalog quirk: `openai/gpt-5*` rejects
+`max_tokens` (wants `max_completion_tokens`) — use `gpt-4o*` until the body
+is adapted.
+
 | VOLY provider | CF slug | BYOK |
 |---|---|---|
 | `anthropic` | `anthropic` | yes |

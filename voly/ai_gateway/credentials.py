@@ -11,6 +11,7 @@ use the local env path.
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 # provider_name (VOLY) → provider slug on the CF /compat endpoint.
@@ -41,6 +42,20 @@ def byok_active(gateway: Any) -> bool:
         or os.environ.get("CLOUDFLARE_API_TOKEN", "")
     )
     return bool(account and token)
+
+
+# CF gateway catalog spells Anthropic minor versions with a dot
+# (claude-sonnet-4.6) while Anthropic API ids use a hyphen (claude-sonnet-4-6).
+_ANTHROPIC_MINOR_VERSION = re.compile(r"^(claude-[a-z0-9]+-\d+)-(\d)$")
+
+
+def gateway_model(provider_slug: str, model: str) -> str:
+    """Model id as the CF AI REST API catalog expects it (live-verified 2026-07-11)."""
+    if provider_slug == "anthropic":
+        m = _ANTHROPIC_MINOR_VERSION.match(model)
+        if m:
+            return f"{m.group(1)}.{m.group(2)}"
+    return model
 
 
 def byok_provider_slug(

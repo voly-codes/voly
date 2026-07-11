@@ -13,6 +13,7 @@ from voly.ai_gateway.credentials import (
     BYOK_PROVIDER_SLUGS,
     byok_active,
     byok_provider_slug,
+    gateway_model,
 )
 from voly.config import VOLYConfig, load_config
 
@@ -33,6 +34,17 @@ def test_byok_slug_map() -> None:
     assert byok_provider_slug("opencode-zen") == ""
     assert byok_provider_slug("omniroute") == ""
     assert byok_provider_slug("workers-ai") == ""
+
+
+def test_gateway_model_normalizes_anthropic_minor_version() -> None:
+    """CF catalog wants claude-sonnet-4.6, Anthropic API ids use hyphens."""
+    assert gateway_model("anthropic", "claude-sonnet-4-6") == "claude-sonnet-4.6"
+    assert gateway_model("anthropic", "claude-haiku-4-5") == "claude-haiku-4.5"
+    # dated ids and non-matching names pass through untouched
+    assert gateway_model("anthropic", "claude-haiku-4-5-20251001") == "claude-haiku-4-5-20251001"
+    assert gateway_model("anthropic", "claude-x") == "claude-x"
+    assert gateway_model("openai", "gpt-4o-mini") == "gpt-4o-mini"
+    assert gateway_model("deepseek", "deepseek-chat") == "deepseek-chat"
 
 
 def test_byok_providers_restriction() -> None:
