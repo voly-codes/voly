@@ -28,11 +28,69 @@ VOLY is not another AI agent. It is a **self-hosted control plane** between the 
 
 - **routes** tasks across executors with an automatic billing fallback chain;
 - **decomposes** complex work into sub-agents (architect → developer → tester → reviewer → devops), where a strong lead orchestrator assigns model tiers and skills;
+- **guards file writes** — dry-run with diff preview, protected paths, max-files limit, git-based rollback;
 - **controls spend** via Cloudflare AI Gateway, spend limits, and cost policy;
 - **reduces tokens** with a persistent cache, Headroom, model routing, and determinism;
 - **collects telemetry** per run and surfaces metrics in the Web UI;
 - supports **DSPy** as an optional optimization layer;
 - stays **project-agnostic** — the target project is passed via `--cwd` or `VOLY_PROJECT_CWD`.
+
+## Why VOLY, and not just a single agent?
+
+Claude Code, Cursor, and Codex are excellent **executors**. VOLY is the layer
+**above** them — it exists because running agents daily raises questions a
+single CLI cannot answer:
+
+| The question | VOLY's answer |
+|---|---|
+| The agent ran out of credits mid-task | Billing fallback chain `claude-code → wrangler → opencode → zen`, automatic |
+| What did this run actually cost? | Per-run `TaskEvent`: cost, tokens, retries, per-role breakdown in the UI |
+| A complex task = one giant prompt? | Multi-agent decomposition with a model tier per role; implement roles write files, review stays on chat |
+| Is it safe to let an agent write files? | Safety policy: `--dry-run` with diff preview, protected paths (`.env*`, keys), max-files limit, git rollback |
+| A premium model for a routine fix? | Cost policy + tier routing: cheap models for cheap roles |
+| Provider keys in `.env` on every machine? | BYOK: keys live in Cloudflare Secrets Store, resolved by the gateway per request |
+
+If all you need is "write code from a prompt" — use an agent directly. VOLY
+pays off when agents become part of the **daily workflow** and you need
+economics, control, and reports.
+
+## 3-minute demo
+
+```bash
+voly init                                   # config + hooks
+voly run "fix the auth redirect bug" \
+    --executor claude-code --cwd ~/my-project
+# → the executor writes files; if it hits a billing error the chain
+#   falls through to the next executor; cost and touched files land
+#   in the run report
+
+voly run "refactor the config loader" \
+    --executor claude-code --cwd ~/my-project --dry-run
+# → same run, but every file change is rolled back afterwards;
+#   the diff preview is kept in the result
+
+voly ui                                     # web dashboard on :7788
+```
+
+A complex request ("redesign auth, add tests, review it") goes multi-agent
+automatically: the lead model assigns roles and tiers, implement roles write
+files through executors, the reviewer stays on chat — the report shows
+role / model / cost / files per agent.
+
+## Open core vs Cloud
+
+| | **voly** (this repo, Apache-2.0) | **voly-cloud** (commercial) |
+|---|---|---|
+| Orchestration, multi-agent, hybrid executors | ✔ full | same core |
+| Billing fallback chain, cost policy, telemetry | ✔ full | same core |
+| Executor safety policy (dry-run, protected paths) | ✔ full | same core |
+| Local Web UI + CLI, self-hosted, single tenant | ✔ | — |
+| BYOK in **your** Cloudflare account | ✔ | managed per tenant |
+| Auth / SSO / teams / audit | — | ✔ |
+| Hosted runs, shared spend dashboards, org limits | — | ✔ |
+
+The open core is complete and self-hosted. The paid tier sells hosting and
+team management — not core features.
 
 ## How it works
 

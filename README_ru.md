@@ -28,11 +28,68 @@ VOLY — не ещё один AI-агент. Это **self-hosted control plane*
 
 - **маршрутизирует** задачи по executor-ам с автоматическим billing fallback chain;
 - **дробит сложные задачи** на суб-агентов (architect → developer → tester → reviewer → devops), где сильный агент-оркестратор раздаёт каждому уровень модели и скилы;
+- **страхует записи в файлы** — dry-run с превью диффа, защищённые пути, лимит на число файлов, git-откат;
 - **контролирует расходы** через Cloudflare AI Gateway, spend limits и cost policy;
 - **снижает расход токенов** через persistent-кэш, Headroom, model routing и детерминизм;
 - **собирает telemetry** по каждому запуску и показывает реальные метрики в Web UI;
 - поддерживает **DSPy** как optional optimization layer;
 - остаётся **project-agnostic** — целевой проект передаётся через `--cwd` или `VOLY_PROJECT_CWD`.
+
+## Почему VOLY, а не просто агент?
+
+Claude Code, Cursor и Codex — отличные **исполнители**. VOLY — слой **над**
+ними: он нужен, потому что ежедневная работа с агентами ставит вопросы,
+на которые одиночный CLI не отвечает:
+
+| Вопрос | Ответ VOLY |
+|---|---|
+| У агента кончились кредиты посреди задачи | Billing fallback chain `claude-code → wrangler → opencode → zen`, автоматически |
+| Сколько реально стоил этот запуск? | `TaskEvent` на каждый запуск: стоимость, токены, ретраи, разбивка по ролям в UI |
+| Сложная задача = один гигантский промпт? | Мульти-агентная декомпозиция с уровнем модели на роль; implement-роли пишут файлы, ревью — на chat |
+| Безопасно ли пускать агента в файлы? | Safety policy: `--dry-run` с превью диффа, защищённые пути (`.env*`, ключи), лимит файлов, git-откат |
+| Premium-модель на рутинную правку? | Cost policy + tier routing: дешёвые модели для дешёвых ролей |
+| Ключи провайдеров в `.env` на каждой машине? | BYOK: ключи в Cloudflare Secrets Store, gateway подставляет их сам |
+
+Если нужно только «написать код по промпту» — используй агента напрямую.
+VOLY окупается, когда агенты становятся частью **ежедневного процесса**
+и нужны экономика, контроль и отчёты.
+
+## Демо за 3 минуты
+
+```bash
+voly init                                   # конфиг + хуки
+voly run "почини редирект после логина" \
+    --executor claude-code --cwd ~/my-project
+# → executor пишет файлы; при billing-ошибке цепочка сама переключает
+#   исполнителя; стоимость и затронутые файлы — в отчёте
+
+voly run "отрефактори загрузку конфига" \
+    --executor claude-code --cwd ~/my-project --dry-run
+# → тот же запуск, но все изменения откатываются; превью диффа
+#   остаётся в результате
+
+voly ui                                     # web-дашборд на :7788
+```
+
+Сложный запрос («переделай auth, добавь тесты, сделай ревью») автоматически
+уходит в мульти-агент: lead-модель раздаёт роли и тиры, implement-роли пишут
+файлы через executor-ы, ревьюер остаётся на chat — в отчёте видно
+роль / модель / стоимость / файлы по каждому агенту.
+
+## Open core vs Cloud
+
+| | **voly** (этот репо, Apache-2.0) | **voly-cloud** (коммерческий) |
+|---|---|---|
+| Оркестрация, мульти-агент, hybrid executors | ✔ полностью | то же ядро |
+| Billing fallback chain, cost policy, telemetry | ✔ полностью | то же ядро |
+| Executor safety policy (dry-run, protected paths) | ✔ полностью | то же ядро |
+| Локальный Web UI + CLI, self-hosted, один тенант | ✔ | — |
+| BYOK в **твоём** Cloudflare-аккаунте | ✔ | managed per tenant |
+| Auth / SSO / команды / аудит | — | ✔ |
+| Hosted-запуски, общие дашборды расходов, org-лимиты | — | ✔ |
+
+Открытое ядро полное и self-hosted. Платный уровень продаёт хостинг и
+командную обвязку — не фичи ядра.
 
 ## Как это работает
 
@@ -258,6 +315,26 @@ VOLY_JWT_SECRET=
 VOLY_AUTH_USERS=admin:change-me
 OMNIROUTE_BASE_URL=http://localhost:20128 # если используешь OmniRoute-адаптер
 ```
+
+### BYOK — ключи провайдеров в Cloudflare (опционально)
+
+При `ai_gateway.byok_enabled: true` ключи anthropic / openai /
+google-ai-studio / deepseek хранятся в **CF Secrets Store**, gateway
+подставляет их на каждый запрос — в `.env` нужен только `CF_AIG_TOKEN`.
+См. `docs/backend/ai-gateway.md` § BYOK (Store Keys).
+
+### Hosted-каталог и маркетплейс (опционально, opt-in)
+
+Можно использовать официальный hosted-каталог скилов вместо деплоя своих
+воркеров из `cf-workers/`:
+
+```env
+CF_WORKER_CATALOG_URL=https://voly-catalog.margolanies.workers.dev
+CF_WORKER_MARKETPLACE_URL=https://voly-marketplace.margolanies.workers.dev
+```
+
+`voly setup` предложит записать это за тебя. Приватность: запросы каталога
+пойдут на эти воркеры; без явного opt-in ничего не отправляется.
 
 ## Основные команды
 
