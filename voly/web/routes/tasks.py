@@ -125,6 +125,10 @@ async def stream_tasks(request: Request) -> StreamingResponse:
 
     async def generator():
         nonlocal seen
+        # The first scan is a snapshot of what already exists — emitted as
+        # type "init" so the UI does not badge historical tasks as new
+        # (also on EventSource auto-reconnects, which restart this generator).
+        first = True
         try:
             while True:
                 if await request.is_disconnected():
@@ -144,11 +148,13 @@ async def stream_tasks(request: Request) -> StreamingResponse:
                                 pass
 
                 if new_tasks:
-                    yield f"data: {json.dumps({'type': 'new', 'tasks': new_tasks})}\n\n"
+                    msg_type = "init" if first else "new"
+                    yield f"data: {json.dumps({'type': msg_type, 'tasks': new_tasks})}\n\n"
                     seen = current
                 else:
                     # Heartbeat every 5s to keep connection alive
                     yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
+                first = False
 
                 await asyncio.sleep(5)
         except asyncio.CancelledError:

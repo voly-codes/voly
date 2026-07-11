@@ -27,8 +27,10 @@ function _stopPolling() {
   }
 }
 
-// Merge new SSE tasks into the list (deduplicate by task_id, sort by mtime desc)
-function _mergeNew(incoming: any[]) {
+// Merge SSE tasks into the list (deduplicate by task_id, sort by mtime desc).
+// markUnseen=false for the initial snapshot ("init") — historical tasks must
+// not be badged as new after a page refresh or an SSE reconnect.
+function _mergeNew(incoming: any[], markUnseen = true) {
   const map = new Map<string, any>()
   for (const t of tasks) map.set(t.task_id, t)
   for (const t of incoming) {
@@ -36,8 +38,7 @@ function _mergeNew(incoming: any[]) {
     const isNew = !existing
     if (isNew || (t._mtime ?? 0) > (existing._mtime ?? 0)) {
       map.set(t.task_id, t)
-      // Mark as unseen only if it arrived via SSE (not initial load) and isn't selected
-      if (isNew && selected?.task_id !== t.task_id) {
+      if (markUnseen && isNew && selected?.task_id !== t.task_id) {
         unseenIds = new Set([...unseenIds, t.task_id])
       }
     }
@@ -106,8 +107,8 @@ async function startStream() {
       _stopPolling()
       try {
         const msg = JSON.parse(e.data)
-        if (msg.type === 'new' && msg.tasks?.length) {
-          _mergeNew(msg.tasks)
+        if ((msg.type === 'new' || msg.type === 'init') && msg.tasks?.length) {
+          _mergeNew(msg.tasks, msg.type === 'new')
         }
       } catch {}
     }

@@ -76,9 +76,10 @@ Logs: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FA
 Task list from `.voly/events/`. SSE stream of updates.
 
 ```typescript
-// SSE events
-data: {"type": "init", "tasks": [...]}
-data: {"type": "update", "task": {...}}
+// SSE events (/api/tasks/stream)
+data: {"type": "init", "tasks": [...]}   // first scan: snapshot of existing tasks (no "new" badges)
+data: {"type": "new", "tasks": [...]}    // tasks that appeared after the snapshot
+data: {"type": "heartbeat"}              // every 5s when nothing changed
 ```
 
 ---
