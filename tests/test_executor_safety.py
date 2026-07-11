@@ -114,17 +114,29 @@ def test_protected_path_rolled_back_others_kept(repo: Path) -> None:
 
 
 def test_dirty_before_content_restored_not_head(repo: Path) -> None:
-    """Pre-run uncommitted edits are restored from the snapshot, not HEAD."""
+    """A file dirty before AND modified during the run is caught by content
+    diff (porcelain status alone can't see it) and restored to the pre-run
+    dirty content — not to HEAD."""
     (repo / ".env").write_text("SECRET=my-local-edit\n", encoding="utf-8")
     snap, before, after = _simulate_run(repo, {".env": "SECRET=agent-overwrote\n"})
     out = apply_safety_policy(
         cwd=str(repo), policy=_policy(), snapshot=snap,
         before=before, after=after,
     )
-    # NB: .env was dirty both before and after → porcelain status is identical,
-    # so the delta is empty and nothing is flagged. Guard documents this limit.
-    if out.violations:
-        assert (repo / ".env").read_text(encoding="utf-8") == "SECRET=my-local-edit\n"
+    assert out.violations and ".env" in out.violations[0]
+    assert (repo / ".env").read_text(encoding="utf-8") == "SECRET=my-local-edit\n"
+
+
+def test_dry_run_rolls_back_dirty_before_file(repo: Path) -> None:
+    """Dry-run contract: changes to a pre-dirty file are also rolled back."""
+    (repo / "src" / "a.py").write_text("my local wip\n", encoding="utf-8")
+    snap, before, after = _simulate_run(repo, {"src/a.py": "my local wip\nagent line\n"})
+    out = apply_safety_policy(
+        cwd=str(repo), policy=_policy(), snapshot=snap,
+        before=before, after=after, dry_run=True,
+    )
+    assert out.dry_run and "src/a.py" in out.rolled_back
+    assert (repo / "src" / "a.py").read_text(encoding="utf-8") == "my local wip\n"
 
 
 def test_dirty_before_protected_change_detected_via_hash(repo: Path) -> None:

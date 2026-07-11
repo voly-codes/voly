@@ -82,6 +82,35 @@ def run_touched_files(
     return touched, created
 
 
+def content_touched_files(
+    cwd: str,
+    snapshot: str,
+    before: dict[str, str],
+    after: dict[str, str],
+) -> tuple[list[str], list[str]]:
+    """(touched, created) by **content**, not porcelain status.
+
+    A file that was already dirty before the run and modified again by the
+    executor keeps the same porcelain status — only a content diff against
+    the pre-run snapshot catches it. Tracked files: ``git diff <snapshot>``;
+    untracked/staged-new ones still come from the porcelain delta.
+    """
+    touched: set[str] = set()
+    if snapshot:
+        try:
+            proc = subprocess.run(
+                ["git", "diff", "--name-only", snapshot],
+                cwd=cwd, capture_output=True, text=True, timeout=15,
+            )
+            if proc.returncode == 0:
+                touched.update(p.strip() for p in proc.stdout.splitlines() if p.strip())
+        except Exception:  # noqa: BLE001
+            pass
+    delta_touched, created = run_touched_files(before, after)
+    touched.update(delta_touched)
+    return sorted(touched), created
+
+
 def git_snapshot(cwd: str) -> str:
     """Commit-ish capturing the pre-run worktree; "" when not a git repo.
 
@@ -179,13 +208,15 @@ def apply_safety_policy(
         return out
 
     effective_dry = dry_run or bool(getattr(policy, "dry_run", False))
-    touched, created = run_touched_files(before, after)
-    if not touched:
+    if not snapshot:
+        if run_touched_files(before, after)[0]:
+            _log.warning("safety policy skipped: %s is not a git repository", cwd)
         out.dry_run = effective_dry
         return out
 
-    if not snapshot:
-        _log.warning("safety policy skipped: %s is not a git repository", cwd)
+    touched, created = content_touched_files(cwd, snapshot, before, after)
+    if not touched:
+        out.dry_run = effective_dry
         return out
 
     patterns = list(getattr(policy, "protected_paths", None) or DEFAULT_PROTECTED_PATHS)

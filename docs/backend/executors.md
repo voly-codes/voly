@@ -275,6 +275,9 @@ Log marker: `[CHAIN:SAFETY]`. Rolled-back paths land in
 `metadata.safety_rolled_back`; `/api/run` responses surface `dry_run`,
 `dry_run_diff`, `safety_violation`, `safety_rolled_back` when present.
 
-Known limit (v1): a file that was already dirty before the run and modified
-again by the executor keeps the same porcelain status, so the delta detector
-does not flag it — phase 2 (content-hash detection / secret scan) covers this.
+Touched files are detected by **content** (`git diff --name-only` against the
+pre-run snapshot), not porcelain status alone — a file that was already dirty
+before the run and modified again by the executor is caught and restored to
+its pre-run (dirty) content. Note: `WorkReport` file lists still come from
+the porcelain delta, so such files may be missing from the report display —
+report-side follow-up.
