@@ -70,7 +70,16 @@ def _build_work_report(output: str, before: dict[str, str], after: dict[str, str
     for path in sorted(all_paths):
         b, a = before.get(path), after.get(path)
         if b is None and a is not None:
-            (deleted if "D" in (a or "") else created).append(path)
+            # Absent from the *before* porcelain = the file was clean-tracked
+            # or did not exist. Only untracked (??) / staged-add (A) entries
+            # are genuinely new; an "M" here is a tracked file modified during
+            # the run — that's a change, not a creation.
+            if "D" in a:
+                deleted.append(path)
+            elif a.startswith("?") or "A" in a:
+                created.append(path)
+            else:
+                changed.append(path)
         elif a is None and b is not None:
             deleted.append(path)
         elif a != b:

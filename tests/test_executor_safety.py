@@ -57,6 +57,26 @@ def test_run_touched_files_delta_only() -> None:
     assert created == ["new.py"]
 
 
+def test_work_report_classification() -> None:
+    """Clean-tracked files modified during the run are 'changed', not 'created'."""
+    from voly.runner.agent_runner import _build_work_report
+
+    report = _build_work_report(
+        "",
+        before={"pre_dirty.py": "M"},
+        after={
+            "pre_dirty.py": "M",        # unchanged status → not in the report
+            "tracked_clean.py": "M",    # clean before, modified during run
+            "brand_new.py": "??",       # untracked → created
+            "staged_new.py": "A",       # staged add → created
+            "removed.py": "D",          # deleted during run
+        },
+    )
+    assert report.files_changed == ["tracked_clean.py"]
+    assert report.files_created == ["brand_new.py", "staged_new.py"]
+    assert report.files_deleted == ["removed.py"]
+
+
 def _policy(**kw) -> ExecutorSafetyConfig:
     return ExecutorSafetyConfig(**kw)
 
