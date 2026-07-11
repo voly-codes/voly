@@ -80,12 +80,13 @@ def test_config_byok_env_override(tmp_path, monkeypatch) -> None:
     assert cfg.ai_gateway.byok_enabled is True
 
 
-def test_direct_call_byok_routes_via_compat_without_provider_key(monkeypatch) -> None:
-    """BYOK anthropic → gateway /compat URL, cf-aig-authorization, no x-api-key."""
+def test_direct_call_byok_routes_via_rest_api_without_provider_key(monkeypatch) -> None:
+    """BYOK anthropic → CF AI REST API, Bearer account token, no x-api-key."""
     gw = AIGateway(account_id="acct", gateway_id="gw1", api_token="cftok")
     gw.byok_enabled = True
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-must-not-leak")
     monkeypatch.delenv("CF_AIG_TOKEN", raising=False)
+    monkeypatch.delenv("VOLY_CF_GATEWAY_API", raising=False)
 
     seen: dict = {}
 
@@ -115,13 +116,65 @@ def test_direct_call_byok_routes_via_compat_without_provider_key(monkeypatch) ->
 
     out = gw._direct_call([{"role": "user", "content": "hi"}], "claude-x", "anthropic", 100, 0.0, None)
     assert out["content"] == "ok"
-    assert seen["url"] == "https://gateway.ai.cloudflare.com/v1/acct/gw1/compat/chat/completions"
+    assert seen["url"] == "https://api.cloudflare.com/client/v4/accounts/acct/ai/v1/chat/completions"
     assert seen["body"]["model"] == "anthropic/claude-x"
     hdrs = {k.lower(): v for k, v in seen["headers"].items()}
-    assert hdrs.get("cf-aig-authorization") == "Bearer cftok"
+    assert hdrs.get("authorization") == "Bearer cftok"
+    assert hdrs.get("cf-aig-gateway-id") == "gw1"
     # the provider key must never leave the process on the BYOK path
     assert "x-api-key" not in hdrs
     assert "sk-must-not-leak" not in json.dumps(seen["headers"])
+
+
+def test_direct_call_byok_legacy_compat_escape_hatch(monkeypatch) -> None:
+    """VOLY_CF_GATEWAY_API=compat → deprecated gateway host with cf-aig-authorization."""
+    gw = AIGateway(account_id="acct", gateway_id="gw1", api_token="cftok")
+    gw.byok_enabled = True
+    monkeypatch.setenv("VOLY_CF_GATEWAY_API", "compat")
+    monkeypatch.delenv("CF_AIG_TOKEN", raising=False)
+
+    seen: dict = {}
+
+    def fake_urlopen(req, timeout=0):
+        seen["url"] = req.full_url
+        seen["headers"] = dict(req.header_items())
+
+        class _Resp:
+            def read(self):
+                return json.dumps({
+                    "choices": [{"message": {"content": "ok"}, "finish_reason": "stop"}],
+                    "model": "anthropic/claude-x",
+                    "usage": {},
+                }).encode()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        return _Resp()
+
+    import voly.ai_gateway.providers as providers_mod
+    monkeypatch.setattr(providers_mod.urllib.request, "urlopen", fake_urlopen)
+
+    out = gw._direct_call([{"role": "user", "content": "hi"}], "claude-x", "anthropic", 100, 0.0, None)
+    assert out["content"] == "ok"
+    assert seen["url"] == "https://gateway.ai.cloudflare.com/v1/acct/gw1/compat/chat/completions"
+    hdrs = {k.lower(): v for k, v in seen["headers"].items()}
+    assert hdrs.get("cf-aig-authorization") == "Bearer cftok"
+    assert "authorization" not in hdrs
+
+
+def test_rest_api_requires_cf_token(monkeypatch) -> None:
+    """Tokenless direct /compat call (cloudflare-dynamic path) fails fast on REST."""
+    gw = AIGateway(account_id="acct", gateway_id="gw1", api_token="")
+    for var in ("CLOUDFLARE_API_TOKEN", "CF_AIG_TOKEN", "VOLY_CF_GATEWAY_API"):
+        monkeypatch.delenv(var, raising=False)
+    out = gw._call_cloudflare_compat(
+        "dynamic/ai_route", [{"role": "user", "content": "hi"}], 100, 0.0, None
+    )
+    assert "CLOUDFLARE_API_TOKEN not set" in out["error"]
 
 
 def test_direct_call_env_path_unchanged_when_byok_off(monkeypatch) -> None:

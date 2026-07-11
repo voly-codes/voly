@@ -227,7 +227,14 @@ class _GatewayProvidersMixin:
         system: str | None,
         tools: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        """CF AI Gateway ``/compat`` endpoint (OpenAI-compatible proxy).
+        """CF AI Gateway OpenAI-compatible chat endpoint.
+
+        Default transport is the **AI REST API**
+        (``api.cloudflare.com/client/v4/accounts/{acct}/ai/v1/chat/completions``,
+        ``Authorization: Bearer`` account/gateway token, gateway selected via the
+        ``cf-aig-gateway-id`` header). ``VOLY_CF_GATEWAY_API=compat`` falls back
+        to the deprecated ``gateway.ai.cloudflare.com/…/compat`` endpoint (kept
+        as an escape hatch, e.g. if dynamic routes misbehave on the REST path).
 
         ``compat_model`` selects the routing mode:
         - ``dynamic/{route}`` — per-gateway routing rules from the CF Dashboard;
@@ -240,17 +247,29 @@ class _GatewayProvidersMixin:
         if not account_id:
             return {"error": "cloudflare-compat: CLOUDFLARE_ACCOUNT_ID not set", "content": ""}
 
-        # /compat is an OpenAI-compat proxy; full chat URL — no /v1 prefix appended
-        url = f"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat/chat/completions"
-        # /compat with authentication:true requires cf-aig-authorization header.
+        aig_token = os.environ.get("CF_AIG_TOKEN", "")
         # User-Agent is required to pass CF bot protection at the edge.
-        aig_token = os.environ.get("CF_AIG_TOKEN", token)
         hdrs: dict[str, str] = {
             "Content-Type": "application/json",
             "User-Agent": "VOLY/0.1 Python-urllib",
         }
-        if aig_token:
-            hdrs["cf-aig-authorization"] = f"Bearer {aig_token}"
+        legacy = os.environ.get("VOLY_CF_GATEWAY_API", "rest").strip().lower() == "compat"
+        if legacy:
+            # Deprecated /compat proxy; with authentication:true it requires the
+            # cf-aig-authorization header (gateway token, account token fallback).
+            url = f"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat/chat/completions"
+            if aig_token or token:
+                hdrs["cf-aig-authorization"] = f"Bearer {aig_token or token}"
+        else:
+            url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions"
+            bearer = token or aig_token
+            if not bearer:
+                return {"error": "cloudflare-compat: CLOUDFLARE_API_TOKEN not set", "content": ""}
+            hdrs["Authorization"] = f"Bearer {bearer}"
+            hdrs["cf-aig-gateway-id"] = gateway_id
+            # Authenticated-gateway policy: pass the gateway token when present.
+            if aig_token:
+                hdrs["cf-aig-authorization"] = f"Bearer {aig_token}"
 
         msgs = list(messages)
         if system:
@@ -275,7 +294,7 @@ class _GatewayProvidersMixin:
                 msg = json.loads(body_text).get("error", {}).get("message", body_text)
             except Exception:
                 msg = body_text
-            raise RuntimeError(f"CF-dynamic {e.code}: {msg}") from e
+            raise RuntimeError(f"CF-gateway {e.code}: {msg}") from e
 
         choice = (data.get("choices") or [{}])[0]
         return {

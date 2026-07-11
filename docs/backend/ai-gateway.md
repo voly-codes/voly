@@ -114,10 +114,17 @@ Reference: CF docs — AI Gateway BYOK (Store Keys), Secrets Store.
 
 With `ai_gateway.byok_enabled: true`, provider API keys are **not** read from
 env for BYOK-eligible providers. Instead `_direct_call` routes the request
-through the gateway `/compat` endpoint with `model = "{provider_slug}/{model}"`;
-AI Gateway resolves the key stored in CF Secrets Store
-(named `{gateway_id}_{provider_slug}_{alias}`). The client authenticates with
-the gateway token only (`cf-aig-authorization`).
+through the CF **AI REST API**
+(`api.cloudflare.com/client/v4/accounts/{acct}/ai/v1/chat/completions`,
+`Authorization: Bearer` CF token, gateway via `cf-aig-gateway-id`) with
+`model = "{provider_slug}/{model}"`; AI Gateway resolves the key stored in
+CF Secrets Store (named `{gateway_id}_{provider_slug}_{alias}`). No provider
+key leaves the process.
+
+`VOLY_CF_GATEWAY_API=compat` switches back to the deprecated
+`gateway.ai.cloudflare.com/…/compat` endpoint (`cf-aig-authorization` auth) —
+escape hatch while the REST path settles; `cloudflare-dynamic` routing uses
+the same transport switch.
 
 | VOLY provider | CF slug | BYOK |
 |---|---|---|
@@ -171,9 +178,12 @@ provider-key errors as `unauthorized` (operator fix), never as a billing state
 CF_ACCOUNT_ID=073ae0130b7cee5e55a1ac1a335431a8
 CF_GATEWAY_ID=default
 CF_AIG_TOKEN=<token from CF Dashboard → AI Gateway → Settings>
+VOLY_CF_GATEWAY_API=rest   # rest (default, api.cloudflare.com) | compat (deprecated host)
 ```
 
 For Workers AI via wrangler dev, set in `cf-workers/agent/wrangler.jsonc` → `[vars]`.
+Note: `cf-workers/agent/infer.ts` still calls the legacy `/compat` host — worker-side
+migration to the REST API is a separate follow-up (needs a redeploy).
 
 ---
 
