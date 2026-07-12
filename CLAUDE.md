@@ -167,7 +167,7 @@ voly a2a                    voly agui                 voly rtk
 voly headroom               voly mcp                  voly runner
 voly telemetry              voly balance              voly init
 voly setup                  voly config               voly tunnel
-voly spend status
+voly spend status           voly cloud login
 ```
 
 When removing a command: remove it from `cli/main.py`, `cli/commands/__init__.py`, tests, README, docs.

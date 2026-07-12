@@ -353,6 +353,7 @@ voly model list                        # models and pricing
 voly ai-gateway status                 # AI Gateway status
 voly spend status                      # current daily spend
 voly dspy status                       # DSPy programs + mode
+voly cloud login                       # link device to a VOLY Cloud org (shared run history)
 ```
 
 ## CI and tests

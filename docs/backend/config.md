@@ -80,7 +80,25 @@ VOLY_CLOUD_USER_ID=...
 # Metadata only — task text capped at 500 chars, cost, files touched; never
 # file contents. Env overrides the `cloud:` yaml section; best-effort
 # delivery, failures never break the run.
+
+VOLY_CLOUD_LINK_FILE=.voly/cloud.json
+# Path of the device link written by `voly cloud login` (default shown).
+# Resolution order: explicit cloud: config/env → this link file. The file
+# holds the tenant JWT — written 0600, never commit it (.voly/ is ignored).
 ```
+
+### `voly cloud` — device link CLI
+
+```bash
+voly cloud login --url http://127.0.0.1:7790 --email you@example.com [--org slug] [--ttl-days 30]
+voly cloud status   # show linked org / token expiry
+voly cloud logout   # delete the stored token
+```
+
+`login` authenticates against the control plane, picks the org (flag needed
+only when you belong to several), mints a long-lived tenant edge JWT via
+`POST /cloud/v1/tenants/{id}/tokens` and writes `.voly/cloud.json`. From then
+on every finished run is reported to the org's shared history automatically.
 
 > Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via
 > env variables. Sync of `docs ↔ .env.example ↔ code` is checked by the CI gate

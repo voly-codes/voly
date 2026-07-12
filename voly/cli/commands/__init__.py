@@ -15,6 +15,7 @@ from .config_cmd import config_cmd
 from .tunnel import tunnel
 from .spend import spend
 from .catalog import catalog
+from .cloud_cmd import cloud
 from .dspy_cmd import dspy_cmd
 from .ui_cmd import ui
 from .plan_cmd import plan_cmd
@@ -47,6 +48,7 @@ __all__ = [
     "tunnel",
     "spend",
     "catalog",
+    "cloud",
     "dspy_cmd",
     "ui",
     "plan_cmd",

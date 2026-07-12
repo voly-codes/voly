@@ -20,10 +20,12 @@ _CLOUD_ENV_KEYS = (
 
 
 @pytest.fixture(autouse=True)
-def _hermetic_cloud_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _hermetic_cloud_env(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
     # .env is loaded into os.environ by unrelated tests — keep these hermetic.
     for key in _CLOUD_ENV_KEYS:
         monkeypatch.delenv(key, raising=False)
+    # Point the device-link file away from the repo's real .voly/.
+    monkeypatch.setenv("VOLY_CLOUD_LINK_FILE", str(tmp_path / "cloud-link.json"))
 
 
 def _event(**overrides) -> TaskEvent:
@@ -199,3 +201,118 @@ def test_parser_yaml_section(monkeypatch: pytest.MonkeyPatch) -> None:
     assert config.cloud.tenant_id == "t-yaml"
     assert config.cloud.user_id == "u-yaml"
     assert config.cloud.timeout_seconds == pytest.approx(2.0)
+
+
+# --- device link file + voly cloud CLI -------------------------------------
+
+
+def test_link_file_roundtrip(tmp_path) -> None:
+    from voly.cloud_link import delete_link_file, link_file_path, read_link_file, save_link_file
+
+    assert read_link_file() is None
+    path = save_link_file({"base_url": "http://cp:7790", "tenant_id": "t-1", "token": "tok"})
+    assert path == link_file_path()
+    link = read_link_file()
+    assert link is not None and link["tenant_id"] == "t-1"
+    assert delete_link_file() is True
+    assert read_link_file() is None
+
+
+def test_report_falls_back_to_link_file(monkeypatch: pytest.MonkeyPatch) -> None:
+    from voly.cloud_link import save_link_file
+
+    save_link_file(
+        {"base_url": "http://cp:7790/", "tenant_id": "t-link", "token": "tok-link", "user_id": "u-9"}
+    )
+    captured: dict = {}
+
+    def fake_urlopen(req, timeout=5.0):
+        captured["url"] = req.full_url
+        captured["auth"] = req.get_header("Authorization")
+        captured["body"] = json.loads(req.data.decode("utf-8"))
+        return _Resp()
+
+    monkeypatch.setattr("voly.cloud_link.urllib.request.urlopen", fake_urlopen)
+    # config has cloud disabled — the login link file should drive the report
+    assert report_run_event(_event(), VOLYConfig()) is True
+    assert captured["url"] == "http://cp:7790/cloud/v1/tenants/t-link/runs/report"
+    assert captured["auth"] == "Bearer tok-link"
+    assert captured["body"]["user_id"] == "u-9"
+
+
+def test_explicit_config_wins_over_link_file(monkeypatch: pytest.MonkeyPatch) -> None:
+    from voly.cloud_link import resolve_cloud_link, save_link_file
+
+    save_link_file({"base_url": "http://file:1", "tenant_id": "t-file", "token": "tok-file"})
+    link = resolve_cloud_link(_linked_config())
+    assert link is not None and link["tenant_id"] == "t-abc"
+
+
+def _cli_responses(url: str) -> dict:
+    if url.endswith("/users/login"):
+        return {"access_token": "user-tok", "user": {"id": "u-1"}}
+    if url.endswith("/users/me"):
+        return {
+            "user": {"id": "u-1"},
+            "organizations": [{"tenant_id": "t-cli", "slug": "cliorg", "role": "owner"}],
+        }
+    if url.endswith("/tokens"):
+        return {"access_token": "tenant-tok", "expires_in": 2592000}
+    raise AssertionError(f"unexpected url {url}")
+
+
+def test_cli_cloud_login_status_logout(monkeypatch: pytest.MonkeyPatch) -> None:
+    from click.testing import CliRunner
+
+    from voly.cli.commands.cloud_cmd import cloud
+    from voly.cloud_link import read_link_file
+
+    class _CliResp:
+        def __init__(self, body: dict):
+            self._body = body
+
+        status = 200
+
+        def read(self) -> bytes:
+            return json.dumps(self._body).encode("utf-8")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    captured_tokens: list[str] = []
+
+    def fake_urlopen(req, timeout=15.0):
+        auth = req.get_header("Authorization") or ""
+        captured_tokens.append(auth)
+        return _CliResp(_cli_responses(req.full_url))
+
+    monkeypatch.setattr("voly.cli.commands.cloud_cmd.urllib.request.urlopen", fake_urlopen)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cloud,
+        ["login", "--url", "http://cp:7790", "--email", "a@b.co", "--password", "hunter2pass"],
+    )
+    assert result.exit_code == 0, result.output
+    assert "cliorg" in result.output
+
+    link = read_link_file()
+    assert link is not None
+    assert link["tenant_id"] == "t-cli"
+    assert link["token"] == "tenant-tok"
+    # mint call carried the user session token
+    assert "Bearer user-tok" in captured_tokens
+
+    result = runner.invoke(cloud, ["status"])
+    assert result.exit_code == 0, result.output
+    assert "cliorg" in result.output
+
+    result = runner.invoke(cloud, ["logout"])
+    assert result.exit_code == 0
+    assert read_link_file() is None
+
+    result = runner.invoke(cloud, ["status"])
+    assert result.exit_code == 1

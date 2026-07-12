@@ -37,6 +37,7 @@ from voly.cli.commands import (
     tunnel,
     spend,
     catalog,
+    cloud,
     dspy_cmd,
     ui,
     plan_cmd,
@@ -75,6 +76,7 @@ main.add_command(balance)
 main.add_command(tunnel)
 main.add_command(spend)
 main.add_command(catalog)
+main.add_command(cloud)
 main.add_command(dspy_cmd, name="dspy")
 main.add_command(plan_cmd)
 
