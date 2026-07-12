@@ -13,6 +13,8 @@ dist/
 *.egg-info/
 *.eggs/
 .env
+.env.bak.*
+.coverage
 .opencode/
 .DS_Store
 *.swp
