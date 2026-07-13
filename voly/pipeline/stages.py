@@ -466,6 +466,35 @@ class _PipelineStageMixin:
             return stats
         return {}
 
+    # ── Skill suggest ─────────────────────────────────────────────────────────
+
+    def _stage_skill_suggest(self, task: str) -> list[dict]:
+        """Query marketplace for skills relevant to task that are not installed locally.
+
+        Non-blocking: any error is swallowed and an empty list is returned so the
+        pipeline never fails because of a marketplace connectivity issue.
+        Emits SKILL_SUGGEST with the suggestions list for the UI to handle.
+        """
+        from voly.pipeline.types import PipelineStage
+
+        marketplace_url = getattr(
+            getattr(self.config, "registry", None), "marketplace_url", ""  # type: ignore[attr-defined]
+        ) or ""
+        if not marketplace_url:
+            return []
+
+        try:
+            from voly.registry.scout import SkillScout
+            scout = SkillScout(self.skill_registry, marketplace_url)  # type: ignore[attr-defined]
+            suggestions = scout.find_missing(task)
+        except Exception:
+            return []
+
+        if suggestions:
+            self._fire(PipelineStage.SKILL_SUGGEST, suggestions=suggestions)  # type: ignore[attr-defined]
+
+        return suggestions
+
     # ── Skill inject ──────────────────────────────────────────────────────────
 
     def _stage_skill_inject(

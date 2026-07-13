@@ -295,6 +295,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
 
             memory_messages = self._stage_memory_retrieve(task)
             rtk_stats = self._stage_rtk()
+            skill_suggestions = self._stage_skill_suggest(task)
             injected_skills, skills_system = self._stage_skill_inject(task, route.agent)
 
             model = self._resolve_model(route)
@@ -364,6 +365,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                 duration_ms=duration,
                 event=ev,
                 injected_skills=injected_skills,
+                skill_suggestions=skill_suggestions,
                 dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else "",
                 **dspy_fields,
             )

@@ -15,6 +15,7 @@ class PipelineStage(Enum):
     ROUTE = "route"
     MEMORY_RETRIEVE = "memory_retrieve"
     RTK_FILTER = "rtk_filter"
+    SKILL_SUGGEST = "skill_suggest"
     SKILL_INJECT = "skill_inject"
     HEADROOM_COMPRESS = "headroom_compress"
     DSPY_PROGRAM_CALL = "dspy_program_call"
@@ -40,6 +41,7 @@ class PipelineResult:
     agui_session_id: str = ""
     error: str = ""
     injected_skills: list[str] = field(default_factory=list)
+    skill_suggestions: list[dict] = field(default_factory=list)
     event: Any = None
     dspy_used: bool = False
     dspy_mode: str = ""
