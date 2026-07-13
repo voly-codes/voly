@@ -228,23 +228,46 @@ def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
 
 
 @skill.command("reindex")
+@click.option("--page-size", default=20, show_default=True, help="Skills per request (max 50)")
 @click.pass_context
-def skill_reindex(ctx: click.Context) -> None:
+def skill_reindex(ctx: click.Context, page_size: int) -> None:
     """Re-create Vectorize embeddings for all active skills in the marketplace.
 
     Use after bulk imports (voly skill seed / catalog sync) to ensure
-    semantic search works for newly added skills.
+    semantic search works for newly added skills. Paginates automatically.
     """
     mp = _marketplace_client(ctx)
-    try:
-        result = mp._request("POST", "/skills/reindex")
-    except Exception as exc:
-        raise click.ClickException(str(exc)) from exc
+    offset = 0
+    total_indexed = total_skipped = total_errors = 0
+
+    while True:
+        try:
+            result = mp._request(
+                "POST", "/skills/reindex",
+                query={"limit": str(page_size), "offset": str(offset)},
+            )
+        except Exception as exc:
+            raise click.ClickException(str(exc)) from exc
+
+        indexed = result.get("indexed", 0)
+        skipped = result.get("skipped", 0)
+        errors = result.get("errors", 0)
+        total = result.get("total", 0)
+        total_indexed += indexed
+        total_skipped += skipped
+        total_errors += errors
+        offset += page_size
+
+        click.echo(
+            f"  offset={offset - page_size}: indexed={indexed} skipped={skipped} errors={errors}"
+        )
+
+        if result.get("done") or offset >= total:
+            break
 
     click.echo(
-        f"Reindex complete: {result.get('indexed', 0)} indexed, "
-        f"{result.get('skipped', 0)} skipped, "
-        f"{result.get('errors', 0)} errors "
+        f"\nReindex complete: {total_indexed} indexed, "
+        f"{total_skipped} skipped, {total_errors} errors "
         f"(total {result.get('total', 0)} skills)"
     )
 

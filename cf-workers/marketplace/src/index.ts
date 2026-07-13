@@ -420,51 +420,58 @@ app.post("/skills/sync", async (c) => {
   return c.json({ upserted, total: skills.length });
 });
 
-// POST /skills/reindex — re-create Vectorize embeddings for all active skills.
-// Processes skills in batches of 50 to avoid Vectorize rate limits.
-// Returns { indexed, skipped, errors, total }.
+// POST /skills/reindex?limit=20&offset=0 — re-create Vectorize embeddings in one page.
+// Call repeatedly with offset until done=true. Default limit=20 to stay within CPU budget.
+// Returns { indexed, skipped, errors, total, offset, done }.
 app.post("/skills/reindex", async (c) => {
-  const batchSize = 50;
+  const limit = Math.min(parseInt(c.req.query("limit") ?? "20"), 50);
+  const offset = Math.max(parseInt(c.req.query("offset") ?? "0"), 0);
+
+  const countRow = await c.env.DB.prepare(
+    "SELECT COUNT(*) as n FROM skills WHERE status = 'active'",
+  ).first<{ n: number }>();
+  const total = countRow?.n ?? 0;
+
+  const { results: rows } = await c.env.DB.prepare(
+    "SELECT id, name, description, tags FROM skills WHERE status = 'active' ORDER BY rowid ASC LIMIT ? OFFSET ?",
+  ).bind(limit, offset).all<Pick<SkillRow, "id" | "name" | "description" | "tags">>();
+
   let indexed = 0, skipped = 0, errors = 0;
 
-  const { results: allSkills } = await c.env.DB.prepare(
-    "SELECT id, name, description, tags FROM skills WHERE status = 'active' ORDER BY updated_at DESC",
-  ).all<Pick<SkillRow, "id" | "name" | "description" | "tags">>();
-
-  const total = allSkills?.length ?? 0;
-
-  // Process in batches to stay within CPU time limits
-  for (let i = 0; i < total; i += batchSize) {
-    const batch = (allSkills ?? []).slice(i, i + batchSize);
-    const vectors: VectorizeVector[] = [];
-
-    for (const row of batch) {
+  // Embed all rows in this page in parallel
+  const embedResults = await Promise.all(
+    (rows ?? []).map(async (row) => {
       const tags: string[] = JSON.parse(row.tags || "[]");
       const embedInput = [row.name, row.description, ...tags].join(" ").slice(0, 2000);
       const vec = await embed(c.env.AI, embedInput);
-      if (vec) {
-        vectors.push({
-          id: row.id,
-          values: vec,
-          metadata: { name: row.name, tags: row.tags } as Record<string, string>,
-        });
-        indexed++;
-      } else {
-        skipped++;
-      }
-    }
+      return { row, vec };
+    }),
+  );
 
-    if (vectors.length > 0) {
-      try {
-        await c.env.VECTORIZE.upsert(vectors);
-      } catch (e) {
-        errors += vectors.length;
-        indexed -= vectors.length;
-      }
+  const vectors: VectorizeVector[] = [];
+  for (const { row, vec } of embedResults) {
+    if (vec) {
+      vectors.push({
+        id: row.id,
+        values: vec,
+        metadata: { name: row.name, tags: row.tags } as Record<string, string>,
+      });
+    } else {
+      skipped++;
     }
   }
 
-  return c.json({ ok: true, indexed, skipped, errors, total });
+  if (vectors.length > 0) {
+    try {
+      await c.env.VECTORIZE.upsert(vectors);
+      indexed = vectors.length;
+    } catch (e) {
+      errors = vectors.length;
+    }
+  }
+
+  const done = offset + (rows?.length ?? 0) >= total;
+  return c.json({ ok: true, indexed, skipped, errors, total, offset, done });
 });
 
 // DELETE /skills/:id — soft delete (set status=archived)
