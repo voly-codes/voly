@@ -154,6 +154,29 @@ def marketplace_install(skill_id: str, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@router.get("/api/marketplace/skills/suggest")
+def marketplace_suggest(request: Request, task: str = "", limit: int = 5) -> dict[str, Any]:
+    """Return marketplace skills relevant to a task that are not installed locally.
+
+    Used by the UI to populate the skill_suggest banner after a pipeline run.
+    """
+    if not task:
+        return {"suggestions": [], "configured": False}
+    url = _url(request)
+    if not url:
+        return {"suggestions": [], "configured": False, "hint": "Set CF_WORKER_MARKETPLACE_URL to enable suggestions"}
+    skills_dir = _skills_dir(request)
+    try:
+        from voly.registry.skills import SkillRegistry
+        from voly.registry.scout import SkillScout
+        reg = SkillRegistry(skills_path=skills_dir if skills_dir.exists() else None)
+        scout = SkillScout(reg, url)
+        suggestions = scout.find_missing(task, limit=limit)
+        return {"suggestions": suggestions, "configured": True}
+    except Exception as exc:
+        return {"suggestions": [], "configured": True, "error": str(exc)}
+
+
 @router.get("/api/marketplace/plugins")
 def marketplace_plugins(request: Request, status: str = "active", limit: int = 50, offset: int = 0) -> dict[str, Any]:
     url = _url(request)

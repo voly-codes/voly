@@ -178,6 +178,7 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "duration_ms": result.duration_ms,
         "error": result.error,
         "injected_skills": result.injected_skills,
+        "skill_suggestions": result.skill_suggestions,
         "tokens_saved_by_rtk": result.tokens_saved_by_rtk,
         "tokens_saved_by_headroom": result.tokens_saved_by_headroom,
         "dspy_used": result.dspy_used,
