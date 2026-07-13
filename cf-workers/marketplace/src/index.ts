@@ -93,7 +93,7 @@ function parsePlugin(row: PluginRow, slim = false): Record<string, unknown> {
   return out;
 }
 
-const EMBED_MODEL = "@cf/baai/bge-small-en-v1.5";
+const EMBED_MODEL = "@cf/baai/bge-base-en-v1.5"; // 768 dims — matches voly-skills Vectorize index
 
 async function embed(ai: Ai, text: string): Promise<number[] | null> {
   try {
@@ -461,17 +461,19 @@ app.post("/skills/reindex", async (c) => {
     }
   }
 
+  let upsertError: string | undefined;
   if (vectors.length > 0) {
     try {
       await c.env.VECTORIZE.upsert(vectors);
       indexed = vectors.length;
     } catch (e) {
       errors = vectors.length;
+      upsertError = String(e);
     }
   }
 
   const done = offset + (rows?.length ?? 0) >= total;
-  return c.json({ ok: true, indexed, skipped, errors, total, offset, done });
+  return c.json({ ok: true, indexed, skipped, errors, upsertError, total, offset, done });
 });
 
 // DELETE /skills/:id — soft delete (set status=archived)
