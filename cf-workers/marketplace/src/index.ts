@@ -27,6 +27,8 @@ interface SkillRow {
   downloads: number;
   usage_count: number;
   success_rate: number;
+  repository: string;
+  install_kind: string;
   created_at: number;
   updated_at: number;
 }
@@ -60,6 +62,8 @@ function parseSkill(row: SkillRow, slim = false): Record<string, unknown> {
     compatible_agents: JSON.parse(row.compatible_agents || "[]"),
     compatible_languages: JSON.parse(row.compatible_languages || "[]"),
     compatible_frameworks: JSON.parse(row.compatible_frameworks || "[]"),
+    repository: row.repository || "",
+    install_kind: row.install_kind || "single",
   };
   if (slim) delete out["content"];
   return out;
@@ -295,14 +299,16 @@ app.post("/skills", async (c) => {
   await c.env.DB.prepare(`
     INSERT INTO skills (id, name, description, content, version, author, source, status,
       tags, capabilities, required_tools, compatible_agents, compatible_languages,
-      compatible_frameworks, downloads, usage_count, success_rate, created_at, updated_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      compatible_frameworks, downloads, usage_count, success_rate,
+      repository, install_kind, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(id) DO UPDATE SET
       name=excluded.name, description=excluded.description, content=excluded.content,
       version=excluded.version, tags=excluded.tags, capabilities=excluded.capabilities,
       compatible_agents=excluded.compatible_agents,
       compatible_languages=excluded.compatible_languages,
       compatible_frameworks=excluded.compatible_frameworks,
+      repository=excluded.repository, install_kind=excluded.install_kind,
       updated_at=excluded.updated_at
   `).bind(
     id,
@@ -320,6 +326,8 @@ app.post("/skills", async (c) => {
     JSON.stringify(body.compatible_languages || []),
     JSON.stringify(body.compatible_frameworks || []),
     0, 0, 1.0,
+    (body.repository as string) || "",
+    (body.install_kind as string) || "single",
     now, now,
   ).run();
 
@@ -384,14 +392,16 @@ app.post("/skills/sync", async (c) => {
     await c.env.DB.prepare(`
       INSERT INTO skills (id, name, description, content, version, author, source, status,
         tags, capabilities, required_tools, compatible_agents, compatible_languages,
-        compatible_frameworks, downloads, usage_count, success_rate, created_at, updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        compatible_frameworks, downloads, usage_count, success_rate,
+        repository, install_kind, created_at, updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT(id) DO UPDATE SET
         name=excluded.name, description=excluded.description, content=excluded.content,
         version=excluded.version, tags=excluded.tags, capabilities=excluded.capabilities,
         compatible_agents=excluded.compatible_agents,
         compatible_languages=excluded.compatible_languages,
         compatible_frameworks=excluded.compatible_frameworks,
+        repository=excluded.repository, install_kind=excluded.install_kind,
         source=excluded.source, status=excluded.status, updated_at=excluded.updated_at
     `).bind(
       id, name,
@@ -401,7 +411,9 @@ app.post("/skills/sync", async (c) => {
       JSON.stringify(item.tags ?? []), JSON.stringify(item.capabilities ?? []),
       JSON.stringify(item.required_tools ?? []), JSON.stringify(item.compatible_agents ?? []),
       JSON.stringify(item.compatible_languages ?? []), JSON.stringify(item.compatible_frameworks ?? []),
-      0, 0, 1.0, now, now,
+      0, 0, 1.0,
+      String(item.repository ?? ""), String(item.install_kind ?? "single"),
+      now, now,
     ).run();
     upserted += 1;
   }

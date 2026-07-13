@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS skills (
   downloads INTEGER DEFAULT 0,
   usage_count INTEGER DEFAULT 0,
   success_rate REAL DEFAULT 1.0,
+  repository TEXT DEFAULT '',     -- git URL or R2 path for package-based skills
+  install_kind TEXT DEFAULT 'single', -- 'single' (flat YAML) | 'git' (clone repo)
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );
