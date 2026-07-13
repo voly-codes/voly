@@ -27,7 +27,8 @@ Developer / UI / CI
 │   ↓ ROUTE       │       │   ↓ _dspy_plan_task()  (optional)    │
 │   ↓ MEMORY      │       │   ↓ executor.run(refined_task, cwd)  │
 │   ↓ RTK         │       │   ↓ BILLING FALLBACK CHAIN:          │
-│   ↓ SKILL       │       │     claude-code → wrangler → zen     │
+│   ↓ SKILL_SUGGEST*      │     claude-code → wrangler → zen     │
+│   ↓ SKILL       │       │   ↓ _dspy_store_example()            │
 │   ↓ HEADROOM    │       │   ↓ _dspy_store_example()            │
 │   ↓ DSPY*       │       │   ↓ WorkReport (git diff)            │
 │   ↓ MODEL_CALL  │       │   ↓ emit TaskEvent                   │

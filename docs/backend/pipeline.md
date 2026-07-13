@@ -20,13 +20,14 @@ For tasks that write files — use `AgentRunner` + executor.
 
 ```
 INIT
-  ↓ AGUI_START       — notify AG-UI of task start (SSE events)
-  ↓ A2A_DISCOVER     — find external agents (A2A federation)
-  ↓ A2A_DELEGATE     — delegate subtasks if needed
-  ↓ ROUTE            — AgentRouter.analyze_task() + route()
-  ↓ MEMORY_RETRIEVE  — MemoryStore.search() — relevant context
-  ↓ RTK_FILTER       — RTK token filtering of context
-  ↓ SKILL_INJECT     — inject system prompt from Catalog Skills
+  ↓ AGUI_START        — notify AG-UI of task start (SSE events)
+  ↓ A2A_DISCOVER      — find external agents (A2A federation)
+  ↓ A2A_DELEGATE      — delegate subtasks if needed
+  ↓ ROUTE             — AgentRouter.analyze_task() + route()
+  ↓ MEMORY_RETRIEVE   — MemoryStore.search() — relevant context
+  ↓ RTK_FILTER        — RTK token filtering of context
+  ↓ SKILL_SUGGEST     — non-blocking: query CF marketplace for missing skills
+  ↓ SKILL_INJECT      — inject system prompt from Catalog Skills
   ↓ HEADROOM_COMPRESS — Headroom: compress messages if > token limit
   ↓ DSPY_PROGRAM_CALL — optional: DSPyRunner.run() (shadow or active)
   ↓ MODEL_CALL        — AIGateway.chat() → response
@@ -208,6 +209,32 @@ route = router.route(analysis)
 add, write, fix, refactor, migrate, напиши, создай, добавь, реализуй, исправь, ...
 
 This is used in `web/routes/run.py` for smart dispatch.
+
+---
+
+## Lazy skill suggestion (SKILL_SUGGEST stage)
+
+`voly/pipeline/stages.py::_stage_skill_suggest()` — runs between `RTK_FILTER`
+and `SKILL_INJECT`. Queries the CF marketplace for skills relevant to the task
+that are not installed locally, then emits a `SKILL_SUGGEST` stage event. The
+UI receives the suggestions list in the `done` SSE payload (`skill_suggestions`)
+and shows an install banner.
+
+**SkillScout** (`voly/registry/scout.py`): wraps `MarketplaceClient.search()`
+and filters the results against the local `SkillRegistry` index. Returns slim
+dicts `{id, name, description, repository, install_kind, tags}`.
+
+**Design invariants:**
+- Always non-blocking: any marketplace error is swallowed; the pipeline proceeds.
+- Skipped when `registry.marketplace_url` is not configured.
+- `install_kind='git'` skills are installed via `git clone --depth 1` into
+  `.voly/skills/<id>/`; `external_catalog.py` picks up the `SKILL.md` on the
+  next `voly catalog sync`.
+- `install_kind='single'` (default) — existing flat-YAML behaviour.
+
+**API endpoints:**
+- `GET /api/marketplace/skills/suggest?task=<text>` — direct query for UI polling.
+- `POST /api/marketplace/skills/{skill_id}/install` — trigger install (existing).
 
 ---
 
