@@ -13,6 +13,7 @@ from typing import Any
 
 DEFAULT_CONFIG_FILENAME = "voly.yaml"
 DEFAULT_PROXY_PORT = 8787
+DEFAULT_PXPIPE_PORT = 47821
 
 
 @dataclass
@@ -65,6 +66,15 @@ class HeadroomConfig:
     memory_enabled: bool = False
     code_graph: bool = False
     lean_ctx: bool = False
+
+
+@dataclass
+class PxpipeConfig:
+    enabled: bool = False
+    port: int = DEFAULT_PXPIPE_PORT
+    models: str = "claude-fable-5,gpt-5.6"
+    auto_start: bool = False
+    override_anthropic_base_url: bool = False
 
 
 @dataclass
@@ -312,6 +322,7 @@ class VOLYConfig:
     agents: dict[str, AgentConfig] = field(default_factory=dict)
     rtk: RTKConfig = field(default_factory=RTKConfig)
     headroom: HeadroomConfig = field(default_factory=HeadroomConfig)
+    pxpipe: PxpipeConfig = field(default_factory=PxpipeConfig)
     memory: MemoryConfig = field(default_factory=MemoryConfig)
     a2a: A2AConfig = field(default_factory=A2AConfig)
     agui: AGUIConfig = field(default_factory=AGUIConfig)

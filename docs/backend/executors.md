@@ -58,6 +58,30 @@ result = executor.run(task, cwd="/path/to/project", max_turns=30, timeout=300)
 
 Env: `ANTHROPIC_API_KEY`
 
+### pxpipe sidecar
+
+`ClaudeCodeExecutor` can optionally route only the `claude` subprocess through
+`pxpipe`, a local token-saving Anthropic-compatible proxy. This does not affect
+Pipeline/AIGateway text inference; it is executor-only and therefore stays on
+the Layer B file-capable path.
+
+```bash
+voly pxpipe start
+VOLY_PXPIPE_ENABLED=true voly run --executor claude-code "fix tests" --cwd /repo
+```
+
+When enabled and reachable, VOLY injects:
+
+```env
+ANTHROPIC_BASE_URL=http://127.0.0.1:47821
+PXPIPE_MODELS=claude-fable-5,gpt-5.6
+```
+
+Only the subprocess env is changed. If `pxpipe` is not running and
+`VOLY_PXPIPE_AUTO_START=false`, the executor runs normally. If an
+`ANTHROPIC_BASE_URL` is already set, VOLY keeps it unless
+`VOLY_PXPIPE_OVERRIDE_BASE_URL=true`.
+
 ---
 
 ## WranglerExecutor (`voly/executor/wrangler.py`)

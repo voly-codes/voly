@@ -1,4 +1,4 @@
-"""Infrastructure CLI groups: memory, rtk, headroom, mcp."""
+"""Infrastructure CLI groups: memory, rtk, headroom, pxpipe, mcp."""
 from __future__ import annotations
 
 import click
@@ -165,6 +165,57 @@ def headroom_status(ctx: click.Context) -> None:
         click.echo(f"Version: {status.version}")
         click.echo(f"Tokens saved: {status.tokens_saved}")
         click.echo(f"Connections: {status.active_connections}")
+    else:
+        click.echo("Not running")
+
+
+# ── pxpipe ────────────────────────────────────────────────────────────────────
+
+@click.group()
+def pxpipe() -> None:
+    """Manage pxpipe token-saving proxy."""
+    pass
+
+
+@pxpipe.command("start")
+@click.option("--port", "-p", default=None, type=int, help="Proxy port")
+@click.pass_context
+def pxpipe_start(ctx: click.Context, port: int | None) -> None:
+    """Start pxpipe for Claude Code compression."""
+    import time
+    from voly.pxpipe.proxy import PxpipeManager
+
+    config = ctx.obj["config"]
+    proxy_port = port or config.pxpipe.port
+    mgr = PxpipeManager(port=proxy_port, models=config.pxpipe.models)
+    if mgr.start(wait=True):
+        click.echo(f"pxpipe proxy running on http://127.0.0.1:{proxy_port}")
+        click.echo("Use VOLY_PXPIPE_ENABLED=true to route claude-code through it.")
+        click.echo("Press Ctrl+C to stop")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            mgr.stop()
+            click.echo("\nProxy stopped")
+    else:
+        click.echo("Failed to start pxpipe (install pxpipe or ensure npx is available)", err=True)
+        raise SystemExit(1)
+
+
+@pxpipe.command("status")
+@click.pass_context
+def pxpipe_status(ctx: click.Context) -> None:
+    """Show pxpipe proxy status."""
+    from voly.pxpipe.proxy import PxpipeManager
+
+    config = ctx.obj["config"]
+    mgr = PxpipeManager(port=config.pxpipe.port, models=config.pxpipe.models)
+    status = mgr.status()
+    if status.running:
+        click.echo(f"Running on port {status.port}")
+        click.echo(f"URL: {status.proxy_url}")
+        click.echo(f"Models: {status.models or 'pxpipe default'}")
     else:
         click.echo("Not running")
 

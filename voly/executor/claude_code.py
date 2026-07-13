@@ -22,6 +22,7 @@ import time
 import logging
 
 from voly.executor.base import Executor, ExecutorResult, _is_billing_error
+from voly.pxpipe.proxy import apply_pxpipe_env
 
 _log = logging.getLogger("voly.executor.claude_code")
 
@@ -65,7 +66,7 @@ class ClaudeCodeExecutor(Executor):
 
         cmd += ["--", task]
 
-        env = {**os.environ}
+        env = apply_pxpipe_env({**os.environ})
         started = time.monotonic()
 
         _log.info(

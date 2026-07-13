@@ -1,6 +1,6 @@
 """CLI command groups — each module exposes a Click group or command."""
 from .a2a import a2a, agui
-from .infra import memory, rtk, headroom, mcp
+from .infra import memory, rtk, headroom, pxpipe, mcp
 from .platform import registry, model, ai_gateway, scan_project, match_task
 from .skill import skill
 from .runner import runner
@@ -26,6 +26,7 @@ __all__ = [
     "memory",
     "rtk",
     "headroom",
+    "pxpipe",
     "mcp",
     "registry",
     "model",

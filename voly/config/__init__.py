@@ -5,7 +5,7 @@ Public API — all names importable as `from voly.config import <name>`:
 
   Dataclasses:
     ModelConfig, AgentConfig, VOLYConfig,
-    RTKConfig, HeadroomConfig, MemoryConfig, A2AConfig, AGUIConfig,
+    RTKConfig, HeadroomConfig, PxpipeConfig, MemoryConfig, A2AConfig, AGUIConfig,
     SpendConfig, RegistryConfig, ScannerConfig,
     AIGatewayConfig, MCPConfig, TelemetryConfig, CloudConfig, DSPyConfig, PlanConfig,
     CostPolicyConfig, ExecutorSafetyConfig
@@ -14,13 +14,14 @@ Public API — all names importable as `from voly.config import <name>`:
     load_config, create_default_config
 
   Constants:
-    DEFAULT_CONFIG_FILENAME, DEFAULT_PROXY_PORT
+    DEFAULT_CONFIG_FILENAME, DEFAULT_PROXY_PORT, DEFAULT_PXPIPE_PORT
 
 Internal modules (underscore-prefixed) are not part of the public API.
 """
 
 from voly.config._types import (
     DEFAULT_CONFIG_FILENAME,
+    DEFAULT_PXPIPE_PORT,
     DEFAULT_PROXY_PORT,
     A2AConfig,
     AGUIConfig,
@@ -36,6 +37,7 @@ from voly.config._types import (
     MemoryConfig,
     ModelConfig,
     PlanConfig,
+    PxpipeConfig,
     RTKConfig,
     RegistryConfig,
     ScannerConfig,
@@ -53,6 +55,7 @@ __all__ = [
     "VOLYConfig",
     "RTKConfig",
     "HeadroomConfig",
+    "PxpipeConfig",
     "MemoryConfig",
     "A2AConfig",
     "AGUIConfig",
@@ -72,6 +75,7 @@ __all__ = [
     "create_default_config",
     # constants
     "DEFAULT_CONFIG_FILENAME",
+    "DEFAULT_PXPIPE_PORT",
     "DEFAULT_PROXY_PORT",
     # internal (kept for compat)
     "_DEFAULT_MODELS",

@@ -8,6 +8,7 @@ from voly.config import (
     VOLYConfig,
     RTKConfig,
     HeadroomConfig,
+    PxpipeConfig,
     MemoryConfig,
     A2AConfig,
     AGUIConfig,
@@ -24,6 +25,7 @@ def test_default_config() -> None:
     assert cfg.default_agent == "claude"
     assert cfg.rtk.enabled is True
     assert cfg.headroom.enabled is True
+    assert cfg.pxpipe.enabled is False
     assert cfg.a2a.enabled is True
     assert cfg.agui.enabled is True
 
@@ -38,6 +40,7 @@ def test_create_default_config() -> None:
         assert "default_agent: claude" in content
         assert "rtk:" in content
         assert "headroom:" in content
+        assert "pxpipe:" in content
         assert "a2a:" in content
         assert "agui:" in content
 
@@ -54,6 +57,12 @@ rtk:
 headroom:
   port: 9999
   savings_profile: balanced
+pxpipe:
+  enabled: true
+  port: 47822
+  models: claude-sonnet-4-5
+  auto_start: true
+  override_anthropic_base_url: true
 a2a:
   port: 9200
   remote_agents:
@@ -78,6 +87,11 @@ agents:
         assert cfg.rtk.binary_path == "/usr/local/bin/rtk"
         assert cfg.headroom.port == 9999
         assert cfg.headroom.savings_profile == "balanced"
+        assert cfg.pxpipe.enabled is True
+        assert cfg.pxpipe.port == 47822
+        assert cfg.pxpipe.models == "claude-sonnet-4-5"
+        assert cfg.pxpipe.auto_start is True
+        assert cfg.pxpipe.override_anthropic_base_url is True
         assert cfg.a2a.port == 9200
         assert cfg.a2a.remote_agents == ["http://localhost:9001"]
         assert cfg.agui.port == 9300

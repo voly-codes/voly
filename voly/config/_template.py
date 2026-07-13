@@ -54,6 +54,13 @@ headroom:
   savings_profile: agent-90
   memory_enabled: false
 
+pxpipe:
+  enabled: false
+  port: 47821
+  models: claude-fable-5,gpt-5.6
+  auto_start: false
+  override_anthropic_base_url: false
+
 memory:
   enabled: false
   backend: hybrid

@@ -85,6 +85,16 @@ VOLY_CLOUD_LINK_FILE=.voly/cloud.json
 # Path of the device link written by `voly cloud login` (default shown).
 # Resolution order: explicit cloud: config/env → this link file. The file
 # holds the tenant JWT — written 0600, never commit it (.voly/ is ignored).
+
+VOLY_PXPIPE_ENABLED=true
+VOLY_PXPIPE_PORT=47821
+VOLY_PXPIPE_MODELS=claude-fable-5,gpt-5.6
+VOLY_PXPIPE_AUTO_START=false
+VOLY_PXPIPE_OVERRIDE_BASE_URL=false
+# Optional Claude Code token-saving sidecar for the executor path only.
+# When enabled and reachable, ClaudeCodeExecutor sets ANTHROPIC_BASE_URL to
+# http://127.0.0.1:<port> for the claude subprocess. Existing
+# ANTHROPIC_BASE_URL is preserved unless override is true.
 ```
 
 ### `voly cloud` — device link CLI
@@ -146,6 +156,15 @@ dspy:
   model: claude-sonnet-4-6
   programs_dir: .voly/dspy/programs
   datasets_dir: .voly/dspy/datasets
+
+pxpipe:
+  enabled: false
+  port: 47821
+  models: claude-fable-5,gpt-5.6
+  auto_start: false
+  override_anthropic_base_url: false
+  # Executor-only token-saving proxy for Claude Code.
+  # CLI: voly pxpipe start/status.
 
 plan:
   enabled: false

@@ -19,12 +19,14 @@ from voly.config._types import (
     MemoryConfig,
     ModelConfig,
     PlanConfig,
+    PxpipeConfig,
     RTKConfig,
     RegistryConfig,
     ScannerConfig,
     SpendConfig,
     TelemetryConfig,
     DEFAULT_PROXY_PORT,
+    DEFAULT_PXPIPE_PORT,
 )
 
 
@@ -85,6 +87,33 @@ def _parse_config(raw: dict) -> VOLYConfig:
             memory_enabled=h.get("memory_enabled", False),
             code_graph=h.get("code_graph", False),
             lean_ctx=h.get("lean_ctx", False),
+        )
+
+    if "pxpipe" in raw:
+        p = raw["pxpipe"]
+        config.pxpipe = PxpipeConfig(
+            enabled=_parse_bool(p.get("enabled"), False),
+            port=int(p.get("port", DEFAULT_PXPIPE_PORT)),
+            models=str(p.get("models", "claude-fable-5,gpt-5.6") or ""),
+            auto_start=_parse_bool(p.get("auto_start"), False),
+            override_anthropic_base_url=_parse_bool(
+                p.get("override_anthropic_base_url"), False
+            ),
+        )
+
+    if "VOLY_PXPIPE_ENABLED" in os.environ:
+        config.pxpipe.enabled = _parse_bool(os.environ.get("VOLY_PXPIPE_ENABLED"), False)
+    if os.environ.get("VOLY_PXPIPE_PORT", "").strip():
+        config.pxpipe.port = int(os.environ["VOLY_PXPIPE_PORT"])
+    if os.environ.get("VOLY_PXPIPE_MODELS", "").strip():
+        config.pxpipe.models = os.environ["VOLY_PXPIPE_MODELS"].strip()
+    if "VOLY_PXPIPE_AUTO_START" in os.environ:
+        config.pxpipe.auto_start = _parse_bool(
+            os.environ.get("VOLY_PXPIPE_AUTO_START"), False
+        )
+    if "VOLY_PXPIPE_OVERRIDE_BASE_URL" in os.environ:
+        config.pxpipe.override_anthropic_base_url = _parse_bool(
+            os.environ.get("VOLY_PXPIPE_OVERRIDE_BASE_URL"), False
         )
 
     if "memory" in raw:

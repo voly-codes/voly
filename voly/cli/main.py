@@ -15,6 +15,7 @@ from voly.cli.commands import (
     memory,
     rtk,
     headroom,
+    pxpipe,
     mcp,
     registry,
     model,
@@ -60,6 +61,7 @@ main.add_command(agui)
 main.add_command(memory)
 main.add_command(rtk)
 main.add_command(headroom)
+main.add_command(pxpipe)
 main.add_command(mcp)
 main.add_command(registry)
 main.add_command(skill)
