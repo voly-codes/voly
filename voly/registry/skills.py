@@ -296,7 +296,16 @@ class SkillRegistry:
             self.register(skill)
 
     def install_from_marketplace(self, skill_id: str, *, client: Any = None) -> Skill:
-        """Download skill from marketplace and save to skills_path."""
+        """Download skill from marketplace and save to skills_path.
+
+        If the marketplace record has install_kind='git' and a repository URL,
+        clones the repo into skills_path/<skill_id>/ so that multi-file skill
+        packages (e.g. pmbok6 with SKILL.md + references/) are preserved intact.
+        external_catalog.py will pick up the SKILL.md on the next catalog sync.
+        Falls back to single-file YAML install if git is unavailable.
+        """
+        import shutil
+        import subprocess
         from voly.registry.loader import save_skill_yaml, skill_from_dict
         from voly.registry.marketplace import MarketplaceClient, MarketplaceError
 
@@ -306,11 +315,33 @@ class SkillRegistry:
         mp = client or MarketplaceClient(self.marketplace_url)
         data = mp.download_skill(skill_id)
         data["source"] = "marketplace"
-        skill = skill_from_dict(data)
 
+        install_kind = data.get("install_kind") or "single"
+        repository = (data.get("repository") or "").strip()
+
+        if install_kind == "git" and repository and self.skills_path:
+            if shutil.which("git"):
+                dest = self.skills_path / skill_id
+                if dest.exists():
+                    shutil.rmtree(dest)
+                subprocess.run(
+                    ["git", "clone", "--depth", "1", repository, str(dest)],
+                    check=True,
+                    capture_output=True,
+                )
+                # Build a minimal Skill object from metadata for the in-memory index
+                skill = skill_from_dict(data)
+                skill.metadata["installed_path"] = str(dest)
+                skill.metadata["install_kind"] = "git"
+                if self.index.get(skill.id):
+                    self.index.remove(skill.id)
+                self.register(skill)
+                return skill
+
+        # Default: single-file YAML
+        skill = skill_from_dict(data)
         if self.skills_path:
             save_skill_yaml(skill, self.skills_path / f"{skill.id}.yaml")
-
         if self.index.get(skill.id):
             self.index.remove(skill.id)
         self.register(skill)
