@@ -139,4 +139,38 @@ BUILTIN_SKILLS: list[Skill] = [
         compatible_frameworks=["nextjs", "hono", "remix"],
         content="Cloudflare best practices: Workers для edge compute, R2 для object storage, D1 для SQLite...",
     ),
+    Skill(
+        id="skill-pmbok6",
+        name="PMBOK 6th Edition",
+        description=(
+            "PMBOK® Guide 6th Edition — полная методология управления проектами PMI. "
+            "5 групп процессов, 10 областей знаний, 49 процессов, формулы EVM/PERT, "
+            "Agile-адаптация, шаблоны уставов/ИСР/реестров. Используй при планировании "
+            "проекта, аудите, подготовке к PMP, оценке рисков."
+        ),
+        source=SkillSource.BUILTIN,
+        tags=[
+            "pmbok", "project-management", "pmp", "risk-management",
+            "wbs", "earned-value", "stakeholder", "agile", "planning",
+        ],
+        capabilities=[
+            "project-planning", "risk-analysis", "scheduling",
+            "cost-management", "stakeholder-management",
+        ],
+        compatible_agents=["architect", "developer", "reviewer"],
+        compatible_languages=["*"],
+        compatible_frameworks=["*"],
+        author="PMI / mb-mal",
+        version="6.0.0",
+        content=(
+            "PMBOK 6 skill package — installs references (17 files) and templates (4 files). "
+            "After install: SKILL.md is the navigator. "
+            "Key files: references/process-map.md, references/formulas.md, "
+            "references/itto-*.md (10 knowledge areas), templates/project-charter.md."
+        ),
+        metadata={
+            "repository": "https://github.com/mb-mal/pmbok6.git",
+            "install_kind": "git",
+        },
+    ),
 ]

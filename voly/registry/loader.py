@@ -52,7 +52,7 @@ def skill_from_dict(data: dict[str, Any]) -> Skill:
 
 
 def skill_to_yaml_dict(skill: Skill) -> dict[str, Any]:
-    return {
+    out: dict[str, Any] = {
         "id": skill.id,
         "name": skill.name,
         "description": skill.description,
@@ -72,6 +72,13 @@ def skill_to_yaml_dict(skill: Skill) -> dict[str, Any]:
         "success_rate": skill.success_rate,
         "metadata": skill.metadata,
     }
+    # Promote package install fields from metadata so the CF marketplace
+    # worker persists them in the repository/install_kind columns.
+    if skill.metadata.get("repository"):
+        out["repository"] = skill.metadata["repository"]
+    if skill.metadata.get("install_kind"):
+        out["install_kind"] = skill.metadata["install_kind"]
+    return out
 
 
 def load_skills_from_directory(path: Path) -> list[Skill]:
