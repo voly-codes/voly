@@ -46,6 +46,7 @@ export { default as FolderIcon } from "@lucide/svelte/icons/folder";
 export { default as FunnelIcon } from "@lucide/svelte/icons/funnel";
 export { default as GlobeIcon } from "@lucide/svelte/icons/globe";
 export { default as Grid2x2Icon } from "@lucide/svelte/icons/grid-2x2";
+export { default as ImageIcon } from "@lucide/svelte/icons/image";
 export { default as LayoutGridIcon } from "@lucide/svelte/icons/layout-grid";
 export { default as LayoutListIcon } from "@lucide/svelte/icons/layout-list";
 export { default as LightbulbIcon } from "@lucide/svelte/icons/lightbulb";

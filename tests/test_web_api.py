@@ -61,6 +61,18 @@ def test_api_list_tasks(client: TestClient) -> None:
     assert any(t.get("task_id") == "t1" for t in tasks)
 
 
+def test_api_task_artifact_png(client: TestClient, events_dir: Path) -> None:
+    artifact_dir = events_dir.parent / "pxpipe" / "images" / "t1"
+    artifact_dir.mkdir(parents=True)
+    (artifact_dir / "rendered.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    r = client.get("/api/tasks/t1/artifacts/rendered.png")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("image/png")
+    assert r.content == b"\x89PNG\r\n\x1a\n"
+    assert client.get("/api/tasks/t1/artifacts/../t1.json").status_code == 404
+
+
 def test_api_list_tasks_filter_agent(client: TestClient) -> None:
     r = client.get("/api/tasks", params={"agent": "developer"})
     assert r.status_code == 200

@@ -82,6 +82,24 @@ data: {"type": "new", "tasks": [...]}    // tasks that appeared after the snapsh
 data: {"type": "heartbeat"}              // every 5s when nothing changed
 ```
 
+## GET /api/tasks/{task_id}/artifacts/{name}
+
+Serve local task artifacts. Currently used for `pxpipe` rendered PNGs saved
+under `.voly/pxpipe/images/<task_id>/`.
+
+```typescript
+// TaskEvent.artifacts[]
+{
+  kind: "pxpipe_image",
+  media_type: "image/png",
+  name: "2026-07-13T..._req001_model_p01.png",
+  bytes: 12345,
+  url: "/api/tasks/<task_id>/artifacts/<name>"
+}
+```
+
+The route only serves `.png` files inside the task artifact directory.
+
 ---
 
 ## GET /api/runs · GET /api/runs/{task_id}
@@ -169,17 +187,17 @@ Requires `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Secrets Store Edit).
 
 Write telemetry from external sources.
 
-### TaskEvent contract (schema_version: 1)
+### TaskEvent contract (schema_version: 2)
 
 `TaskEvent` (`voly/telemetry.py`) is the public versioned task event format;
 it is consumed by external readers (CF Pipelines ingest, R2, dashboards).
-Each event carries `schema_version` (currently `1`). The v1 field set is frozen
+Each event carries `schema_version` (currently `2`). The v2 field set is frozen
 by the contract test `tests/test_protocol_contracts.py` — changing the schema
 requires bumping `TASK_EVENT_SCHEMA_VERSION`, updating this section, and the
 snapshot in the test. Key field groups: identification (`task_id`, `agent`, `executor`,
 `status`, `schema_version`), cost (`cost_usd`, `retry_count`,
 `retry_cost_usd`, `tokens`), diagnostics (`error`, `error_class`,
-`chain_timelog`), A2A (`a2a_*`), DSPy (`dspy_*`).
+`chain_timelog`), local artifacts (`artifacts`), A2A (`a2a_*`), DSPy (`dspy_*`).
 
 Related contract: spend protocol — `docs/backend/spend-protocol.md`.
 

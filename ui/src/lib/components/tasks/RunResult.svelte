@@ -1,5 +1,6 @@
 <script>
   import { CpuIcon, ClockIcon, BookOpenIcon, LinkIcon, LayersIcon } from '../../icons.js'
+  import PxpipeArtifacts from './PxpipeArtifacts.svelte'
   import WorkReport from './WorkReport.svelte'
 
   let { result } = $props()
@@ -163,6 +164,7 @@
   {/if}
 
   <WorkReport report={result.report} />
+  <PxpipeArtifacts artifacts={result.artifacts} />
 
   {#if result.safety_rolled_back?.length}
     <div class="safety-note">

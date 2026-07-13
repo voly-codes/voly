@@ -183,13 +183,16 @@ def pxpipe() -> None:
 def pxpipe_start(ctx: click.Context, port: int | None) -> None:
     """Start pxpipe for Claude Code compression."""
     import time
+    from voly.pxpipe.artifacts import inbox_dir
     from voly.pxpipe.proxy import PxpipeManager
 
     config = ctx.obj["config"]
     proxy_port = port or config.pxpipe.port
-    mgr = PxpipeManager(port=proxy_port, models=config.pxpipe.models)
+    dump_dir = inbox_dir(config)
+    mgr = PxpipeManager(port=proxy_port, models=config.pxpipe.models, dump_dir=dump_dir)
     if mgr.start(wait=True):
         click.echo(f"pxpipe proxy running on http://127.0.0.1:{proxy_port}")
+        click.echo(f"PNG dump dir: {dump_dir}")
         click.echo("Use VOLY_PXPIPE_ENABLED=true to route claude-code through it.")
         click.echo("Press Ctrl+C to stop")
         try:

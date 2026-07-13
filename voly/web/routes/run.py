@@ -258,6 +258,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "automation_score": result.automation_score,
         "billing_fallback": meta.get("billing_fallback_to"),
         "chain_timelog": meta.get("chain_timelog"),
+        "artifacts": meta.get("artifacts") or [],
     }
     # Executor safety policy artifacts (dry-run preview / rollback details).
     for key in ("dry_run", "dry_run_diff", "safety_violation", "safety_rolled_back"):

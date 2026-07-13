@@ -1,14 +1,22 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from types import SimpleNamespace
 
+from voly.pxpipe.artifacts import (
+    artifact_dir,
+    capture_pxpipe_artifacts,
+    collect_pxpipe_artifacts,
+    inbox_dir,
+)
 from voly.pxpipe.proxy import PxpipeManager, apply_pxpipe_env
 
 
 class FakeManager:
     started = False
 
-    def __init__(self, port: int = 47821, models: str = ""):
+    def __init__(self, port: int = 47821, models: str = "", dump_dir=None):
         self.port = port
         self.models = models
         self.proxy_url = f"http://127.0.0.1:{port}"
@@ -78,3 +86,41 @@ def test_apply_pxpipe_env_can_override_existing_base_url() -> None:
         manager_cls=FakeManager,
     )
     assert out["ANTHROPIC_BASE_URL"] == "http://127.0.0.1:47822"
+
+
+def test_capture_pxpipe_artifacts_collects_task_png(tmp_path: Path) -> None:
+    config = SimpleNamespace(
+        pxpipe=_cfg(enabled=True),
+        telemetry=SimpleNamespace(events_dir=str(tmp_path / ".voly" / "events")),
+    )
+
+    with capture_pxpipe_artifacts(config, "task-1"):
+        dump = Path(os.environ["PXPIPE_DUMP_DIR"])
+        (dump / "rendered.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    artifacts = collect_pxpipe_artifacts(config, "task-1")
+    assert artifacts == [{
+        "kind": "pxpipe_image",
+        "media_type": "image/png",
+        "name": "rendered.png",
+        "bytes": 8,
+        "url": "/api/tasks/task-1/artifacts/rendered.png",
+    }]
+    assert (artifact_dir(config, "task-1") / "rendered.png").exists()
+
+
+def test_capture_pxpipe_artifacts_moves_new_inbox_png(tmp_path: Path) -> None:
+    config = SimpleNamespace(
+        pxpipe=_cfg(enabled=True),
+        telemetry=SimpleNamespace(events_dir=str(tmp_path / ".voly" / "events")),
+    )
+    inbox = inbox_dir(config)
+    inbox.mkdir(parents=True)
+    (inbox / "old.png").write_bytes(b"old")
+
+    with capture_pxpipe_artifacts(config, "task-2"):
+        (inbox / "new.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    assert (inbox / "old.png").exists()
+    assert not (inbox / "new.png").exists()
+    assert (artifact_dir(config, "task-2") / "new.png").exists()

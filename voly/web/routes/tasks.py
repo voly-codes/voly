@@ -9,7 +9,7 @@ import pathlib
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 router = APIRouter()
 
@@ -177,3 +177,18 @@ def get_task(task_id: str, request: Request) -> dict[str, Any]:
     if not path.exists():
         raise HTTPException(status_code=404, detail="Task not found")
     return json.loads(path.read_text())
+
+
+@router.get("/api/tasks/{task_id}/artifacts/{name}")
+def get_task_artifact(task_id: str, name: str, request: Request) -> FileResponse:
+    if "/" in name or "\\" in name or not name.endswith(".png"):
+        raise HTTPException(status_code=404, detail="Artifact not found")
+    base = (_state(request).ev_dir.parent / "pxpipe" / "images" / task_id).resolve()
+    path = (base / name).resolve()
+    try:
+        path.relative_to(base)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Artifact not found") from None
+    if not path.exists() or not path.is_file():
+        raise HTTPException(status_code=404, detail="Artifact not found")
+    return FileResponse(path, media_type="image/png")

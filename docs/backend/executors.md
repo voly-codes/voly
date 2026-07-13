@@ -82,6 +82,17 @@ Only the subprocess env is changed. If `pxpipe` is not running and
 `ANTHROPIC_BASE_URL` is already set, VOLY keeps it unless
 `VOLY_PXPIPE_OVERRIDE_BASE_URL=true`.
 
+Rendered prompt PNGs are saved locally when the sidecar is started through VOLY:
+
+```bash
+voly pxpipe start
+# PNG inbox: .voly/pxpipe/images/_inbox
+```
+
+`AgentRunner` moves new PNGs from the inbox into
+`.voly/pxpipe/images/<task_id>/`, adds them to `TaskEvent.artifacts`, and the UI
+serves them through `/api/tasks/<task_id>/artifacts/<name>`.
+
 ---
 
 ## WranglerExecutor (`voly/executor/wrangler.py`)

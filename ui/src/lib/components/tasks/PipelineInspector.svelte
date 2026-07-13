@@ -13,6 +13,7 @@
   import StatsOverview from './StatsOverview.svelte'
   import WorkReport from './WorkReport.svelte'
   import ExtrasSection from './ExtrasSection.svelte'
+  import PxpipeArtifacts from './PxpipeArtifacts.svelte'
 
   let outputExpanded = $state(true)
   let task = $derived(tasksStore.selected)
@@ -166,6 +167,7 @@
         />
 
         <WorkReport report={task.report} />
+        <PxpipeArtifacts artifacts={task.artifacts} />
 
         <div class="right-sections">
           {#if task.result}

@@ -20,6 +20,7 @@ from voly.automation import compute_automation_metrics
 from voly.config import VOLYConfig
 from voly.cost_policy import budget_status, detect_task_type
 from voly.executor.base import Executor, ExecutorResult, WorkReport, classify_failure
+from voly.pxpipe.artifacts import capture_pxpipe_artifacts, collect_pxpipe_artifacts
 from voly.telemetry import TaskEvent, TokenMetrics, emit_event_from_config, new_task_id
 
 
@@ -398,14 +399,18 @@ class AgentRunner:
         if cwd and safety_cfg is not None and getattr(safety_cfg, "enabled", True):
             safety_snapshot = git_snapshot(cwd)
         t0 = time.monotonic()
-        result = executor.run(
-            effective_task,
-            cwd=cwd,
-            max_turns=max_turns,
-            timeout=timeout,
-        )
+        with capture_pxpipe_artifacts(self.config, task_id):
+            result = executor.run(
+                effective_task,
+                cwd=cwd,
+                max_turns=max_turns,
+                timeout=timeout,
+            )
+        pxpipe_artifacts = collect_pxpipe_artifacts(self.config, task_id)
         if result.duration_ms <= 0:
             result.duration_ms = (time.monotonic() - t0) * 1000
+        if pxpipe_artifacts:
+            result.metadata["artifacts"] = pxpipe_artifacts
 
         _chain_log.info(
             "[CHAIN:RESULT] executor=%s success=%s billing_error=%s duration_ms=%.0f error=%r",
@@ -509,6 +514,8 @@ class AgentRunner:
         # Store chain timelog only if fallback actually happened (>1 entry)
         if len(chain_timelog) > 1:
             result.metadata["chain_timelog"] = chain_timelog
+        if pxpipe_artifacts:
+            result.metadata["artifacts"] = pxpipe_artifacts
 
         # DSPy example collection: store (task, result) for later optimization.
         if dspy_plan_result is not None and result.output:
@@ -600,6 +607,7 @@ class AgentRunner:
                 result=result.output[:8000] if result.output else None,
                 report=work_report.to_dict() if work_report else None,
                 chain_timelog=chain_timelog if len(chain_timelog) > 1 else [],
+                artifacts=pxpipe_artifacts,
             ), self.config)
 
         return RunnerResult(

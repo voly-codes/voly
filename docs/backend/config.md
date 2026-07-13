@@ -95,6 +95,8 @@ VOLY_PXPIPE_OVERRIDE_BASE_URL=false
 # When enabled and reachable, ClaudeCodeExecutor sets ANTHROPIC_BASE_URL to
 # http://127.0.0.1:<port> for the claude subprocess. Existing
 # ANTHROPIC_BASE_URL is preserved unless override is true.
+# `voly pxpipe start` also enables local PNG dumps; task artifacts are stored
+# under .voly/pxpipe/images/<task_id>/ and surfaced in the UI.
 ```
 
 ### `voly cloud` — device link CLI

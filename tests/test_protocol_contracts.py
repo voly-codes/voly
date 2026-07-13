@@ -26,12 +26,12 @@ from voly.telemetry import (
 )
 
 
-# ─── TaskEvent schema v1 ───────────────────────────────────────────────────────
+# ─── TaskEvent schema v2 ───────────────────────────────────────────────────────
 
 # Замороженный набор полей схемы v1. Добавление/удаление/переименование поля
 # без бампа TASK_EVENT_SCHEMA_VERSION ломает внешних потребителей молча —
 # поэтому сначала версия и docs/backend/api.md, потом этот список.
-_V1_FIELDS = {
+_V2_FIELDS = {
     "task_id", "agent", "status", "schema_version",
     "tokens", "gateway", "skill_ids", "memory_hits", "workflow",
     "routing_score", "cost_usd", "duration_ms",
@@ -41,20 +41,20 @@ _V1_FIELDS = {
     "dspy_enabled", "dspy_used", "dspy_mode", "dspy_program_id",
     "dspy_program_version", "dspy_program_tag", "dspy_optimizer",
     "dspy_dataset", "dspy_compile_id", "dspy_score", "dspy_shadow_delta",
-    "task_prompt", "result", "stage_log", "report", "chain_timelog",
+    "task_prompt", "result", "stage_log", "report", "artifacts", "chain_timelog",
     "a2a_dispatched", "a2a_subtask_count", "a2a_agents_used", "a2a_assignments",
 }
 
 
-def test_task_event_schema_v1_frozen():
+def test_task_event_schema_v2_frozen():
     actual = {f.name for f in fields(TaskEvent)}
-    assert TASK_EVENT_SCHEMA_VERSION == 1, (
-        "Версия схемы изменилась — обнови _V1_FIELDS→_V2_FIELDS и docs/backend/api.md"
+    assert TASK_EVENT_SCHEMA_VERSION == 2, (
+        "Версия схемы изменилась — обнови _V2_FIELDS→_V3_FIELDS и docs/backend/api.md"
     )
-    missing = _V1_FIELDS - actual
-    added = actual - _V1_FIELDS
+    missing = _V2_FIELDS - actual
+    added = actual - _V2_FIELDS
     assert not missing and not added, (
-        f"Схема TaskEvent разошлась с v1: added={sorted(added)}, missing={sorted(missing)}. "
+        f"Схема TaskEvent разошлась с v2: added={sorted(added)}, missing={sorted(missing)}. "
         "Изменение схемы = бамп TASK_EVENT_SCHEMA_VERSION + docs/backend/api.md + этот снимок."
     )
 
@@ -62,10 +62,10 @@ def test_task_event_schema_v1_frozen():
 def test_task_event_serializes_schema_version():
     ev = TaskEvent(task_id="t1", agent="a", status="completed")
     d = ev.to_dict()
-    assert d["schema_version"] == 1
+    assert d["schema_version"] == 2
     # И в плоской записи для CF Pipelines
     rec = event_to_pipeline_record(ev)
-    assert rec["schema_version"] == 1
+    assert rec["schema_version"] == 2
     # Ключевые плоские поля pipeline-записи (контракт SQL-трансформации)
     for key in ("ts_us", "tokens_input", "tokens_output", "cache_hit", "fallback_used"):
         assert key in rec

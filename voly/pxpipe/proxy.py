@@ -9,6 +9,7 @@ import socket
 import subprocess
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 _log = logging.getLogger("voly.pxpipe")
@@ -30,9 +31,15 @@ class PxpipeManager:
     `PORT`, `HOST`, `PXPIPE_MODELS`, and upstream provider variables.
     """
 
-    def __init__(self, port: int = 47821, models: str = "claude-fable-5,gpt-5.6"):
+    def __init__(
+        self,
+        port: int = 47821,
+        models: str = "claude-fable-5,gpt-5.6",
+        dump_dir: str | Path | None = None,
+    ):
         self.port = int(port)
         self.models = models
+        self.dump_dir = Path(dump_dir) if dump_dir else None
         self._process: subprocess.Popen | None = None
 
     @property
@@ -56,6 +63,9 @@ class PxpipeManager:
         env.setdefault("HOST", "127.0.0.1")
         if self.models:
             env["PXPIPE_MODELS"] = self.models
+        if self.dump_dir:
+            self.dump_dir.mkdir(parents=True, exist_ok=True)
+            env["PXPIPE_DUMP_DIR"] = str(self.dump_dir)
 
         cmd = self._command()
         if cmd is None:

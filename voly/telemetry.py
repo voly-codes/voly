@@ -136,7 +136,7 @@ class GatewayMetrics:
 # потребители: CF Pipelines, R2, hosted-дашборды). Любое изменение набора
 # полей/семантики — бамп версии + правка контрактного теста
 # (tests/test_protocol_contracts.py) + docs/backend/api.md.
-TASK_EVENT_SCHEMA_VERSION = 1
+TASK_EVENT_SCHEMA_VERSION = 2
 
 
 @dataclass
@@ -189,6 +189,7 @@ class TaskEvent:
     result: str | None = None           # LLM output text (capped at 8000 chars)
     stage_log: list[dict] = field(default_factory=list)  # [{stage, elapsed_ms}]
     report: dict | None = None          # WorkReport.to_dict() — mini work summary
+    artifacts: list[dict[str, Any]] = field(default_factory=list)
     # Billing fallback chain log: present only when fallback was triggered.
     # Each entry: {executor, model, status, duration_ms, error}
     # status: "success" | "billing_error" | "not_available" | "skipped" | "failed"
@@ -455,6 +456,7 @@ def load_events(events_dir: str | Path | None = None) -> list[TaskEvent]:
                     float(data["dspy_score"]) if data.get("dspy_score") is not None else None,
                 dspy_shadow_delta=
                     float(data["dspy_shadow_delta"]) if data.get("dspy_shadow_delta") is not None else None,
+                artifacts=list(data.get("artifacts") or []),
             ))
         except Exception as exc:
             logger.debug("telemetry: failed to load %s: %s", path, exc)
