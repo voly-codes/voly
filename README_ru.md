@@ -329,8 +329,8 @@ google-ai-studio / deepseek хранятся в **CF Secrets Store**, gateway
 воркеров из `cf-workers/`:
 
 ```env
-CF_WORKER_CATALOG_URL=https://voly-catalog.margolanies.workers.dev
-CF_WORKER_MARKETPLACE_URL=https://voly-marketplace.margolanies.workers.dev
+CF_WORKER_CATALOG_URL=https://catalog.voly.codes
+CF_WORKER_MARKETPLACE_URL=https://marketplace.voly.codes
 ```
 
 `voly setup` предложит записать это за тебя. Приватность: запросы каталога

@@ -1,8 +1,14 @@
 {
   "name": "voly-agent",
   "main": "src/index.ts",
+  "account_id": "50fdb59b7724b696fd809ca810e34278",
   "compatibility_date": "2025-01-01",
+  "workers_dev": true,
   "compatibility_flags": ["nodejs_compat"],
+
+  "routes": [
+    { "pattern": "agent.voly.codes", "custom_domain": true }
+  ],
 
   "services": [
     {

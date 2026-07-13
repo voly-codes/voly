@@ -129,7 +129,7 @@
         <AlertCircleIcon size="14" strokeWidth="2" />
         <div>
           <div>{spend.hint ?? 'CF Spend Worker not configured'}</div>
-          <code class="env-hint">CF_WORKER_SPEND_URL=https://voly-spend.*.workers.dev</code>
+          <code class="env-hint">CF_WORKER_SPEND_URL=https://spend.voly.codes</code>
         </div>
       </div>
     {:else if spend}

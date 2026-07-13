@@ -12,8 +12,8 @@ from voly.config import create_default_config
 
 # Official hosted catalog/marketplace workers (opt-in via `voly setup` or
 # .env.example — never enabled silently; self-deploy from cf-workers/ instead).
-OFFICIAL_CATALOG_URL = "https://voly-catalog.margolanies.workers.dev"
-OFFICIAL_MARKETPLACE_URL = "https://voly-marketplace.margolanies.workers.dev"
+OFFICIAL_CATALOG_URL = "https://catalog.voly.codes"
+OFFICIAL_MARKETPLACE_URL = "https://marketplace.voly.codes"
 
 
 def _offer_official_catalog(env_path: Path | None = None) -> bool:

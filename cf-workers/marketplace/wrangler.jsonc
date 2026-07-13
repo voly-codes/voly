@@ -1,7 +1,13 @@
 {
   "name": "voly-marketplace",
   "main": "src/index.ts",
+  "account_id": "50fdb59b7724b696fd809ca810e34278",
   "compatibility_date": "2025-01-01",
+  "workers_dev": true,
+
+  "routes": [
+    { "pattern": "marketplace.voly.codes", "custom_domain": true }
+  ],
 
   "d1_databases": [
     {

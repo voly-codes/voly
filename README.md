@@ -330,8 +330,8 @@ You can use the official hosted skill catalog / marketplace instead of
 deploying your own workers from `cf-workers/`:
 
 ```env
-CF_WORKER_CATALOG_URL=https://voly-catalog.margolanies.workers.dev
-CF_WORKER_MARKETPLACE_URL=https://voly-marketplace.margolanies.workers.dev
+CF_WORKER_CATALOG_URL=https://catalog.voly.codes
+CF_WORKER_MARKETPLACE_URL=https://marketplace.voly.codes
 ```
 
 `voly setup` offers to write these for you. Privacy note: catalog/skill
