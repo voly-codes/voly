@@ -227,6 +227,28 @@ def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
     click.echo(f"\n{label}: {seeded}  skipped: {skipped}  errors: {errors}")
 
 
+@skill.command("reindex")
+@click.pass_context
+def skill_reindex(ctx: click.Context) -> None:
+    """Re-create Vectorize embeddings for all active skills in the marketplace.
+
+    Use after bulk imports (voly skill seed / catalog sync) to ensure
+    semantic search works for newly added skills.
+    """
+    mp = _marketplace_client(ctx)
+    try:
+        result = mp._request("POST", "/skills/reindex")
+    except Exception as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(
+        f"Reindex complete: {result.get('indexed', 0)} indexed, "
+        f"{result.get('skipped', 0)} skipped, "
+        f"{result.get('errors', 0)} errors "
+        f"(total {result.get('total', 0)} skills)"
+    )
+
+
 @skill.command("show")
 @click.argument("skill_id")
 @click.option("--local", "local_only", is_flag=True, help="Show from local registry")

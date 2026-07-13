@@ -121,6 +121,10 @@ class MarketplaceClient:
     def archive_skill(self, skill_id: str) -> dict[str, Any]:
         return self._request("DELETE", f"/skills/{urllib.parse.quote(skill_id, safe='')}")
 
+    def reindex_skills(self) -> dict[str, Any]:
+        """Re-create Vectorize embeddings for all active skills."""
+        return self._request("POST", "/skills/reindex")
+
     def list_plugins(
         self,
         *,

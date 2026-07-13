@@ -420,6 +420,53 @@ app.post("/skills/sync", async (c) => {
   return c.json({ upserted, total: skills.length });
 });
 
+// POST /skills/reindex — re-create Vectorize embeddings for all active skills.
+// Processes skills in batches of 50 to avoid Vectorize rate limits.
+// Returns { indexed, skipped, errors, total }.
+app.post("/skills/reindex", async (c) => {
+  const batchSize = 50;
+  let indexed = 0, skipped = 0, errors = 0;
+
+  const { results: allSkills } = await c.env.DB.prepare(
+    "SELECT id, name, description, tags FROM skills WHERE status = 'active' ORDER BY updated_at DESC",
+  ).all<Pick<SkillRow, "id" | "name" | "description" | "tags">>();
+
+  const total = allSkills?.length ?? 0;
+
+  // Process in batches to stay within CPU time limits
+  for (let i = 0; i < total; i += batchSize) {
+    const batch = (allSkills ?? []).slice(i, i + batchSize);
+    const vectors: VectorizeVector[] = [];
+
+    for (const row of batch) {
+      const tags: string[] = JSON.parse(row.tags || "[]");
+      const embedInput = [row.name, row.description, ...tags].join(" ").slice(0, 2000);
+      const vec = await embed(c.env.AI, embedInput);
+      if (vec) {
+        vectors.push({
+          id: row.id,
+          values: vec,
+          metadata: { name: row.name, tags: row.tags } as Record<string, string>,
+        });
+        indexed++;
+      } else {
+        skipped++;
+      }
+    }
+
+    if (vectors.length > 0) {
+      try {
+        await c.env.VECTORIZE.upsert(vectors);
+      } catch (e) {
+        errors += vectors.length;
+        indexed -= vectors.length;
+      }
+    }
+  }
+
+  return c.json({ ok: true, indexed, skipped, errors, total });
+});
+
 // DELETE /skills/:id — soft delete (set status=archived)
 app.delete("/skills/:id", async (c) => {
   const id = c.req.param("id");
