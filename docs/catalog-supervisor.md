@@ -23,24 +23,29 @@ This component is now generic and project-agnostic. Product-specific combat miss
 ## Architecture
 
 ```text
-voly catalog sync
-        │
-        ▼
-OpenCode Zen API / fallback catalog
-        │
-        ▼
-.voly/catalog/models.json
-        │
-        ▼
-Catalog routing
-        │
-        ├─ voly catalog list
-        ├─ voly catalog match <task>
-        └─ Supervisor plan helpers
-                │
-                ▼
-Executor/model/skill plan
+voly catalog sync                voly catalog import-freellm SOURCE
+        │                                   │
+        ▼                                   ▼
+OpenCode Zen API / fallback     awesome-freellm-apis README (offline)
+        │                                   │
+        └──────────────┬────────────────────┘
+                       │  merge_with_catalog()
+                       ▼
+             .voly/catalog/models.json
+                       │
+                       ▼
+               Catalog routing
+                       │
+                       ├─ voly catalog list
+                       ├─ voly catalog match <task>
+                       ├─ verified_free_fallback()  ← opt-in, not wired to gateway
+                       └─ Supervisor plan helpers
+                       │
+                       ▼
+            Executor/model/skill plan
 ```
+
+See [catalog-freellm.md](catalog-freellm.md) for the freellm integration details.
 
 Optional remote catalog:
 
@@ -54,8 +59,10 @@ VOLY CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
 
 | Module | Path | Purpose |
 |---|---|---|
-| Types | `voly/catalog/types.py` | `CatalogModel`, plan/spec dataclasses |
+| Types | `voly/catalog/types.py` | `CatalogModel` (v1 + v2 fields), plan/spec dataclasses |
 | Zen sync | `voly/catalog/zen_sync.py` | fetch/parse OpenCode Zen model metadata |
+| FreeLLM importer | `voly/catalog/freellm_importer.py` | offline README parser + merge |
+| Fallback | `voly/catalog/fallback.py` | `verified_free_fallback()` pure function |
 | Store | `voly/catalog/store.py` | local cache under `.voly/catalog/` |
 | Routing | `voly/catalog/routing.py` | task matching and model/executor selection |
 | Supervisor | `voly/catalog/supervisor.py` | planning helpers for multi-step execution |
@@ -67,11 +74,15 @@ VOLY CLI → CatalogClient → CF Worker → D1/R2/Vectorize/KV
 ## CLI
 
 ```bash
-# Sync model metadata
+# Sync model metadata from OpenCode Zen
 voly catalog sync
+voly catalog sync --push          # also push to CF Worker
 
-# Sync and push to CF Worker when configured
-voly catalog sync --push
+# Import free LLM models from awesome-freellm-apis (no network required)
+voly catalog import-freellm /path/to/awesome-freellm-apis/
+voly catalog import-freellm /path/to/README.md --dry-run   # preview only
+voly catalog import-freellm /path/to/README.md --json      # output JSON
+voly catalog import-freellm /path/to/README.md --push      # local + remote
 
 # List catalog entries
 voly catalog list
