@@ -16,15 +16,70 @@ interface ModelRow {
   strengths: string;
   enabled: number;
   updated_at: number;
+  metadata: string; // JSON blob; v2 extended fields
 }
 
-function parseModel(row: ModelRow) {
+interface ParsedModel {
+  id: string;
+  name: string;
+  provider: string;
+  tier: string;
+  input_cost_per_1m: number;
+  output_cost_per_1m: number;
+  executor_compat: unknown[];
+  strengths: unknown[];
+  enabled: boolean;
+  updated_at: number;
+  verified?: boolean;
+  [key: string]: unknown;
+}
+
+// Parse stored JSON columns; metadata carries optional v2 fields.
+function parseModel(row: ModelRow): ParsedModel {
+  let meta: Record<string, unknown> = {};
+  try {
+    meta = JSON.parse(row.metadata || "{}");
+  } catch {
+    meta = {};
+  }
   return {
-    ...row,
-    enabled: !!row.enabled,
+    id: row.id,
+    name: row.name,
+    provider: row.provider,
+    tier: row.tier,
+    input_cost_per_1m: row.input_cost_per_1m,
+    output_cost_per_1m: row.output_cost_per_1m,
     executor_compat: JSON.parse(row.executor_compat || "[]"),
     strengths: JSON.parse(row.strengths || "[]"),
+    enabled: !!row.enabled,
+    updated_at: row.updated_at,
+    ...meta, // spread v2 fields; callers may ignore unknown keys
   };
+}
+
+// Build the metadata JSON blob from an incoming model payload.
+function buildMetadata(m: Record<string, unknown>): string {
+  const v2Keys = [
+    "base_url",
+    "context_window",
+    "modalities",
+    "rate_limit",
+    "auth_requirement",
+    "api_key_url",
+    "supports_tools",
+    "source_url",
+    "upstream_model_id",
+    "source_updated_at",
+    "verified",
+    "last_verified_at",
+  ];
+  const meta: Record<string, unknown> = {};
+  for (const k of v2Keys) {
+    if (m[k] !== undefined && m[k] !== null && m[k] !== "") {
+      meta[k] = m[k];
+    }
+  }
+  return JSON.stringify(meta);
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -34,6 +89,7 @@ app.get("/health", (c) => c.json({ ok: true, service: "voly-catalog" }));
 
 app.get("/models", async (c) => {
   const tier = c.req.query("tier");
+  const verified = c.req.query("verified");
   let stmt = "SELECT * FROM models WHERE enabled = 1";
   const params: unknown[] = [];
   if (tier) {
@@ -42,7 +98,14 @@ app.get("/models", async (c) => {
   }
   stmt += " ORDER BY tier, id";
   const rows = await c.env.DB.prepare(stmt).bind(...params).all<ModelRow>();
-  return c.json({ models: (rows.results ?? []).map(parseModel), count: rows.results?.length ?? 0 });
+  let results = (rows.results ?? []).map(parseModel);
+
+  // Optional: filter to verified-only rows (checked in metadata blob)
+  if (verified === "true") {
+    results = results.filter((m) => m.verified === true);
+  }
+
+  return c.json({ models: results, count: results.length });
 });
 
 app.post("/models/sync", async (c) => {
@@ -53,24 +116,31 @@ app.post("/models/sync", async (c) => {
   for (const m of models) {
     const id = String(m.id ?? "");
     if (!id) continue;
+    const metadata = buildMetadata(m);
     await c.env.DB.prepare(
-      `INSERT INTO models (id, name, provider, tier, input_cost_per_1m, output_cost_per_1m, executor_compat, strengths, enabled, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+      `INSERT INTO models (id, name, provider, tier, input_cost_per_1m, output_cost_per_1m, executor_compat, strengths, enabled, updated_at, metadata)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name=excluded.name, provider=excluded.provider, tier=excluded.tier,
+         input_cost_per_1m=excluded.input_cost_per_1m,
+         output_cost_per_1m=excluded.output_cost_per_1m,
          executor_compat=excluded.executor_compat, strengths=excluded.strengths,
-         enabled=excluded.enabled, updated_at=excluded.updated_at`
-    ).bind(
-      id,
-      String(m.name ?? id),
-      String(m.provider ?? ""),
-      String(m.tier ?? "standard"),
-      Number(m.input_cost_per_1m ?? 0),
-      Number(m.output_cost_per_1m ?? 0),
-      JSON.stringify(m.executor_compat ?? ["zen"]),
-      JSON.stringify(m.strengths ?? []),
-      now,
-    ).run();
+         enabled=excluded.enabled, updated_at=excluded.updated_at,
+         metadata=excluded.metadata`
+    )
+      .bind(
+        id,
+        String(m.name ?? id),
+        String(m.provider ?? ""),
+        String(m.tier ?? "standard"),
+        Number(m.input_cost_per_1m ?? 0),
+        Number(m.output_cost_per_1m ?? 0),
+        JSON.stringify(m.executor_compat ?? ["zen"]),
+        JSON.stringify(m.strengths ?? []),
+        now,
+        metadata,
+      )
+      .run();
     upserted += 1;
   }
   return c.json({ ok: true, upserted });

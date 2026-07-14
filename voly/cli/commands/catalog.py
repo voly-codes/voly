@@ -1,4 +1,4 @@
-"""CLI: voly catalog — agent/model catalog from OpenCode Zen."""
+"""CLI: voly catalog — agent/model catalog from OpenCode Zen + freellm sources."""
 
 from __future__ import annotations
 
@@ -74,6 +74,82 @@ def catalog_match(task: str, as_json: bool) -> None:
     else:
         click.echo(f"executor: {executor}")
         click.echo(f"model:    {model}")
+
+
+@catalog.command("import-freellm")
+@click.argument("source", type=click.Path())
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Parse and show what would be imported without writing anything.",
+)
+@click.option("--json", "as_json", is_flag=True, help="Output imported models as JSON.")
+@click.option(
+    "--push",
+    is_flag=True,
+    help="After saving locally, push merged catalog to CF_WORKER_CATALOG_URL.",
+)
+def catalog_import_freellm(source: str, dry_run: bool, as_json: bool, push: bool) -> None:
+    """Import free LLM models from awesome-freellm-apis README into the local catalog.
+
+    SOURCE is the path to the README.md file or the root checkout directory of
+    awesome-freellm-apis (https://github.com/open-free-llm-api/awesome-free-llm-apis).
+
+    The external repository is read-only — nothing is written back to it.
+    Imported models start with verified=False.  Use --push to sync the merged
+    result to the remote CF Worker (requires CF_WORKER_CATALOG_URL env var).
+    """
+    from pathlib import Path
+
+    from voly.catalog.freellm_importer import merge_with_catalog, parse_readme
+    from voly.catalog.store import load_models, save_models
+
+    try:
+        imported = parse_readme(Path(source))
+    except FileNotFoundError as exc:
+        click.echo(f"Source not found: {exc}", err=True)
+        raise SystemExit(1) from exc
+    except ValueError as exc:
+        click.echo(f"Parse error: {exc}", err=True)
+        raise SystemExit(1) from exc
+
+    if dry_run or as_json:
+        click.echo(
+            json.dumps([m.to_dict() for m in imported], ensure_ascii=False, indent=2)
+        )
+        if dry_run:
+            click.echo(
+                f"\n[dry-run] Would import {len(imported)} models. Nothing written.",
+                err=True,
+            )
+        return
+
+    existing = load_models()
+    merged = merge_with_catalog(existing, imported)
+
+    path = save_models(merged)
+    new_count = len(merged) - len(existing)
+    click.echo(
+        f"Imported {len(imported)} models from freellm source "
+        f"({new_count:+d} new, {len(existing)} existing preserved)."
+    )
+    click.echo(f"Saved → {path}")
+
+    if push:
+        try:
+            from voly.catalog.client import CatalogClient
+
+            client = CatalogClient.from_env()
+            if not client:
+                click.echo(
+                    "CF_WORKER_CATALOG_URL not set — skipping remote push.", err=True
+                )
+            else:
+                result = client.sync_models([m.to_dict() for m in merged])
+                click.echo(f"Pushed {result.get('upserted', '?')} models to remote catalog.")
+        except Exception as exc:
+            click.echo(f"Remote push failed: {exc}", err=True)
+            raise SystemExit(1) from exc
 
 
 @catalog.command("plan")
