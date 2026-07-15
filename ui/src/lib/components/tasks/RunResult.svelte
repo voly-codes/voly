@@ -14,6 +14,19 @@
 
   // skill_suggestions install state: { [skill_id]: 'idle' | 'installing' | 'done' | 'error' }
   let installState = $state({})
+  let correlationCopied = $state(false)
+
+  async function copyCorrelationId() {
+    const cid = result?.correlation_id
+    if (!cid || typeof cid !== 'string') return
+    try {
+      await navigator.clipboard.writeText(cid)
+      correlationCopied = true
+      setTimeout(() => { correlationCopied = false }, 2000)
+    } catch {
+      // clipboard unavailable — id remains visible to copy manually
+    }
+  }
 
   async function handleInstall(skillId) {
     installState = { ...installState, [skillId]: 'installing' }
@@ -64,6 +77,16 @@
       {/if}
       {#if result.billing_fallback}
         <span class="meta-chip warn" title="billing fallback">→ {result.billing_fallback}</span>
+      {/if}
+      {#if result.correlation_id}
+        <button
+          type="button"
+          class="meta-chip correlation"
+          title={correlationCopied ? 'Copied' : 'Copy correlation id for Workers Logs'}
+          onclick={copyCorrelationId}
+        >
+          {correlationCopied ? 'copied' : `corr ${result.correlation_id.slice(0, 8)}…`}
+        </button>
       {/if}
     </div>
     <div class="result-stats">
@@ -278,6 +301,11 @@
   .meta-chip.err { color: var(--accent-red); border-color: color-mix(in srgb, var(--accent-red) 30%, transparent); }
   .meta-chip.dry,
   .meta-chip.warn { color: var(--accent-amber); border-color: color-mix(in srgb, var(--accent-amber) 30%, transparent); }
+  .meta-chip.correlation {
+    cursor: pointer;
+    font-family: var(--font-mono, ui-monospace, monospace);
+  }
+  .meta-chip.correlation:hover { background: var(--bg-surface-hover); }
 
   .hybrid-summary {
     display: flex;

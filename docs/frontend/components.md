@@ -150,3 +150,10 @@ Active section — `--accent-blue`.
 1. `RunPanel.svelte` — add to the executors array (file-writing before text-only)
 2. `RunParams.svelte` — add `executorHints[id]` with a description
 3. Update this file
+
+Known cloud-native executor: `cf-containers` (Cloudflare Containers / sandbox-spike).
+
+## Correlation ID
+
+- Open-core: `RunResult.svelte` shows a clickable `corr …` chip when SSE `done` includes `correlation_id` (copy to clipboard).
+- Hosted dashboard: run detail page shows Correlation ID with copy control (`CopyCommand`).

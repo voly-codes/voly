@@ -10,6 +10,7 @@
     pipeline:           'AI Gateway — cache, DLP, spend control (text only)',
     'claude-code':      'Claude Code CLI — reads/writes files · billing fallback → wrangler → zen',
     wrangler:           'CF Workers AI via wrangler dev — writes files via LocalPatchApplier',
+    'cf-containers':    'Cloudflare Containers via sandbox-spike — needs VOLY_CF_CONTAINERS_URL + JWT',
     zen:                'OpenCode Zen — free tier, file-capable via opencode CLI',
     cursor:             'Cursor Agent IDE — reads/writes files directly',
     opencode:           'OpenCode Go CLI/API — file-capable agent',

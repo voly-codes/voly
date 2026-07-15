@@ -31,6 +31,7 @@
     { id: 'pipeline',            label: 'Pipeline (AI Gateway)' },
     { id: 'claude-code',         label: 'Claude Code' },
     { id: 'wrangler',            label: 'CF Workers AI (wrangler)' },
+    { id: 'cf-containers',       label: 'CF Containers (sandbox)' },
     { id: 'zen',                 label: 'OpenCode Zen (free)' },
     { id: 'cursor',              label: 'Cursor Agent' },
     { id: 'opencode',            label: 'OpenCode Go' },
