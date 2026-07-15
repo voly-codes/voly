@@ -22,7 +22,7 @@ def _registry(ctx: click.Context):
     )
 
 
-def _marketplace_client(ctx: click.Context) -> MarketplaceClient:
+def _marketplace_client(ctx: click.Context, *, timeout: int = 30) -> MarketplaceClient:
     config = ctx.obj["config"]
     config_path = ctx.obj.get("config_path")
     config_dir = Path(config_path).parent if config_path else Path.cwd()
@@ -32,7 +32,7 @@ def _marketplace_client(ctx: click.Context) -> MarketplaceClient:
             "Marketplace URL not configured. Set registry.marketplace_url in voly.yaml "
             "or CF_WORKER_MARKETPLACE_URL in .env"
         )
-    return MarketplaceClient(url)
+    return MarketplaceClient(url, timeout=timeout)
 
 
 @click.group()
@@ -186,20 +186,51 @@ def skill_generate(ctx: click.Context, project_root: str, dry_run: bool) -> None
 @skill.command("seed")
 @click.option("--force", is_flag=True, help="Overwrite skills that already exist in the marketplace")
 @click.option("--dry-run", is_flag=True, help="Print what would be seeded without writing")
+@click.option(
+    "--path",
+    "skills_path",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    default=None,
+    help="Seed YAML skills from a directory instead of builtin_data.py "
+    "(e.g. docs/marketplace/skills for Cloudflare scenario drafts)",
+)
+@click.option(
+    "--with-builtins",
+    is_flag=True,
+    help="When --path is set, also seed BUILTIN_SKILLS after the directory",
+)
 @click.pass_context
-def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
-    """Seed CF Marketplace with builtin skills from builtin_data.py.
+def skill_seed(
+    ctx: click.Context,
+    force: bool,
+    dry_run: bool,
+    skills_path: Path | None,
+    with_builtins: bool,
+) -> None:
+    """Seed CF Marketplace with builtin skills and/or a YAML directory.
 
-    Skills already present in the marketplace are skipped unless --force is set.
-    Run once after initial deployment to populate the D1 database.
+    Default (no --path): seed from builtin_data.py.
+    With --path: seed *.yaml/*.yml from that directory (e.g. CF scenario drafts).
+    Skills already present are skipped unless --force is set.
+    After bulk seed, run ``voly skill reindex`` so Vectorize search picks them up.
     """
     from voly.registry.builtin_data import BUILTIN_SKILLS
-    from voly.registry.loader import skill_to_yaml_dict
+    from voly.registry.loader import load_skills_from_directory, skill_to_yaml_dict
 
     mp = _marketplace_client(ctx)
 
+    skills = []
+    if skills_path is not None:
+        skills.extend(load_skills_from_directory(skills_path))
+        if not skills:
+            raise click.ClickException(f"No skill YAML found in {skills_path}")
+        if with_builtins:
+            skills.extend(BUILTIN_SKILLS)
+    else:
+        skills.extend(BUILTIN_SKILLS)
+
     seeded = skipped = errors = 0
-    for skill_obj in BUILTIN_SKILLS:
+    for skill_obj in skills:
         if dry_run:
             click.echo(f"  would seed: {skill_obj.id} — {skill_obj.name}")
             seeded += 1
@@ -215,6 +246,7 @@ def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
                 pass  # 404 = not found, proceed with seed
 
         payload = skill_to_yaml_dict(skill_obj)
+        payload["source"] = payload.get("source") or "marketplace"
         try:
             mp.publish_skill(payload)
             click.echo(f"  seeded: {skill_obj.id} — {skill_obj.name}")
@@ -228,17 +260,29 @@ def skill_seed(ctx: click.Context, force: bool, dry_run: bool) -> None:
 
 
 @skill.command("reindex")
-@click.option("--page-size", default=20, show_default=True, help="Skills per request (max 50)")
+@click.option(
+    "--page-size",
+    default=5,
+    show_default=True,
+    help="Skills per request (max 50). Keep small — Workers AI embed is slow.",
+)
+@click.option(
+    "--timeout",
+    default=180,
+    show_default=True,
+    help="HTTP timeout seconds per reindex page (embedding can exceed 30s)",
+)
 @click.pass_context
-def skill_reindex(ctx: click.Context, page_size: int) -> None:
+def skill_reindex(ctx: click.Context, page_size: int, timeout: int) -> None:
     """Re-create Vectorize embeddings for all active skills in the marketplace.
 
     Use after bulk imports (voly skill seed / catalog sync) to ensure
     semantic search works for newly added skills. Paginates automatically.
     """
-    mp = _marketplace_client(ctx)
+    mp = _marketplace_client(ctx, timeout=timeout)
     offset = 0
     total_indexed = total_skipped = total_errors = 0
+    total = 0
 
     while True:
         try:
@@ -268,7 +312,7 @@ def skill_reindex(ctx: click.Context, page_size: int) -> None:
     click.echo(
         f"\nReindex complete: {total_indexed} indexed, "
         f"{total_skipped} skipped, {total_errors} errors "
-        f"(total {result.get('total', 0)} skills)"
+        f"(total {total} skills)"
     )
 
 
