@@ -394,4 +394,5 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 
 ### Contributors
 
+- [mlanies](https://github.com/mlanies) (Maksim Lanies) — product and core development.
 - [2gc-dev](https://github.com/2gc-dev) (2GC CloudBridge) — Cloudflare infrastructure and integration support.

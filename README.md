@@ -395,4 +395,5 @@ Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) (DCO, rules, op
 
 ### Contributors
 
+- [mlanies](https://github.com/mlanies) (Maksim Lanies) — product and core development.
 - [2gc-dev](https://github.com/2gc-dev) (2GC CloudBridge) — Cloudflare infrastructure and integration support.
