@@ -1,0 +1,52 @@
+id: skill-cf-run-correlation
+name: Cloudflare run correlation
+description: >-
+  Trace VOLY runs across API, control plane, and Cloudflare Workers Logs
+  using X-Correlation-ID / correlation_id (TaskEvent schema v3).
+source: marketplace
+status: active
+version: 0.1.0
+content: |
+  ## When to use
+  - Debugging hosted or cf-containers failures.
+  - Matching Dashboard run to Workers Logs custom fields.
+
+  ## Enable
+  - Send header `X-Correlation-ID` (or `X-Request-ID`) on API calls.
+  - Open-core and voly-cloud echo the header on responses.
+  - Hosted runs store `correlation_id` on the event record and forward it
+    to sandbox-spike (`console.log` JSON for Workers Logs).
+
+  ```bash
+  export VOLY_JSON_LOGS=1
+  # Filter Workers Logs by correlation_id field
+  ```
+
+  ## Notes
+  - See cloudflare-docs Workers observability → Workers Logs / custom logs.
+  - Dashboard next step: show + copy correlation_id on run detail.
+tags:
+  - cloudflare
+  - observability
+  - debugging
+  - correlation
+capabilities:
+  - tracing
+  - debugging
+required_tools: []
+compatible_agents:
+  - devops
+  - developer
+compatible_languages:
+  - "*"
+compatible_frameworks:
+  - "*"
+examples:
+  - "Find this failed run in Workers Logs"
+  - "Add correlation id to my cloud run"
+author: voly
+usage_count: 0
+success_rate: 1.0
+metadata:
+  header: X-Correlation-ID
+  docs: docs/backend/api.md

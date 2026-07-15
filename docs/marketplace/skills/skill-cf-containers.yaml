@@ -1,0 +1,50 @@
+id: skill-cf-containers
+name: Cloudflare Containers executor
+description: >-
+  Run VOLY tasks inside Cloudflare Containers via the sandbox Worker
+  (executor cf-containers). Use when local CLI/IDE is unavailable.
+source: marketplace
+status: active
+version: 0.1.0
+content: |
+  ## When to use
+  - User wants cloud-native execution without local claude/opencode/cursor.
+  - Hosted VOLY Cloud sandbox path or local wrangler sandbox-spike.
+
+  ## Enable
+  ```bash
+  export VOLY_CF_CONTAINERS_URL=https://<sandbox-worker>
+  export VOLY_CF_CONTAINERS_TOKEN=<tenant-jwt>
+  export VOLY_CF_CONTAINERS_MODE=probe   # or claude-code
+  voly run --executor cf-containers "your task"
+  ```
+
+  ## Notes
+  - Workers Paid + Docker for real Containers; FORCE_STUB=1 for JWT-only stub.
+  - Not in billing fallback chain — opt-in only.
+  - See docs/backend/executors.md § CfContainersExecutor.
+tags:
+  - cloudflare
+  - containers
+  - executor
+  - cloud
+capabilities:
+  - cloud-execution
+  - containers
+required_tools: []
+compatible_agents:
+  - developer
+  - devops
+compatible_languages:
+  - "*"
+compatible_frameworks:
+  - "*"
+examples:
+  - "Run this probe in Cloudflare Containers"
+  - "Execute without local Claude CLI"
+author: voly
+usage_count: 0
+success_rate: 1.0
+metadata:
+  executor: cf-containers
+  docs: docs/backend/executors.md

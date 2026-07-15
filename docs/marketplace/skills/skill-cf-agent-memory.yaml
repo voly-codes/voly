@@ -1,0 +1,57 @@
+id: skill-cf-agent-memory
+name: Cloudflare Agent Memory
+description: >-
+  Use Cloudflare Agent Memory as VOLY remote memory backend
+  (memory.backend=agent_memory) for shared remember/recall across sessions.
+source: marketplace
+status: active
+version: 0.1.0
+content: |
+  ## When to use
+  - Memory must survive machine switches / team shared profile.
+  - Local SQLite alone is not enough.
+
+  ## Enable
+  ```yaml
+  memory:
+    enabled: true
+    backend: agent_memory
+    agent_memory_account_id: "${CF_ACCOUNT_ID}"
+    agent_memory_namespace: voly
+    agent_memory_profile: default
+  ```
+  ```bash
+  export CF_ACCOUNT_ID=...
+  export CLOUDFLARE_API_TOKEN=...  # Agent Memory permissions
+  voly memory status
+  ```
+
+  ## Notes
+  - Dual-write: local SQLite + remote remember/recall.
+  - Alternative: backend=hybrid + CF_WORKER_MEMORY_URL (D1/Vectorize Worker).
+  - Agent Memory is private beta — see cloudflare-docs agent-memory HTTP API.
+tags:
+  - cloudflare
+  - memory
+  - remote
+  - agent-memory
+capabilities:
+  - remote-memory
+  - shared-context
+required_tools: []
+compatible_agents:
+  - developer
+  - architect
+compatible_languages:
+  - "*"
+compatible_frameworks:
+  - "*"
+examples:
+  - "Remember this decision in shared cloud memory"
+  - "Use Agent Memory across sessions"
+author: voly
+usage_count: 0
+success_rate: 1.0
+metadata:
+  config_key: memory.backend
+  docs: docs/backend/config.md
