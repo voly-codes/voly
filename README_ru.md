@@ -391,3 +391,7 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 
 Вклад приветствуется — см. [CONTRIBUTING.md](CONTRIBUTING.md) (DCO, правила,
 границы open-core). Код — под лицензией [Apache 2.0](LICENSE).
+
+### Contributors
+
+- [2gc-dev](https://github.com/2gc-dev) (2GC CloudBridge) — Cloudflare infrastructure and integration support.

@@ -392,3 +392,7 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSP
 ## Contributing & License
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) (DCO, rules, open-core boundaries). Licensed under [Apache 2.0](LICENSE).
+
+### Contributors
+
+- [2gc-dev](https://github.com/2gc-dev) (2GC CloudBridge) — Cloudflare infrastructure and integration support.
