@@ -125,6 +125,15 @@ def _parse_config(raw: dict) -> VOLYConfig:
             db_path=m.get("db_path", ".voly/memory.db"),
             embedding_model=m.get("embedding_model", "all-MiniLM-L6-v2"),
             max_memories=m.get("max_memories", 10000),
+            agent_memory_account_id=os.path.expandvars(
+                m.get("agent_memory_account_id", "") or ""
+            ),
+            agent_memory_namespace=os.path.expandvars(
+                m.get("agent_memory_namespace", "voly") or "voly"
+            ),
+            agent_memory_profile=os.path.expandvars(
+                m.get("agent_memory_profile", "default") or "default"
+            ),
         )
 
     if not config.memory.remote_url:

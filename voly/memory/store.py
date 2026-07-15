@@ -14,11 +14,14 @@ MemoryStore — локальное хранилище долгосрочной �
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+_log = logging.getLogger("voly.memory.store")
 
 
 @dataclass
@@ -81,19 +84,34 @@ class MemoryStore:
         db_path: str | Path = ".voly/memory.db",
         embedding_model: str = "all-MiniLM-L6-v2",
         remote_url: str = "",
+        *,
+        backend: str = "hybrid",
+        agent_memory_account_id: str = "",
+        agent_memory_namespace: str = "",
+        agent_memory_profile: str = "",
     ):
         self.db_path = Path(db_path)
         self.embedding_model = embedding_model
         self._remote_url = remote_url
+        self._backend = (backend or "hybrid").strip().lower()
+        self._agent_memory_account_id = agent_memory_account_id
+        self._agent_memory_namespace = agent_memory_namespace
+        self._agent_memory_profile = agent_memory_profile
         self._remote_client: Any = None
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn: sqlite3.Connection | None = None
 
     def _get_remote_client(self) -> Any:
-        if self._remote_client is None and self._remote_url:
-            from voly.memory.client import create_memory_client
+        if self._remote_client is None and self._backend != "local":
+            from voly.memory.client import create_remote_memory_client
 
-            self._remote_client = create_memory_client(self._remote_url)
+            self._remote_client = create_remote_memory_client(
+                backend=self._backend,
+                remote_url=self._remote_url,
+                agent_memory_account_id=self._agent_memory_account_id,
+                agent_memory_namespace=self._agent_memory_namespace,
+                agent_memory_profile=self._agent_memory_profile,
+            )
         return self._remote_client
 
     @property
@@ -148,8 +166,8 @@ class MemoryStore:
                     importance=importance,
                     entry_id=entry_id,
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                _log.warning("remote memory add failed (%s): %s", self._backend, exc)
 
         return entry_id
 
@@ -174,8 +192,8 @@ class MemoryStore:
                 remote = client.search(query, limit=limit)
                 if remote:
                     return [self._remote_to_entry(row) for row in remote]
-            except Exception:
-                pass
+            except Exception as exc:
+                _log.warning("remote memory search failed (%s): %s", self._backend, exc)
 
         try:
             rows = self.conn.execute(
@@ -189,8 +207,6 @@ class MemoryStore:
         except Exception:
             rows = []
         return [self._row_to_entry(r) for r in rows]
-
-    def list_by_category(self, category: str, limit: int = 50) -> list[MemoryEntry]:
         rows = self.conn.execute(
             "SELECT * FROM memories WHERE category = ? ORDER BY timestamp DESC LIMIT ?",
             (category, limit),
@@ -254,8 +270,8 @@ class MemoryStore:
                 remote = client.search(query, limit=limit)
                 if remote:
                     return [self._remote_to_entry(row) for row in remote]
-            except Exception:
-                pass
+            except Exception as exc:
+                _log.warning("remote semantic search failed (%s): %s", self._backend, exc)
 
         try:
             from sentence_transformers import SentenceTransformer, util as st_util

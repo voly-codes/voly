@@ -30,6 +30,10 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             self.config.memory.db_path,
             self.config.memory.embedding_model,
             remote_url=self.config.memory.remote_url,
+            backend=self.config.memory.backend,
+            agent_memory_account_id=self.config.memory.agent_memory_account_id,
+            agent_memory_namespace=self.config.memory.agent_memory_namespace,
+            agent_memory_profile=self.config.memory.agent_memory_profile,
         )
         self.rtk = RTKManager(self.config.rtk.binary_path)
         self.headroom_mgr: Any = None

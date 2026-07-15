@@ -80,11 +80,18 @@ class PxpipeConfig:
 @dataclass
 class MemoryConfig:
     enabled: bool = False
+    # local = SQLite only
+    # hybrid = SQLite + CF memory Worker (remote_url)
+    # agent_memory = SQLite + Cloudflare Agent Memory HTTP API
     backend: str = "hybrid"
     remote_url: str = ""
     db_path: str = ".voly/memory.db"
     embedding_model: str = "all-MiniLM-L6-v2"
     max_memories: int = 10000
+    # Cloudflare Agent Memory (backend=agent_memory)
+    agent_memory_account_id: str = ""
+    agent_memory_namespace: str = "voly"
+    agent_memory_profile: str = "default"
 
 
 @dataclass

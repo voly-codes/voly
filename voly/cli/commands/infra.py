@@ -42,29 +42,42 @@ def memory_list(ctx: click.Context, category: str | None, limit: int) -> None:
 @memory.command("status")
 @click.pass_context
 def memory_status(ctx: click.Context) -> None:
-    """Show semantic memory worker status."""
-    from voly.memory.client import create_memory_client, resolve_memory_url
+    """Show remote memory backend status (Worker or Agent Memory)."""
+    from voly.memory.client import create_remote_memory_client
 
     config = ctx.obj["config"]
-    url = resolve_memory_url(config.memory.remote_url)
-    if not url:
-        click.echo("Memory worker URL not configured (CF_WORKER_MEMORY_URL).")
-        click.echo("Local SQLite: " + config.memory.db_path)
+    mem = config.memory
+    click.echo(f"Backend: {mem.backend}")
+    click.echo(f"Local SQLite: {mem.db_path}")
+
+    if (mem.backend or "").lower() == "local":
         return
 
-    client = create_memory_client(url)
+    client = create_remote_memory_client(
+        backend=mem.backend,
+        remote_url=mem.remote_url,
+        agent_memory_account_id=mem.agent_memory_account_id,
+        agent_memory_namespace=mem.agent_memory_namespace,
+        agent_memory_profile=mem.agent_memory_profile,
+    )
     if not client:
-        raise SystemExit(1)
+        if (mem.backend or "").lower() == "agent_memory":
+            click.echo("Agent Memory not configured (set CF_ACCOUNT_ID + API token).")
+        else:
+            click.echo("Memory worker URL not configured (CF_WORKER_MEMORY_URL).")
+        return
+
     try:
         health = client.health()
-        entries = client.list_entries(limit=1)
     except Exception as exc:
-        click.echo(f"Memory worker unreachable: {exc}", err=True)
+        click.echo(f"Remote memory unreachable: {exc}", err=True)
         raise SystemExit(1) from exc
 
-    click.echo(f"Memory worker: {url}")
     click.echo(f"Status: {health.get('status', 'unknown')}")
-    click.echo(f"Local fallback: {config.memory.db_path}")
+    if health.get("service"):
+        click.echo(f"Service: {health['service']}")
+    if health.get("namespace"):
+        click.echo(f"Namespace: {health['namespace']} / profile: {health.get('profile')}")
 
 
 @memory.command("search")
@@ -76,7 +89,15 @@ def memory_search(ctx: click.Context, query: str, limit: int) -> None:
     from voly.memory.store import MemoryStore
 
     config = ctx.obj["config"]
-    store = MemoryStore(config.memory.db_path, remote_url=config.memory.remote_url)
+    mem = config.memory
+    store = MemoryStore(
+        mem.db_path,
+        remote_url=mem.remote_url,
+        backend=mem.backend,
+        agent_memory_account_id=mem.agent_memory_account_id,
+        agent_memory_namespace=mem.agent_memory_namespace,
+        agent_memory_profile=mem.agent_memory_profile,
+    )
     results = store.search_semantic(query, limit)
     for entry in results:
         click.echo(f"[{entry.category}] {entry.title}")

@@ -63,9 +63,14 @@ pxpipe:
 
 memory:
   enabled: false
+  # local | hybrid (CF memory Worker via remote_url) | agent_memory (CF Agent Memory API)
   backend: hybrid
   remote_url: "${CF_WORKER_MEMORY_URL}"
   db_path: ".voly/memory.db"
+  # Used when backend: agent_memory
+  agent_memory_account_id: "${CF_ACCOUNT_ID}"
+  agent_memory_namespace: "${CF_AGENT_MEMORY_NAMESPACE}"
+  agent_memory_profile: "${CF_AGENT_MEMORY_PROFILE}"
 
 a2a:
   enabled: true

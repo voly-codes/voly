@@ -127,3 +127,29 @@ def create_memory_client(base_url: str = "", token: str = "") -> MemoryClient | 
     if not url:
         return None
     return MemoryClient(url, token=token or resolve_memory_token())
+
+
+def create_remote_memory_client(
+    *,
+    backend: str = "hybrid",
+    remote_url: str = "",
+    agent_memory_account_id: str = "",
+    agent_memory_namespace: str = "",
+    agent_memory_profile: str = "",
+    token: str = "",
+) -> Any:
+    """Factory: pick Worker client or Agent Memory client from memory.backend."""
+    kind = (backend or "hybrid").strip().lower()
+    if kind in ("", "local"):
+        return None
+    if kind == "agent_memory":
+        from voly.memory.agent_memory_client import create_agent_memory_client
+
+        return create_agent_memory_client(
+            account_id=agent_memory_account_id,
+            namespace=agent_memory_namespace,
+            profile=agent_memory_profile,
+            token=token,
+        )
+    # hybrid / worker (default): existing CF memory Worker
+    return create_memory_client(remote_url, token=token)

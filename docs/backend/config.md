@@ -213,7 +213,15 @@ rtk:
 
 memory:
   enabled: true
-  storage: .voly/memory/
+  # local | hybrid (CF memory Worker) | agent_memory (Cloudflare Agent Memory API)
+  backend: hybrid
+  remote_url: "${CF_WORKER_MEMORY_URL}"
+  db_path: .voly/memory.db
+  # When backend: agent_memory — requires CF_ACCOUNT_ID + CLOUDFLARE_API_TOKEN
+  # (token needs Agent Memory permissions; private beta).
+  agent_memory_account_id: "${CF_ACCOUNT_ID}"
+  agent_memory_namespace: voly
+  agent_memory_profile: default
 
 agents:
   cursor:
