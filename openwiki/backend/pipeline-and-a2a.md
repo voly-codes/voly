@@ -59,7 +59,7 @@ In federation mode, work is dispatched to remote agents through the A2A worker b
 
 ## Telemetry and run state
 
-The pipeline emits `TaskEvent` telemetry at the end of a run. Versioned public protocol expectations include `schema_version: 1` on the task event. The pipeline docs also explain a lightweight run-record and watchdog mechanism that keeps in-flight multi-agent runs visible even before final telemetry lands.
+The pipeline emits `TaskEvent` telemetry at the end of a run. Versioned public protocol expectations include `schema_version: 3` with `correlation_id` on the task event (see [Architecture overview](../architecture/overview.md)). The pipeline docs also explain a lightweight run-record and watchdog mechanism that keeps in-flight multi-agent runs visible even before final telemetry lands.
 
 Multi-agent sub-calls go through `AIGateway.chat()`, so they inherit gateway **spend-on-success** accounting and can stop early when `spend_limited` is returned (remaining roles marked without further provider calls).
 

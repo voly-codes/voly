@@ -11,8 +11,10 @@ When working in this repository, read the OpenWiki quickstart first, then follow
 
 <!-- OPENWIKI:START -->
 
-## OpenWiki maintenance
+## OpenWiki
 
-Prefer refreshing `openwiki/` via `npx openwiki --update` (set `OPENWIKI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`, or OpenRouter). Hand-edits are OK when the CLI cannot run — keep pages aligned with `docs/` and code.
+This repository uses OpenWiki for recurring code documentation. Start with `openwiki/quickstart.md`, then follow its links to architecture, workflows, domain concepts, operations, integrations, testing guidance, and source maps.
+
+The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
 
 <!-- OPENWIKI:END -->
