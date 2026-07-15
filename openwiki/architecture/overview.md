@@ -23,11 +23,17 @@ The executor path is for tasks that must write files. `voly/runner/agent_runner.
 
 The repo treats several interfaces as versioned contracts and protects them with tests. The high-signal ones are:
 
-- **`TaskEvent` telemetry** — `schema_version: 1` (`voly/telemetry.py`, `docs/backend/api.md`)
+- **`TaskEvent` telemetry** — `schema_version: 3` with `correlation_id` (`voly/telemetry.py`, `voly/correlation.py`, `docs/backend/api.md`)
 - **Spend protocol** — HTTP spend record/check (`docs/backend/spend-protocol.md`)
 - **A2A federation** — task create/complete/callback contracts
 
+`correlation_id` links open-core API/SSE, hosted control plane, and Cloudflare Worker logs (`X-Correlation-ID`). Set `VOLY_JSON_LOGS=1` for JSON logs that include it.
+
 In-gateway spend accounting is separate from the remote spend protocol: `AIGateway.chat()` records daily budget usage **only on successful** model calls.
+
+### Memory backends
+
+`memory.backend` in config: `local` (SQLite), `hybrid` (local + CF memory Worker), or `agent_memory` (Cloudflare Agent Memory HTTP — private beta). Client: `voly/memory/agent_memory_client.py`. See `docs/backend/config.md`.
 
 ## Web surface (self-host)
 
@@ -54,4 +60,6 @@ Wheel/sdist must include core packages (`voly.pipeline`, `voly.config`, `voly.cl
 - `voly/web/server.py`
 - `voly/web/auth/*`
 - `voly/telemetry.py`
+- `voly/correlation.py`
+- `voly/memory/agent_memory_client.py`
 

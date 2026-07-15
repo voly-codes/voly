@@ -45,6 +45,20 @@ The fallback chain in code (`BILLING_FALLBACK_CHAIN`) is:
 
 Only file-writing executors belong on that chain. Text-only providers such as `deepseek` and `mimo` are excluded.
 
+### Cloudflare Containers (`cf-containers`)
+
+Opt-in cloud-native executor (`voly/executor/cf_containers.py`). It talks HTTP to the hosted/local sandbox Worker (`GET /health`, `POST /runs`) — typically `voly-cloud/cf-workers/sandbox-spike`.
+
+Env: `VOLY_CF_CONTAINERS_URL`, `VOLY_CF_CONTAINERS_TOKEN`, `VOLY_CF_CONTAINERS_MODE` (`probe` | `claude-code`).
+
+Not on the billing fallback chain. UI picker label: **CF Containers (sandbox)**. Stub mode (`FORCE_STUB=1`) validates JWT without Docker; real Containers need Workers Paid + Docker (local Containers `wrangler dev` is unsupported on Windows — deploy or WSL).
+
+Canonical detail: `docs/backend/executors.md`. Marketplace draft skill: `docs/marketplace/skills/skill-cf-containers.yaml`.
+
+### Executor diagnostics
+
+Failed runs surface structured fields (`error`, `error_class`, `error_hint`) via `format_executor_failure()` / `executor_failure_details()` in CLI, SSE `done`, and telemetry.
+
 ### File patching
 
 `voly/executor/patch.py` is used by the Wrangler path to apply FILE blocks or unified diffs to the target project. It is intentionally defensive about path traversal.
@@ -68,8 +82,10 @@ Model routing is separated from file writes so the pipeline gets centralized cac
 - `voly/ai_gateway/models.py` (`SpendLimit`)
 - `voly/runner/agent_runner.py`
 - `voly/executor/base.py`
+- `voly/executor/cf_containers.py`
 - `voly/executor/patch.py`
 - `docs/backend/ai-gateway.md`
 - `docs/backend/executors.md`
 - `tests/test_ai_gateway.py`
+- `tests/test_cf_containers_executor.py`
 - `tests/test_failure_paths.py`

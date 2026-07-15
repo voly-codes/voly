@@ -57,6 +57,8 @@ Ports are CLI flags (`--port`), not env vars.
 
 `docs/backend/api.md` is the canonical endpoint reference. The most important orchestration route is `POST /api/run` (SSE stream). Smart dispatch and A2A behavior are described there and in the pipeline wiki page.
 
+SSE `start` / `done` include `correlation_id` (TaskEvent schema v3). Incoming `X-Correlation-ID` is accepted; otherwise one is generated (`voly/correlation.py`).
+
 ## What to watch when changing entrypoints
 
 - Keep CLI command registrations and tests in sync

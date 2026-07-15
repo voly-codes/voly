@@ -1,6 +1,7 @@
 {
-  "updatedAt": "2026-07-06T10:44:48.513Z",
+  "updatedAt": "2026-07-15T20:20:00.000Z",
   "command": "update",
-  "gitHead": "a5a97d36397df422b0b4d603e139e94b78605c2d",
-  "model": "gpt-5.4-mini"
+  "gitHead": "b2daec2",
+  "model": "cursor-agent",
+  "note": "Manual OpenWiki refresh (openwiki CLI: OpenAI quota; Anthropic 401). Covered CF Containers, Agent Memory, correlation_id, skill seed/scout."
 }

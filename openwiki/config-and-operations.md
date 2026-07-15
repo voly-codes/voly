@@ -63,6 +63,18 @@ Skill and plugin catalog paths fall back to local source data when `CF_WORKER_MA
 
 Treat the local catalog as a fallback; the worker is the canonical marketplace backend when remote publishing/sync matters.
 
+### Seeding marketplace skills
+
+```bash
+voly skill seed                         # builtin_data.py
+voly skill seed --path docs/marketplace/skills   # CF scenario drafts (skill-cf-*)
+voly skill reindex --page-size 5 --timeout 180   # optional full Vectorize rebuild
+```
+
+`POST /skills` also fire-and-forgets Vectorize embeddings per skill. Pipeline stage `SKILL_SUGGEST` uses `SkillScout` (`voly/registry/scout.py`) to surface marketplace skills not installed locally.
+
+Draft CF skills: `docs/marketplace/skills/skill-cf-containers.yaml`, `skill-cf-agent-memory.yaml`, `skill-cf-run-correlation.yaml`.
+
 ## Generated runtime state
 
 Do not commit:
@@ -92,7 +104,9 @@ High-signal suites after control-plane changes:
 | Gateway spend | `tests/test_ai_gateway.py` (success-only record) |
 | Failure paths | `tests/test_failure_paths.py` |
 | Packaging | `tests/test_smoke.py::test_setuptools_packages_include_core` |
-| Contracts | `tests/test_protocol_contracts.py` |
+| Contracts | `tests/test_protocol_contracts.py` (TaskEvent v3 / correlation_id) |
+| CF Containers | `tests/test_cf_containers_executor.py` |
+| Skill seed / scout | `tests/test_skill_seed_path.py`, `tests/test_skill_scout_cf.py` |
 
 Doc link CI: `scripts/check_doc_links.py`. Env/doc sync: `scripts/check_env_doc_sync.py`.
 

@@ -6,12 +6,13 @@ VOLY's frontend lives in `ui/` and is a Svelte application that visualizes task 
 
 The main README and component names indicate the UI is organized around these panels:
 
-- task submission and run results
+- task submission and run results (including `cf-containers` in the executor picker)
 - pipeline inspection and stage progression
 - gateway status, spend, cache, and routing state
 - telemetry and cost analytics
 - DSPy lifecycle and model/program state
 - Cloudflare and marketplace surfaces
+- **correlation id** — `RunResult.svelte` shows a clickable `corr …` chip when SSE `done` includes `correlation_id` (copy to clipboard)
 
 ## App structure
 

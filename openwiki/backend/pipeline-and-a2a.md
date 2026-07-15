@@ -8,7 +8,9 @@ This page covers the orchestration path for text-only work and the local multi-a
 
 The documented stage order is:
 
-`INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE/ERROR`
+`INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_SUGGEST → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE/ERROR`
+
+`SKILL_SUGGEST` (non-blocking) queries the marketplace via `SkillScout` for skills relevant to the task that are not installed locally; suggestions land in SSE `done.skill_suggestions`.
 
 The pipeline exists to assemble context and route the work; it is not the file-writing runtime.
 

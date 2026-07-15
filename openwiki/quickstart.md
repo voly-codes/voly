@@ -24,6 +24,8 @@ VOLY has two main execution paths:
 
    `claude-code → wrangler → opencode → zen`
 
+   Opt-in cloud path: `--executor cf-containers` (Cloudflare Containers / sandbox Worker).
+
 The project is intentionally **project-agnostic**: the target codebase is supplied at runtime through `--cwd` or configuration, rather than being hardcoded into the source tree.
 
 ## Security model (self-host)
@@ -44,8 +46,9 @@ See [Configuration and operations](config-and-operations.md) and `docs/backend/a
 - **Gateway and cost control** — routing, caching, DLP, spend (success-only recording), upstream delegation
 - **CLI and web entrypoints** — command surface and HTTP API (optional JWT)
 - **UI** — Svelte app for runs, gateway, telemetry, DSPy, marketplace
-- **Marketplace and catalog** — skills/plugins with local fallback when the remote worker is down
-- **Configuration and operations** — runtime config, env vars, packaging, generated artifacts, tests
+- **Marketplace and catalog** — skills/plugins with local fallback when the remote worker is down; `voly skill seed --path` for CF draft skills; `SKILL_SUGGEST` via SkillScout
+- **Observability** — `correlation_id` on TaskEvent v3 / SSE / CF Workers
+- **Configuration and operations** — runtime config (including `memory.backend: agent_memory`), env vars, packaging, generated artifacts, tests
 
 ## Wiki map
 

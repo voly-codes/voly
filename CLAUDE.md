@@ -205,3 +205,11 @@ pytest tests/ -q                          # full run
 | Smart dispatch does not trigger | Set `VOLY_PROJECT_CWD` or `default_cwd` in `voly.yaml` |
 | Wrangler executor unavailable | Run `cd cf-workers/agent && wrangler dev` |
 | CI fails with test collection | Check `pyproject.toml` pytest config |
+
+<!-- OPENWIKI:START -->
+
+## OpenWiki maintenance
+
+Prefer `npx openwiki --update` with `OPENWIKI_PROVIDER=anthropic` (or OpenRouter). Hand-edits are OK when the CLI cannot run — keep `openwiki/` aligned with `docs/` and code. Optional GHA: `.github/workflows/openwiki-update.yml`.
+
+<!-- OPENWIKI:END -->
