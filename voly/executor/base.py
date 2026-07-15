@@ -133,6 +133,120 @@ def classify_failure(result: "ExecutorResult") -> str | None:
     return classify_provider_error(None, result.error or "") or "unrecognized"
 
 
+def _executor_failure_message(
+    result: "ExecutorResult",
+    *,
+    executor_name: str | None = None,
+) -> str:
+    """Build a human-readable failure message (without next-step hint)."""
+    del executor_name  # reserved for future executor-specific phrasing
+    if result.success:
+        return result.output or ""
+
+    if result.metadata.get("timeout") or result.metadata.get("deadline_exhausted"):
+        return f"Executor timed out: {result.error or 'no details provided'}"
+    if result.billing_error:
+        return f"Executor billing issue: {result.error or 'no details provided'}"
+    if result.not_available:
+        return f"Executor service unavailable: {result.error or 'no details provided'}"
+
+    error_text = (result.error or "").strip()
+    if not error_text:
+        return "Executor failed without providing an error message."
+
+    lowered = error_text.lower()
+    if "authentication" in lowered or "auth" in lowered or "credential" in lowered:
+        return f"Authentication failed: {error_text}"
+    if "not found" in lowered or "not installed" in lowered or "no such file" in lowered:
+        return f"Executor dependency missing: {error_text}"
+    if "timeout" in lowered:
+        return f"Executor timed out: {error_text}"
+    if "model" in lowered and ("unsupported" in lowered or "not supported" in lowered):
+        return f"Unsupported model: {error_text}"
+    if "10038" in error_text or "not a socket" in lowered:
+        return f"Cursor connection failed: {error_text}"
+    if "api key" in lowered and ("invalid" in lowered or "401" in lowered):
+        return f"Authentication failed: {error_text}"
+    return error_text
+
+
+def executor_failure_details(
+    result: "ExecutorResult",
+    *,
+    executor_name: str | None = None,
+) -> dict[str, str | None]:
+    """Structured executor failure payload for API, CLI JSON, and telemetry."""
+    if result.success:
+        return {}
+
+    message = _executor_failure_message(result, executor_name=executor_name)
+    hint = _executor_failure_hint(message, executor_name=executor_name)
+    return {
+        "error": result.error or "",
+        "error_message": message,
+        "error_class": classify_failure(result),
+        "error_hint": hint or None,
+    }
+
+
+def format_executor_failure(
+    result: "ExecutorResult",
+    *,
+    executor_name: str | None = None,
+) -> str:
+    """Return a human-readable failure summary for executor errors.
+
+    This is intentionally lightweight: it preserves the original error when it is
+    already clear, but adds a short explanatory prefix for common executor
+    failure classes so the user sees actionable context.
+    """
+    if result.success:
+        return result.output or ""
+
+    details = executor_failure_details(result, executor_name=executor_name)
+    message = details["error_message"] or ""
+    hint = details.get("error_hint")
+    return f"{message}\nHint: {hint}" if hint else message
+
+
+def _executor_failure_hint(message: str, *, executor_name: str | None = None) -> str:
+    """Return a short next-step hint for common executor failure modes."""
+    lowered = message.lower()
+    exec_name = (executor_name or "").lower()
+
+    if exec_name == "claude-code" or ("authentication" in lowered and "claude" in lowered):
+        return "Run `claude auth login` in your terminal (Anthropic CLI auth is separate from ANTHROPIC_API_KEY)."
+    if exec_name == "cursor" or "10038" in message or "not a socket" in lowered:
+        return "Start Cursor IDE — the cursor executor connects to the local Cursor process via socket."
+    if "cursor-sdk not installed" in lowered:
+        return "Run `pip install -e \".[cursor]\"` from the voly package directory."
+    if exec_name in {"opencode", "zen"} and (
+        "opencode" in lowered or "not found" in lowered or "no such file" in lowered
+    ):
+        return "Install OpenCode CLI (`npm i -g opencode`) and ensure `opencode` is on PATH."
+    if "unsupported model" in lowered or ("model" in lowered and "not supported" in lowered):
+        return (
+            "Pick a supported free model, e.g. "
+            "`voly run --executor opencode --model mimo-v2.5-free \"task\"`."
+        )
+    if "cursor_api_key" in lowered:
+        return "Set CURSOR_API_KEY in voly/.env."
+    if exec_name == "wrangler" or "wrangler" in lowered:
+        return "Start `wrangler dev` in the target project before running the wrangler executor."
+    if exec_name == "cf-containers" or "cloudflare containers" in lowered:
+        if "token" in lowered:
+            return (
+                "Set VOLY_CF_CONTAINERS_TOKEN to a tenant JWT matching the "
+                "sandbox-spike JWT_SECRET."
+            )
+        return (
+            "Start the sandbox-spike Worker: "
+            "`cd voly-cloud/cf-workers/sandbox-spike && "
+            "npx wrangler dev --ip 127.0.0.1 --port 8791 --local`."
+        )
+    return ""
+
+
 def _oc_event_error(ev: dict) -> str | None:
     """Extract error string from an opencode JSON event, or None if not an error event.
 

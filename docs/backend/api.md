@@ -39,6 +39,19 @@ data: {"type": "done", "success": true, "content": "...", "billing_fallback": "z
 data: {"type": "error", "error": "..."}
 ```
 
+On executor failure, the `done` event also carries structured diagnostics (raw
+`error` is preserved for backward compatibility):
+
+```typescript
+{
+  success: false,
+  error: string,           // raw executor error
+  error_message: string,   // human-readable prefix + detail
+  error_class: string,     // billing | not_available | timeout | auth | unrecognized | ...
+  error_hint?: string,     // next-step hint when known
+}
+```
+
 The blocking `pipeline`/executor call runs in a `ThreadPoolExecutor`
 (`_THREAD_POOL` in `run.py`, sized by `VOLY_RUN_POOL_WORKERS`, default 16 —
 executor calls are I/O-bound subprocess waits, not CPU-bound, so a larger

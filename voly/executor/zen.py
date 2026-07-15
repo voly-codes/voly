@@ -36,12 +36,12 @@ logger = logging.getLogger(__name__)
 #   3. User's own provider API keys (separate billing from Anthropic)
 _FREE_MODEL_SEQUENCE: tuple[str, ...] = (
     # OpenCode free tier — zero cost
-    "deepseek-v4-flash-free",
-    "qwen3.6-plus-free",
     "mimo-v2.5-free",
+    "qwen3.6-plus-free",
     "nemotron-3-ultra-free",
     "big-pickle",
     "north-mini-code-free",
+    "deepseek-v4-flash-free",
     # Other provider APIs — uses user's own keys (OPENAI_API_KEY, DEEPSEEK_API_KEY)
     # opencode CLI routes these to the respective APIs, separate from Anthropic billing.
     "openai/gpt-4o-mini",
@@ -58,7 +58,7 @@ class ZenExecutor(Executor):
     """
 
     # Start with a free model — claude-sonnet-4-6 routes through Anthropic billing.
-    DEFAULT_MODEL = "deepseek-v4-flash-free"
+    DEFAULT_MODEL = "mimo-v2.5-free"
 
     def __init__(
         self,

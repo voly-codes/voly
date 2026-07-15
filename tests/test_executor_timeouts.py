@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import subprocess
 
-from voly.executor.base import ExecutorResult
+from click.testing import CliRunner
+
+from voly.cli.main import main
+from voly.executor.base import ExecutorResult, executor_failure_details, format_executor_failure
 from voly.executor.opencode import OpenCodeExecutor
 from voly.executor.zen import ZenExecutor
 import voly.executor.claude_code as cc_mod
@@ -117,3 +120,112 @@ def test_claude_code_timeout_sets_marker(monkeypatch):
     assert result.success is False
     assert "Timeout after 5s" in result.error
     assert result.metadata.get("timeout") is True
+
+
+def test_executor_failure_details_structured_payload():
+    result = ExecutorResult(success=False, error="invalid authentication credentials")
+    details = executor_failure_details(result, executor_name="claude-code")
+    assert details["error"] == "invalid authentication credentials"
+    assert details["error_message"].startswith("Authentication failed:")
+    assert details["error_class"] in {"unrecognized", "oauth_invalid_token"}
+    assert details["error_hint"]
+
+
+def test_format_executor_failure_returns_human_readable_message():
+    result = ExecutorResult(success=False, error="invalid authentication credentials")
+    message = format_executor_failure(result)
+    assert "authentication" in message.lower()
+    assert "invalid authentication credentials" in message
+
+
+def test_format_executor_failure_includes_next_step_hint():
+    result = ExecutorResult(success=False, error="[WinError 10038] not a socket")
+    message = format_executor_failure(result, executor_name="cursor")
+    assert "Cursor connection failed" in message
+    assert "Hint:" in message
+    assert "Cursor IDE" in message
+
+
+def test_run_cmd_passes_model_to_executor(monkeypatch, tmp_path):
+    from voly.runner import agent_runner as runner_mod
+
+    captured: dict[str, str] = {}
+
+    class _FakeExecutor:
+        def run(self, task, cwd=None, allowed_tools=None, max_turns=30, timeout=300, **kw):
+            return ExecutorResult(success=True, output="ok")
+
+    def _fake_build(name, model=None):
+        captured["model"] = model or ""
+        return _FakeExecutor()
+
+    monkeypatch.setattr(runner_mod, "_build_executor", _fake_build)
+    monkeypatch.setattr(runner_mod, "emit_event_from_config", lambda *args, **kwargs: None)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        [
+            "run", "do it",
+            "--executor", "opencode",
+            "--model", "mimo-v2.5-free",
+            "--cwd", str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured["model"] == "mimo-v2.5-free"
+
+
+def test_runner_cmd_passes_model_to_executor(monkeypatch, tmp_path):
+    from voly.runner import agent_runner as runner_mod
+
+    captured: dict[str, str] = {}
+
+    class _FakeExecutor:
+        def run(self, task, cwd=None, allowed_tools=None, max_turns=30, timeout=300, **kw):
+            return ExecutorResult(success=True, output="ok")
+
+    def _fake_build(name, model=None):
+        captured["model"] = model or ""
+        return _FakeExecutor()
+
+    monkeypatch.setattr(runner_mod, "_build_executor", _fake_build)
+    monkeypatch.setattr(runner_mod, "emit_event_from_config", lambda *args, **kwargs: None)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        main,
+        [
+            "runner", "opencode", "do it",
+            "--model", "mimo-v2.5-free",
+            "--cwd", str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert captured["model"] == "mimo-v2.5-free"
+
+
+def test_opencode_default_model_is_mimo():
+    ex = OpenCodeExecutor()
+    assert ex._model == "mimo-v2.5-free"
+
+
+def test_cli_runner_displays_human_readable_executor_error(monkeypatch, tmp_path):
+    from voly.runner import agent_runner as runner_mod
+
+    class _FakeExecutor:
+        def run(self, task, cwd=None, allowed_tools=None, max_turns=30, timeout=300, **kw):
+            return ExecutorResult(success=False, error="invalid authentication credentials")
+
+    monkeypatch.setattr(runner_mod, "_build_executor", lambda name, model=None: _FakeExecutor())
+    monkeypatch.setattr(runner_mod, "emit_event_from_config", lambda *args, **kwargs: None)
+
+    runner = CliRunner()
+    result = runner.invoke(main, ["runner", "claude-code", "do it", "--cwd", str(tmp_path)])
+
+    assert result.exit_code == 1
+    assert "Authentication failed" in result.output
+    assert "invalid authentication credentials" in result.output
+    assert "Hint:" in result.output

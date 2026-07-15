@@ -7,6 +7,7 @@ import sys
 
 import click
 
+from voly.executor.base import format_executor_failure, executor_failure_details
 from voly.runner.agent_runner import AgentRunner, EXECUTOR_NAMES, resolve_executor
 
 
@@ -16,6 +17,7 @@ from voly.runner.agent_runner import AgentRunner, EXECUTOR_NAMES, resolve_execut
 @click.option("--cwd", default=None, help="Working directory for the agent")
 @click.option("--max-turns", default=30, show_default=True, help="Max agent turns")
 @click.option("--timeout", default=300, show_default=True, help="Timeout in seconds")
+@click.option("--model", "-m", default=None, help="Force specific model (opencode, zen, cursor)")
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def runner(
@@ -25,6 +27,7 @@ def runner(
     cwd: str | None,
     max_turns: int,
     timeout: int,
+    model: str | None,
     output_json: bool,
 ) -> None:
     """Run an IDE agent with budget control, RTK, and telemetry.
@@ -65,6 +68,7 @@ def runner(
             cwd=work_dir,
             max_turns=max_turns,
             timeout=timeout,
+            model=model or "",
         )
     except ValueError as exc:
         valid_exec = ", ".join(sorted(EXECUTOR_NAMES))
@@ -72,7 +76,7 @@ def runner(
         sys.exit(1)
 
     if output_json:
-        click.echo(json.dumps({
+        payload: dict = {
             "success": result.success,
             "agent": result.agent,
             "executor": result.executor,
@@ -88,7 +92,10 @@ def runner(
             "manual_steps_removed": result.manual_steps_removed,
             "task_type": result.task_type,
             "budget_exceeded": result.budget_exceeded,
-        }, ensure_ascii=False, indent=2))
+        }
+        if not result.success:
+            payload.update(executor_failure_details(result.result, executor_name=result.executor))
+        click.echo(json.dumps(payload, ensure_ascii=False, indent=2))
         if not result.success:
             sys.exit(1)
         return
@@ -110,5 +117,8 @@ def runner(
                 err=True,
             )
         else:
-            click.echo(f"Error: {result.result.error}", err=True)
+            click.echo(
+                f"Error: {format_executor_failure(result.result, executor_name=result.executor)}",
+                err=True,
+            )
         sys.exit(1)

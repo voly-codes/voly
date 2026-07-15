@@ -19,7 +19,7 @@ _chain_log = logging.getLogger("voly.chain")
 from voly.automation import compute_automation_metrics
 from voly.config import VOLYConfig
 from voly.cost_policy import budget_status, detect_task_type
-from voly.executor.base import Executor, ExecutorResult, WorkReport, classify_failure
+from voly.executor.base import Executor, ExecutorResult, WorkReport, classify_failure, executor_failure_details
 from voly.pxpipe.artifacts import capture_pxpipe_artifacts, collect_pxpipe_artifacts
 from voly.telemetry import TaskEvent, TokenMetrics, emit_event_from_config, new_task_id
 
@@ -105,6 +105,7 @@ def _build_work_report(output: str, before: dict[str, str], after: dict[str, str
 
 EXECUTOR_NAMES = frozenset({
     "cursor", "claude-code", "mimo", "opencode", "deepseek", "zen", "wrangler",
+    "cf-containers",
 })
 
 # When a paid executor fails with a billing error, try the next one in order.
@@ -114,7 +115,7 @@ EXECUTOR_NAMES = frozenset({
 # Chain:
 #   claude-code  — Anthropic (billed to Anthropic account)
 #   wrangler     — CF Workers AI via wrangler dev (billed to CF account, separate billing)
-#   opencode     — OpenCode Go (opencode.ai/zen/go); starts with deepseek-v4-flash-free
+#   opencode     — OpenCode Go (opencode.ai/zen/go); starts with mimo-v2.5-free
 #   zen          — OpenCode Zen (opencode.ai/zen); tries all free models in sequence
 BILLING_FALLBACK_CHAIN: list[str] = ["claude-code", "wrangler", "opencode", "zen"]
 
@@ -266,6 +267,45 @@ def resolve_executor(agent: str, config: VOLYConfig) -> tuple[str, str]:
     return "cursor", key
 
 
+def _chain_timelog_entry(
+    executor_name: str,
+    result: ExecutorResult,
+    *,
+    status: str | None = None,
+    **extra: Any,
+) -> dict[str, Any]:
+    """One billing-fallback chain row for UI/API/telemetry."""
+    if status is None:
+        if result.success:
+            status = "success"
+        elif result.billing_error:
+            status = "billing_error"
+        elif result.not_available:
+            status = "not_available"
+        else:
+            status = "failed"
+
+    entry: dict[str, Any] = {
+        "executor": executor_name,
+        "model": result.metadata.get("model", "") if result.metadata else "",
+        "status": status,
+        "duration_ms": round(result.duration_ms),
+        "cost_usd": round(result.cost_usd, 6),
+        "input_tokens": result.input_tokens,
+        "output_tokens": result.output_tokens,
+        "error": (result.error or "")[:200],
+        "error_class": classify_failure(result),
+    }
+    if not result.success and status != "skipped":
+        details = executor_failure_details(result, executor_name=executor_name)
+        if details.get("error_message"):
+            entry["error_message"] = details["error_message"][:200]
+        if details.get("error_hint"):
+            entry["error_hint"] = details["error_hint"]
+    entry.update(extra)
+    return entry
+
+
 def _build_executor(executor_name: str, model: str | None = None) -> Executor:
     kwargs = {}
     if model:
@@ -292,6 +332,9 @@ def _build_executor(executor_name: str, model: str | None = None) -> Executor:
         "wrangler": lambda: __import__(
             "voly.executor.wrangler", fromlist=["WranglerExecutor"]
         ).WranglerExecutor(),
+        "cf-containers": lambda: __import__(
+            "voly.executor.cf_containers", fromlist=["CfContainersExecutor"]
+        ).CfContainersExecutor(),
     }
     if executor_name not in factories:
         valid = ", ".join(sorted(factories))
@@ -428,17 +471,9 @@ class AgentRunner:
                 return "not_available"
             return "failed"
 
-        chain_timelog: list[dict[str, Any]] = [{
-            "executor": executor_name,
-            "model": result.metadata.get("model", "") if result.metadata else "",
-            "status": _chain_status(result),
-            "duration_ms": round(result.duration_ms),
-            "cost_usd": round(result.cost_usd, 6),
-            "input_tokens": result.input_tokens,
-            "output_tokens": result.output_tokens,
-            "error": (result.error or "")[:200],
-            "error_class": classify_failure(result),
-        }]
+        chain_timelog: list[dict[str, Any]] = [
+            _chain_timelog_entry(executor_name, result, status=_chain_status(result))
+        ]
 
         # Spend of abandoned chain attempts. Folded into the TaskEvent totals so
         # a task's cost stays truthful across retries (этап 1: retry-aware cost).
@@ -470,6 +505,11 @@ class AgentRunner:
                         "duration_ms": 0,
                         "error": "service not running",
                         "error_class": "not_available",
+                        "error_message": "Executor service unavailable: service not running",
+                        "error_hint": (
+                            "Start the required service before retrying "
+                            "(e.g. `wrangler dev` for wrangler)."
+                        ),
                     })
                     continue
 
@@ -492,17 +532,9 @@ class AgentRunner:
                 executor_name = fallback_name
                 hb_state["executor"] = fallback_name
                 result = fb_result
-                chain_timelog.append({
-                    "executor": fallback_name,
-                    "model": result.metadata.get("model", "") if result.metadata else "",
-                    "status": _chain_status(result),
-                    "duration_ms": round(result.duration_ms),
-                    "cost_usd": round(result.cost_usd, 6),
-                    "input_tokens": result.input_tokens,
-                    "output_tokens": result.output_tokens,
-                    "error": (result.error or "")[:200],
-                    "error_class": classify_failure(result),
-                })
+                chain_timelog.append(
+                    _chain_timelog_entry(fallback_name, result, status=_chain_status(result))
+                )
                 _chain_log.info(
                     "[CHAIN:FALLBACK_RESULT] executor=%s success=%s billing_error=%s not_available=%s duration_ms=%.0f",
                     executor_name, result.success, result.billing_error,
@@ -579,6 +611,10 @@ class AgentRunner:
                 pass
 
         if emit_event:
+            failure_details = (
+                executor_failure_details(result, executor_name=executor_name)
+                if not result.success else {}
+            )
             emit_event_from_config(TaskEvent(
                 task_id=task_id,
                 agent=agent_role,
@@ -598,10 +634,14 @@ class AgentRunner:
                 task_type=task_type,
                 automation_score=automation_score,
                 manual_steps_removed=manual_steps,
-                error=result.error if not result.success else (
-                    f"Budget exceeded: ${total_cost_usd:.4f} > "
-                    f"${self.config.cost_policy.max_task_cost_usd:.2f}"
-                    if budget_exceeded else None
+                error=(
+                    failure_details.get("error_message")
+                    or result.error
+                    if not result.success else (
+                        f"Budget exceeded: ${total_cost_usd:.4f} > "
+                        f"${self.config.cost_policy.max_task_cost_usd:.2f}"
+                        if budget_exceeded else None
+                    )
                 ),
                 task_prompt=task[:2000] if task else None,
                 result=result.output[:8000] if result.output else None,

@@ -35,12 +35,12 @@ _log = logging.getLogger(__name__)
 # Models tried via opencode-go when a billing error is detected.
 # 1. OpenCode free tier, 2. User's own provider keys (OPENAI/DEEPSEEK).
 _GO_FREE_MODEL_SEQUENCE: tuple[str, ...] = (
-    "deepseek-v4-flash-free",
-    "qwen3.6-plus-free",
     "mimo-v2.5-free",
+    "qwen3.6-plus-free",
     "nemotron-3-ultra-free",
     "big-pickle",
     "north-mini-code-free",
+    "deepseek-v4-flash-free",
     # Uses OPENAI_API_KEY / DEEPSEEK_API_KEY from environment
     "openai/gpt-4o-mini",
     "deepseek/deepseek-chat",
@@ -53,7 +53,7 @@ class OpenCodeExecutor(Executor):
     On billing error, automatically retries with free models from _GO_FREE_MODEL_SEQUENCE.
     """
 
-    DEFAULT_MODEL = "deepseek-v4-flash-free"
+    DEFAULT_MODEL = "mimo-v2.5-free"
 
     def __init__(
         self,

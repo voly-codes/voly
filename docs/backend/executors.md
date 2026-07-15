@@ -42,6 +42,7 @@ Only file-writing executors are in the chain. `deepseek`/`workers-ai` are text-o
 | `zen` | yes — opencode CLI | free / opencode subscription | 3rd (last resort) |
 | `cursor` | yes — Cursor Agent IDE | Cursor | standalone |
 | `opencode` | yes — OpenCode CLI | opencode.ai | standalone |
+| `cf-containers` | remote — CF Container / Sandbox | Cloudflare Containers | standalone (PoC) |
 | `deepseek` | no — text only | DeepSeek API | NOT in chain |
 | `mimo` | no — text only | MiMo API | NOT in chain |
 
@@ -121,6 +122,54 @@ Default model: `@cf/moonshotai/kimi-k2.7-code`
 
 ---
 
+## CfContainersExecutor (`voly/executor/cf_containers.py`) — PoC
+
+Cloud-native path: runs the task inside a **Cloudflare Container** via the
+sandbox-spike Worker (`voly-cloud/cf-workers/sandbox-spike`), which uses the
+Sandbox SDK (`@cloudflare/sandbox` → Containers).
+
+**How it works:**
+1. `is_available()` — GET `{base}/health` (2s timeout)
+2. POST `{base}/runs` with Bearer JWT + `{task, mode, repo?}`
+3. Map Worker JSON → `ExecutorResult` (`not_available` when Worker down)
+
+**Modes** (`VOLY_CF_CONTAINERS_MODE`):
+| Mode | Behavior |
+|---|---|
+| `probe` (default) | Container smoke: uname / python / writeFile |
+| `claude-code` | Claude Code CLI inside the container (needs Worker secrets) |
+
+```bash
+# 1) Start Worker (Docker + Workers Paid for real containers; FORCE_STUB=1 for JWT-only stub)
+cd voly-cloud/cf-workers/sandbox-spike
+npx wrangler dev --ip 127.0.0.1 --port 8791 --local
+
+# 2) Mint JWT (same secret as Worker JWT_SECRET)
+export VOLY_CF_CONTAINERS_URL=http://127.0.0.1:8791
+export VOLY_CF_CONTAINERS_TOKEN=<tenant-jwt>
+
+# 3) Run
+voly run --executor cf-containers "probe sandbox"
+```
+
+Env:
+- `VOLY_CF_CONTAINERS_URL` (default `http://127.0.0.1:8791`)
+- `VOLY_CF_CONTAINERS_TOKEN` (required — tenant JWT)
+- `VOLY_CF_CONTAINERS_MODE` (`probe` \| `claude-code`)
+- `VOLY_CF_CONTAINERS_REPO` (optional git URL for claude-code mode)
+
+**PoC limits (document for product):**
+- Not in `BILLING_FALLBACK_CHAIN` yet — opt-in only (`--executor cf-containers`)
+- Local `cwd` is not synced into the container (remote workspace / optional `repo`)
+- Cold start latency can be seconds–minutes on first image build
+- Requires Workers Paid + Docker for real Containers; stub mode proves JWT path only
+- Auth is JWT to the Worker, not the user's local Claude/Cursor credentials
+
+**Selection plan:** keep as explicit executor until smoke tests pass in CI; later
+candidate for hosted-only default when `VOLY_CF_CONTAINERS_URL` is set.
+
+---
+
 ## LocalPatchApplier (`voly/executor/patch.py`)
 
 Parses LLM response and writes files to disk. Supports two formats:
@@ -184,6 +233,17 @@ future stage-2 watchdog).
 **Propagation:** `voly run --executor X --timeout N` (default 300) and
 `voly runner --timeout N` → `AgentRunner.run(timeout=...)` → each executor,
 including the fallback chain. Web: `timeout` field in `POST /api/run` (default 300).
+`--model` / `-m` is passed through on both `voly run --executor` and `voly runner`
+to `_build_executor(name, model=...)`. Default free model for `opencode`/`zen` is
+`mimo-v2.5-free` (fallback sequence still includes deprecated models last).
+
+**Failure messages:** `format_executor_failure()` / `executor_failure_details()` in
+`executor/base.py` turn raw `ExecutorResult.error` into a prefixed message plus
+optional `Hint:` next step (auth login, start Cursor IDE, install opencode, pick a
+supported model). Used in `voly run`, `voly runner` CLI output, `POST /api/run`
+SSE `done` payload (`error_message`, `error_class`, `error_hint`), and telemetry
+(`TaskEvent.error` stores the formatted message; `chain_timelog` rows include
+`error_message` / `error_hint`).
 Note: the billing fallback chain gives each executor its **own** full timeout
 (visible via `chain_timelog`) — multiplication only at the visible chain level,
 not inside a single executor.

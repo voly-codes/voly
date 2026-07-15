@@ -9,6 +9,8 @@ from typing import Any
 
 import click
 
+from voly.executor.base import format_executor_failure, executor_failure_details
+
 
 @click.command()
 @click.argument("task", required=False)
@@ -18,7 +20,7 @@ import click
     "--executor",
     "-e",
     default=None,
-    help="Executor type: cursor, claude-code, mimo, opencode, deepseek, zen",
+    help="Executor type: cursor, claude-code, mimo, opencode, deepseek, zen, wrangler, cf-containers",
 )
 @click.option("--cwd", default=None, help="Working directory for executor")
 @click.option("--max-turns", default=30, help="Max agent turns (claude-code executor)")
@@ -48,7 +50,10 @@ def run(
 ) -> None:
     """Run a task through the VOLY pipeline."""
     if executor:
-        _run_with_executor(task, executor, cwd, max_turns, timeout, output_json, ctx, dry_run=dry_run)
+        _run_with_executor(
+            task, executor, cwd, max_turns, timeout, output_json, ctx,
+            model=model, dry_run=dry_run,
+        )
         return
     if dry_run:
         click.echo("--dry-run applies to executor runs; ignored on the pipeline path", err=True)
@@ -112,6 +117,7 @@ def _run_with_executor(
     output_json: bool,
     ctx: click.Context,
     *,
+    model: str | None = None,
     dry_run: bool = False,
 ) -> None:
     from voly.runner.agent_runner import AgentRunner
@@ -130,6 +136,7 @@ def _run_with_executor(
             cwd=work_dir,
             max_turns=max_turns,
             timeout=timeout,
+            model=model or "",
             dry_run=dry_run,
         )
     except ValueError as exc:
@@ -137,28 +144,25 @@ def _run_with_executor(
         sys.exit(1)
 
     if output_json:
-        click.echo(
-            json.dumps(
-                {
-                    "success": result.success,
-                    "executor": result.executor,
-                    "agent": result.agent,
-                    "task_id": result.task_id,
-                    "output": result.result.output,
-                    "error": result.result.error,
-                    "cost_usd": result.result.cost_usd,
-                    "input_tokens": result.result.input_tokens,
-                    "output_tokens": result.result.output_tokens,
-                    "duration_ms": result.result.duration_ms,
-                    "num_turns": result.result.num_turns,
-                    "automation_score": result.automation_score,
-                    "manual_steps_removed": result.manual_steps_removed,
-                    "budget_exceeded": result.budget_exceeded,
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        payload: dict = {
+            "success": result.success,
+            "executor": result.executor,
+            "agent": result.agent,
+            "task_id": result.task_id,
+            "output": result.result.output,
+            "error": result.result.error,
+            "cost_usd": result.result.cost_usd,
+            "input_tokens": result.result.input_tokens,
+            "output_tokens": result.result.output_tokens,
+            "duration_ms": result.result.duration_ms,
+            "num_turns": result.result.num_turns,
+            "automation_score": result.automation_score,
+            "manual_steps_removed": result.manual_steps_removed,
+            "budget_exceeded": result.budget_exceeded,
+        }
+        if not result.success:
+            payload.update(executor_failure_details(result.result, executor_name=result.executor))
+        click.echo(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
         click.echo(f"Executor: {result.executor}  cwd: {work_dir}")
         click.echo(f"Task: {task[:80]}{'...' if len(task) > 80 else ''}\n")
@@ -173,7 +177,10 @@ def _run_with_executor(
         elif result.budget_exceeded:
             click.echo(f"Budget exceeded: ${result.result.cost_usd:.4f}", err=True)
         else:
-            click.echo(f"Error: {result.result.error}", err=True)
+            click.echo(
+                f"Error: {format_executor_failure(result.result, executor_name=result.executor)}",
+                err=True,
+            )
 
     if not result.success:
         sys.exit(1)

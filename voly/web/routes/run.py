@@ -15,6 +15,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from voly.executor.base import executor_failure_details
+
 router = APIRouter()
 # Executor calls are blocking (subprocess.run) but I/O-bound, not CPU-bound —
 # a small fixed pool queued concurrent /api/run requests invisibly behind
@@ -252,7 +254,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "agent": result.agent,
         "task_id": result.task_id,
         "content": result.result.output or "",
-        "error": result.result.error,
+        "error": result.result.error or "",
         "cost_usd": result.result.cost_usd,
         "duration_ms": result.result.duration_ms,
         "num_turns": result.result.num_turns,
@@ -261,6 +263,8 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "chain_timelog": meta.get("chain_timelog"),
         "artifacts": meta.get("artifacts") or [],
     }
+    if not result.success:
+        out.update(executor_failure_details(result.result, executor_name=result.executor))
     # Executor safety policy artifacts (dry-run preview / rollback details).
     for key in ("dry_run", "dry_run_diff", "safety_violation", "safety_rolled_back"):
         if meta.get(key):
