@@ -16,6 +16,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from voly.executor.base import executor_failure_details
+from voly.correlation import ensure_correlation_id, get_correlation_id
 
 router = APIRouter()
 # Executor calls are blocking (subprocess.run) but I/O-bound, not CPU-bound —
@@ -246,6 +247,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         task, req.executor, cwd=work_dir,
         max_turns=req.max_turns, timeout=req.timeout, model=req.model or "",
         dry_run=req.dry_run,
+        correlation_id=get_correlation_id() or "",
     )
     meta = result.result.metadata or {}
     out = {
@@ -324,6 +326,7 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             "task": req.task,
             "executor": req.executor,
             "cwd": req.cwd or "",
+            "correlation_id": ensure_correlation_id(),
         }
         if req.executor == "pipeline":
             effective_cwd = (
@@ -387,6 +390,7 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             except Exception as exc:
                 _log.debug("[DISPATCH] auto-promote check failed: %s", exc)
 
+        start_payload["correlation_id"] = ensure_correlation_id()
         yield _sse("start", start_payload)
         try:
             fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
@@ -394,7 +398,13 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             while True:
                 done, _pending = await asyncio.wait({future}, timeout=_RUN_HEARTBEAT_SECONDS)
                 if future in done:
-                    yield _sse("done", future.result())
+                    result = future.result()
+                    if isinstance(result, dict):
+                        result = {
+                            **result,
+                            "correlation_id": ensure_correlation_id(),
+                        }
+                    yield _sse("done", result)
                     break
                 if await request.is_disconnected():
                     # Python can't force-cancel a blocking subprocess.run() in

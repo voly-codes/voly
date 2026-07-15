@@ -26,13 +26,13 @@ from voly.telemetry import (
 )
 
 
-# ─── TaskEvent schema v2 ───────────────────────────────────────────────────────
+# ─── TaskEvent schema v3 ───────────────────────────────────────────────────────
 
-# Замороженный набор полей схемы v1. Добавление/удаление/переименование поля
+# Замороженный набор полей схемы v3. Добавление/удаление/переименование поля
 # без бампа TASK_EVENT_SCHEMA_VERSION ломает внешних потребителей молча —
 # поэтому сначала версия и docs/backend/api.md, потом этот список.
-_V2_FIELDS = {
-    "task_id", "agent", "status", "schema_version",
+_V3_FIELDS = {
+    "task_id", "agent", "status", "schema_version", "correlation_id",
     "tokens", "gateway", "skill_ids", "memory_hits", "workflow",
     "routing_score", "cost_usd", "duration_ms",
     "model", "provider", "executor", "task_type",
@@ -46,26 +46,27 @@ _V2_FIELDS = {
 }
 
 
-def test_task_event_schema_v2_frozen():
+def test_task_event_schema_v3_frozen():
     actual = {f.name for f in fields(TaskEvent)}
-    assert TASK_EVENT_SCHEMA_VERSION == 2, (
-        "Версия схемы изменилась — обнови _V2_FIELDS→_V3_FIELDS и docs/backend/api.md"
+    assert TASK_EVENT_SCHEMA_VERSION == 3, (
+        "Версия схемы изменилась — обнови _V3_FIELDS→_V4_FIELDS и docs/backend/api.md"
     )
-    missing = _V2_FIELDS - actual
-    added = actual - _V2_FIELDS
+    missing = _V3_FIELDS - actual
+    added = actual - _V3_FIELDS
     assert not missing and not added, (
-        f"Схема TaskEvent разошлась с v2: added={sorted(added)}, missing={sorted(missing)}. "
+        f"Схема TaskEvent разошлась с v3: added={sorted(added)}, missing={sorted(missing)}. "
         "Изменение схемы = бамп TASK_EVENT_SCHEMA_VERSION + docs/backend/api.md + этот снимок."
     )
 
 
 def test_task_event_serializes_schema_version():
-    ev = TaskEvent(task_id="t1", agent="a", status="completed")
+    ev = TaskEvent(task_id="t1", agent="a", status="completed", correlation_id="c-1")
     d = ev.to_dict()
-    assert d["schema_version"] == 2
+    assert d["schema_version"] == 3
+    assert d["correlation_id"] == "c-1"
     # И в плоской записи для CF Pipelines
     rec = event_to_pipeline_record(ev)
-    assert rec["schema_version"] == 2
+    assert rec["schema_version"] == 3
     # Ключевые плоские поля pipeline-записи (контракт SQL-трансформации)
     for key in ("ts_us", "tokens_input", "tokens_output", "cache_hit", "fallback_used"):
         assert key in rec

@@ -165,6 +165,8 @@ class CfContainersExecutor(Executor):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self._token}",
         }
+        from voly.correlation import correlation_headers
+        headers = correlation_headers(headers)
         req = urllib.request.Request(
             f"{self._base_url}/runs",
             data=json.dumps(body).encode(),

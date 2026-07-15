@@ -382,17 +382,21 @@ class AgentRunner:
         model: str = "",
         emit_event: bool = True,
         dry_run: bool = False,
+        correlation_id: str = "",
     ) -> RunnerResult:
+        from voly.correlation import ensure_correlation_id, get_correlation_id
+
         self.setup_rtk()
 
+        cid = ensure_correlation_id(correlation_id or None)
         executor_name, agent_role = resolve_executor(agent, self.config)
         task_type = detect_task_type(task)
         task_id = new_task_id()
 
         executor = _build_executor(executor_name, model or None)
         _chain_log.info(
-            "[CHAIN:START] task=%r executor=%s cwd=%r",
-            task[:80], executor_name, cwd or "(empty)",
+            "[CHAIN:START] correlation_id=%s task=%r executor=%s cwd=%r",
+            cid, task[:80], executor_name, cwd or "(empty)",
         )
 
         # In-flight visibility (Rung A): a RunRecord with a background heartbeat
@@ -620,6 +624,7 @@ class AgentRunner:
                 agent=agent_role,
                 executor=executor_name,
                 status=status,
+                correlation_id=get_correlation_id() or cid,
                 tokens=TokenMetrics(
                     input=result.input_tokens + retry_tokens_in,
                     output=result.output_tokens + retry_tokens_out,

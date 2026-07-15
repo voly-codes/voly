@@ -32,7 +32,8 @@ class MemoryClient:
         }
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
-        return headers
+        from voly.correlation import correlation_headers
+        return correlation_headers(headers)
 
     def _request(
         self,

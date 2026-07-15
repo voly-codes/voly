@@ -33,11 +33,15 @@ Start a task. Returns an SSE stream.
 }
 
 // SSE events
-data: {"type": "start", "task": "...", "executor": "claude-code"}
+data: {"type": "start", "task": "...", "executor": "claude-code", "correlation_id": "..."}
 data: {"type": "heartbeat"}
-data: {"type": "done", "success": true, "content": "...", "billing_fallback": "zen"}
+data: {"type": "done", "success": true, "content": "...", "billing_fallback": "zen", "correlation_id": "..."}
 data: {"type": "error", "error": "..."}
 ```
+
+Pass `X-Correlation-ID` (or `X-Request-ID`) on the request to pin the id across
+API → runner → CF Workers. The response also echoes `X-Correlation-ID`.
+Set `VOLY_JSON_LOGS=1` for one-JSON-object-per-line logs with `correlation_id`.
 
 On executor failure, the `done` event also carries structured diagnostics (raw
 `error` is preserved for backward compatibility):
@@ -200,17 +204,22 @@ Requires `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Secrets Store Edit).
 
 Write telemetry from external sources.
 
-### TaskEvent contract (schema_version: 2)
+### TaskEvent contract (schema_version: 3)
 
 `TaskEvent` (`voly/telemetry.py`) is the public versioned task event format;
 it is consumed by external readers (CF Pipelines ingest, R2, dashboards).
-Each event carries `schema_version` (currently `2`). The v2 field set is frozen
+Each event carries `schema_version` (currently `3`). The v3 field set is frozen
 by the contract test `tests/test_protocol_contracts.py` — changing the schema
 requires bumping `TASK_EVENT_SCHEMA_VERSION`, updating this section, and the
 snapshot in the test. Key field groups: identification (`task_id`, `agent`, `executor`,
-`status`, `schema_version`), cost (`cost_usd`, `retry_count`,
+`status`, `schema_version`, `correlation_id`), cost (`cost_usd`, `retry_count`,
 `retry_cost_usd`, `tokens`), diagnostics (`error`, `error_class`,
 `chain_timelog`), local artifacts (`artifacts`), A2A (`a2a_*`), DSPy (`dspy_*`).
+
+`correlation_id` links API requests, runner TaskEvents, and Cloudflare Worker
+calls (forwarded as `X-Correlation-ID`) so Workers Logs custom fields can be
+filtered together with VOLY events. Clients may send `X-Correlation-ID` or
+`X-Request-ID`; otherwise the API generates a UUID.
 
 Related contract: spend protocol — `docs/backend/spend-protocol.md`.
 

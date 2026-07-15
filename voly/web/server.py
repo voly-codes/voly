@@ -54,10 +54,30 @@ _load_dotenv_once()
 
 
 def _configure_logging() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
+    import os
+
+    from voly.correlation import CorrelationFilter, JsonLogFormatter
+
+    root = logging.getLogger()
+    if not root.handlers:
+        handler = logging.StreamHandler()
+        if os.environ.get("VOLY_JSON_LOGS", "").strip().lower() in {"1", "true", "yes"}:
+            handler.setFormatter(JsonLogFormatter())
+        else:
+            handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s %(levelname)s %(name)s [cid=%(correlation_id)s]: %(message)s"
+                )
+            )
+        handler.addFilter(CorrelationFilter())
+        root.addHandler(handler)
+        root.setLevel(logging.INFO)
+    else:
+        for handler in root.handlers:
+            handler.addFilter(CorrelationFilter())
+            if not hasattr(handler.formatter, "_voly_cid") and handler.formatter:
+                # Ensure plain formatters still get correlation_id on the record.
+                pass
     logging.getLogger("voly.executor").setLevel(logging.DEBUG)
 
 
@@ -69,14 +89,28 @@ def create_app(
         raise ImportError("Install UI dependencies: pip install 'voly[ui]'")
     _configure_logging()
 
-    from fastapi import FastAPI
+    from fastapi import FastAPI, Request, Response
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.staticfiles import StaticFiles
+    from starlette.middleware.base import BaseHTTPMiddleware
 
+    from voly.correlation import (
+        CORRELATION_HEADER,
+        correlation_id_from_headers,
+        ensure_correlation_id,
+    )
     from voly.web.deps import AppState
     from voly.web.routes import cf, dspy, marketplace, providers, registry, run, runs, tasks, gateway, telemetry
 
     app = FastAPI(title="VOLY UI", version="0.1.0", docs_url="/api/docs")
+
+    class CorrelationMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            incoming = correlation_id_from_headers(dict(request.headers))
+            cid = ensure_correlation_id(incoming)
+            response: Response = await call_next(request)
+            response.headers[CORRELATION_HEADER] = cid
+            return response
 
     # Open-core: the web UI has no authentication — the API is open and intended
     # for localhost only. Authentication (JWT / SSO) is a commercial Team-tier
@@ -87,6 +121,7 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(CorrelationMiddleware)
 
     app.state.app = AppState(
         ev_dir=events_dir or _resolve_events_dir(),

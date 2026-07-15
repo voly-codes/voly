@@ -136,7 +136,7 @@ class GatewayMetrics:
 # потребители: CF Pipelines, R2, hosted-дашборды). Любое изменение набора
 # полей/семантики — бамп версии + правка контрактного теста
 # (tests/test_protocol_contracts.py) + docs/backend/api.md.
-TASK_EVENT_SCHEMA_VERSION = 2
+TASK_EVENT_SCHEMA_VERSION = 3
 
 
 @dataclass
@@ -145,6 +145,9 @@ class TaskEvent:
     agent: str
     status: str  # completed | failed | budget_exceeded | dlp_blocked | rate_limited | spend_limited
     schema_version: int = TASK_EVENT_SCHEMA_VERSION
+    # Cross-service correlation (API ↔ runner ↔ CF Workers Logs). Optional on
+    # legacy v1/v2 events; v3+ writers should always set it.
+    correlation_id: str | None = None
     tokens: TokenMetrics = field(default_factory=TokenMetrics)
     gateway: GatewayMetrics = field(default_factory=GatewayMetrics)
     skill_ids: list[str] = field(default_factory=list)
@@ -424,6 +427,7 @@ def load_events(events_dir: str | Path | None = None) -> list[TaskEvent]:
                 agent=data.get("agent", ""),
                 status=data.get("status", ""),
                 schema_version=int(data.get("schema_version") or 1),
+                correlation_id=data.get("correlation_id"),
                 tokens=TokenMetrics(**tok) if tok else TokenMetrics(),
                 gateway=GatewayMetrics(**gw) if gw else GatewayMetrics(),
                 skill_ids=data.get("skill_ids", []),
