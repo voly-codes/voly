@@ -95,6 +95,21 @@ const status = await fetch('/api/status').then(r => r.json())
 
 ---
 
+## GET /api/environment
+
+Local readiness (provider keys, CLI on `PATH`, cwd, optional cloud link).
+
+```javascript
+import { fetchEnvironment } from '../api/client.js'
+
+const report = await fetchEnvironment('/path/to/project')
+// { ready, summary, checks[], executors{}, providers_configured[], default_cwd }
+```
+
+Used by `EnvironmentBanner` + executor badges in `RunParams`. See `docs/backend/api.md`.
+
+---
+
 ## GET /api/registry/agents
 
 ```javascript

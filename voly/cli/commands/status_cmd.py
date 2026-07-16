@@ -68,4 +68,22 @@ def status(ctx: click.Context) -> None:
     click.echo(f"  Total tokens in: {pipeline.metrics.total_tokens_in}")
     click.echo(f"  Avg duration: {pipeline.metrics.avg_duration_ms:.0f}ms")
 
+    click.echo("\n[Environment]")
+    from voly.environment import collect_environment_report
+
+    report = collect_environment_report(config)
+    click.echo(f"  Ready: {'yes' if report.ready else 'no'} — {report.summary}")
+    for check in report.checks:
+        if check.group == "providers" and check.id.startswith("provider:"):
+            continue  # summary row is enough
+        if check.group == "executors" and check.id.startswith("executor:"):
+            mark = {"ok": "✓", "warn": "!", "error": "✗", "skip": "·"}.get(check.status, "?")
+            click.echo(f"  [{mark}] {check.label}: {check.detail}")
+            continue
+        if check.id in ("providers", "executors", "cwd", "cloud", "runtime"):
+            mark = {"ok": "✓", "warn": "!", "error": "✗", "skip": "·"}.get(check.status, "?")
+            click.echo(f"  [{mark}] {check.label}: {check.detail}")
+            if check.hint and check.status in ("warn", "error"):
+                click.echo(f"      → {check.hint}")
+
     pipeline.shutdown()

@@ -100,7 +100,19 @@ def create_app(
         ensure_correlation_id,
     )
     from voly.web.deps import AppState
-    from voly.web.routes import cf, dspy, marketplace, providers, registry, run, runs, tasks, gateway, telemetry
+    from voly.web.routes import (
+        cf,
+        dspy,
+        environment,
+        gateway,
+        marketplace,
+        providers,
+        registry,
+        run,
+        runs,
+        tasks,
+        telemetry,
+    )
 
     app = FastAPI(title="VOLY UI", version="0.1.0", docs_url="/api/docs")
 
@@ -129,6 +141,7 @@ def create_app(
     )
 
     app.include_router(tasks.router)
+    app.include_router(environment.router)
     app.include_router(run.router)
     app.include_router(registry.router)
     app.include_router(marketplace.router)

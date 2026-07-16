@@ -1,10 +1,11 @@
 <script>
   import { onMount } from 'svelte'
   import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
-  import { runTask, fetchAgents, fetchModels, fetchStatus } from '../../api/client.js'
+  import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment } from '../../api/client.js'
   import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunResult from './RunResult.svelte'
+  import EnvironmentBanner from './EnvironmentBanner.svelte'
 
   let { onTaskComplete } = $props()
 
@@ -26,6 +27,9 @@
 
   let agents = $state([])
   let models = $state([])
+  let envReport = $state(null)
+  let envLoading = $state(false)
+  let executorAvailability = $state({})
 
   const executors = [
     { id: 'pipeline',            label: 'Pipeline (AI Gateway)' },
@@ -40,6 +44,20 @@
     { id: 'cloudflare-dynamic',  label: 'CF Dynamic Routing' },
   ]
 
+  async function loadEnvironment() {
+    envLoading = true
+    try {
+      const report = await fetchEnvironment(cwd)
+      envReport = report
+      executorAvailability = report?.executors ?? {}
+      if (!cwd && report?.default_cwd) cwd = report.default_cwd
+    } catch {
+      envReport = null
+    } finally {
+      envLoading = false
+    }
+  }
+
   onMount(async () => {
     try { agents = await fetchAgents() } catch {}
     await loadModels()
@@ -50,6 +68,18 @@
         if (st?.default_cwd) cwd = st.default_cwd
       } catch {}
     }
+    await loadEnvironment()
+  })
+
+  // Re-check cwd when the user changes Working dir (debounced via idle effect)
+  let cwdCheckTimer
+  $effect(() => {
+    const path = cwd
+    if (cwdCheckTimer) clearTimeout(cwdCheckTimer)
+    cwdCheckTimer = setTimeout(() => {
+      if (envReport) loadEnvironment()
+    }, 400)
+    return () => clearTimeout(cwdCheckTimer)
   })
 
   async function loadModels() {
@@ -114,7 +144,18 @@
 </script>
 
 <div class="run-panel">
-  <RunParams bind:executor bind:agent bind:model bind:cwd {executors} {agents} {models} {running} />
+  <EnvironmentBanner report={envReport} loading={envLoading} onRefresh={loadEnvironment} />
+  <RunParams
+    bind:executor
+    bind:agent
+    bind:model
+    bind:cwd
+    {executors}
+    {agents}
+    {models}
+    {running}
+    {executorAvailability}
+  />
 
   <div class="results-area">
     {#if running}

@@ -5,6 +5,7 @@
 ## RunPanel.svelte
 
 Main task run panel. Contains:
+- `<EnvironmentBanner>` — readiness (keys / CLIs / cwd / cloud)
 - textarea for task
 - `<RunParams>` — executor / agent / model / cwd selection
 - Run button
@@ -23,6 +24,16 @@ warning banner (e.g. "Hybrid code generation skipped (no cwd set)...").
 
 **Auto-fill cwd:** on component mount, if `cwd` is empty, requests `GET /api/status` and fills in `default_cwd` (from `voly.yaml` or `VOLY_PROJECT_CWD`).
 
+**Environment:** on mount (and when cwd changes) calls `GET /api/environment?cwd=…`,
+passes `executors` map into `RunParams`, and shows tips via `EnvironmentBanner`.
+
+---
+
+## EnvironmentBanner.svelte
+
+Light readiness strip above run params. Props: `report`, `loading`, `onRefresh`.
+Does not block Run. Expandable tips for `warn`/`error` checks; Recheck / Dismiss.
+
 ---
 
 ## RunParams.svelte
@@ -36,9 +47,12 @@ let {
   model = $bindable(''),
   cwd = $bindable(''),
   executors = [],
-  running = false
+  running = false,
+  executorAvailability = {},  // from GET /api/environment
 } = $props()
 ```
+
+Executor `<option>` labels append `✓` or `— not installed` from `executorAvailability`.
 
 **Executor hints** — hint under each executor:
 - `pipeline`: "AI Gateway — cache, DLP, spend control (text only)"

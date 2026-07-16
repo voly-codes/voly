@@ -42,6 +42,12 @@ export const fetchSummary = () => get('/api/tasks/stats/summary')
 
 export const fetchStatus = () => get('/api/status')
 
+/** Local readiness: provider keys, CLI binaries, cwd, optional cloud link. */
+export const fetchEnvironment = (cwd = '') => {
+  const q = cwd ? `?cwd=${encodeURIComponent(cwd)}` : ''
+  return get(`/api/environment${q}`)
+}
+
 // Run (SSE stream) — returns async generator
 export async function* runTask(req) {
   const res = await post('/api/run', req)

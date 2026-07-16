@@ -88,6 +88,41 @@ Logs: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FA
 
 ---
 
+## GET /api/environment
+
+Local readiness for the Web UI / onboarding. Does **not** call remote provider
+APIs — only env key presence, `PATH` binaries, cwd, and optional cloud link.
+
+```typescript
+// Query
+?cwd=/path/to/project   // optional — overrides config default_cwd for the cwd check
+
+// Response
+{
+  ready: boolean,
+  summary: string,
+  providers_configured: string[],
+  default_cwd: string,
+  executors: {
+    "pipeline": { available: true, kind: "gateway", detail: "..." },
+    "claude-code": { available: boolean, kind: "cli", binary: "claude", path?: string, detail: string, hint?: string },
+    // …
+  },
+  checks: [
+    { id: string, label: string, status: "ok"|"warn"|"error"|"skip", detail: string, hint: string, group: string }
+  ]
+}
+```
+
+`ready` is true when at least one provider API key **or** one file-capable CLI
+is available. Missing cwd is a warning, not a hard fail. Cloud link is optional
+(`status: skip` when unlinked).
+
+Shared implementation: `voly/environment.py` (`collect_environment_report`).
+Also printed under `[Environment]` in `voly status`.
+
+---
+
 ## GET /api/tasks
 
 Task list from `.voly/events/`. SSE stream of updates.

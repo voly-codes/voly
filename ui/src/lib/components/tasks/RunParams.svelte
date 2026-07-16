@@ -4,7 +4,24 @@
     BrainCircuitIcon, FolderIcon,
   } from '../../icons.js'
 
-  let { executor = $bindable('pipeline'), agent = $bindable(''), model = $bindable(''), cwd = $bindable(''), executors = [], agents = [], models = [], running = false } = $props()
+  let {
+    executor = $bindable('pipeline'),
+    agent = $bindable(''),
+    model = $bindable(''),
+    cwd = $bindable(''),
+    executors = [],
+    agents = [],
+    models = [],
+    running = false,
+    executorAvailability = {},
+  } = $props()
+
+  function execBadge(id) {
+    if (id === 'pipeline') return null
+    const info = executorAvailability?.[id]
+    if (!info) return null
+    return info.available ? 'ok' : 'missing'
+  }
 
   const executorHints = {
     pipeline:           'AI Gateway — cache, DLP, spend control (text only)',
@@ -31,12 +48,20 @@
       <div class="select-wrap">
         <select id="run-executor" bind:value={executor} disabled={running}>
           {#each executors as ex}
-            <option value={ex.id}>{ex.label}</option>
+            {@const badge = execBadge(ex.id)}
+            <option value={ex.id}>
+              {ex.label}{badge === 'missing' ? ' — not installed' : badge === 'ok' ? ' ✓' : ''}
+            </option>
           {/each}
         </select>
         <ChevronDownIcon size="10" strokeWidth="2" class="select-arrow" />
       </div>
-      <span class="param-hint">{executorHints[executor] ?? ''}</span>
+      <span class="param-hint">
+        {executorHints[executor] ?? ''}
+        {#if execBadge(executor) === 'missing'}
+          <span class="exec-missing"> · CLI/key not detected — see Environment tips</span>
+        {/if}
+      </span>
     </div>
 
     <div class="param">
@@ -128,10 +153,12 @@
   .param-hint {
     font-size: 9px;
     color: var(--text-muted);
-    line-height: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .exec-missing {
+    color: var(--accent-amber, #c4922a);
   }
 
   .param-disabled-text {
