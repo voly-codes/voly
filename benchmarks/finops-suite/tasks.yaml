@@ -1,0 +1,152 @@
+# BO002 FinOps benchmark suite — fixed task set for baseline vs VOLY chain.
+# Project-agnostic: runners materialize fixture_project/ into a temp cwd.
+# Do not commit generated results/ or .voly/events/.
+
+version: 1
+suite_id: finops-cross-vendor-v1
+claims:
+  - C1  # billing fallback lowers $ when paid CLI quota is exhausted
+  - C2  # full cost with retries, no double-count
+  - C3  # ≥2 executor vendors in one chain
+  - C4  # savings vs always-claude-code baseline
+
+# Default chain for VOLY arm (Layer B). Layer A providers are out of scope.
+billing_fallback_chain:
+  - claude-code
+  - wrangler
+  - opencode
+  - zen
+
+tasks:
+  - id: tiny-rename
+    category: tiny_refactor
+    prompt: >
+      In hello.py rename function greet to say_hello and update the call in main.
+      Do not add new files.
+    expected_files:
+      - hello.py
+    size: xs
+    scenarios: [baseline, voly_chain, billing_fallback]
+    mock:
+      # Primary fails billing → cheaper executors; zen succeeds.
+      billing_fail_executors: [claude-code, wrangler, opencode]
+      succeed_executor: zen
+      costs_usd:
+        claude-code: 0.012
+        wrangler: 0.004
+        opencode: 0.003
+        zen: 0.0
+
+  - id: add-docstring
+    category: docstring
+    prompt: >
+      Add a one-line module docstring to hello.py describing a greeting helper.
+      No other changes.
+    expected_files:
+      - hello.py
+    size: xs
+    scenarios: [baseline, voly_chain]
+    mock:
+      billing_fail_executors: []
+      succeed_executor: claude-code
+      costs_usd:
+        claude-code: 0.008
+
+  - id: fix-off-by-one
+    category: small_bugfix
+    prompt: >
+      In counter.py the function next_value should return n + 1, not n.
+      Fix the bug and keep the existing tests conceptually valid.
+    expected_files:
+      - counter.py
+    size: s
+    scenarios: [baseline, voly_chain, billing_fallback]
+    mock:
+      billing_fail_executors: [claude-code]
+      succeed_executor: zen
+      costs_usd:
+        claude-code: 0.015
+        wrangler: 0.0
+        opencode: 0.0
+        zen: 0.0
+
+  - id: noop-review
+    category: noop_review
+    prompt: >
+      Review hello.py for obvious bugs. If none, reply with DONE and make no file changes.
+    expected_files:
+      - hello.py
+    size: xs
+    scenarios: [baseline, voly_chain]
+    mock:
+      billing_fail_executors: []
+      succeed_executor: claude-code
+      costs_usd:
+        claude-code: 0.005
+
+  - id: add-type-hint
+    category: tiny_refactor
+    prompt: >
+      Add a return type hint to say_hello (or greet) in hello.py: -> str.
+      Minimal diff only.
+    expected_files:
+      - hello.py
+    size: xs
+    scenarios: [baseline, voly_chain]
+    mock:
+      billing_fail_executors: []
+      succeed_executor: claude-code
+      costs_usd:
+        claude-code: 0.006
+
+  - id: fix-greet-typo
+    category: small_bugfix
+    prompt: >
+      In hello.py the greeting string says 'Helo' — fix the typo to 'Hello'.
+    expected_files:
+      - hello.py
+    size: xs
+    scenarios: [baseline, voly_chain, billing_fallback]
+    mock:
+      billing_fail_executors: [claude-code, wrangler]
+      succeed_executor: opencode
+      costs_usd:
+        claude-code: 0.01
+        wrangler: 0.003
+        opencode: 0.002
+        zen: 0.0
+
+  - id: counter-docstring
+    category: docstring
+    prompt: >
+      Add a short docstring to next_value in counter.py. No logic changes.
+    expected_files:
+      - counter.py
+    size: xs
+    scenarios: [baseline, voly_chain]
+    mock:
+      billing_fail_executors: []
+      succeed_executor: claude-code
+      costs_usd:
+        claude-code: 0.004
+
+  - id: midchain-quota
+    category: billing_stress
+    prompt: >
+      In util.py implement clamp(n, lo, hi) returning n bounded to [lo, hi].
+      Keep it pure Python, no deps.
+    expected_files:
+      - util.py
+    size: s
+    scenarios: [baseline, voly_chain, billing_fallback]
+    notes: >
+      Forced mid-chain quota exhaustion for C1/C3 proof (mock).
+      Live mode may skip if credentials unavailable.
+    mock:
+      billing_fail_executors: [claude-code, wrangler, opencode]
+      succeed_executor: zen
+      costs_usd:
+        claude-code: 0.02
+        wrangler: 0.005
+        opencode: 0.004
+        zen: 0.0

@@ -1,0 +1,4 @@
+results/
+*.pyc
+__pycache__/
+.voly/
