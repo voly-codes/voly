@@ -77,6 +77,15 @@ automatically: the lead model assigns roles and tiers, implement roles write
 files through executors, the reviewer stays on chat — the report shows
 role / model / cost / files per agent.
 
+### Run report (Web UI)
+
+One screen for the story Product Hunt / demos need: task → executor path →
+files touched → cost and tokens.
+
+<p align="center">
+  <img src="docs/assets/dashboard_task.png" alt="VOLY Web UI — task run report with cost, tokens, and files touched" width="900">
+</p>
+
 ## Open core vs Cloud
 
 | | **voly** (this repo, Apache-2.0) | **voly-cloud** (commercial) |

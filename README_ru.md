@@ -76,6 +76,14 @@ voly ui                                     # web-дашборд на :7788
 файлы через executor-ы, ревьюер остаётся на chat — в отчёте видно
 роль / модель / стоимость / файлы по каждому агенту.
 
+### Отчёт по запуску (Web UI)
+
+Один экран для демо: задача → путь executor → затронутые файлы → cost и токены.
+
+<p align="center">
+  <img src="docs/assets/dashboard_task.png" alt="VOLY Web UI — отчёт по задаче: cost, токены, файлы" width="900">
+</p>
+
 ## Open core vs Cloud
 
 | | **voly** (этот репо, Apache-2.0) | **voly-cloud** (коммерческий) |
