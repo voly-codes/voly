@@ -49,6 +49,31 @@ CLOUDFLARE_D1_DATABASE_ID=...
 CLOUDFLARE_R2_BUCKET=...
 ```
 
+### CF Workers (optional hosted services)
+
+```env
+# Telemetry ingest — cf-workers/telemetry/ (POST /events)
+CF_PIPELINE_TELEMETRY_ENDPOINT=https://telemetry.voly.codes/events
+CF_PIPELINE_TELEMETRY_TOKEN=<worker API_TOKEN secret>
+
+# Spend tracker + AGUI sessions — cf-workers/spend/
+CF_WORKER_SPEND_URL=https://spend.voly.codes
+CF_WORKER_SPEND_TOKEN=<worker API_TOKEN secret>  # must match wrangler secret API_TOKEN
+CF_WORKER_AGUI_URL=https://spend.voly.codes      # AGUI uses /agui/* on the same worker
+
+# Memory store — cf-workers/memory/
+CF_WORKER_MEMORY_URL=https://memory.voly.codes
+CF_WORKER_MEMORY_TOKEN=<worker API_TOKEN secret> # must match wrangler secret API_TOKEN
+
+# A2A federation — cf-workers/a2a/
+CF_WORKER_A2A_URL=https://a2a.voly.codes
+```
+
+> **Token setup**: each worker reads `API_TOKEN` from its own wrangler secrets
+> (Dashboard → Worker → Settings → Variables & Secrets, or `wrangler secret put API_TOKEN`).
+> The value in `.env` must match. Never reuse `CLOUDFLARE_API_TOKEN` for worker auth —
+> that is the account-level token with broad permissions.
+
 ### VOLY control
 
 ```env
