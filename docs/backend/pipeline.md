@@ -71,6 +71,12 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
      plan-gate transitions, and telemetry stay on the caller thread — only the
      gateway call itself is parallel. A spend limit stops scheduling further
      waves.
+     **Executor honesty:** on a code-gen task, an executor role that reports
+     success but leaves `files_touched` empty (no git delta either) is marked
+     failed — a plausible text summary without file changes is not an
+     implementation, so downstream roles degrade and the run reports `partial`.
+     Each assignment also records `duration_ms` (chat/executor wall-clock) in
+     `a2a_assignments` telemetry.
   5. Merge → `TaskEvent` with `a2a_dispatched=True`, `a2a_agents_used`,
      `a2a_assignments` (role/tier/model/skills/tokens/cost).
      **Outcome status:** `completed` only when all active roles succeed;

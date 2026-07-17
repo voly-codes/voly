@@ -76,6 +76,9 @@ a2a:
 plan:
   enabled: true
   mode: shadow
+  # Executor roles must leave a git diff — pairs with the hard rule in
+  # run_local (executor success with zero files_touched → role failed).
+  executor_require_git_diff: true
 
 agui:
   enabled: true

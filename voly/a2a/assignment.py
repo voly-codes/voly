@@ -145,6 +145,7 @@ class Assignment:
     input_tokens: int = 0
     output_tokens: int = 0
     cost_usd: float = 0.0
+    duration_ms: float = 0.0      # wall-clock of the role's chat/executor call
     ok: bool = False
     error: str = ""
     cache_hit: bool = False       # gateway response cache hit → 0 new tokens billed
@@ -169,6 +170,7 @@ class Assignment:
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "cost_usd": round(self.cost_usd, 6),
+            "duration_ms": round(self.duration_ms, 1),
             "ok": self.ok,
             "cache_hit": self.cache_hit,
             "mem_hits": self.mem_hits,

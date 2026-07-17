@@ -689,3 +689,48 @@ def test_wave_parallel_chat_roles_run_concurrently() -> None:
     run_local("task", assignments, BarrierGateway(), hybrid_code_gen=False)
     assert all(a.ok for a in assignments), [(a.role, a.error) for a in assignments]
     assert not barrier.broken
+
+def test_executor_success_without_files_marks_role_failed(tmp_path) -> None:
+    """Code-gen executor that returns ok but touches no files is not an implementation."""
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+    gw = _FakeGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+
+    def runner(*, role, task, cwd, executor, system, assignment):
+        return {"ok": True, "content": "Implemented everything, honest!", "files_touched": []}
+
+    run_local(
+        "build", assignments, gw,
+        cwd=str(tmp_path), hybrid_code_gen=True, requires_code_gen=True,
+        executor_runner=runner,
+    )
+    dev = next(a for a in assignments if a.role == "developer")
+    assert dev.mode == "executor"
+    assert dev.ok is False
+    assert "changed no files" in dev.error
+    # Chat roles degrade on the architect plan instead of a false completed.
+    from voly.a2a.assignment import evaluate_multiagent_outcome
+    success, status = evaluate_multiagent_outcome(assignments, requires_code_gen=True)
+    assert success is False
+    assert status == "partial"
+
+
+def test_role_durations_recorded() -> None:
+    """Every executed role gets a wall-clock duration for telemetry."""
+    from voly.a2a.assignment import Assignment
+    from voly.a2a.multiagent import run_local as _run_local
+
+    class _Gw:
+        def chat(self, messages, *, model, provider_name, agent=None, **k):
+            return {"content": f"{agent} ok", "usage": {"input_tokens": 1, "output_tokens": 1}}
+
+    assignments = [
+        Assignment(idx=0, role="architect", description="plan", depends_on=[],
+                   tier="cheap", model="m", provider="p"),
+        Assignment(idx=1, role="reviewer", description="review", depends_on=[0],
+                   tier="cheap", model="m", provider="p"),
+    ]
+    _run_local("task", assignments, _Gw(), hybrid_code_gen=False)
+    assert all(a.ok for a in assignments)
+    assert all(a.duration_ms > 0 for a in assignments)
+    assert "duration_ms" in assignments[0].to_event_dict()

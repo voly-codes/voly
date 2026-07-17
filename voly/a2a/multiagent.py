@@ -16,6 +16,7 @@ providers (workers-ai, deepseek, opencode-zen, mimo, omniroute).
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -498,6 +499,7 @@ def run_local(
             "multiagent[%d] %s → EXECUTOR %s (cwd=%s, reason=%s)",
             a.idx, a.role, a.executor, cwd or "(none)", a.mode_reason,
         )
+        _t0 = time.monotonic()
         try:
             result = executor_runner(
                 role=a.role,
@@ -508,6 +510,7 @@ def run_local(
                 assignment=a,
             )
         except Exception as e:  # noqa: BLE001
+            a.duration_ms = (time.monotonic() - _t0) * 1000
             a.error = str(e)
             a.content = f"(executor failed: {e})"
             a.ok = False
@@ -522,6 +525,7 @@ def run_local(
             done[a.idx] = a
             _hb(a.role, len(done))
             return
+        a.duration_ms = (time.monotonic() - _t0) * 1000
 
         if isinstance(result, dict):
             a.content = str(result.get("content") or result.get("output") or "")
@@ -541,6 +545,21 @@ def run_local(
             delta = sorted(changed_paths(git_before, git_after))
             if delta:
                 a.files_touched = delta
+        # Executor honesty: on a code-gen task a role that "succeeded" without
+        # touching a single file only produced text — that is not an
+        # implementation (e.g. cursor returning a plausible summary while the
+        # bridge silently wrote nothing). Fail the role so downstream degrades
+        # and the run reports partial instead of a false completed.
+        if requires_code_gen and a.ok and not a.files_touched:
+            a.ok = False
+            a.error = (
+                "executor reported success but changed no files "
+                f"(executor={a.executor or 'unknown'})"
+            )
+            _log.warning(
+                "multiagent[%d] %s executor success with zero files — marked failed",
+                a.idx, a.role,
+            )
         _finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
         done[a.idx] = a
         _hb(a.role, len(done))
@@ -560,6 +579,7 @@ def run_local(
         _log.info("multiagent[%d] %s → %s/%s (tier=%s, mode=%s, skills=%s, mem=%d)",
                   a.idx, a.role, a.provider, a.model, a.tier, a.mode, a.skills, a.mem_hits)
         role_max_tokens = 2048 if a.role == "architect" else max_tokens
+        _t0 = time.monotonic()
         try:
             return _chat_with_provider_fallback(
                 gateway,
@@ -571,6 +591,9 @@ def run_local(
             )
         except Exception as e:  # noqa: BLE001
             return {"__raised__": True, "error": str(e), "content": ""}
+        finally:
+            # Only this worker thread touches this assignment — safe mutation.
+            a.duration_ms = (time.monotonic() - _t0) * 1000
 
     def _finalize_chat(a: Assignment, resp: dict[str, Any], git_before: dict) -> bool:
         """Parse the response + memory/plan bookkeeping. True → spend-limited."""
