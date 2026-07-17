@@ -1,6 +1,6 @@
 """CLI: voly cloud — link this device to a VOLY Cloud org.
 
-Default path is device-code + browser (Clerk / dashboard session):
+Default path is device-code + browser (dashboard session):
 ``voly cloud login --url https://cloud.voly.codes`` — no password on the laptop.
 
 Legacy ``--email/--password`` remains for scripts/CI only.
@@ -135,7 +135,7 @@ def _device_code_login(base: str, *, no_browser: bool, device_name: str) -> None
     verify = start.get("verification_uri_complete") or start.get("verification_uri") or ""
     interval = max(2, int(start.get("interval") or 5))
 
-    click.echo("Link this device in the browser (Clerk / dashboard session — no password here).")
+    click.echo("Link this device in the browser (dashboard session — no password here).")
     click.echo(f"  Code:  {user_code}")
     click.echo(f"  Open:  {verify}")
     if not no_browser and verify:

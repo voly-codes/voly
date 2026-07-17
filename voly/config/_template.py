@@ -186,7 +186,7 @@ telemetry:
 
 # VOLY Cloud link — report finished local runs into the shared org history
 # (metadata only: task text capped, cost, files touched — never file contents).
-# Prefer: voly cloud login --url https://cloud.voly.codes (browser + Clerk).
+# Prefer: voly cloud login --url https://cloud.voly.codes (browser confirm).
 # Env overrides: VOLY_CLOUD_ENABLED / _URL / _TENANT_ID / _TOKEN / _USER_ID / _DEVICE_ID.
 cloud:
   enabled: false

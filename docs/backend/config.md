@@ -87,7 +87,7 @@ VOLY_CLOUD_DEVICE_ID=...
 # tenant edge JWT). Metadata only — task text capped at 500 chars, cost,
 # files touched; never file contents. Env overrides the `cloud:` yaml
 # section; best-effort delivery, failures never break the run.
-# Prefer `voly cloud login --url <cp>` (browser + Clerk) over putting a
+# Prefer `voly cloud login --url <cp>` (browser confirm) over putting a
 # password on the laptop — that writes `.voly/cloud.json` with device_id.
 
 VOLY_CLOUD_LINK_FILE=.voly/cloud.json
@@ -111,7 +111,7 @@ VOLY_PXPIPE_OVERRIDE_BASE_URL=false
 ### `voly cloud` — device link CLI
 
 ```bash
-# Recommended — browser confirm (Clerk / dashboard session), no password on the laptop:
+# Recommended — browser confirm (dashboard session), no password on the laptop:
 voly cloud login --url https://cloud.voly.codes
 voly cloud status
 voly cloud sync [--since 30] [--limit 200]   # upload past .voly/events
