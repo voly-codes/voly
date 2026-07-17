@@ -1,7 +1,8 @@
 """Этап 6 — интеграционные тесты путей отказа (риск R2, assessment).
 
 Три P0-пути, все mock-based (без реальных API):
-  1. Billing fallback проходит всю цепочку claude-code → wrangler → opencode → zen;
+  1. Billing fallback проходит всю цепочку claude-code → cursor → deepseek →
+     wrangler → opencode → zen;
      retry_count / retry_cost_usd корректны, стоимость не задваивается —
      ни на chain-уровне (AgentRunner), ни при наложении executor-уровня
      (внутренний model-loop zen).
@@ -63,9 +64,11 @@ def _run_chain(monkeypatch, tmp_path, fakes: dict):
 # ─── 1. Billing fallback: полный проход цепочки до zen ────────────────────────
 
 def test_billing_chain_walks_all_four_to_zen(monkeypatch, tmp_path):
-    """claude-code, wrangler, opencode отдают billing_error → задача доходит до zen."""
+    """Billing errors through the chain → task reaches zen successfully."""
     fakes = {
         "claude-code": _FakeExec("claude-code", _billing(0.01, 100, 50)),
+        "cursor": _FakeExec("cursor", _billing(0.015, 150, 60)),
+        "deepseek": _FakeExec("deepseek", _billing(0.02, 180, 70)),
         "wrangler": _FakeExec("wrangler", _billing(0.02, 200, 80)),
         "opencode": _FakeExec("opencode", _billing(0.03, 300, 120)),
         "zen": _FakeExec("zen", ExecutorResult(
@@ -78,29 +81,28 @@ def test_billing_chain_walks_all_four_to_zen(monkeypatch, tmp_path):
     assert out.success is True
     assert out.executor == "zen"
 
-    # Chain timelog: все 4 executor-а в порядке цепочки, статусы честные.
     log = out.result.metadata["chain_timelog"]
     assert [e["executor"] for e in log] == BILLING_FALLBACK_CHAIN
     assert [e["status"] for e in log] == [
-        "billing_error", "billing_error", "billing_error", "success",
+        "billing_error", "billing_error", "billing_error",
+        "billing_error", "billing_error", "success",
     ]
 
-    # Retry-аккаунтинг: 3 брошенные попытки, их спенд изолирован в retry_cost_usd.
     ev = events[0]
-    assert ev.retry_count == 3
-    assert ev.retry_cost_usd == 0.06
-    # Тотал = финальная попытка + все брошенные, каждая учтена ровно один раз.
-    assert ev.cost_usd == 0.1
-    assert ev.tokens.input == 610
-    assert ev.tokens.output == 255
-    # Тотал события == сумме per-attempt стоимостей из timelog (нет задвоения).
+    assert ev.retry_count == 5
+    assert ev.retry_cost_usd == 0.095
+    assert ev.cost_usd == 0.135
+    assert ev.tokens.input == 940
+    assert ev.tokens.output == 385
     assert round(sum(e["cost_usd"] for e in log), 6) == ev.cost_usd
 
 
 def test_billing_chain_zen_also_exhausted(monkeypatch, tmp_path):
-    """Даже zen в billing_error → задача falls, но спенд всей цепочки учтён."""
+    """Even zen returns billing_error → task fails but full chain spend is recorded."""
     fakes = {
         "claude-code": _FakeExec("claude-code", _billing(0.01, 100, 50)),
+        "cursor": _FakeExec("cursor", _billing(0.015, 150, 60)),
+        "deepseek": _FakeExec("deepseek", _billing(0.02, 180, 70)),
         "wrangler": _FakeExec("wrangler", _billing(0.02, 200, 80)),
         "opencode": _FakeExec("opencode", _billing(0.03, 300, 120)),
         "zen": _FakeExec("zen", _billing(0.005, 10, 5)),
@@ -110,21 +112,22 @@ def test_billing_chain_zen_also_exhausted(monkeypatch, tmp_path):
     assert out.success is False
     assert out.executor == "zen"
     log = out.result.metadata["chain_timelog"]
-    assert [e["status"] for e in log] == ["billing_error"] * 4
+    assert [e["status"] for e in log] == ["billing_error"] * 6
 
     ev = events[0]
     assert ev.status == "failed"
-    # zen — финальная (не брошенная) попытка: в retry_* только первые три.
-    assert ev.retry_count == 3
-    assert ev.retry_cost_usd == 0.06
-    assert ev.cost_usd == 0.065
+    assert ev.retry_count == 5
+    assert ev.retry_cost_usd == 0.095
+    assert ev.cost_usd == 0.1
     assert round(sum(e["cost_usd"] for e in log), 6) == ev.cost_usd
 
 
 def test_billing_chain_skips_unavailable_without_charging(monkeypatch, tmp_path):
-    """Недоступный executor помечается skipped и не попадает в retry-спенд."""
+    """Unavailable executor is skipped and does not contribute to retry spend."""
     fakes = {
         "claude-code": _FakeExec("claude-code", _billing(0.01, 100, 50)),
+        "cursor": _FakeExec("cursor", _billing(0.005, 50, 20)),
+        "deepseek": _FakeExec("deepseek", _billing(0.005, 50, 20)),
         "wrangler": _FakeExec("wrangler", ExecutorResult(success=False, error="down"),
                               available=False),
         "opencode": _FakeExec("opencode", _billing(0.03, 300, 120)),
@@ -139,15 +142,16 @@ def test_billing_chain_skips_unavailable_without_charging(monkeypatch, tmp_path)
     log = out.result.metadata["chain_timelog"]
     assert [(e["executor"], e["status"]) for e in log] == [
         ("claude-code", "billing_error"),
+        ("cursor", "billing_error"),
+        ("deepseek", "billing_error"),
         ("wrangler", "skipped"),
         ("opencode", "billing_error"),
         ("zen", "success"),
     ]
     ev = events[0]
-    # Skipped wrangler ничего не потратил и не считается retry-попыткой.
-    assert ev.retry_count == 2
-    assert ev.retry_cost_usd == 0.04
-    assert ev.cost_usd == 0.042
+    assert ev.retry_count == 4
+    assert ev.retry_cost_usd == 0.05
+    assert ev.cost_usd == 0.052
 
 
 def test_billing_chain_and_zen_internal_retries_no_double_count(monkeypatch, tmp_path):
@@ -170,6 +174,8 @@ def test_billing_chain_and_zen_internal_retries_no_double_count(monkeypatch, tmp
 
     fakes = {
         "claude-code": _FakeExec("claude-code", _billing(0.05, 100, 40)),
+        "cursor": _FakeExec("cursor", _billing(0.01, 40, 10)),
+        "deepseek": _FakeExec("deepseek", _billing(0.01, 40, 10)),
         "wrangler": _FakeExec("wrangler", ExecutorResult(success=False, error="down"),
                               available=False),
         "opencode": _FakeExec("opencode", _billing(0.007, 30, 12)),
@@ -179,19 +185,16 @@ def test_billing_chain_and_zen_internal_retries_no_double_count(monkeypatch, tmp
 
     assert out.success is True and out.executor == "zen"
 
-    # Executor-уровень: zen сфолдил свой внутренний retry в свой результат.
     assert out.result.cost_usd == 0.003
     assert out.result.metadata["retry_count"] == 1
     assert out.result.metadata["retry_cost_usd"] == 0.001
 
-    # Chain-уровень: retry_* — только брошенные попытки цепочки (не внутренние zen).
     ev = events[0]
-    assert ev.retry_count == 2
-    assert ev.retry_cost_usd == 0.057
-    # Тотал = 0.05 (claude-code) + 0.007 (opencode) + 0.003 (zen с внутренним retry).
-    assert ev.cost_usd == 0.06
-    assert ev.tokens.input == 100 + 30 + 30
-    assert ev.tokens.output == 40 + 12 + 12
+    assert ev.retry_count == 4
+    assert ev.retry_cost_usd == 0.077
+    assert ev.cost_usd == 0.08
+    assert ev.tokens.input == 100 + 40 + 40 + 30 + 30
+    assert ev.tokens.output == 40 + 10 + 10 + 12 + 12
     # И тотал равен сумме per-attempt стоимостей timelog — нет задвоения
     # (у skipped-записи нет cost_usd: она ничего не потратила).
     log = out.result.metadata["chain_timelog"]
