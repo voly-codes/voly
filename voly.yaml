@@ -64,11 +64,15 @@ a2a:
   local_agents: []
   # Per-role executor timeout (hybrid developer/tester via claude-code).
   # Greenfield projects need more than the old 120s default.
-  task_timeout_seconds: 600
+  task_timeout_seconds: 900
   # Wave parallelism: independent roles (e.g. tester+devops after developer)
   # issue their chat calls concurrently; executor roles stay serial.
   parallel_waves: true
   max_parallel_roles: 3
+  # LLM lead call only for non-standard decompositions (unknown roles / >5
+  # sub-tasks); standard role sets use the deterministic role→tier map and
+  # skip the premium lead chat entirely. llm — always call; deterministic — never.
+  lead_mode: auto
 
 # Plan gates (Rung B): mirror multi-agent roles as Plan steps with verification.
 # shadow — run verifiers (git diff, file line limits, tester command) and log;
@@ -140,7 +144,7 @@ ai_gateway:
 
 cost_policy:
   enabled: true
-  max_task_cost_usd: 1.00
+  max_task_cost_usd: 5.00
   stop_on_budget_exceeded: true
   prefer_cheaper_model_for:
     - docs
