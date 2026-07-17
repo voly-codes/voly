@@ -17,43 +17,43 @@ BUILTIN_SKILLS: list[Skill] = [
     Skill(
         id="skill-architecture",
         name="Software Architecture",
-        description="Принципы проектирования архитектуры: микросервисы, монолиты, event-driven, CQRS",
+        description="Architecture design principles: microservices, monoliths, event-driven, CQRS",
         source=SkillSource.BUILTIN,
         tags=["architecture", "design", "system"],
         capabilities=["architecture", "system-design"],
         compatible_agents=["architect"],
         compatible_languages=["*"],
         compatible_frameworks=["*"],
-        content="Архитектурные принципы: SOLID, DDD, Clean Architecture, Hexagonal Architecture...",
+        content="Architecture principles: SOLID, DDD, Clean Architecture, Hexagonal Architecture...",
     ),
     Skill(
         id="skill-nextjs",
         name="Next.js Development",
-        description="Разработка на Next.js 14/15: App Router, Server Components, API Routes, Middleware",
+        description="Next.js 14/15 development: App Router, Server Components, API Routes, Middleware",
         source=SkillSource.BUILTIN,
         tags=["nextjs", "react", "frontend", "vercel"],
         capabilities=["frontend", "ssr", "api"],
         compatible_agents=["developer", "architect"],
         compatible_languages=["typescript", "javascript"],
         compatible_frameworks=["nextjs", "react"],
-        content="Next.js best practices: используй App Router, Server Components по умолчанию...",
+        content="Next.js best practices: use the App Router and Server Components by default...",
     ),
     Skill(
         id="skill-dotnet",
         name=".NET Development",
-        description="Разработка на .NET 8/9: ASP.NET Core, Entity Framework, Minimal APIs, SignalR",
+        description=".NET 8/9 development: ASP.NET Core, Entity Framework, Minimal APIs, SignalR",
         source=SkillSource.BUILTIN,
         tags=["dotnet", "csharp", "aspnet", "backend"],
         capabilities=["backend", "api", "orm"],
         compatible_agents=["developer", "architect"],
         compatible_languages=["csharp"],
         compatible_frameworks=["dotnet", "aspnet", "entity-framework"],
-        content=".NET best practices: используй Minimal APIs, primary constructors, Native AOT...",
+        content=".NET best practices: use Minimal APIs, primary constructors, Native AOT...",
     ),
     Skill(
         id="skill-postgres",
         name="PostgreSQL",
-        description="Работа с PostgreSQL: миграции, индексы, оптимизация запросов, репликация",
+        description="Working with PostgreSQL: migrations, indexes, query optimization, replication",
         source=SkillSource.BUILTIN,
         tags=["postgres", "sql", "database", "migration"],
         capabilities=["database", "sql", "migrations"],
@@ -61,12 +61,12 @@ BUILTIN_SKILLS: list[Skill] = [
         compatible_agents=["developer", "architect", "devops"],
         compatible_languages=["*"],
         compatible_frameworks=["*"],
-        content="PostgreSQL best practices: используй EXPLAIN ANALYZE, правильные индексы, connection pooling...",
+        content="PostgreSQL best practices: use EXPLAIN ANALYZE, proper indexes, connection pooling...",
     ),
     Skill(
         id="skill-docker",
         name="Docker & Containers",
-        description="Контейнеризация приложений: Dockerfile, docker-compose, multi-stage builds",
+        description="Application containerization: Dockerfile, docker-compose, multi-stage builds",
         source=SkillSource.BUILTIN,
         tags=["docker", "container", "devops"],
         capabilities=["containerization", "deployment"],
@@ -79,7 +79,7 @@ BUILTIN_SKILLS: list[Skill] = [
     Skill(
         id="skill-kubernetes",
         name="Kubernetes",
-        description="Оркестрация в Kubernetes: deployment, services, ingress, configmaps, secrets",
+        description="Kubernetes orchestration: deployment, services, ingress, configmaps, secrets",
         source=SkillSource.BUILTIN,
         tags=["kubernetes", "k8s", "orchestration", "devops"],
         capabilities=["orchestration", "deployment", "scaling"],
@@ -92,7 +92,7 @@ BUILTIN_SKILLS: list[Skill] = [
     Skill(
         id="skill-security",
         name="Security Best Practices",
-        description="Безопасность: OWASP Top 10, secrets management, dependency scanning, SAST",
+        description="Security: OWASP Top 10, secrets management, dependency scanning, SAST",
         source=SkillSource.BUILTIN,
         tags=["security", "owasp", "compliance"],
         capabilities=["security-audit", "vulnerability-scanning"],
@@ -104,19 +104,19 @@ BUILTIN_SKILLS: list[Skill] = [
     Skill(
         id="skill-testing",
         name="Testing Strategy",
-        description="Стратегия тестирования: unit, integration, e2e, contract tests, TDD",
+        description="Testing strategy: unit, integration, e2e, contract tests, TDD",
         source=SkillSource.BUILTIN,
         tags=["testing", "quality", "tdd"],
         capabilities=["testing", "unit-tests", "integration-tests"],
         compatible_agents=["tester", "developer"],
         compatible_languages=["*"],
         compatible_frameworks=["*"],
-        content="Testing pyramid: много unit-тестов, меньше integration, минимум e2e...",
+        content="Testing pyramid: many unit tests, fewer integration tests, minimal e2e...",
     ),
     Skill(
         id="skill-temporal",
         name="Temporal Workflows",
-        description="Разработка на Temporal: workflows, activities, signals, queries, retries",
+        description="Temporal development: workflows, activities, signals, queries, retries",
         source=SkillSource.BUILTIN,
         tags=["temporal", "workflow", "orchestration"],
         capabilities=["workflow", "orchestration"],
@@ -129,7 +129,7 @@ BUILTIN_SKILLS: list[Skill] = [
     Skill(
         id="skill-cloudflare",
         name="Cloudflare Platform",
-        description="Работа с Cloudflare: Workers, R2, D1, Pages, Queues, KV",
+        description="Working with Cloudflare: Workers, R2, D1, Pages, Queues, KV",
         source=SkillSource.BUILTIN,
         tags=["cloudflare", "serverless", "edge"],
         capabilities=["serverless", "storage", "edge-computing"],
@@ -137,16 +137,16 @@ BUILTIN_SKILLS: list[Skill] = [
         compatible_agents=["developer", "devops"],
         compatible_languages=["typescript", "javascript", "rust"],
         compatible_frameworks=["nextjs", "hono", "remix"],
-        content="Cloudflare best practices: Workers для edge compute, R2 для object storage, D1 для SQLite...",
+        content="Cloudflare best practices: Workers for edge compute, R2 for object storage, D1 for SQLite...",
     ),
     Skill(
         id="skill-pmbok6",
         name="PMBOK 6th Edition",
         description=(
-            "PMBOK® Guide 6th Edition — полная методология управления проектами PMI. "
-            "5 групп процессов, 10 областей знаний, 49 процессов, формулы EVM/PERT, "
-            "Agile-адаптация, шаблоны уставов/ИСР/реестров. Используй при планировании "
-            "проекта, аудите, подготовке к PMP, оценке рисков."
+            "PMBOK® Guide 6th Edition — the complete PMI project management methodology. "
+            "5 process groups, 10 knowledge areas, 49 processes, EVM/PERT formulas, "
+            "Agile adaptation, charter/WBS/register templates. Use for project planning, "
+            "audits, PMP preparation, and risk assessment."
         ),
         source=SkillSource.BUILTIN,
         tags=[
