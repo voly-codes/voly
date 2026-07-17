@@ -16,3 +16,9 @@ commit hash and an English description.
 - `e441807` — Add live run inspection, pre-run skill suggestions, compact skill queries, and longer A2A timeout defaults.
 - `d671637` — Enforce a 300-line limit on executor-changed files, allowing up to 500 only with strict architect approval and rationale markers.
 - `759e04c` — Require CF_WORKER_SPEND_TOKEN for the Spend Worker (no CLOUDFLARE_API_TOKEN fallback) and surface auth errors in the CF Spend UI.
+- `50df61a` — Enable plan shadow gates in voly.yaml (file line limits, git-diff and tester-command verification now active) and sync Anthropic model ids with the router.
+- `e76a9e0` — Estimate Cursor executor token usage and cost (char-based, flagged as estimated) instead of reporting $0 for every cursor run.
+- `b65a131` — Restore MemoryStore.list_by_category, fixing the crashed `voly memory list` CLI path.
+- `12c17a4` — Pass `voly run --cwd` into the pipeline context so hybrid multi-agent roles actually run as executors instead of downgrading to chat.
+- `879527d` — Translate builtin agent system prompts and skill content to English.
+- `83fd7a9` — A2A resilience batch: skip runtime-excluded providers in chat fallback, mark the lead's provider unhealthy on auth errors, halt the chain on spend limit, expire provider exclusions after a TTL, require a successful implement role for `completed`, make the reviewer depend on the developer in the high-complexity branch, report honest federation statuses, capture git deltas on executor exceptions, and translate all role prompts to English.
