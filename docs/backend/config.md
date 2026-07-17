@@ -186,7 +186,7 @@ pxpipe:
   # CLI: voly pxpipe start/status.
 
 plan:
-  enabled: false
+  enabled: true          # code default is false; repo voly.yaml enables shadow gates
   mode: shadow           # off | shadow | active (hard gates)
   store_dir: .voly/plans
   max_step_retries: 1
