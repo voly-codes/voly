@@ -183,3 +183,53 @@ def test_scout_filters_suggestions_without_task_overlap(monkeypatch) -> None:
     got = scout.find_missing(TASK)
     assert [s["id"] for s in got] == ["fastapi-patterns"]
     _ = scout_mod
+
+def test_lead_auto_mode_skips_llm_for_standard_roles() -> None:
+    from voly.a2a.decomposer import Subtask
+    from voly.a2a.lead import LeadOrchestrator
+
+    calls = []
+
+    class _Gw:
+        def chat(self, *a, **k):
+            calls.append(k.get("agent"))
+            return {"content": "[]", "usage": {}}
+
+    lead = LeadOrchestrator(gateway=_Gw(), skill_matcher=None, lead_mode="auto")
+    subs = [
+        Subtask("plan", "architect"),
+        Subtask("impl", "developer", depends_on=[0]),
+        Subtask("test", "tester", depends_on=[0, 1]),
+    ]
+    assignments = lead.assign("build service", subs)
+    assert calls == []  # no premium lead chat for a standard decomposition
+    assert [a.tier for a in assignments] == ["premium", "standard", "cheap"]
+
+
+def test_lead_auto_mode_asks_llm_for_unknown_role() -> None:
+    from voly.a2a.decomposer import Subtask
+    from voly.a2a.lead import LeadOrchestrator
+
+    calls = []
+
+    class _Gw:
+        def chat(self, *a, **k):
+            calls.append(k.get("agent"))
+            return {"content": "[]", "usage": {}}
+
+    lead = LeadOrchestrator(gateway=_Gw(), skill_matcher=None, lead_mode="auto")
+    lead.assign("build", [Subtask("analyze data", "data-scientist")])
+    assert calls == ["lead"]
+
+
+def test_lead_deterministic_mode_never_calls_llm() -> None:
+    from voly.a2a.decomposer import Subtask
+    from voly.a2a.lead import LeadOrchestrator
+
+    class _Gw:
+        def chat(self, *a, **k):
+            raise AssertionError("must not be called")
+
+    lead = LeadOrchestrator(gateway=_Gw(), skill_matcher=None, lead_mode="deterministic")
+    got = lead.assign("build", [Subtask("odd", "custom-role")])
+    assert got[0].tier == "standard"

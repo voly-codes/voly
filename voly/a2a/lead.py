@@ -26,7 +26,16 @@ _log = logging.getLogger("voly.a2a.multiagent")
 
 
 class LeadOrchestrator:
-    """Strong lead agent that assigns a model tier + skills to each sub-agent."""
+    """Strong lead agent that assigns a model tier + skills to each sub-agent.
+
+    ``lead_mode`` controls whether an LLM call is spent on the assignment:
+      - ``llm`` (constructor default, legacy) — always ask the lead model;
+      - ``deterministic`` — never; role→tier map + top skill candidates;
+      - ``auto`` (pipeline default via ``a2a.lead_mode``) — ask only for
+        non-standard decompositions (roles outside the deterministic map or
+        more than 5 sub-tasks). Standard runs skip the premium lead chat that
+        used to precede the (also premium) architect call.
+    """
 
     def __init__(
         self,
@@ -34,11 +43,23 @@ class LeadOrchestrator:
         skill_matcher: Callable[[str, str], list[Any]] | None = None,
         checker: Any = None,
         lead_model: str = "",
+        lead_mode: str = "llm",
     ):
         self.gateway = gateway
         self.skill_matcher = skill_matcher
         self.checker = checker or get_checker()
         self.lead_model = lead_model
+        self.lead_mode = (lead_mode or "llm").lower()
+
+    def _should_ask_llm(self, subtasks: list[Any]) -> bool:
+        if self.lead_mode == "deterministic":
+            return False
+        if self.lead_mode == "llm":
+            return True
+        # auto: the deterministic map fully covers standard role sets.
+        return len(subtasks) > 5 or any(
+            (st.agent or "").strip().lower() not in _ROLE_TIER for st in subtasks
+        )
 
     def _candidate_skills(self, task: str, role: str) -> list[tuple[str, str]]:
         """Return [(skill_id, name)] candidates for a role, from the registry."""
@@ -58,7 +79,14 @@ class LeadOrchestrator:
         skill_candidates = {
             i: self._candidate_skills(task, st.agent) for i, st in enumerate(subtasks)
         }
-        plan = self._ask_lead(task, subtasks, skill_candidates)
+        if self._should_ask_llm(subtasks):
+            plan = self._ask_lead(task, subtasks, skill_candidates)
+        else:
+            _log.info(
+                "lead orchestrator: deterministic assignment (mode=%s, %d sub-tasks)",
+                self.lead_mode, len(subtasks),
+            )
+            plan = {}
         assignments: list[Assignment] = []
         for i, st in enumerate(subtasks):
             entry = plan.get(i, {}) if plan else {}

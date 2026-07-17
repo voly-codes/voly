@@ -113,6 +113,13 @@ class A2AConfig:
     # Model used by the lead orchestrator to assign tiers/skills. Empty → resolve
     # a strong (premium) provider from the healthy pool automatically.
     lead_model: str = ""
+    # When to spend an LLM call on the lead orchestrator:
+    #   auto          — only for non-standard decompositions (unknown roles or
+    #                   >5 sub-tasks); standard role sets use the deterministic
+    #                   role→tier map, saving a premium chat before any code.
+    #   llm           — always call the lead model (legacy behavior).
+    #   deterministic — never call; role map + top skill candidates.
+    lead_mode: str = "auto"
     # Hybrid multi-agent (docs/proposals/hybrid-multiagent-executor.md):
     # implement roles may use AgentRunner+cwd; plan/review stay on chat().
     hybrid_code_gen: bool = True

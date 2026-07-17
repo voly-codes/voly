@@ -209,6 +209,8 @@ a2a:
   min_flags_for_dispatch: 2    # capability-flag threshold (code_gen/review/testing/deployment)
   execution_mode: local        # local (lead + sub-agents in-process) | federation (remote)
   lead_model: ""               # lead orchestrator model; empty → premium from healthy pool
+  lead_mode: auto              # auto (LLM lead only for non-standard decompositions) |
+                               # llm (always) | deterministic (never — role→tier map)
   federation_url: ""           # only for execution_mode=federation
   task_timeout_seconds: 600    # per-role timeout (hybrid executor); watchdog uses it as base
   parallel_waves: true         # independent roles run in dependency waves; a wave's

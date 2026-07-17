@@ -165,6 +165,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             task_timeout_seconds=float(a.get("task_timeout_seconds", 600.0)),
             execution_mode=a.get("execution_mode", "local"),
             lead_model=a.get("lead_model", ""),
+            lead_mode=str(a.get("lead_mode", "auto") or "auto").lower(),
             hybrid_code_gen=_parse_bool(a.get("hybrid_code_gen"), True),
             hybrid_require_cwd=_parse_bool(a.get("hybrid_require_cwd"), True),
             executor_default=a.get("executor_default", "claude-code"),
