@@ -42,6 +42,17 @@ _ROLE_TIER: dict[str, str] = {
 
 _VALID_TIERS = ("premium", "standard", "cheap")
 
+# Spread roles across healthy providers in the same tier (modulo pool length).
+_ROLE_PROVIDER_OFFSET: dict[str, int] = {
+    "architect": 0,
+    "developer": 1,
+    "tester": 2,
+    "reviewer": 1,
+    "devops": 0,
+    "security": 0,
+    "bugfixer": 2,
+}
+
 # Roles that must succeed for a code-gen multi-agent run to count as completed.
 _IMPLEMENT_ROLES = frozenset({"developer", "bugfixer"})
 
@@ -153,6 +164,21 @@ def _excluded_providers() -> set[str]:
     return {p.strip() for p in raw.split(",") if p.strip()}
 
 
+def _healthy_providers_for_tier(tier: str, checker: Any) -> list[str]:
+    """Ordered healthy provider names for a tier (excludes VOLY_A2A_EXCLUDE_PROVIDERS)."""
+    excluded = _excluded_providers()
+
+    def _ok(provider: str) -> bool:
+        return (
+            provider not in excluded
+            and provider in _PROVIDER_MODELS
+            and checker.check(provider).healthy
+        )
+
+    pool = _TIER_PROVIDERS.get(tier, _WEAK)
+    return [p for p in pool if _ok(p)]
+
+
 def resolve_tier_model(tier: str, checker: Any = None) -> tuple[str, str]:
     """Resolve a (model, provider) for the given tier from the healthy real pool."""
     checker = checker or get_checker()
@@ -160,6 +186,10 @@ def resolve_tier_model(tier: str, checker: Any = None) -> tuple[str, str]:
 
     def _ok(provider: str) -> bool:
         return provider not in excluded and checker.check(provider).healthy
+
+    healthy = _healthy_providers_for_tier(tier, checker)
+    if healthy:
+        return _PROVIDER_MODELS[healthy[0]]
 
     for provider in _TIER_PROVIDERS.get(tier, _WEAK):
         if provider in _PROVIDER_MODELS and _ok(provider):
@@ -171,3 +201,35 @@ def resolve_tier_model(tier: str, checker: Any = None) -> tuple[str, str]:
             return pair
     # Last resort — anthropic (call will surface a clear auth error if unconfigured).
     return _PROVIDER_MODELS["anthropic"]
+
+
+def resolve_role_model(
+    role: str,
+    tier: str | None = None,
+    checker: Any = None,
+) -> tuple[str, str]:
+    """Resolve (model, provider) with per-role offset inside the tier pool."""
+    checker = checker or get_checker()
+    role_key = (role or "").strip().lower()
+    tier_key = tier or _ROLE_TIER.get(role_key, "standard")
+    healthy = _healthy_providers_for_tier(tier_key, checker)
+    if not healthy:
+        return resolve_tier_model(tier_key, checker)
+    offset = _ROLE_PROVIDER_OFFSET.get(role_key, 0)
+    provider = healthy[offset % len(healthy)]
+    return _PROVIDER_MODELS[provider]
+
+
+def chat_fallback_providers(
+    tier: str,
+    role: str,
+    checker: Any = None,
+) -> list[str]:
+    """Provider names to try for chat roles after the primary assignment fails."""
+    checker = checker or get_checker()
+    healthy = _healthy_providers_for_tier(tier, checker)
+    if not healthy:
+        return []
+    offset = _ROLE_PROVIDER_OFFSET.get((role or "").strip().lower(), 0)
+    start = offset % len(healthy)
+    return healthy[start:] + healthy[:start]

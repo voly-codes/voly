@@ -15,8 +15,9 @@ from voly.a2a.assignment import (
     _ROLE_TIER,
     _VALID_TIERS,
     Assignment,
-    resolve_tier_model,
+    resolve_role_model,
 )
+from voly.a2a.hybrid import EXECUTOR_CAPABLE_ROLES
 from voly.ai_gateway.health import get_checker
 from voly.router import _PROVIDER_MODELS
 
@@ -67,12 +68,15 @@ class LeadOrchestrator:
             skills = [s for s in entry.get("skills", []) if s in valid_ids]
             if not skills:
                 skills = [sid for sid, _ in skill_candidates[i][:2]]
-            model, provider = resolve_tier_model(tier, self.checker)
+            model, provider = resolve_role_model(st.agent, tier, self.checker)
+            execution = str(entry.get("execution") or "").strip().lower()
+            if execution == "executor" and st.agent.lower() not in EXECUTOR_CAPABLE_ROLES:
+                execution = ""
             assignments.append(Assignment(
                 idx=i, role=st.agent, description=st.description,
                 depends_on=list(getattr(st, "depends_on", [])),
                 tier=tier, model=model, provider=provider, skills=skills,
-                execution=entry.get("execution") or "",
+                execution=execution,
             ))
         return assignments
 
@@ -82,7 +86,7 @@ class LeadOrchestrator:
         """Call a strong model to assign tier + skills. Returns {idx: {tier, skills}}."""
         model, provider = (
             (self.lead_model, _provider_for_model(self.lead_model))
-            if self.lead_model else resolve_tier_model("premium", self.checker)
+            if self.lead_model else resolve_role_model("architect", "premium", self.checker)
         )
         roles_block = "\n".join(
             f"{i}. role={st.agent}; task={st.description[:160]}; "
@@ -94,8 +98,9 @@ class LeadOrchestrator:
             "релевантные скилы. Критерии: сложное проектирование/ревью/безопасность → "
             "'premium'; обычная реализация → 'standard'; рутинные тесты/деплой/батч → 'cheap'. "
             "Скилы выбирай ТОЛЬКО из skills_available каждой роли (можно пусто). "
-            "Опционально задай execution: 'executor' если роль должна писать файлы "
-            "в проекте, 'chat' если достаточно текста; не уверен — опусти поле. "
+            "Опционально задай execution: 'executor' ТОЛЬКО для developer/bugfixer "
+            "(пишут файлы в проекте); tester/reviewer/devops/architect — всегда 'chat'. "
+            "Не уверен — опусти поле. "
             "Ответь СТРОГО JSON-массивом без пояснений: "
             '[{"idx":0,"tier":"premium","skills":["id1"],"execution":"chat"}, ...]'
         )

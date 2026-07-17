@@ -12,14 +12,25 @@ from typing import Any, Literal
 
 RoleMode = Literal["chat", "executor"]
 
-# Default implement set when a2a.executor_roles is empty.
+# Default implement set when a2a.executor_roles is empty (tester writes tests via chat).
 DEFAULT_EXECUTOR_ROLES: frozenset[str] = frozenset({
     "developer",
     "bugfixer",
-    "tester",
 })
 
-# Roles that never default to executor (lead override still allowed).
+# Roles that may use hybrid executor mode (lead cannot promote others).
+EXECUTOR_CAPABLE_ROLES: frozenset[str] = frozenset({
+    "developer",
+    "bugfixer",
+})
+
+# Per-role executor when hybrid mode=executor (env: VOLY_A2A_EXECUTOR_<ROLE>).
+_ROLE_EXECUTOR: dict[str, str] = {
+    "developer": "cursor",
+    "bugfixer": "deepseek",
+}
+
+# Roles that never default to executor (lead cannot promote to executor).
 DEFAULT_CHAT_ROLES: frozenset[str] = frozenset({
     "architect",
     "reviewer",
@@ -51,6 +62,18 @@ def hybrid_active(
     return True
 
 
+def resolve_role_executor(role: str, fallback: str = "claude-code") -> str:
+    """Pick the file-writing executor for a hybrid role."""
+    import os
+
+    role_key = (role or "").strip().lower()
+    env_key = f"VOLY_A2A_EXECUTOR_{role_key.upper()}"
+    override = os.environ.get(env_key, "").strip()
+    if override:
+        return override
+    return _ROLE_EXECUTOR.get(role_key, fallback)
+
+
 def resolve_role_mode(
     role: str,
     *,
@@ -61,11 +84,10 @@ def resolve_role_mode(
 ) -> tuple[RoleMode, str]:
     """Return ``(mode, reason)`` for a sub-agent role.
 
-    Policy (v1):
+    Policy (v2):
     - hybrid off → always chat
-    - lead ``execution`` override when valid
-    - ``tester`` is executor only when ``requires_code_gen``
-    - default executor roles: developer, bugfixer, tester
+    - lead ``execution`` override only for EXECUTOR_CAPABLE_ROLES
+    - default executor roles: developer, bugfixer (tester/devops → chat)
     - everything else → chat
     """
     role_key = (role or "").strip().lower()
@@ -75,6 +97,8 @@ def resolve_role_mode(
     if lead_execution:
         lead = str(lead_execution).strip().lower()
         if lead in _VALID_LEAD_EXECUTION:
+            if lead == "executor" and role_key not in EXECUTOR_CAPABLE_ROLES:
+                return "chat", "lead_executor_denied"
             return lead, "lead_override"  # type: ignore[return-value]
 
     roles = (
@@ -86,7 +110,7 @@ def resolve_role_mode(
     if role_key == "tester" and not requires_code_gen:
         return "chat", "tester_text_only"
 
-    if role_key in roles:
+    if role_key in roles and role_key in EXECUTOR_CAPABLE_ROLES:
         return "executor", "role_map"
 
     return "chat", "role_map_chat"
@@ -124,9 +148,8 @@ def make_agent_runner_executor(
                 f"{system.strip()}\n\n---\n\n"
                 f"## Sub-task ({role})\n\n{task}"
             )
-        # Prefer explicit executor name so we do not remap roles via DEFAULT_AGENT_EXECUTOR
-        # (e.g. developer → cursor). Billing chain starts at this executor.
-        agent_key = (executor or "claude-code").strip() or "claude-code"
+        # Role-specific executor (developer→cursor, bugfixer→deepseek, …).
+        agent_key = resolve_role_executor(role, (executor or "claude-code").strip() or "claude-code")
         rr = runner.run(
             full_task,
             agent_key,

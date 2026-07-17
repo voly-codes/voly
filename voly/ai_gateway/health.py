@@ -75,6 +75,7 @@ class ProviderHealthChecker:
             reason=reason or "runtime excluded",
         )
         _log.warning("provider %s marked unhealthy: %s", provider, reason or "runtime excluded")
+
     def configure_byok(self, enabled: bool, providers: list[str] | None = None) -> None:
         """Sync BYOK state from config; resets cached statuses."""
         self._byok_enabled = enabled

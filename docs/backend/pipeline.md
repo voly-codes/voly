@@ -94,8 +94,19 @@ When `a2a.hybrid_code_gen` is true **and** a project `cwd` is available
 
 | Role | Default mode |
 |---|---|
-| architect, reviewer, devops | `chat` → `AIGateway.chat()` |
-| developer, bugfixer, tester | `executor` → AgentRunner (PR2); PR1 falls back to chat if no runner |
+| architect, reviewer, devops, tester | `chat` → `AIGateway.chat()` |
+| developer, bugfixer | `executor` → AgentRunner (PR2); PR1 falls back to chat if no runner |
+
+Per-role **chat providers** are spread across the healthy tier pool via
+`resolve_role_model()` (architect → first premium, developer → second, tester →
+third, …). On gateway error, chat roles retry the next healthy provider in the
+tier (`_chat_with_provider_fallback`).
+
+Per-role **executors** (`resolve_role_executor`): developer defaults to
+`cursor`, bugfixer to `deepseek` (override per role:
+`VOLY_A2A_EXECUTOR_DEVELOPER`, `VOLY_A2A_EXECUTOR_BUGFIXER`). Lead may set
+`execution: executor` only for developer/bugfixer; tester/devops/reviewer/architect
+are always chat.
 
 Config (`voly.yaml` → `a2a`):
 
@@ -103,8 +114,8 @@ Config (`voly.yaml` → `a2a`):
 |---|---|---|
 | `hybrid_code_gen` | `true` | Master switch (`VOLY_A2A_HYBRID` env override) |
 | `hybrid_require_cwd` | `true` | Without cwd, all roles stay chat |
-| `executor_default` | `claude-code` | First executor for implement roles |
-| `executor_roles` | developer, bugfixer, tester | Roles that prefer executor mode |
+| `executor_default` | `claude-code` | Fallback when role has no mapped executor |
+| `executor_roles` | developer, bugfixer | Roles that prefer executor mode |
 
 **PR1:** mode map + `run_local` branch + injectable `executor_runner`.
 

@@ -21,7 +21,13 @@ from typing import Any
 
 # Re-exported for backward compatibility — external callers import these from
 # voly.a2a.multiagent (pipeline/stages.py, telemetry, tests).
-from voly.a2a.assignment import Assignment, evaluate_multiagent_outcome, resolve_tier_model  # noqa: F401
+from voly.a2a.assignment import (
+    Assignment,
+    chat_fallback_providers,
+    evaluate_multiagent_outcome,
+    resolve_tier_model,
+)  # noqa: F401
+from voly.a2a.hybrid import resolve_role_executor
 from voly.a2a.lead import LeadOrchestrator, _parse_plan  # noqa: F401
 
 _log = logging.getLogger("voly.a2a.multiagent")
@@ -72,8 +78,78 @@ def _exclude_provider_on_gateway_error(provider: str, error: str) -> None:
     from voly.ai_gateway.health import get_checker
 
     kind = classify_provider_error(None, error, provider=provider)
+    if kind is None:
+        low = error.lower()
+        if "401" in low or "unauthorized" in low or "invalid x-api-key" in low:
+            kind = "unauthorized"
+        elif "quota" in low or "billing" in low or "credit" in low:
+            kind = "quota_exhausted"
     if kind in _RECOVERABLE_PROVIDER_ERRORS:
         get_checker().mark_unhealthy(provider, reason=kind or "gateway error")
+
+
+def _chat_with_provider_fallback(
+    gateway: Any,
+    *,
+    messages: list[dict[str, str]],
+    assignment: Assignment,
+    system: str,
+    max_tokens: int,
+    temperature: float,
+) -> dict[str, Any]:
+    """Try gateway.chat on the assigned provider, then other healthy tier providers."""
+    from voly.router import _PROVIDER_MODELS
+
+    providers = chat_fallback_providers(assignment.tier, assignment.role)
+    if assignment.provider and assignment.provider not in providers:
+        providers = [assignment.provider, *providers]
+    elif assignment.provider:
+        providers = [assignment.provider] + [p for p in providers if p != assignment.provider]
+    if not providers:
+        providers = [assignment.provider] if assignment.provider else []
+
+    last_err = ""
+    for provider in providers:
+        model = _PROVIDER_MODELS.get(provider, (assignment.model, provider))[0]
+        try:
+            resp = gateway.chat(
+                messages,
+                model=model,
+                provider_name=provider,
+                system=system,
+                agent=assignment.role,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+        except Exception as e:  # noqa: BLE001
+            last_err = str(e)
+            _exclude_provider_on_gateway_error(provider, last_err)
+            _log.warning(
+                "multiagent[%d] %s chat %s failed (%s) — trying next provider",
+                assignment.idx, assignment.role, provider, last_err[:120],
+            )
+            continue
+
+        if resp.get("error"):
+            last_err = str(resp["error"])
+            _exclude_provider_on_gateway_error(provider, last_err)
+            _log.warning(
+                "multiagent[%d] %s chat %s error (%s) — trying next provider",
+                assignment.idx, assignment.role, provider, last_err[:120],
+            )
+            continue
+
+        if provider != assignment.provider:
+            assignment.provider = provider
+            assignment.model = model
+            assignment.mode_reason = (
+                f"{assignment.mode_reason}+provider_fallback"
+                if assignment.mode_reason
+                else "provider_fallback"
+            )
+        return resp
+
+    return {"error": last_err or "all chat providers failed", "content": ""}
 
 
 def _skills_block(skill_ids: list[str], skill_matcher: Callable[[str, str], list[Any]] | None,
@@ -361,7 +437,7 @@ def run_local(
 
         # ── Executor branch (PR1: injectable runner; PR2: AgentRunner) ────────
         if mode == "executor":
-            a.executor = executor_default or "claude-code"
+            a.executor = resolve_role_executor(a.role, executor_default or "claude-code")
             if executor_runner is not None:
                 _log.info(
                     "multiagent[%d] %s → EXECUTOR %s (cwd=%s, reason=%s)",
@@ -430,10 +506,13 @@ def run_local(
         role_max_tokens = 2048 if a.role == "architect" else max_tokens
         resp: dict[str, Any] = {}
         try:
-            resp = gateway.chat(
-                messages,
-                model=a.model, provider_name=a.provider, system=system,
-                agent=a.role, max_tokens=role_max_tokens, temperature=temperature,
+            resp = _chat_with_provider_fallback(
+                gateway,
+                messages=messages,
+                assignment=a,
+                system=system,
+                max_tokens=role_max_tokens,
+                temperature=temperature,
             )
         except Exception as e:  # noqa: BLE001
             a.error = str(e)

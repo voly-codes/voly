@@ -63,6 +63,10 @@ VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
 # Runtime: auth/billing errors in `run_local` also mark providers unhealthy for
 # the rest of the process (see `ProviderHealthChecker.mark_unhealthy`).
 
+VOLY_A2A_EXECUTOR_DEVELOPER=cursor
+VOLY_A2A_EXECUTOR_BUGFIXER=deepseek
+# Per-role executor override for hybrid mode=executor (see voly/a2a/hybrid.py).
+
 VOLY_PLAN_ENABLED=true
 VOLY_PLAN_MODE=active
 # Plan gates (Rung B). CLI: voly plan run plan.yaml
@@ -261,8 +265,9 @@ config.ai_gateway.spend_limit_usd_per_day
 |---|---|
 | `a2a.hybrid_code_gen` / `VOLY_A2A_HYBRID` | Enable hybrid role modes |
 | `a2a.hybrid_require_cwd` | Without cwd keep all roles on chat |
-| `a2a.executor_default` | First executor for implement roles |
-| `a2a.executor_roles` | Roles that prefer executor mode |
+| `a2a.executor_default` | Fallback executor when role has no mapping |
+| `a2a.executor_roles` | Roles that prefer executor mode (default: developer, bugfixer) |
+| `VOLY_A2A_EXECUTOR_<ROLE>` | Per-role executor override (e.g. `VOLY_A2A_EXECUTOR_DEVELOPER=cursor`) |
 
 See `docs/proposals/hybrid-multiagent-executor.md` and `docs/backend/pipeline.md`.
 
