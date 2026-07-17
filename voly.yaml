@@ -77,6 +77,11 @@ a2a:
   # per-role map (developer→cursor, bugfixer→deepseek) when set to anything
   # other than "claude-code". Per-role env VOLY_A2A_EXECUTOR_<ROLE> still wins.
   executor_default: claude-code
+  # Per-role model tier overrides (premium | standard | cheap).
+  # architect defaults to standard — plan-only, not tied to a single provider.
+  # Set architect: premium to restore Opus-level planning when budget allows.
+  role_tiers:
+    architect: standard
 
 # Plan gates (Rung B): mirror multi-agent roles as Plan steps with verification.
 # shadow — run verifiers (git diff, file line limits, tester command) and log;

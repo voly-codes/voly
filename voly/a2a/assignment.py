@@ -32,7 +32,7 @@ _TIER_PROVIDERS: dict[str, list[str]] = {
 
 # Role → default tier (fallback when the lead orchestrator is unavailable) + persona.
 _ROLE_TIER: dict[str, str] = {
-    "architect": "premium",
+    "architect": "standard",  # plan-only; premium is overkill and ties to a single provider
     "developer": "standard",
     "tester": "cheap",
     "reviewer": "premium",

@@ -44,12 +44,14 @@ class LeadOrchestrator:
         checker: Any = None,
         lead_model: str = "",
         lead_mode: str = "llm",
+        role_tiers: dict[str, str] | None = None,
     ):
         self.gateway = gateway
         self.skill_matcher = skill_matcher
         self.checker = checker or get_checker()
         self.lead_model = lead_model
         self.lead_mode = (lead_mode or "llm").lower()
+        self.role_tiers: dict[str, str] = role_tiers or {}
 
     def _should_ask_llm(self, subtasks: list[Any]) -> bool:
         if self.lead_mode == "deterministic":
@@ -90,9 +92,14 @@ class LeadOrchestrator:
         assignments: list[Assignment] = []
         for i, st in enumerate(subtasks):
             entry = plan.get(i, {}) if plan else {}
-            tier = entry.get("tier") or _ROLE_TIER.get(st.agent, "standard")
+            role_key = (st.agent or "").strip().lower()
+            tier = (
+                entry.get("tier")
+                or self.role_tiers.get(role_key)
+                or _ROLE_TIER.get(role_key, "standard")
+            )
             if tier not in _VALID_TIERS:
-                tier = _ROLE_TIER.get(st.agent, "standard")
+                tier = self.role_tiers.get(role_key) or _ROLE_TIER.get(role_key, "standard")
             valid_ids = {sid for sid, _ in skill_candidates[i]}
             skills = [s for s in entry.get("skills", []) if s in valid_ids]
             if not skills and not plan:

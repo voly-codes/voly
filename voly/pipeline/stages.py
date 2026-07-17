@@ -214,6 +214,7 @@ class _PipelineStageMixin:
             skill_matcher=self.match_skills_for_task,  # type: ignore[attr-defined]
             lead_model=getattr(self.config.a2a, 'lead_model', ''),  # type: ignore[attr-defined]
             lead_mode=getattr(self.config.a2a, 'lead_mode', 'auto') or 'auto',  # type: ignore[attr-defined]
+            role_tiers=dict(getattr(self.config.a2a, 'role_tiers', None) or {}),  # type: ignore[attr-defined]
         )
         # Same as single-model path: surface marketplace skills not yet installed.
         skill_suggestions = self._stage_skill_suggest(task)  # type: ignore[attr-defined]

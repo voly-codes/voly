@@ -88,7 +88,7 @@ def test_lead_fallback_on_non_json():
     assignments = LeadOrchestrator(gateway=_BadLeadGateway(), skill_matcher=None).assign("x", subs)
     assert len(assignments) == 5
     tiers = {a.role: a.tier for a in assignments}
-    assert tiers["architect"] == "premium"
+    assert tiers["architect"] == "standard"  # architect tier lowered from premium (P4)
     assert tiers["tester"] == "cheap"
 
 

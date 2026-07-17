@@ -203,7 +203,8 @@ def test_lead_auto_mode_skips_llm_for_standard_roles() -> None:
     ]
     assignments = lead.assign("build service", subs)
     assert calls == []  # no premium lead chat for a standard decomposition
-    assert [a.tier for a in assignments] == ["premium", "standard", "cheap"]
+    # architect tier changed to "standard" (P4: avoid Anthropic lock-in for plan-only role)
+    assert [a.tier for a in assignments] == ["standard", "standard", "cheap"]
 
 
 def test_lead_auto_mode_asks_llm_for_unknown_role() -> None:

@@ -172,6 +172,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             executor_roles=list(a.get("executor_roles") or []),
             parallel_waves=_parse_bool(a.get("parallel_waves"), True),
             max_parallel_roles=int(a.get("max_parallel_roles", 3)),
+            role_tiers={str(k): str(v) for k, v in (a.get("role_tiers") or {}).items()},
         )
 
     if not config.a2a.federation_url:

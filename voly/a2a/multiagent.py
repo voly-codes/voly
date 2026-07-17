@@ -34,6 +34,36 @@ from voly.a2a.lead import LeadOrchestrator, _parse_plan  # noqa: F401
 
 _log = logging.getLogger("voly.a2a.multiagent")
 
+# Project doc files read into architect's context when cwd is available.
+_PROJECT_CONTEXT_FILES = ("CLAUDE.md", "README.md", "ARCHITECTURE.md", "docs/ARCHITECTURE.md")
+_PROJECT_CONTEXT_MAX_CHARS = 2500
+
+
+def _project_context_block(cwd: str) -> str:
+    """Read key project files to give the architect project-specific context."""
+    import os
+    if not cwd or not os.path.isdir(cwd):
+        return ""
+    parts: list[str] = []
+    remaining = _PROJECT_CONTEXT_MAX_CHARS
+    for name in _PROJECT_CONTEXT_FILES:
+        path = os.path.join(cwd, name)
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                content = fh.read(remaining)
+            snippet = content.strip()
+            if snippet:
+                parts.append(f"## {name}\n{snippet}")
+                remaining -= len(snippet)
+                if remaining <= 0:
+                    break
+        except OSError:
+            continue
+    return "\n\n".join(parts)
+
+
 _FILE_LINE_POLICY = (
     "File size policy: every created/modified file must stay within 300 lines of code. "
     "Up to 500 lines is allowed only when the architect explicitly approved it in the plan "
@@ -509,6 +539,12 @@ def run_local(
         persona = _ROLE_PROMPT.get(a.role, _DEFAULT_PERSONA)
         skills = _skills_block(a.skills, skill_matcher, task, a.role)
         system = f"{persona}\n\n{skills}".strip() if skills else persona
+        # Inject project context for architect so it can give project-specific
+        # answers rather than generic advice (P3: "неточный ответ architect").
+        if a.role == "architect" and cwd:
+            ctx = _project_context_block(cwd)
+            if ctx:
+                system = f"{system}\n\n## Project context\n{ctx}".strip()
         return user, system, git_before
 
     def _run_executor(a: Assignment, user: str, system: str, git_before: dict) -> None:
