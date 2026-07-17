@@ -256,6 +256,11 @@ def _cli_responses(url: str) -> dict:
             "user": {"id": "u-1"},
             "organizations": [{"tenant_id": "t-cli", "slug": "cliorg", "role": "owner"}],
         }
+    if "/devices" in url and not url.endswith("/heartbeat"):
+        return {
+            "device": {"id": "dev-1", "tenant_id": "t-cli", "user_id": "u-1", "name": "host"},
+            "device_token": {"access_token": "tenant-tok", "expires_in": 2592000},
+        }
     if url.endswith("/tokens"):
         return {"access_token": "tenant-tok", "expires_in": 2592000}
     raise AssertionError(f"unexpected url {url}")
@@ -268,10 +273,9 @@ def test_cli_cloud_login_status_logout(monkeypatch: pytest.MonkeyPatch) -> None:
     from voly.cloud_link import read_link_file
 
     class _CliResp:
-        def __init__(self, body: dict):
+        def __init__(self, body: dict, status: int = 200):
             self._body = body
-
-        status = 200
+            self.status = status
 
         def read(self) -> bytes:
             return json.dumps(self._body).encode("utf-8")
@@ -287,7 +291,8 @@ def test_cli_cloud_login_status_logout(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_urlopen(req, timeout=15.0):
         auth = req.get_header("Authorization") or ""
         captured_tokens.append(auth)
-        return _CliResp(_cli_responses(req.full_url))
+        body = _cli_responses(req.full_url)
+        return _CliResp(body, status=201 if "/devices" in req.full_url else 200)
 
     monkeypatch.setattr("voly.cli.commands.cloud_cmd.urllib.request.urlopen", fake_urlopen)
 
@@ -303,12 +308,13 @@ def test_cli_cloud_login_status_logout(monkeypatch: pytest.MonkeyPatch) -> None:
     assert link is not None
     assert link["tenant_id"] == "t-cli"
     assert link["token"] == "tenant-tok"
-    # mint call carried the user session token
+    assert link["device_id"] == "dev-1"
     assert "Bearer user-tok" in captured_tokens
 
     result = runner.invoke(cloud, ["status"])
     assert result.exit_code == 0, result.output
     assert "cliorg" in result.output
+    assert "dev-1" in result.output
 
     result = runner.invoke(cloud, ["logout"])
     assert result.exit_code == 0
@@ -316,3 +322,106 @@ def test_cli_cloud_login_status_logout(monkeypatch: pytest.MonkeyPatch) -> None:
 
     result = runner.invoke(cloud, ["status"])
     assert result.exit_code == 1
+
+
+def test_cli_device_code_login(monkeypatch: pytest.MonkeyPatch) -> None:
+    from click.testing import CliRunner
+
+    from voly.cli.commands.cloud_cmd import cloud
+    from voly.cloud_link import read_link_file
+
+    class _CliResp:
+        def __init__(self, body: dict, status: int = 200):
+            self._body = body
+            self.status = status
+
+        def read(self) -> bytes:
+            return json.dumps(self._body).encode("utf-8")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    polls = {"n": 0}
+
+    def fake_urlopen(req, timeout=15.0):
+        url = req.full_url
+        if url.endswith("/device-auth/start"):
+            return _CliResp(
+                {
+                    "device_code": "dc",
+                    "user_code": "ABCD-EFGH",
+                    "verification_uri": "http://dash/link",
+                    "verification_uri_complete": "http://dash/link?code=ABCD-EFGH",
+                    "interval": 1,
+                    "expires_in": 600,
+                }
+            )
+        if url.endswith("/device-auth/poll"):
+            polls["n"] += 1
+            if polls["n"] < 2:
+                import urllib.error
+                from io import BytesIO
+
+                raise urllib.error.HTTPError(
+                    url, 400, "pending", hdrs=None, fp=BytesIO(b'{"detail":"authorization_pending"}')
+                )
+            return _CliResp(
+                {
+                    "device": {"id": "dev-2", "tenant_id": "t-2"},
+                    "device_token": {"access_token": "edge-2"},
+                    "tenant_id": "t-2",
+                    "tenant_slug": "acme",
+                    "user_id": "u-2",
+                    "user_email": "a@b.co",
+                }
+            )
+        raise AssertionError(url)
+
+    monkeypatch.setattr("voly.cli.commands.cloud_cmd.urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("voly.cli.commands.cloud_cmd.time.sleep", lambda *_: None)
+    monkeypatch.setattr("voly.cli.commands.cloud_cmd.webbrowser.open", lambda *_: True)
+
+    runner = CliRunner()
+    result = runner.invoke(cloud, ["login", "--url", "http://cp:7790", "--no-browser"])
+    assert result.exit_code == 0, result.output
+    link = read_link_file()
+    assert link is not None
+    assert link["device_id"] == "dev-2"
+    assert link["token"] == "edge-2"
+    assert link["tenant_slug"] == "acme"
+
+
+def test_send_heartbeat_and_sync(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from voly.cloud_link import save_link_file, send_heartbeat, sync_local_events
+    from voly.telemetry import TaskEvent
+
+    save_link_file(
+        {
+            "base_url": "http://cp:7790",
+            "tenant_id": "t-1",
+            "token": "tok",
+            "device_id": "dev-9",
+            "user_id": "u-1",
+        }
+    )
+    urls: list[str] = []
+
+    def fake_urlopen(req, timeout=5.0):
+        urls.append(req.full_url)
+        return _Resp()
+
+    monkeypatch.setattr("voly.cloud_link.urllib.request.urlopen", fake_urlopen)
+    assert send_heartbeat() is True
+    assert any("/devices/dev-9/heartbeat" in u for u in urls)
+
+    events_dir = tmp_path / "events"
+    events_dir.mkdir()
+    ev = TaskEvent(task_id="past-1", agent="a", status="completed", task_prompt="old", cost_usd=0.1)
+    (events_dir / "past-1.json").write_text(ev.to_json(), encoding="utf-8")
+    urls.clear()
+    result = sync_local_events(None, since_days=30, limit=10, events_dir=events_dir)
+    assert result["synced"] == 1
+    assert any("/runs/report" in u for u in urls)

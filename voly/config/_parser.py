@@ -331,6 +331,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             tenant_id=os.path.expandvars(str(c.get("tenant_id", "") or "")).strip(),
             token=os.path.expandvars(str(c.get("token", "") or "")).strip(),
             user_id=os.path.expandvars(str(c.get("user_id", "") or "")).strip(),
+            device_id=os.path.expandvars(str(c.get("device_id", "") or "")).strip(),
             timeout_seconds=float(c.get("timeout_seconds", 5.0)),
         )
 
@@ -340,6 +341,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
         ("VOLY_CLOUD_TENANT_ID", "tenant_id"),
         ("VOLY_CLOUD_TOKEN", "token"),
         ("VOLY_CLOUD_USER_ID", "user_id"),
+        ("VOLY_CLOUD_DEVICE_ID", "device_id"),
     ):
         env_value = os.environ.get(env_key, "").strip()
         if env_value:

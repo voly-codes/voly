@@ -73,6 +73,14 @@ def ui(
     ev_path = pathlib.Path(events_dir) if events_dir else None
     config = ctx.obj.get("config") if ctx.obj else None
 
+    try:
+        from voly.cloud_link import start_heartbeat_loop
+
+        if start_heartbeat_loop(config):
+            click.echo("Cloud device heartbeat: on")
+    except Exception:
+        pass
+
     from voly.web.server import create_app
 
     app = create_app(events_dir=ev_path, config=config)

@@ -226,6 +226,7 @@ class CloudConfig:
     tenant_id: str = ""
     token: str = ""         # prefer env VOLY_CLOUD_TOKEN over yaml
     user_id: str = ""       # optional attribution shown in the org timeline
+    device_id: str = ""     # AgentDevice id — required for heartbeat / runs/report
     timeout_seconds: float = 5.0
 
 

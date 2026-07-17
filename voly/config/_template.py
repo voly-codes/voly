@@ -186,13 +186,15 @@ telemetry:
 
 # VOLY Cloud link — report finished local runs into the shared org history
 # (metadata only: task text capped, cost, files touched — never file contents).
-# Env overrides: VOLY_CLOUD_ENABLED / _URL / _TENANT_ID / _TOKEN / _USER_ID.
+# Prefer: voly cloud login --url https://cloud.voly.codes (browser + Clerk).
+# Env overrides: VOLY_CLOUD_ENABLED / _URL / _TENANT_ID / _TOKEN / _USER_ID / _DEVICE_ID.
 cloud:
   enabled: false
   base_url: ""                 # control plane, e.g. http://127.0.0.1:7790
   tenant_id: ""
-  token: "${VOLY_CLOUD_TOKEN}" # tenant edge JWT from the org manifest
+  token: "${VOLY_CLOUD_TOKEN}" # device-bound tenant edge JWT from cloud login
   user_id: ""                  # optional attribution in the org timeline
+  device_id: ""                # AgentDevice id (heartbeat / runs/report)
   timeout_seconds: 5
 
 # Plan gates (Rung B): multi-step plans with acceptance checks.

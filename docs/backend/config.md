@@ -81,11 +81,14 @@ VOLY_CLOUD_URL=http://127.0.0.1:7790
 VOLY_CLOUD_TENANT_ID=...
 VOLY_CLOUD_TOKEN=...
 VOLY_CLOUD_USER_ID=...
+VOLY_CLOUD_DEVICE_ID=...
 # VOLY Cloud link (voly/cloud_link.py): report finished local runs into the
-# org's shared history (control plane POST .../runs/report, tenant edge JWT).
-# Metadata only — task text capped at 500 chars, cost, files touched; never
-# file contents. Env overrides the `cloud:` yaml section; best-effort
-# delivery, failures never break the run.
+# org's shared history (control plane POST .../runs/report, device-bound
+# tenant edge JWT). Metadata only — task text capped at 500 chars, cost,
+# files touched; never file contents. Env overrides the `cloud:` yaml
+# section; best-effort delivery, failures never break the run.
+# Prefer `voly cloud login --url <cp>` (browser + Clerk) over putting a
+# password on the laptop — that writes `.voly/cloud.json` with device_id.
 
 VOLY_CLOUD_LINK_FILE=.voly/cloud.json
 # Path of the device link written by `voly cloud login` (default shown).
@@ -108,15 +111,21 @@ VOLY_PXPIPE_OVERRIDE_BASE_URL=false
 ### `voly cloud` — device link CLI
 
 ```bash
-voly cloud login --url http://127.0.0.1:7790 --email you@example.com [--org slug] [--ttl-days 30]
-voly cloud status   # show linked org / token expiry
-voly cloud logout   # delete the stored token
+# Recommended — browser confirm (Clerk / dashboard session), no password on the laptop:
+voly cloud login --url https://cloud.voly.codes
+voly cloud status
+voly cloud sync [--since 30] [--limit 200]   # upload past .voly/events
+voly cloud heartbeat --once                  # or leave running / use `voly ui`
+voly cloud logout
+
+# Legacy (scripts/CI only):
+voly cloud login --url http://127.0.0.1:7790 --email you@example.com [--org slug]
 ```
 
-`login` authenticates against the control plane, picks the org (flag needed
-only when you belong to several), mints a long-lived tenant edge JWT via
-`POST /cloud/v1/tenants/{id}/tokens` and writes `.voly/cloud.json`. From then
-on every finished run is reported to the org's shared history automatically.
+`login` (default) starts a device-code session, opens `/link`, and polls until
+you approve in the dashboard. The device-bound JWT is stored in
+`.voly/cloud.json` (includes `device_id`). Heartbeats keep the agent **Online**
+in the org dashboard; `sync` backfills runs that finished before linking.
 
 > Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via
 > env variables. Sync of `docs ↔ .env.example ↔ code` is checked by the CI gate

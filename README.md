@@ -366,7 +366,8 @@ voly model list                        # models and pricing
 voly ai-gateway status                 # AI Gateway status
 voly spend status                      # current daily spend
 voly dspy status                       # DSPy programs + mode
-voly cloud login                       # link device to a VOLY Cloud org (shared run history)
+voly cloud login --url https://cloud.voly.codes   # browser + Clerk; shared run history
+voly cloud sync                                 # upload past local runs after link
 ```
 
 ## CI and tests
