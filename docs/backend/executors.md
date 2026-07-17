@@ -19,7 +19,10 @@ claude-code  →  cursor  →  deepseek  →  wrangler  →  opencode  →  zen
 - `cursor` — Cursor API (`CURSOR_API_KEY`)
   (`CursorExecutor` patches `cursor-sdk` auth-token generators so tokens never
   start with `-`; otherwise `cursor-sdk-bridge` rejects them as
-  `Missing value for --tool-callback-auth-token` and retries once)
+  `Missing value for --tool-callback-auth-token` and retries once.
+  `cursor-sdk` reports no token usage, so `ExecutorResult` tokens/cost are
+  char-based estimates — ~4 chars/token priced via the telemetry cost table;
+  `metadata.usage_estimated: true` marks them)
 - `deepseek` — DeepSeek API file-writing executor (`DEEPSEEK_API_KEY`)
 - `wrangler` — CF Workers AI via local wrangler dev (separate CF billing)
 - `opencode` — OpenCode Go (free models first, then user's own provider keys)

@@ -41,6 +41,20 @@ def _status_name(status: object) -> str:
     return str(status).lower().split(".")[-1]
 
 
+def _estimate_usage(prompt: str, output: str) -> tuple[int, int, float]:
+    """Estimate (input_tokens, output_tokens, cost_usd) for a cursor run.
+
+    cursor-sdk RunResult carries no token usage, so tokens are approximated
+    at ~4 chars/token and priced via the shared telemetry cost table. Without
+    this the role/task breakdown reports $0 for every cursor execution.
+    """
+    from voly.telemetry import _estimate_cost
+
+    in_tok = max(len(prompt) // 4, 0)
+    out_tok = max(len(output) // 4, 0)
+    return in_tok, out_tok, _estimate_cost("cursor-composer", in_tok, out_tok)
+
+
 def _safe_bridge_auth_token() -> str:
     """Generate a bridge auth token that is safe as a CLI argv value."""
     for _ in range(32):
@@ -160,6 +174,7 @@ class CursorExecutor(Executor):
         duration_ms = (time.monotonic() - started) * 1000
         status = _status_name(getattr(result, "status", None))
         output = getattr(result, "result", "") or ""
+        in_tok, out_tok, cost_usd = _estimate_usage(prompt, output)
 
         if status in _FAILURE_STATUSES:
             return ExecutorResult(
@@ -167,6 +182,9 @@ class CursorExecutor(Executor):
                 output=output,
                 error=output or f"Cursor agent finished with status: {status or 'unknown'}",
                 duration_ms=duration_ms,
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+                cost_usd=cost_usd,
                 metadata=self._metadata(result, work_dir),
             )
 
@@ -177,6 +195,9 @@ class CursorExecutor(Executor):
             error="" if success else f"Cursor agent status: {status or 'unknown'}",
             duration_ms=float(getattr(result, "duration_ms", 0) or duration_ms),
             num_turns=1,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            cost_usd=cost_usd,
             session_id=getattr(result, "agent_id", "") or "",
             metadata=self._metadata(result, work_dir),
         )
@@ -190,4 +211,6 @@ class CursorExecutor(Executor):
             "model": model_id or self._model,
             "cwd": work_dir,
             "run_id": getattr(result, "id", ""),
+            # cursor-sdk reports no token usage; tokens/cost are char-based estimates
+            "usage_estimated": True,
         }
