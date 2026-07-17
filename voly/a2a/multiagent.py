@@ -25,6 +25,7 @@ from voly.a2a.assignment import (
     Assignment,
     chat_fallback_providers,
     evaluate_multiagent_outcome,
+    exclude_provider_on_gateway_error as _exclude_provider_on_gateway_error,
     resolve_tier_model,
 )  # noqa: F401
 from voly.a2a.hybrid import resolve_role_executor
@@ -33,61 +34,37 @@ from voly.a2a.lead import LeadOrchestrator, _parse_plan  # noqa: F401
 _log = logging.getLogger("voly.a2a.multiagent")
 
 _FILE_LINE_POLICY = (
-    "Лимит файлов: каждый создаваемый/изменяемый файл — не более 300 строк кода. "
-    "До 500 строк только если architect явно разрешил в плане двумя отдельными "
-    "строками `FILE_LINE_LIMIT: 500` и `FILE_LINE_LIMIT_REASON: <обоснование>`."
+    "File size policy: every created/modified file must stay within 300 lines of code. "
+    "Up to 500 lines is allowed only when the architect explicitly approved it in the plan "
+    "with two separate lines: `FILE_LINE_LIMIT: 500` and `FILE_LINE_LIMIT_REASON: <rationale>`."
 )
 
 _ROLE_PROMPT: dict[str, str] = {
     "architect": (
-        "Ты senior software architect. Спроектируй архитектуру: модули, интерфейсы, "
-        "поток данных, ключевые решения и риски. Только план — БЕЗ полного кода "
-        "(никаких блоков ``` и listing содержимого файлов). "
+        "You are a senior software architect. Design the architecture: modules, interfaces, "
+        "data flow, key decisions, and risks. Plan only — NO full code "
+        "(no ``` blocks and no file content listings). "
         f"{_FILE_LINE_POLICY}"
     ),
     "developer": (
-        "Ты senior developer. Реализуй решение в файлах проекта по архитектурному плану. "
-        "Не вставляй весь код в ответ — краткий summary изменений. "
-        f"{_FILE_LINE_POLICY}"
+        "You are a senior developer. Implement the solution in the project files following "
+        "the architecture plan. Do not paste the full code into your reply — give a brief "
+        f"summary of the changes. {_FILE_LINE_POLICY}"
     ),
     "tester": (
-        "Ты QA-инженер. Напиши тесты (pytest, если Python) — happy-path, граничные и "
-        f"негативные случаи. {_FILE_LINE_POLICY}"
+        "You are a QA engineer. Write tests (pytest if Python) covering happy-path, "
+        f"boundary, and negative cases. {_FILE_LINE_POLICY}"
     ),
-    "reviewer": "Ты code reviewer. Оцени код и тесты: баги, безопасность, читаемость, "
-                "производительность. Дай конкретные замечания и вердикт.",
-    "devops": "Ты DevOps-инженер. Подготовь деплой: Dockerfile/compose, CI-шаги, "
-              "переменные окружения, чек-лист релиза.",
-    "security": "Ты application security engineer. Найди уязвимости в коде и предложи фиксы.",
+    "reviewer": "You are a code reviewer. Assess the code and tests: bugs, security, "
+                "readability, performance. Give concrete remarks and a verdict.",
+    "devops": "You are a DevOps engineer. Prepare the deployment: Dockerfile/compose, "
+              "CI steps, environment variables, release checklist.",
+    "security": "You are an application security engineer. Find vulnerabilities in the code "
+                "and propose fixes.",
 }
-_DEFAULT_PERSONA = "Ты профильный инженер. Выполни назначенную суб-задачу качественно и кратко."
-
-_RECOVERABLE_PROVIDER_ERRORS = frozenset({
-    "unauthorized",
-    "quota_exhausted",
-    "account_deactivated",
-    "oauth_invalid_token",
-    "forbidden",
-})
-
-
-def _exclude_provider_on_gateway_error(provider: str, error: str) -> None:
-    """Mark provider unhealthy after auth/billing failures so tier resolution skips it."""
-    if not provider or not error:
-        return
-    from voly.ai_gateway.error_classifier import classify_provider_error
-    from voly.ai_gateway.health import get_checker
-
-    kind = classify_provider_error(None, error, provider=provider)
-    if kind is None:
-        low = error.lower()
-        if "401" in low or "unauthorized" in low or "invalid x-api-key" in low:
-            kind = "unauthorized"
-        elif "quota" in low or "billing" in low or "credit" in low:
-            kind = "quota_exhausted"
-    if kind in _RECOVERABLE_PROVIDER_ERRORS:
-        get_checker().mark_unhealthy(provider, reason=kind or "gateway error")
-
+_DEFAULT_PERSONA = (
+    "You are a specialist engineer. Complete the assigned sub-task with quality and brevity."
+)
 
 def _chat_with_provider_fallback(
     gateway: Any,
@@ -99,15 +76,21 @@ def _chat_with_provider_fallback(
     temperature: float,
 ) -> dict[str, Any]:
     """Try gateway.chat on the assigned provider, then other healthy tier providers."""
+    from voly.ai_gateway.health import get_checker
     from voly.router import _PROVIDER_MODELS
 
     providers = chat_fallback_providers(assignment.tier, assignment.role)
-    if assignment.provider and assignment.provider not in providers:
-        providers = [assignment.provider, *providers]
-    elif assignment.provider:
-        providers = [assignment.provider] + [p for p in providers if p != assignment.provider]
+    assigned = assignment.provider
+    if assigned:
+        # The assignment was resolved before earlier roles ran; skip the assigned
+        # provider when it has since been marked unhealthy (401/billing) instead
+        # of burning one failed call per role on a known-dead provider.
+        if get_checker().check(assigned).healthy:
+            providers = [assigned] + [p for p in providers if p != assigned]
+        else:
+            providers = [p for p in providers if p != assigned]
     if not providers:
-        providers = [assignment.provider] if assignment.provider else []
+        providers = [assigned] if assigned else []
 
     last_err = ""
     for provider in providers:
@@ -132,6 +115,11 @@ def _chat_with_provider_fallback(
             continue
 
         if resp.get("error"):
+            # Spend limit is a budget stop, not a provider fault — retrying other
+            # providers re-hits the same exhausted budget. Return as-is so
+            # run_local's spend_limited early-exit can halt the whole chain.
+            if resp.get("spend_limited"):
+                return resp
             last_err = str(resp["error"])
             _exclude_provider_on_gateway_error(provider, last_err)
             _log.warning(
@@ -453,10 +441,10 @@ def run_local(
         if a.idx in degraded_notes:
             failed = ", ".join(degraded_notes[a.idx])
             user = (
-                f"ВНИМАНИЕ: предыдущие роли не завершились ({failed}). "
-                "Работай по доступному контексту (план архитектора). "
-                "Явно отметь в ответе, что реализация отсутствует или неполная "
-                "и какие шаги нужно проверить после её появления.\n\n"
+                f"WARNING: previous roles did not complete ({failed}). "
+                "Work from the available context (the architect's plan). "
+                "Explicitly note in your reply that the implementation is missing or "
+                "incomplete and which steps must be re-checked once it appears.\n\n"
                 f"{user}"
             )
 
@@ -489,6 +477,13 @@ def run_local(
                     a.error = str(e)
                     a.content = f"(executor failed: {e})"
                     a.ok = False
+                    # Even a crashed/timed-out executor may have written files;
+                    # capture the git delta so files_touched reflects reality.
+                    if cwd:
+                        git_after = git_porcelain(cwd)
+                        delta = sorted(changed_paths(git_before, git_after))
+                        if delta:
+                            a.files_touched = delta
                     _finish_step_plan(a, exec_ok=False, git_before=git_before)
                     done[a.idx] = a
                     _hb(a.role, len(done))
@@ -573,7 +568,8 @@ def run_local(
             a.cost_usd = 0.0 if a.cache_hit else _estimate_cost(
                 resp.get("model", a.model), a.input_tokens, a.output_tokens)
             # With plan gates, empty content is an acceptance concern (output_nonempty),
-            # not a hard process failure — so dependents can be soft-gated in shadow.
+            # not a hard process failure — shadow mode keeps dependents running
+            # (degraded) instead of blocking on an empty chat reply.
             process_ok = True
             a.ok = bool(a.content.strip()) if not gates_on else True
             if a.content.strip() and memory is not None and not a.cache_hit:

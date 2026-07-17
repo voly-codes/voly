@@ -15,6 +15,7 @@ from voly.a2a.assignment import (
     _ROLE_TIER,
     _VALID_TIERS,
     Assignment,
+    exclude_provider_on_gateway_error,
     resolve_role_model,
 )
 from voly.a2a.hybrid import EXECUTOR_CAPABLE_ROLES
@@ -94,17 +95,17 @@ class LeadOrchestrator:
             for i, st in enumerate(subtasks)
         )
         system = (
-            "Ты lead-оркестратор. Для каждой суб-задачи назначь уровень модели (tier) и "
-            "релевантные скилы. Критерии: сложное проектирование/ревью/безопасность → "
-            "'premium'; обычная реализация → 'standard'; рутинные тесты/деплой/батч → 'cheap'. "
-            "Скилы выбирай ТОЛЬКО из skills_available каждой роли (можно пусто). "
-            "Опционально задай execution: 'executor' ТОЛЬКО для developer/bugfixer "
-            "(пишут файлы в проекте); tester/reviewer/devops/architect — всегда 'chat'. "
-            "Не уверен — опусти поле. "
-            "Ответь СТРОГО JSON-массивом без пояснений: "
+            "You are the lead orchestrator. For each sub-task assign a model tier and "
+            "relevant skills. Criteria: complex design/review/security → 'premium'; "
+            "ordinary implementation → 'standard'; routine tests/deploy/batch → 'cheap'. "
+            "Pick skills ONLY from each role's skills_available (may be empty). "
+            "Optionally set execution: 'executor' ONLY for developer/bugfixer "
+            "(they write files in the project); tester/reviewer/devops/architect — always 'chat'. "
+            "If unsure, omit the field. "
+            "Answer STRICTLY with a JSON array, no explanations: "
             '[{"idx":0,"tier":"premium","skills":["id1"],"execution":"chat"}, ...]'
         )
-        user = f"Задача: {task}\n\nСуб-задачи:\n{roles_block}"
+        user = f"Task: {task}\n\nSub-tasks:\n{roles_block}"
         try:
             resp = self.gateway.chat(
                 [{"role": "user", "content": user}],
@@ -113,10 +114,12 @@ class LeadOrchestrator:
             )
             content = resp.get("content", "") or ""
             if resp.get("error"):
+                exclude_provider_on_gateway_error(provider, str(resp["error"]))
                 _log.warning("lead orchestrator error, using deterministic fallback: %s", resp["error"])
                 return {}
             return _parse_plan(content)
         except Exception as e:  # noqa: BLE001 — fall back to deterministic assignment
+            exclude_provider_on_gateway_error(provider, str(e))
             _log.warning("lead orchestrator call failed (%s), deterministic fallback", e)
             return {}
 

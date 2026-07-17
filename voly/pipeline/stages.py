@@ -129,6 +129,15 @@ class _PipelineStageMixin:
         merged = ResultMerger().merge(task, a2a_tasks)
         duration_ms = (_time.monotonic() - started) * 1000
 
+        # Honest status: completed only when every dispatched task completed
+        # (mirrors evaluate_multiagent_outcome on the local path).
+        completed_tasks = [t for t in a2a_tasks if t.state == _TaskState.COMPLETED]
+        fed_success = bool(a2a_tasks) and len(completed_tasks) == len(a2a_tasks)
+        fed_status = (
+            'completed' if fed_success
+            else ('partial' if completed_tasks else 'failed')
+        )
+
         # Build and save report
         reports_dir = getattr(self.config.telemetry, 'events_dir', '.voly/events')  # type: ignore[attr-defined]
         report = A2AReport.from_a2a_tasks(task_id, task, a2a_tasks, merged, duration_ms)
@@ -155,7 +164,7 @@ class _PipelineStageMixin:
         ev = TaskEvent(
             task_id=task_id,
             agent='a2a',
-            status='completed',
+            status=fed_status,
             model='multi-agent',
             executor='a2a',
             duration_ms=duration_ms,
@@ -168,7 +177,7 @@ class _PipelineStageMixin:
         emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]
 
         return PipelineResult(
-            success=True,
+            success=fed_success,
             stage=PipelineStage.DONE,
             response=_FakeResponse(),
             route=route,

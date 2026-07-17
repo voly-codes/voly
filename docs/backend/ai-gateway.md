@@ -177,6 +177,14 @@ provider-key errors as `unauthorized` (operator fix), never as a billing state
 — the billing fallback chain does not fire on gateway misconfiguration.
 `voly balance` labels such providers `via cf-byok`.
 
+Runtime exclusion (`mark_unhealthy()` after 401/quota errors) now expires after
+a TTL instead of lasting until process restart: default 900 s, override with
+`VOLY_PROVIDER_EXCLUDE_TTL` (seconds; `0` = exclude forever). After expiry the
+provider is re-checked and re-enters tier resolution. A2A chat fallback also
+skips the originally assigned provider when it is currently unhealthy, and the
+lead orchestrator marks its provider unhealthy on auth/billing errors
+(`voly/a2a/assignment.py: exclude_provider_on_gateway_error`).
+
 ---
 
 ## Env vars for CF AI Gateway

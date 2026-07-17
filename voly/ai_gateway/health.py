@@ -11,6 +11,20 @@ _log = logging.getLogger("voly.ai_gateway.health")
 _TTL = 60.0  # seconds between re-checks
 
 
+def _runtime_exclude_ttl() -> float:
+    """How long a mark_unhealthy() exclusion holds before the provider is re-tried.
+
+    Without a TTL a transient 401/403/5xx would exclude the provider until the
+    process restarts — fatal for long-running `voly serve`. Override with
+    VOLY_PROVIDER_EXCLUDE_TTL (seconds); 0 disables expiry (exclude forever).
+    """
+    raw = os.environ.get("VOLY_PROVIDER_EXCLUDE_TTL", "").strip()
+    try:
+        return float(raw) if raw else 900.0
+    except ValueError:
+        return 900.0
+
+
 @dataclass
 class ProviderStatus:
     name: str
@@ -57,7 +71,8 @@ def _byok_env_default() -> bool:
 class ProviderHealthChecker:
     def __init__(self) -> None:
         self._cache: dict[str, ProviderStatus] = {}
-        self._runtime_excluded: set[str] = set()
+        # provider → monotonic timestamp of exclusion (expires after the TTL)
+        self._runtime_excluded: dict[str, float] = {}
         # None → follow the VOLY_BYOK env default; set via configure_byok()
         # when a gateway is built from config (pipeline/core.py).
         self._byok_enabled: bool | None = None
@@ -68,7 +83,7 @@ class ProviderHealthChecker:
         provider = (provider or "").strip()
         if not provider:
             return
-        self._runtime_excluded.add(provider)
+        self._runtime_excluded[provider] = time.monotonic()
         self._cache[provider] = ProviderStatus(
             name=provider,
             healthy=False,
@@ -99,10 +114,18 @@ class ProviderHealthChecker:
         return bool(account and token)
 
     def check(self, provider: str) -> ProviderStatus:
-        if provider in self._runtime_excluded:
-            cached = self._cache.get(provider)
-            reason = cached.reason if cached else "runtime excluded"
-            return ProviderStatus(name=provider, healthy=False, reason=reason)
+        excluded_at = self._runtime_excluded.get(provider)
+        if excluded_at is not None:
+            ttl = _runtime_exclude_ttl()
+            if ttl > 0 and (time.monotonic() - excluded_at) > ttl:
+                # Exclusion expired — give the provider another chance.
+                self._runtime_excluded.pop(provider, None)
+                self._cache.pop(provider, None)
+                _log.info("provider %s exclusion expired — re-checking", provider)
+            else:
+                cached = self._cache.get(provider)
+                reason = cached.reason if cached else "runtime excluded"
+                return ProviderStatus(name=provider, healthy=False, reason=reason)
 
         cached = self._cache.get(provider)
         if cached and not cached.expired():

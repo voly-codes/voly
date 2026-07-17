@@ -95,6 +95,8 @@ def test_agent_runner_event_includes_retry_spend(monkeypatch, tmp_path):
             success=False, error="credit balance is too low", billing_error=True,
             cost_usd=0.005, input_tokens=100, output_tokens=50, duration_ms=10,
         )),
+        "cursor": _FakeExec("cursor", ExecutorResult(success=False, error="down"), available=False),
+        "deepseek": _FakeExec("deepseek", ExecutorResult(success=False, error="down"), available=False),
         "wrangler": _FakeExec("wrangler", ExecutorResult(success=False, error="down"), available=False),
         "opencode": _FakeExec("opencode", ExecutorResult(
             success=True, output="done", cost_usd=0.002, input_tokens=10, output_tokens=5, duration_ms=10,

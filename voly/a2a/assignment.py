@@ -56,6 +56,31 @@ _ROLE_PROVIDER_OFFSET: dict[str, int] = {
 # Roles that must succeed for a code-gen multi-agent run to count as completed.
 _IMPLEMENT_ROLES = frozenset({"developer", "bugfixer"})
 
+_RECOVERABLE_PROVIDER_ERRORS = frozenset({
+    "unauthorized",
+    "quota_exhausted",
+    "account_deactivated",
+    "oauth_invalid_token",
+    "forbidden",
+})
+
+
+def exclude_provider_on_gateway_error(provider: str, error: str) -> None:
+    """Mark provider unhealthy after auth/billing failures so tier resolution skips it."""
+    if not provider or not error:
+        return
+    from voly.ai_gateway.error_classifier import classify_provider_error
+
+    kind = classify_provider_error(None, error, provider=provider)
+    if kind is None:
+        low = error.lower()
+        if "401" in low or "unauthorized" in low or "invalid x-api-key" in low:
+            kind = "unauthorized"
+        elif "quota" in low or "billing" in low or "credit" in low:
+            kind = "quota_exhausted"
+    if kind in _RECOVERABLE_PROVIDER_ERRORS:
+        get_checker().mark_unhealthy(provider, reason=kind or "gateway error")
+
 
 def _assignment_active(a: Assignment) -> bool:
     if a.plan_status in ("skipped", "blocked"):
@@ -85,9 +110,9 @@ def evaluate_multiagent_outcome(
     if not any(a.ok for a in active):
         return False, "failed"
 
-    if all(a.ok for a in active):
-        return True, "completed"
-
+    # Code-gen guard first: a run cannot be "completed" without a successful
+    # implement role, even if every non-skipped chat role succeeded (e.g. the
+    # developer was hard-skipped/blocked and thus excluded from `active`).
     if requires_code_gen:
         impl = [
             a for a in assignments
@@ -95,6 +120,9 @@ def evaluate_multiagent_outcome(
         ]
         if impl and not any(a.ok for a in impl):
             return False, "partial"
+
+    if all(a.ok for a in active):
+        return True, "completed"
 
     return False, "partial"
 
