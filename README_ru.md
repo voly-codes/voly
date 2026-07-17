@@ -13,6 +13,10 @@
 </p>
 
 <p align="center">
+  <a href="https://www.producthunt.com/products/voly-3?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-voly-3" target="_blank" rel="noopener noreferrer"><img alt="VOLY - Routes AI coding agents with cost tracking and fallback | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1198419&theme=light&t=1784293268132"></a>
+</p>
+
+<p align="center">
   AI Agent Control Plane · Multi-Agent Orchestration · Billing Fallback Chain · DSPy · FinOps · A2A · AG-UI · Cloudflare AI Gateway
 </p>
 
