@@ -186,7 +186,8 @@ def test_run_local_executor_runner_mock() -> None:
     _ = chat_before  # lead assign may have called already
 
 
-def test_run_local_skip_dependents_on_failure() -> None:
+def test_run_local_degrades_chat_roles_on_developer_failure() -> None:
+    """Developer (executor) failure → chat roles degrade on architect plan, not skip."""
     subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
     gw = _FakeGateway()
     assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
@@ -207,9 +208,46 @@ def test_run_local_skip_dependents_on_failure() -> None:
     )
     by_role = {a.role: a for a in assignments}
     assert by_role["developer"].ok is False
-    # tester depends on developer → skipped
-    assert by_role["tester"].ok is False
-    assert "prior role" in by_role["tester"].error
+    # tester/reviewer/devops are chat and still have architect context → degraded run
+    assert by_role["tester"].ok is True
+    assert "degraded_prior_failed" in by_role["tester"].mode_reason
+    assert by_role["reviewer"].ok is True
+    assert "degraded_prior_failed" in by_role["reviewer"].mode_reason
+    assert by_role["devops"].ok is True
+
+
+def test_run_local_hard_skips_when_all_priors_failed() -> None:
+    """Architect (root) failure → developer executor hard-skipped, no invented context."""
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+
+    class _ArchFailGateway(_FakeGateway):
+        def chat(self, messages, model, provider_name="anthropic", system=None, agent=None, **kw):
+            if agent == "architect":
+                return {"error": "arch boom", "content": "", "model": model, "usage": {}}
+            return super().chat(
+                messages, model, provider_name=provider_name, system=system, agent=agent, **kw
+            )
+
+    gw = _ArchFailGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+
+    def runner(*, role, task, cwd, executor, system, assignment):
+        return {"ok": True, "content": f"ok {role}", "files_touched": []}
+
+    run_local(
+        "build",
+        assignments,
+        gw,
+        cwd="/tmp/proj",
+        hybrid_code_gen=True,
+        executor_runner=runner,
+        skip_dependents_on_failure=True,
+    )
+    by_role = {a.role: a for a in assignments}
+    assert by_role["architect"].ok is False
+    assert by_role["developer"].ok is False
+    assert "prior role" in by_role["developer"].error
+    assert by_role["developer"].mode_reason == "skipped_prior_failed"
 
 
 def test_run_local_executor_without_runner_falls_back_to_chat() -> None:

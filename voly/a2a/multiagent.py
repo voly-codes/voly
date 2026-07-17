@@ -386,22 +386,44 @@ def run_local(
             store.save(plan)
 
     done: dict[int, Assignment] = {}
+    # idx → failed prior roles, for chat roles that run degraded (not skipped).
+    degraded_notes: dict[int, list[str]] = {}
     for a in assignments:
-        # Skip dependents when a required prior role failed (hybrid default).
+        # Cascade policy when a required prior role failed:
+        #   - executor roles need the implementation → hard skip
+        #   - chat roles degrade gracefully IF at least one prior succeeded
+        #     (e.g. reviewer/tester/devops run on the architect plan alone)
+        #   - if ALL priors failed → hard skip regardless of mode
         if skip_dependents_on_failure and a.depends_on:
             failed_priors = [
                 done[d].role for d in a.depends_on
                 if d in done and not done[d].ok
             ]
+            ok_priors = [
+                done[d].role for d in a.depends_on
+                if d in done and done[d].ok
+            ]
             if failed_priors:
-                a.ok = False
-                a.error = f"skipped: prior role(s) failed ({', '.join(failed_priors)})"
-                a.content = f"({a.error})"
-                a.mode, a.mode_reason = a.mode or "chat", "skipped_prior_failed"
-                a.plan_status = "skipped"
-                done[a.idx] = a
-                _hb(a.role, len(done))
-                continue
+                role_mode = role_modes.get(a.idx, a.mode or "chat")
+                hard_block = role_mode == "executor" or not ok_priors
+                if hard_block:
+                    a.ok = False
+                    a.error = f"skipped: prior role(s) failed ({', '.join(failed_priors)})"
+                    a.content = f"({a.error})"
+                    a.mode, a.mode_reason = a.mode or "chat", "skipped_prior_failed"
+                    a.plan_status = "skipped"
+                    done[a.idx] = a
+                    _hb(a.role, len(done))
+                    continue
+                degraded_notes[a.idx] = failed_priors
+                a.mode_reason = (
+                    f"{a.mode_reason}+degraded_prior_failed"
+                    if a.mode_reason else "degraded_prior_failed"
+                )
+                _log.info(
+                    "multiagent[%d] %s degraded: prior failed (%s), running on (%s)",
+                    a.idx, a.role, ", ".join(failed_priors), ", ".join(ok_priors),
+                )
 
         # Plan gate: only start when depends_on steps are verified.
         if plan is not None and engine is not None:
@@ -426,6 +448,16 @@ def run_local(
 
         prior = [(done[d].role, done[d].content) for d in a.depends_on if d in done and done[d].ok]
         user = TaskDecomposer.inject_prior_context(a.description, prior)
+
+        if a.idx in degraded_notes:
+            failed = ", ".join(degraded_notes[a.idx])
+            user = (
+                f"ВНИМАНИЕ: предыдущие роли не завершились ({failed}). "
+                "Работай по доступному контексту (план архитектора). "
+                "Явно отметь в ответе, что реализация отсутствует или неполная "
+                "и какие шаги нужно проверить после её появления.\n\n"
+                f"{user}"
+            )
 
         mem_block, a.mem_hits = _memory_block(memory, f"{a.role}: {a.description}")
         if mem_block:

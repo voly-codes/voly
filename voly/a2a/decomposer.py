@@ -102,10 +102,12 @@ class TaskDecomposer:
         return []
 
     def _all_flags(self, task: str) -> list[Subtask]:
+        # Downstream chat roles also depend on architect (idx 0) so they retain
+        # the architecture plan and can degrade gracefully if developer fails.
         return [
             Subtask(f"Design architecture for: {task}", "architect"),
             Subtask(f"Implement: {task}", "developer", depends_on=[0]),
-            Subtask("Write tests using developer implementation context", "tester", depends_on=[1]),
-            Subtask("Review code and tests using prior agent context", "reviewer", depends_on=[1, 2]),
-            Subtask("Prepare deployment using implementation context", "devops", depends_on=[1]),
+            Subtask("Write tests using developer implementation context", "tester", depends_on=[0, 1]),
+            Subtask("Review code and tests using prior agent context", "reviewer", depends_on=[0, 1, 2]),
+            Subtask("Prepare deployment using implementation context", "devops", depends_on=[0, 1]),
         ]

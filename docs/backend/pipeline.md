@@ -143,6 +143,21 @@ Executors never run without an explicit project `cwd`, even when
 `hybrid_require_cwd: false` — such roles are forced to chat with
 `mode_reason=no_cwd`, and `run_local` logs a `hybrid_skipped_no_cwd` warning.
 
+### Cascade on prior-role failure
+
+When a dependency role fails (`skip_dependents_on_failure`, default on):
+
+| Dependent role | Policy |
+|---|---|
+| executor (developer/bugfixer) | **hard skip** — needs the missing implementation (`mode_reason=skipped_prior_failed`) |
+| chat (tester/reviewer/devops) with ≥1 successful prior | **degraded run** on the surviving context (architect plan); prompt gets a note that the implementation is missing (`mode_reason=…+degraded_prior_failed`) |
+| any role with **all** priors failed | hard skip |
+
+So a failed developer no longer skips the whole chain: `_all_flags` wires
+tester/reviewer/devops to depend on **architect** as well, so they still review
+the plan / draft tests / prep deploy and the run reports `partial` instead of
+`failed`.
+
 **PR3:** request `cwd` is passed through `pipeline.run(context={"cwd": …})` so
 hybrid file writes target the UI/API project path, not only `default_cwd`.
 SSE `start` carries `a2a` / `hybrid` / `cwd` (plus
