@@ -2,23 +2,14 @@
 
 > **Project:** VOLY — AI control plane for running agents, managing cost, routing tasks, and orchestration.
 
-## OpenWiki
-
-This repository has documentation located in the /openwiki directory.
-
-Start here:
-- [OpenWiki quickstart](openwiki/quickstart.md)
-
-OpenWiki includes repository overview, architecture notes, workflows, domain concepts, operations, integrations, testing guidance, and source maps.
-
-When working in this repository, read the OpenWiki quickstart first, then follow its links to the relevant architecture, workflow, domain, operation, and testing notes.
+OpenWiki: start at [openwiki/quickstart.md](openwiki/quickstart.md), then follow its links.
 
 ## Project goal
 
 VOLY routes a developer's tasks to the right AI agent, manages the billing fallback chain, collects telemetry, and provides a web UI + REST API.
 
 **Key components:**
-- **Billing fallback chain:** `claude-code → wrangler (CF Workers AI) → zen (free)` — automatically on billing error
+- **Billing fallback chain:** `claude-code → cursor → deepseek → wrangler → opencode → zen` — on executor `billing_error`
 - **Smart dispatch:** Web UI with `executor=pipeline` + code task → auto-promotes to `claude-code`
 - **DSPy TaskPlanner:** refines the task before the executor, collects (task, result) examples for optimization
 - **CF AI Gateway route schema:** `/infer` endpoint in the CF Worker routes via the CF Dashboard route schema
@@ -135,7 +126,8 @@ voly run "<task>" --executor claude-code --cwd /home/lanies/git/codeops/voly
 ## Quick start
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate          # fish: source .venv/bin/activate.fish
 pip install -e ".[dev]"
 voly status
 ```
@@ -216,6 +208,8 @@ pytest tests/ -q                          # full run
 | Smart dispatch does not trigger | Set `VOLY_PROJECT_CWD` or `default_cwd` in `voly.yaml` |
 | Wrangler executor unavailable | Run `cd cf-workers/agent && wrangler dev` |
 | CI fails with test collection | Check `pyproject.toml` pytest config |
+| Plan gate `command: exit 4` on pytest | Prefer `.venv/bin/pytest` — auto-fill does this when `.venv/bin/pytest` exists; or set `plan.tester_command` |
+| Multi-agent only developer+tester | ≥2 capability flags now auto-set `requires_review` (3 roles). Explicit deploy/architecture keywords still needed for devops/architect |
 
 <!-- OPENWIKI:START -->
 

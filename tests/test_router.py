@@ -1,5 +1,6 @@
 """Tests for VOLY agent router."""
 
+from voly.a2a.decomposer import TaskDecomposer
 from voly.config import VOLYConfig
 from voly.router import AgentRouter, RouteDecision, TaskAnalysis
 
@@ -62,3 +63,15 @@ def test_route_with_config_override() -> None:
     router = AgentRouter(config)
     result = router.route("Какая-то незнакомая задача без ключевых слов")
     assert result.agent == "my-custom-agent"
+
+
+def test_analyze_task_auto_review_when_two_flags() -> None:
+    router = AgentRouter()
+    analysis = router.analyze_task(
+        "Add a mission comments system with model, service, API and integration tests"
+    )
+    assert analysis.requires_code_gen is True
+    assert analysis.requires_testing is True
+    assert analysis.requires_review is True
+    subtasks = TaskDecomposer().decompose(analysis.intent or "task", analysis)
+    assert [s.agent for s in subtasks] == ["developer", "tester", "reviewer"]

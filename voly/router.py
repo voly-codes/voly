@@ -186,6 +186,16 @@ class AgentRouter:
         analysis.requires_deployment = any(w in t for w in ["deploy", "release", "деплой", "релиз"])
         analysis.requires_testing   = any(w in t for w in ["test", "тест", "pytest", "unittest"])
 
+        # Multi-capability tasks always get a reviewer (developer+tester → 3 roles).
+        flag_count = sum([
+            analysis.requires_code_gen,
+            analysis.requires_review,
+            analysis.requires_testing,
+            analysis.requires_deployment,
+        ])
+        if flag_count >= 2:
+            analysis.requires_review = True
+
         domain_map = {
             "database": ["sql", "postgres", "база", "migration"],
             "frontend": ["react", "vue", "angular", "ui", "css", "html"],

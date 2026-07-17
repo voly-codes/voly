@@ -144,7 +144,9 @@ ai_gateway:
     per_agent_budget: {}
   fallback:
     enabled: true
-    chain: []
+    chain:
+      - provider: deepseek
+        model: deepseek-chat
     retries: 3
   dlp:
     enabled: false

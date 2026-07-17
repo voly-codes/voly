@@ -85,6 +85,28 @@ def test_suggest_from_cwd_python_project(tmp_path: Path):
     assert isinstance(sug.test_command, str)
 
 
+def test_suggest_from_cwd_prefers_venv_pytest(tmp_path: Path):
+    (tmp_path / "pyproject.toml").write_text("[project]\nname='x'\n", encoding="utf-8")
+    (tmp_path / "main.py").write_text("print(1)\n", encoding="utf-8")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_x.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+    venv_bin = tmp_path / ".venv" / "bin"
+    venv_bin.mkdir(parents=True)
+    (venv_bin / "pytest").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    (venv_bin / "pytest").chmod(0o755)
+    sug = suggest_from_cwd(str(tmp_path))
+    assert sug.test_command == ".venv/bin/pytest -q"
+
+
+def test_suggest_from_cwd_pytest_without_venv(tmp_path: Path):
+    (tmp_path / "pyproject.toml").write_text("[project]\nname='x'\n", encoding="utf-8")
+    (tmp_path / "main.py").write_text("print(1)\n", encoding="utf-8")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_x.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+    sug = suggest_from_cwd(str(tmp_path))
+    assert sug.test_command == "pytest -q"
+
+
 def test_loader_drafts_acceptance_from_success_criteria(tmp_path: Path):
     path = tmp_path / "p.yaml"
     path.write_text(

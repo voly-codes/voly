@@ -159,12 +159,14 @@ checks = draft.checks  # list[AcceptanceCheck]
 
 ```bash
 voly plan suggest --cwd /path/to/project
-# tester_command: pytest -q
+# tester_command: .venv/bin/pytest -q   # when .venv/bin/pytest exists
 # languages: python
 ```
 
 When multi-agent runs with `plan.enabled` and empty `tester_command`, VOLY may
 fill it once from `ProjectScanner` for that run only (does not rewrite `voly.yaml`).
+If the scan picks `pytest` and `{cwd}/.venv/bin/pytest` exists, the auto-fill
+prefers `.venv/bin/pytest -q` so the plan gate uses the project's dependencies.
 
 ---
 

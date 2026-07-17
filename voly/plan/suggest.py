@@ -3,9 +3,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from voly.plan.types import AcceptanceCheck
+
+
+def _prefer_venv_pytest(command: str, cwd: str) -> str:
+    """If command is PATH pytest and project has .venv/bin/pytest, prefer the venv binary."""
+    if not command or not cwd:
+        return command
+    parts = command.split()
+    if not parts or parts[0] != "pytest":
+        return command
+    venv_pytest = Path(cwd) / ".venv" / "bin" / "pytest"
+    if not venv_pytest.is_file():
+        return command
+    return " ".join([".venv/bin/pytest", *parts[1:]])
 
 
 @dataclass
@@ -99,7 +113,7 @@ def suggest_from_cwd(cwd: str) -> PlanSuggestions:
         "package_managers": list(profile.package_managers[:6]),
         "linter_tools": list(profile.linter_tools[:6]),
     }
-    out.test_command = suggest_test_command(profile)
+    out.test_command = _prefer_venv_pytest(suggest_test_command(profile), cwd)
     out.lint_command = suggest_lint_command(profile)
 
     if out.test_command:

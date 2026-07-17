@@ -20,7 +20,9 @@ parallel subtask execution, and result merging.
 ## Auto-dispatch (pipeline)
 
 When `a2a.auto_dispatch: true` (default) and `TaskAnalysis` has 2+ capability flags
-or `complexity=high`, `Pipeline.run()` calls `_stage_a2a_auto()`:
+or `complexity=high`, `Pipeline.run()` calls `_stage_a2a_auto()`.
+`analyze_task` also sets `requires_review=True` whenever two or more capability
+flags are already set (e.g. code-gen + tests → developer + tester + reviewer).
 
 ```
 ROUTE → _should_dispatch_a2a() → TaskDecomposer → dispatch_parallel() → ResultMerger
