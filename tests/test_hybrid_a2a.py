@@ -186,8 +186,8 @@ def test_run_local_executor_runner_mock() -> None:
     _ = chat_before  # lead assign may have called already
 
 
-def test_run_local_degrades_chat_roles_on_developer_failure() -> None:
-    """Developer (executor) failure → chat roles degrade on architect plan, not skip."""
+def test_run_local_early_exits_chat_roles_on_developer_failure_code_gen() -> None:
+    """Developer (executor) failure + code_gen → post-impl chat roles are skipped (no code)."""
     subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
     gw = _FakeGateway()
     assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
@@ -203,17 +203,48 @@ def test_run_local_degrades_chat_roles_on_developer_failure() -> None:
         gw,
         cwd="/tmp/proj",
         hybrid_code_gen=True,
+        requires_code_gen=True,
         executor_runner=runner,
         skip_dependents_on_failure=True,
     )
     by_role = {a.role: a for a in assignments}
     assert by_role["developer"].ok is False
-    # tester/reviewer/devops are chat and still have architect context → degraded run
-    assert by_role["tester"].ok is True
-    assert "degraded_prior_failed" in by_role["tester"].mode_reason
+    # Early-exit: tester/reviewer/devops skipped — no point reviewing non-existent code.
+    assert by_role["tester"].ok is False
+    assert by_role["tester"].plan_status == "skipped"
+    assert "skipped_no_code" in by_role["tester"].mode_reason
+    assert by_role["reviewer"].ok is False
+    assert by_role["reviewer"].plan_status == "skipped"
+    assert by_role["devops"].ok is False
+    assert by_role["devops"].plan_status == "skipped"
+
+
+def test_run_local_degrades_chat_roles_when_not_requires_code_gen() -> None:
+    """requires_code_gen=False disables early-exit → post-impl chat roles degrade (not skip)."""
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+    gw = _FakeGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+
+    def runner(*, role, task, cwd, executor, system, assignment):
+        if role == "developer":
+            return {"ok": False, "error": "boom", "content": ""}
+        return {"ok": True, "content": f"ok {role}", "files_touched": []}
+
+    run_local(
+        "build",
+        assignments,
+        gw,
+        cwd="/tmp/proj",
+        hybrid_code_gen=True,
+        requires_code_gen=False,  # ← disables early-exit
+        executor_runner=runner,
+        skip_dependents_on_failure=True,
+    )
+    by_role = {a.role: a for a in assignments}
+    assert by_role["developer"].ok is False
+    # With requires_code_gen=False, degraded mode is used instead of early-exit.
     assert by_role["reviewer"].ok is True
     assert "degraded_prior_failed" in by_role["reviewer"].mode_reason
-    assert by_role["devops"].ok is True
 
 
 def test_run_local_hard_skips_when_all_priors_failed() -> None:

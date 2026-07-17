@@ -428,6 +428,28 @@ def run_local(
             ]
             if failed_priors:
                 role_mode = role_modes.get(a.idx, a.mode or "chat")
+                # Early-exit for code_gen tasks: when all executor roles that have
+                # completed have failed, post-impl chat roles (tester/reviewer/devops)
+                # cannot meaningfully act on non-existent code — skip them rather
+                # than wasting a premium chat call on an architect-plan-only context.
+                impl_done = [done[i] for i in done if done[i].mode == "executor"]
+                all_impl_failed = bool(impl_done) and not any(d.ok for d in impl_done)
+                if requires_code_gen and role_mode == "chat" and ok_priors and all_impl_failed:
+                    a.ok = False
+                    a.error = (
+                        f"skipped: no code produced — all executor roles failed "
+                        f"({', '.join(d.role for d in impl_done if not d.ok)})"
+                    )
+                    a.content = f"({a.error})"
+                    a.mode, a.mode_reason = role_mode, "skipped_no_code"
+                    a.plan_status = "skipped"
+                    done[a.idx] = a
+                    _hb(a.role, len(done))
+                    _log.info(
+                        "multiagent[%d] %s early-exit: code_gen but no impl succeeded",
+                        a.idx, a.role,
+                    )
+                    return None
                 hard_block = role_mode == "executor" or not ok_priors
                 if hard_block:
                     a.ok = False
