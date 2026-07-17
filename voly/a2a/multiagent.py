@@ -26,18 +26,32 @@ from voly.a2a.lead import LeadOrchestrator, _parse_plan  # noqa: F401
 
 _log = logging.getLogger("voly.a2a.multiagent")
 
+_FILE_LINE_POLICY = (
+    "Лимит файлов: каждый создаваемый/изменяемый файл — не более 300 строк кода. "
+    "До 500 строк только если architect явно разрешил в плане с обоснованием."
+)
+
 _ROLE_PROMPT: dict[str, str] = {
-    "architect": "Ты senior software architect. Спроектируй архитектуру: модули, "
-                 "интерфейсы, поток данных, ключевые решения и риски. Кратко и по делу.",
-    "developer": "Ты senior developer. Реализуй решение на основе архитектуры выше. "
-                 "Выдай рабочий код с краткими пояснениями.",
-    "tester": "Ты QA-инженер. Напиши тесты (pytest, если Python) для реализации выше — "
-              "happy-path, граничные и негативные случаи.",
-    "reviewer": "Ты code reviewer. Оцени код и тесты выше: баги, безопасность, читаемость, "
+    "architect": (
+        "Ты senior software architect. Спроектируй архитектуру: модули, интерфейсы, "
+        "поток данных, ключевые решения и риски. Только план — БЕЗ полного кода "
+        "(никаких блоков ``` и listing содержимого файлов). "
+        f"{_FILE_LINE_POLICY}"
+    ),
+    "developer": (
+        "Ты senior developer. Реализуй решение в файлах проекта по архитектурному плану. "
+        "Не вставляй весь код в ответ — краткий summary изменений. "
+        f"{_FILE_LINE_POLICY}"
+    ),
+    "tester": (
+        "Ты QA-инженер. Напиши тесты (pytest, если Python) — happy-path, граничные и "
+        f"негативные случаи. {_FILE_LINE_POLICY}"
+    ),
+    "reviewer": "Ты code reviewer. Оцени код и тесты: баги, безопасность, читаемость, "
                 "производительность. Дай конкретные замечания и вердикт.",
-    "devops": "Ты DevOps-инженер. Подготовь деплой для реализации выше: Dockerfile/compose, "
-              "CI-шаги, переменные окружения, чек-лист релиза.",
-    "security": "Ты application security engineer. Найди уязвимости в коде выше и предложи фиксы.",
+    "devops": "Ты DevOps-инженер. Подготовь деплой: Dockerfile/compose, CI-шаги, "
+              "переменные окружения, чек-лист релиза.",
+    "security": "Ты application security engineer. Найди уязвимости в коде и предложи фиксы.",
 }
 _DEFAULT_PERSONA = "Ты профильный инженер. Выполни назначенную суб-задачу качественно и кратко."
 
@@ -393,12 +407,13 @@ def run_local(
 
         _log.info("multiagent[%d] %s → %s/%s (tier=%s, mode=%s, skills=%s, mem=%d)",
                   a.idx, a.role, a.provider, a.model, a.tier, a.mode, a.skills, a.mem_hits)
+        role_max_tokens = 2048 if a.role == "architect" else max_tokens
         resp: dict[str, Any] = {}
         try:
             resp = gateway.chat(
                 messages,
                 model=a.model, provider_name=a.provider, system=system,
-                agent=a.role, max_tokens=max_tokens, temperature=temperature,
+                agent=a.role, max_tokens=role_max_tokens, temperature=temperature,
             )
         except Exception as e:  # noqa: BLE001
             a.error = str(e)
