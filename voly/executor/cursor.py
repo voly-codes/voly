@@ -16,6 +16,7 @@ CursorExecutor — agentic code executor via Cursor Agent API (cursor-sdk).
 from __future__ import annotations
 
 import os
+import secrets
 import time
 from pathlib import Path
 
@@ -23,6 +24,12 @@ from voly.executor.base import Executor, ExecutorResult
 
 _SUCCESS_STATUSES = frozenset({"finished", "completed", "success", "succeeded"})
 _FAILURE_STATUSES = frozenset({"failed", "error", "cancelled", "canceled", "timeout"})
+
+# cursor-sdk-bridge argv parser treats any value starting with "-" as a missing
+# flag value (`Missing value for --tool-callback-auth-token`). token_urlsafe
+# hits that ~1.5% of the time.
+_BRIDGE_AUTH_TOKEN_DASH_ERR = "Missing value for --tool-callback-auth-token"
+_BRIDGE_LAUNCH_RETRIES = 3
 
 
 def _status_name(status: object) -> str:
@@ -32,6 +39,29 @@ def _status_name(status: object) -> str:
     if isinstance(name, str):
         return name.lower()
     return str(status).lower().split(".")[-1]
+
+
+def _safe_bridge_auth_token() -> str:
+    """Generate a bridge auth token that is safe as a CLI argv value."""
+    for _ in range(32):
+        token = secrets.token_urlsafe(32)
+        if token and not token.startswith("-"):
+            return token
+    return "x" + secrets.token_urlsafe(32).lstrip("-")
+
+
+def _patch_bridge_auth_token_generators() -> None:
+    """Prevent cursor-sdk from emitting dash-prefixed callback auth tokens."""
+    try:
+        from cursor_sdk import _store_callback, _tool_callback
+    except ImportError:
+        return
+    _tool_callback._new_auth_token = _safe_bridge_auth_token  # type: ignore[attr-defined]
+    _store_callback._new_auth_token = _safe_bridge_auth_token  # type: ignore[attr-defined]
+
+
+def _is_bridge_auth_token_argv_error(exc: BaseException) -> bool:
+    return _BRIDGE_AUTH_TOKEN_DASH_ERR in str(exc)
 
 
 class CursorExecutor(Executor):
@@ -92,20 +122,37 @@ class CursorExecutor(Executor):
 
             # Drop any stale global bridge from a prior crashed combat step.
             close_default_client()
+            _patch_bridge_auth_token_generators()
 
-            with Client.launch_bridge(
-                workspace=work_dir,
-                client_timeout=stream_timeout,
-            ) as client:
-                result = Agent.prompt(
-                    prompt,
-                    AgentOptions(
-                        api_key=self._api_key,
-                        model=self._model,
-                        local=LocalAgentOptions(cwd=work_dir),
-                    ),
-                    client=client,
-                )
+            last_exc: BaseException | None = None
+            for attempt in range(_BRIDGE_LAUNCH_RETRIES):
+                try:
+                    with Client.launch_bridge(
+                        workspace=work_dir,
+                        client_timeout=stream_timeout,
+                    ) as client:
+                        result = Agent.prompt(
+                            prompt,
+                            AgentOptions(
+                                api_key=self._api_key,
+                                model=self._model,
+                                local=LocalAgentOptions(cwd=work_dir),
+                            ),
+                            client=client,
+                        )
+                    break
+                except Exception as exc:  # noqa: BLE001 — retry only argv-token bug
+                    last_exc = exc
+                    if (
+                        attempt + 1 < _BRIDGE_LAUNCH_RETRIES
+                        and _is_bridge_auth_token_argv_error(exc)
+                    ):
+                        close_default_client()
+                        continue
+                    raise
+            else:
+                assert last_exc is not None
+                raise last_exc
         except Exception as exc:
             duration_ms = (time.monotonic() - started) * 1000
             return ExecutorResult(success=False, error=str(exc), duration_ms=duration_ms)

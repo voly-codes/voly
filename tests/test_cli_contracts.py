@@ -276,6 +276,89 @@ def test_cursor_missing_api_key_is_clear_error(monkeypatch):
     assert classify_failure(r) == "unrecognized"  # конфиг-ошибка, не billing
 
 
+def test_cursor_safe_bridge_auth_token_never_starts_with_dash():
+    from voly.executor.cursor import _safe_bridge_auth_token
+
+    for _ in range(200):
+        token = _safe_bridge_auth_token()
+        assert token
+        assert not token.startswith("-")
+
+
+def test_cursor_patches_sdk_auth_token_generators():
+    import pytest
+
+    from voly.executor.cursor import (
+        _patch_bridge_auth_token_generators,
+        _safe_bridge_auth_token,
+    )
+
+    pytest.importorskip("cursor_sdk")
+    from cursor_sdk import _store_callback, _tool_callback
+
+    _patch_bridge_auth_token_generators()
+    assert _tool_callback._new_auth_token is _safe_bridge_auth_token
+    assert _store_callback._new_auth_token is _safe_bridge_auth_token
+    for _ in range(50):
+        assert not _tool_callback._new_auth_token().startswith("-")
+        assert not _store_callback._new_auth_token().startswith("-")
+
+
+def test_cursor_retries_bridge_auth_token_argv_error(monkeypatch, tmp_path):
+    """Dash-prefixed token_urlsafe breaks bridge argv — retry once then succeed."""
+    import pytest
+
+    from voly.executor import cursor as cursor_mod
+
+    pytest.importorskip("cursor_sdk")
+    import cursor_sdk
+    import cursor_sdk._client as client_mod
+
+    calls = {"n": 0}
+
+    class _FakeClient:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        @classmethod
+        def launch_bridge(cls, *a, **k):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError(
+                    "Bridge exited before discovery with status 1: "
+                    "cursor-sdk-bridge failed: Error: Missing value for "
+                    "--tool-callback-auth-token"
+                )
+            return _FakeClient()
+
+    class _FakeResult:
+        status = "finished"
+        result = "ok"
+        duration_ms = 10
+        agent_id = "a1"
+        id = "r1"
+        model = None
+
+    monkeypatch.setattr(cursor_mod, "_patch_bridge_auth_token_generators", lambda: None)
+    monkeypatch.setattr(cursor_sdk, "Client", _FakeClient)
+    monkeypatch.setattr(
+        cursor_sdk,
+        "Agent",
+        types.SimpleNamespace(prompt=staticmethod(lambda *a, **k: _FakeResult())),
+    )
+    monkeypatch.setattr(cursor_sdk, "AgentOptions", lambda **k: k)
+    monkeypatch.setattr(cursor_sdk, "LocalAgentOptions", lambda **k: k)
+    monkeypatch.setattr(client_mod, "close_default_client", lambda: None)
+
+    r = CursorExecutor(api_key="test-key").run("do it", cwd=str(tmp_path))
+    assert calls["n"] == 2
+    assert r.success is True
+    assert r.output == "ok"
+
+
 # ─── classify_failure / метрика нераспознанных ошибок ──────────────────────────
 
 def test_classify_failure_marker_priority():

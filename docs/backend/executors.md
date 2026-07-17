@@ -17,6 +17,9 @@ claude-code  →  cursor  →  deepseek  →  wrangler  →  opencode  →  zen
 
 - `claude-code` — Anthropic account runs out of credits
 - `cursor` — Cursor API (`CURSOR_API_KEY`)
+  (`CursorExecutor` patches `cursor-sdk` auth-token generators so tokens never
+  start with `-`; otherwise `cursor-sdk-bridge` rejects them as
+  `Missing value for --tool-callback-auth-token` and retries once)
 - `deepseek` — DeepSeek API file-writing executor (`DEEPSEEK_API_KEY`)
 - `wrangler` — CF Workers AI via local wrangler dev (separate CF billing)
 - `opencode` — OpenCode Go (free models first, then user's own provider keys)
@@ -42,7 +45,7 @@ Only file-writing executors are in the chain.
 | `claude-code` | yes — Claude CLI | Anthropic | 1st in chain |
 | `wrangler` | yes — LocalPatchApplier | Cloudflare Workers AI | 2nd in chain |
 | `zen` | yes — opencode CLI | free / opencode subscription | 3rd (last resort) |
-| `cursor` | yes — Cursor Agent IDE | Cursor | standalone |
+| `cursor` | yes — Cursor Agent SDK (`cursor-sdk`) | Cursor | 2nd in chain |
 | `opencode` | yes — OpenCode CLI | opencode.ai | standalone |
 | `cf-containers` | remote — CF Container / Sandbox | Cloudflare Containers | standalone (PoC) |
 | `deepseek` | no — text only | DeepSeek API | NOT in chain |
