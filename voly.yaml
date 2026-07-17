@@ -73,6 +73,10 @@ a2a:
   # sub-tasks); standard role sets use the deterministic role→tier map and
   # skip the premium lead chat entirely. llm — always call; deterministic — never.
   lead_mode: auto
+  # Default file-writing executor for hybrid roles. Overrides the built-in
+  # per-role map (developer→cursor, bugfixer→deepseek) when set to anything
+  # other than "claude-code". Per-role env VOLY_A2A_EXECUTOR_<ROLE> still wins.
+  executor_default: claude-code
 
 # Plan gates (Rung B): mirror multi-agent roles as Plan steps with verification.
 # shadow — run verifiers (git diff, file line limits, tester command) and log;

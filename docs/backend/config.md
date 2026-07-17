@@ -283,9 +283,9 @@ config.ai_gateway.spend_limit_usd_per_day
 |---|---|
 | `a2a.hybrid_code_gen` / `VOLY_A2A_HYBRID` | Enable hybrid role modes |
 | `a2a.hybrid_require_cwd` | Without cwd keep all roles on chat |
-| `a2a.executor_default` | Fallback executor when role has no mapping |
+| `a2a.executor_default` | Overrides the built-in per-role map (`developer→cursor`, `bugfixer→deepseek`) when set to any value other than `"claude-code"`. Per-role env still wins. |
 | `a2a.executor_roles` | Roles that prefer executor mode (default: developer, bugfixer) |
-| `VOLY_A2A_EXECUTOR_<ROLE>` | Per-role executor override (e.g. `VOLY_A2A_EXECUTOR_DEVELOPER=cursor`) |
+| `VOLY_A2A_EXECUTOR_<ROLE>` | Per-role executor override (highest priority). E.g. `VOLY_A2A_EXECUTOR_DEVELOPER=wrangler` |
 
 See `docs/proposals/hybrid-multiagent-executor.md` and `docs/backend/pipeline.md`.
 

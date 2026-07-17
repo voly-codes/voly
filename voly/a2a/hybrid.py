@@ -62,8 +62,14 @@ def hybrid_active(
     return True
 
 
+_EXECUTOR_DEFAULT_SENTINEL = "claude-code"
+
+
 def resolve_role_executor(role: str, fallback: str = "claude-code") -> str:
-    """Pick the file-writing executor for a hybrid role."""
+    """Pick the file-writing executor for a hybrid role.
+
+    Priority: env override > explicit config (fallback != sentinel) > hardmap > sentinel.
+    """
     import os
 
     role_key = (role or "").strip().lower()
@@ -71,7 +77,11 @@ def resolve_role_executor(role: str, fallback: str = "claude-code") -> str:
     override = os.environ.get(env_key, "").strip()
     if override:
         return override
-    return _ROLE_EXECUTOR.get(role_key, fallback)
+    # Config-level executor_default beats the per-role hardmap only when the
+    # caller explicitly set a non-default value (i.e. changed from "claude-code").
+    if fallback and fallback != _EXECUTOR_DEFAULT_SENTINEL:
+        return fallback
+    return _ROLE_EXECUTOR.get(role_key, fallback or _EXECUTOR_DEFAULT_SENTINEL)
 
 
 def resolve_role_mode(

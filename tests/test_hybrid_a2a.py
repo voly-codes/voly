@@ -283,6 +283,20 @@ def test_resolve_role_executor_defaults() -> None:
     assert resolve_role_executor("tester", "claude-code") == "claude-code"
 
 
+def test_resolve_role_executor_config_override() -> None:
+    # Non-default fallback (from config executor_default) beats the hardmap.
+    assert resolve_role_executor("developer", "zen") == "zen"
+    assert resolve_role_executor("bugfixer", "claude-code-zen") == "claude-code-zen"
+    # Default sentinel still loses to the per-role hardmap.
+    assert resolve_role_executor("developer", "claude-code") == "cursor"
+
+
+def test_resolve_role_executor_env_beats_config(monkeypatch) -> None:
+    monkeypatch.setenv("VOLY_A2A_EXECUTOR_DEVELOPER", "wrangler")
+    # Env wins even when config says something different.
+    assert resolve_role_executor("developer", "zen") == "wrangler"
+
+
 def test_voly_config_has_hybrid() -> None:
     cfg = VOLYConfig()
     assert cfg.a2a.hybrid_code_gen is True
