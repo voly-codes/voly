@@ -148,6 +148,13 @@ Data from the `done` SSE event.
 
 ---
 
+## CFPage.svelte
+
+Cloudflare Workers status + Spend Tracker summary (`cf/CFPage.svelte`).
+`/api/cf/spend/summary` must send `CF_WORKER_SPEND_TOKEN`; when the token is
+missing or returns 401, the page shows `spend.error` / `hint` instead of a
+silent `$0.0000` total.
+
 ## ProviderKeysPanel.svelte
 
 BYOK provider keys section on the CF page (`cf/ProviderKeysPanel.svelte`,

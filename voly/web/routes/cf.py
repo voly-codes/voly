@@ -17,11 +17,39 @@ def cf_spend_summary(request: Request, days: int = 7) -> dict[str, Any]:
         return {"configured": False, "hint": "Set CF_WORKER_SPEND_URL to enable",
                 "total": 0, "agents": []}
     try:
-        from voly.spend.client import SpendClient
-        data = SpendClient(url).summary(days=days)
+        from voly.spend.client import create_spend_client, resolve_spend_token
+
+        client = create_spend_client(url)
+        if client is None:
+            return {
+                "configured": False,
+                "hint": "Set CF_WORKER_SPEND_URL to enable",
+                "total": 0,
+                "agents": [],
+            }
+        if not resolve_spend_token() and not client.token:
+            return {
+                "configured": True,
+                "error": "Spend Worker requires CF_WORKER_SPEND_TOKEN "
+                "(must match the worker wrangler secret API_TOKEN)",
+                "hint": "Set CF_WORKER_SPEND_TOKEN in .env, then restart voly ui",
+                "total": 0,
+                "agents": [],
+            }
+        data = client.summary(days=days)
         data["configured"] = True
     except Exception as exc:
-        return {"configured": True, "error": str(exc), "total": 0, "agents": []}
+        err = str(exc)
+        hint = ""
+        if "401" in err or "Unauthorized" in err:
+            hint = (
+                "CF_WORKER_SPEND_TOKEN must match the spend worker "
+                "API_TOKEN secret (not CLOUDFLARE_API_TOKEN)"
+            )
+        out = {"configured": True, "error": err, "total": 0, "agents": []}
+        if hint:
+            out["hint"] = hint
+        return out
 
     # The spend worker returns total/agents but no per-day series — attach a daily
     # breakdown from local telemetry so the "По дням" chart is populated.

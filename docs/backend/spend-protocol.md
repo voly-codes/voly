@@ -13,7 +13,8 @@ A change = bump the version here + update the snapshot in the test.
 ## Authentication
 
 `Authorization: Bearer <token>` — token from `CF_WORKER_SPEND_TOKEN`
-(fallback `CLOUDFLARE_API_TOKEN`). All requests/responses are `application/json`.
+only (must match the worker wrangler secret `API_TOKEN`; do **not** reuse
+`CLOUDFLARE_API_TOKEN`). All requests/responses are `application/json`.
 
 ## Endpoints
 

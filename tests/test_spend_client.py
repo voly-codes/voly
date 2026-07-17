@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from voly.spend.client import SpendClient, create_spend_client, resolve_spend_url
+from voly.spend.client import SpendClient, create_spend_client, resolve_spend_url, resolve_spend_token
 
 
 def test_resolve_spend_url(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -35,6 +35,18 @@ def test_spend_client_record() -> None:
     assert captured["method"] == "POST"
 
 
-def test_create_spend_client_none(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("CF_WORKER_SPEND_URL", raising=False)
-    assert create_spend_client() is None
+def test_resolve_spend_token_uses_worker_secret_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CF_WORKER_SPEND_TOKEN", raising=False)
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "account-token-not-for-worker")
+    assert resolve_spend_token() == ""
+
+    monkeypatch.setenv("CF_WORKER_SPEND_TOKEN", "worker-api-token")
+    assert resolve_spend_token() == "worker-api-token"
+
+
+def test_create_spend_client_attaches_spend_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CF_WORKER_SPEND_URL", "https://spend.example.com")
+    monkeypatch.setenv("CF_WORKER_SPEND_TOKEN", "worker-api-token")
+    client = create_spend_client()
+    assert client is not None
+    assert client.token == "worker-api-token"

@@ -152,6 +152,8 @@ ai_gateway:
 # Hosted catalog/marketplace (opt-in): CF_WORKER_CATALOG_URL /
 # CF_WORKER_MARKETPLACE_URL env vars — real official URLs are pre-filled
 # (commented) in .env.example; `voly setup` offers to write them.
+# Spend Worker: CF_WORKER_SPEND_URL + CF_WORKER_SPEND_TOKEN (must match the
+# worker wrangler secret API_TOKEN — never reuse CLOUDFLARE_API_TOKEN).
   cache_enabled: true
   cache_persist_dir: .voly/gateway_cache  # disk cache for responses; empty → in-memory only
   rate_limit_rpm: 60

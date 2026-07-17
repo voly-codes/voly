@@ -109,11 +109,13 @@ def resolve_spend_url(config_url: str = "") -> str:
 
 
 def resolve_spend_token() -> str:
-    for key in ("CF_WORKER_SPEND_TOKEN", "CLOUDFLARE_API_TOKEN"):
-        token = os.environ.get(key, "").strip()
-        if token:
-            return token
-    return ""
+    """Bearer for the spend Worker ``API_TOKEN`` secret.
+
+    Do **not** fall back to ``CLOUDFLARE_API_TOKEN``: that is the account API
+    token and almost never matches the worker secret, which only produced
+    silent HTTP 401s in the CF Spend UI.
+    """
+    return os.environ.get("CF_WORKER_SPEND_TOKEN", "").strip()
 
 
 def create_spend_client(base_url: str = "", token: str = "") -> SpendClient | None:

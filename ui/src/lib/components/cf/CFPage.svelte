@@ -119,10 +119,17 @@
 
     {#if loadingSpend}
       <div class="loading-text">{t('cf.loadingSpend')}</div>
-    {:else if spendError}
+    {:else if spendError || spend?.error}
       <div class="spend-error">
         <AlertCircleIcon size="13" strokeWidth="2" />
-        {spendError}
+        <div>
+          <div>{spendError || spend.error}</div>
+          {#if spend?.hint}
+            <div class="spend-hint">{spend.hint}</div>
+          {:else}
+            <code class="env-hint">CF_WORKER_SPEND_TOKEN=&lt;worker API_TOKEN&gt;</code>
+          {/if}
+        </div>
       </div>
     {:else if spend && !spend.configured}
       <div class="not-configured-msg">
@@ -321,10 +328,15 @@
 
   .spend-error {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 6px;
     font-size: 12px;
     color: var(--accent-red);
+  }
+  .spend-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
   }
 
   .spend-summary { display: flex; flex-direction: column; gap: 12px; }
