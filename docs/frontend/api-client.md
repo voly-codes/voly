@@ -164,6 +164,28 @@ the safety policy acted, `dry_run`, `dry_run_diff`, `safety_violation`,
 `safety_rolled_back`. The multi-agent path returns `a2a_assignments` and a
 `hybrid` summary. `RunResult.svelte` renders all of them.
 
+Single-model and local multi-agent paths may also include `skill_suggestions`
+(marketplace skills not installed locally) — shown as a post-run install banner
+in `RunResult.svelte`.
+
+---
+
+## Marketplace skills (pre-run gate)
+
+```javascript
+import { suggestSkills, installSkill } from './api/client.js'
+
+// Before POST /api/run — RunPanel skill gate
+const { suggestions, configured } = await suggestSkills(task, 5)
+// GET /api/marketplace/skills/suggest?task=…&limit=5
+
+await installSkill(skillId)
+// POST /api/marketplace/skills/{id}/install
+```
+
+If `suggestions.length > 0`, `SkillSuggestModal` opens: install (wait) → Run,
+or Skip & run. Suggest failures do not block the run.
+
 ---
 
 ## Handling billing_fallback in the UI

@@ -3,6 +3,7 @@
   import ActiveRuns from './ActiveRuns.svelte'
   import StatusDot from '../shared/StatusDot.svelte'
   import { fmtDur, fmtRel } from '../../utils/format.js'
+  import { fetchRuns } from '../../api/client.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import { ui } from '../../stores/uiStore.svelte'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
@@ -52,6 +53,20 @@
     { id: 'running',    label: t('sidebar.statusRunning') },
   ])
   void i18n.locale
+
+  async function openLocalRun(run) {
+    try {
+      const data = await fetchRuns(true)
+      const runs = data.runs ?? []
+      const match = runs.find(r => (r.task || '').startsWith((run.task || '').slice(0, 40)))
+        ?? (runs.length === 1 ? runs[0] : null)
+      if (match) {
+        tasksStore.selectLive(match)
+        return
+      }
+    } catch {}
+    ui.runOpen = true
+  }
 </script>
 
 <aside class="sidebar">
@@ -92,7 +107,7 @@
 
   <div class="task-list">
     {#each ui.activeRuns as run (run.id)}
-      <div class="task-row task-row--running">
+      <button type="button" class="task-row task-row--running" onclick={() => openLocalRun(run)}>
         <div class="task-row-top">
           <StatusDot status="running" size={7} />
           <span class="task-agent">{run.agent}</span>
@@ -107,7 +122,7 @@
         <div class="task-row-bot">
           <span class="task-prompt">{run.task}</span>
         </div>
-      </div>
+      </button>
     {/each}
 
     {#each filtered as task (task.task_id)}
@@ -310,7 +325,7 @@
   }
 
   .task-row--running {
-    cursor: default;
+    cursor: pointer;
     border-left: 2px solid var(--running-fg, var(--accent-blue));
     background: color-mix(in srgb, var(--running-fg, var(--accent-blue)) 5%, transparent);
   }

@@ -158,7 +158,7 @@ def marketplace_install(skill_id: str, request: Request) -> dict[str, Any]:
 def marketplace_suggest(request: Request, task: str = "", limit: int = 5) -> dict[str, Any]:
     """Return marketplace skills relevant to a task that are not installed locally.
 
-    Used by the UI to populate the skill_suggest banner after a pipeline run.
+    Used by the UI pre-run skill gate and the post-run skill_suggest banner.
     """
     if not task:
         return {"suggestions": [], "configured": False}

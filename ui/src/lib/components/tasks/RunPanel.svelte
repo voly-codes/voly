@@ -1,11 +1,12 @@
 <script>
   import { onMount } from 'svelte'
   import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
-  import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment } from '../../api/client.js'
+  import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills } from '../../api/client.js'
   import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunResult from './RunResult.svelte'
   import EnvironmentBanner from './EnvironmentBanner.svelte'
+  import SkillSuggestModal from './SkillSuggestModal.svelte'
 
   let { onTaskComplete } = $props()
 
@@ -16,10 +17,15 @@
   let cwd = $state('')
 
   let running = $state(false)
+  let checkingSkills = $state(false)
   let result = $state(null)
   let error = $state(null)
   let warning = $state(null)
   let startedAt = $state(null)
+
+  let skillGateOpen = $state(false)
+  let skillSuggestions = $state([])
+  let skillInstalling = $state(false)
 
   const HYBRID_WARNING_LABELS = {
     hybrid_skipped_no_cwd: 'Hybrid code generation skipped (no cwd set) — running chat-only.',
@@ -94,7 +100,28 @@
     loadModels()
   })
 
+  /** Pre-run gate: suggest marketplace skills, then open modal or start immediately. */
   async function submit() {
+    if (!task.trim() || running || checkingSkills || skillGateOpen) return
+    checkingSkills = true
+    error = null
+    try {
+      const data = await suggestSkills(task.trim(), 5)
+      const suggestions = data?.suggestions ?? []
+      if (suggestions.length > 0) {
+        skillSuggestions = suggestions
+        skillGateOpen = true
+        return
+      }
+    } catch {
+      // Marketplace down / suggest failed — do not block the run.
+    } finally {
+      checkingSkills = false
+    }
+    await startRun()
+  }
+
+  async function startRun() {
     if (!task.trim() || running) return
     running = true
     result = null
@@ -141,6 +168,8 @@
     const iv = setInterval(() => { elapsedDisplay = elapsed() }, 200)
     return () => clearInterval(iv)
   })
+
+  const busy = $derived(running || checkingSkills || skillInstalling)
 </script>
 
 <div class="run-panel">
@@ -153,11 +182,18 @@
     {executors}
     {agents}
     {models}
-    {running}
+    running={busy}
     {executorAvailability}
   />
 
   <div class="results-area">
+    {#if checkingSkills}
+      <div class="run-status">
+        <ZapIcon size="13" strokeWidth="2" />
+        Looking for relevant marketplace skills…
+      </div>
+    {/if}
+
     {#if running}
       <div class="run-status running-pulse">
         <ZapIcon size="13" strokeWidth="2" />
@@ -189,15 +225,15 @@
       bind:value={task}
       onkeydown={keydown}
       rows="2"
-      disabled={running}
+      disabled={busy}
     ></textarea>
     <button
       class="run-btn"
-      class:running
+      class:running={busy}
       onclick={submit}
-      disabled={!task.trim() || running}
+      disabled={!task.trim() || busy}
     >
-      {#if running}
+      {#if busy}
         <StopCircleIcon size="16" strokeWidth="2" />
       {:else}
         <PlayIcon size="16" strokeWidth="2" />
@@ -206,6 +242,14 @@
   </div>
   <div class="input-hint">Ctrl+Enter to run</div>
 </div>
+
+<SkillSuggestModal
+  bind:open={skillGateOpen}
+  bind:installing={skillInstalling}
+  suggestions={skillSuggestions}
+  onRun={startRun}
+  onSkip={startRun}
+/>
 
 <style>
   .run-panel {

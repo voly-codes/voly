@@ -33,7 +33,9 @@ class SkillScout:
         try:
             from voly.registry.marketplace import MarketplaceClient
             mp = MarketplaceClient(self._marketplace_url)
-            result = mp.search(task, limit=limit * 2)
+            # Long task prompts dilute marketplace FTS — search on a compact query.
+            query = " ".join(task.split())[:240].strip() or task[:240]
+            result = mp.search(query, limit=limit * 2)
         except Exception as exc:
             _log.debug("SkillScout marketplace search failed: %s", exc)
             return []

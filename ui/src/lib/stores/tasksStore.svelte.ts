@@ -1,4 +1,5 @@
 import { fetchTasks, fetchTask, fetchSummary, fetchStatus, taskStream } from '../api/client.js'
+import { liveTaskFromRun } from '../utils/liveTask.js'
 import { router } from './routerStore.svelte'
 
 let tasks = $state<any[]>([])
@@ -87,6 +88,22 @@ function select(task: any) {
   }
 }
 
+/** Open an in-flight /api/runs record in the inspector (live card while work runs). */
+function selectLive(run: any) {
+  const live = liveTaskFromRun(run)
+  if (!live) return
+  selected = live
+  router.navigate('tasks', live.task_id.slice(0, 8))
+}
+
+/** Refresh selected live card when ActiveRuns polls the same task_id. */
+function patchLive(run: any) {
+  if (!selected?._live || !run?.task_id) return
+  if (selected.task_id !== run.task_id) return
+  const live = liveTaskFromRun(run)
+  if (live) selected = live
+}
+
 function isUnseen(taskId: string): boolean {
   return unseenIds.has(taskId)
 }
@@ -150,6 +167,8 @@ export const tasksStore = {
   markAllSeen,
   refresh,
   select,
+  selectLive,
+  patchLive,
   startStream,
   stopStream,
 }

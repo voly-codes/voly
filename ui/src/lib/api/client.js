@@ -88,6 +88,10 @@ export const searchMarketplace = (q, limit = 20) =>
 export const installSkill = skill_id =>
   post(`/api/marketplace/skills/${encodeURIComponent(skill_id)}/install`, {}).then(r => r.json())
 
+/** Marketplace skills relevant to a task that are not installed locally. */
+export const suggestSkills = (task, limit = 5) =>
+  get(`/api/marketplace/skills/suggest?${new URLSearchParams({ task, limit: String(limit) })}`)
+
 export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 0) =>
   get(`/api/marketplace/plugins?${new URLSearchParams({ status, limit, offset })}`)
 

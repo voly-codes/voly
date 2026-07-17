@@ -14,8 +14,17 @@
     try {
       const data = await fetchRuns(true)
       runs = data.runs ?? []
+      // Keep the open inspector card in sync while the run is live.
+      for (const r of runs) tasksStore.patchLive(r)
       // A run just finished → its TaskEvent file exists now; refresh the list.
-      if (hadActive && runs.length === 0) tasksStore.refresh()
+      if (hadActive && runs.length === 0) {
+        const wasLiveId = tasksStore.selected?._live ? tasksStore.selected.task_id : null
+        await tasksStore.refresh()
+        if (wasLiveId) {
+          const done = tasksStore.tasks.find(t => t.task_id === wasLiveId)
+          if (done) tasksStore.select(done)
+        }
+      }
       hadActive = runs.length > 0
     } catch {
       runs = []
@@ -50,10 +59,14 @@
       {t('runs.inProgress')} · {runs.length}
     </div>
     {#each runs as r (r.task_id)}
-      <div class="ar-card" class:open={expanded === r.task_id}>
+      {@const isSelected = tasksStore.selected?.task_id === r.task_id}
+      <div class="ar-card" class:open={expanded === r.task_id} class:selected={isSelected}>
         <button
           class="ar-row"
-          onclick={() => expanded = expanded === r.task_id ? '' : r.task_id}
+          onclick={() => {
+            expanded = expanded === r.task_id ? '' : r.task_id
+            tasksStore.selectLive(r)
+          }}
         >
           <span class="ar-task" title={r.task}>{r.task}</span>
           <span class="ar-meta">
@@ -141,6 +154,10 @@
     border-radius: var(--radius-sm);
   }
   .ar-card.open { border-color: var(--border-default); }
+  .ar-card.selected {
+    border-color: var(--accent-blue);
+    box-shadow: inset 2px 0 0 var(--accent-blue);
+  }
 
   .ar-row {
     display: flex;

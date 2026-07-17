@@ -181,9 +181,14 @@
               <div class="agents-list">
                 {#each task.a2a_assignments as a}
                   <div class="agent-row">
-                    <div class="agent-dot" style="background:{a.ok ? 'var(--accent-green)' : 'var(--accent-red)'}"></div>
+                    <div
+                      class="agent-dot"
+                      style="background:{a.mode === 'running' || a.mode === 'pending'
+                        ? (a.mode === 'running' ? 'var(--accent-amber)' : 'var(--text-muted)')
+                        : (a.ok ? 'var(--accent-green)' : 'var(--accent-red)')}"
+                    ></div>
                     <span class="agent-role">{a.role}</span>
-                    <span class="agent-tier tier-{a.tier}">{a.tier}</span>
+                    {#if a.tier}<span class="agent-tier tier-{a.tier}">{a.tier}</span>{/if}
                     {#if a.mode}<span class="agent-badge mode-{a.mode}">{a.mode}</span>{/if}
                     {#if a.plan_status}
                       <span
@@ -193,7 +198,7 @@
                     {/if}
                     {#if a.mode === 'executor' && a.executor}
                       <span class="agent-model">{a.executor}</span>
-                    {:else}
+                    {:else if a.provider || a.model}
                       <span class="agent-model">{a.provider}/{a.model?.split('/').pop()}</span>
                     {/if}
                     {#if a.files_touched?.length}
@@ -204,7 +209,9 @@
                     <div class="agent-skills">
                       {#each a.skills ?? [] as s}<span class="agent-skill">{s}</span>{/each}
                     </div>
-                    <span class="agent-cost">${(a.cost_usd ?? 0).toFixed(4)}</span>
+                    {#if (a.cost_usd ?? 0) > 0 || !task._live}
+                      <span class="agent-cost">${(a.cost_usd ?? 0).toFixed(4)}</span>
+                    {/if}
                   </div>
                 {/each}
               </div>
@@ -394,6 +401,9 @@
   .agent-badge.mem { color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent); }
   .agent-badge.mode-executor { color: var(--accent-blue, #3b82f6); background: color-mix(in srgb, var(--accent-blue, #3b82f6) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-blue, #3b82f6) 30%, transparent); }
   .agent-badge.mode-chat { color: var(--text-muted, #94a3b8); background: color-mix(in srgb, var(--text-muted, #94a3b8) 10%, transparent); border: 1px solid color-mix(in srgb, var(--text-muted, #94a3b8) 25%, transparent); }
+  .agent-badge.mode-running { color: var(--accent-amber); background: color-mix(in srgb, var(--accent-amber) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-amber) 30%, transparent); }
+  .agent-badge.mode-pending { color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 8%, transparent); border: 1px solid var(--border-muted); }
+  .agent-badge.mode-done { color: var(--accent-green); background: color-mix(in srgb, var(--accent-green) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-green) 30%, transparent); }
   .agent-badge.plan-status { text-transform: lowercase; border: 1px solid var(--border-default); color: var(--text-muted); }
   .agent-badge.plan-verified { color: var(--accent-green); border-color: color-mix(in srgb, var(--accent-green) 30%, transparent); background: color-mix(in srgb, var(--accent-green) 10%, transparent); }
   .agent-badge.plan-failed,

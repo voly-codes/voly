@@ -105,7 +105,7 @@ class A2AConfig:
     token: str = ""
     auto_dispatch: bool = True
     min_flags_for_dispatch: int = 2
-    task_timeout_seconds: float = 120.0
+    task_timeout_seconds: float = 600.0
     # "local"  → sub-agents run in-process via AIGateway.chat() with per-role
     #            model tier + skills assigned by the lead orchestrator.
     # "federation" → dispatch sub-tasks to remote A2A agents (federation_url).

@@ -1,0 +1,155 @@
+id: spec-to-repo
+name: spec-to-repo
+description: 'Use when the user says ''build me an app'', ''create a project from
+  this spec'', ''scaffold a new repo'', ''generate a starter'', ''turn this idea into
+  code'', ''bootstrap a project'', ''I have requirements and need a codebase'', or
+  provides a natural-language project specification and expects a complete, runnable
+  repository. Stack-agnostic: Next.js, FastAPI, Rails, Go, Rust, Flutter, and more.'
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Spec to Repo\n\nTurn a natural-language project specification into a complete,\
+  \ runnable starter repository. Not a template filler — a spec interpreter that generates\
+  \ real, working code for any stack.\n\n## When to Use\n\n- User provides a text\
+  \ description of an app and wants code\n- User has a PRD, requirements doc, or feature\
+  \ list and needs a codebase\n- User says \"build me an app that...\", \"scaffold\
+  \ this\", \"bootstrap a project\"\n- User wants a working starter repo, not just\
+  \ a file tree\n\n**Not this skill** when the user wants a SaaS app with Stripe +\
+  \ Auth specifically — use `product-team/saas-scaffolder` instead.\n\n## Core Workflow\n\
+  \n### Phase 1 — Parse & Interpret\n\nRead the spec. Extract these fields silently:\n\
+  \n| Field | Source | Required |\n|-------|--------|----------|\n| App name | Explicit\
+  \ or infer from description | yes |\n| Description | First sentence of spec | yes\
+  \ |\n| Features | Bullet points or sentences describing behavior | yes |\n| Tech\
+  \ stack | Explicit (\"use FastAPI\") or infer from context | yes |\n| Auth | \"\
+  login\", \"users\", \"accounts\", \"roles\" | if mentioned |\n| Database | \"store\"\
+  , \"save\", \"persist\", \"records\", \"schema\" | if mentioned |\n| API surface\
+  \ | \"endpoint\", \"API\", \"REST\", \"GraphQL\" | if mentioned |\n| Deploy target\
+  \ | \"Vercel\", \"Docker\", \"AWS\", \"Railway\" | if mentioned |\n\n**Stack inference\
+  \ rules** (when user doesn't specify):\n\n| Signal | Inferred stack |\n|--------|---------------|\n\
+  | \"web app\", \"dashboard\", \"SaaS\" | Next.js + TypeScript |\n| \"API\", \"backend\"\
+  , \"microservice\" | FastAPI (Python) or Express (Node) |\n| \"mobile app\" | Flutter\
+  \ or React Native |\n| \"CLI tool\" | Go or Python |\n| \"data pipeline\" | Python\
+  \ |\n| \"high performance\", \"systems\" | Rust or Go |\n\nAfter parsing, present\
+  \ a structured interpretation back to the user:\n\n```\n## Spec Interpretation\n\
+  \n**App:** [name]\n**Stack:** [framework + language]\n**Features:**\n1. [feature]\n\
+  2. [feature]\n\n**Database:** [yes/no — engine]\n**Auth:** [yes/no — method]\n**Deploy:**\
+  \ [target]\n\nDoes this match your intent? Any corrections before I generate?\n\
+  ```\n\nFlag ambiguities. Ask **at most 3** clarifying questions. If the user says\
+  \ \"just build it\", proceed with best-guess defaults.\n\n### Phase 2 — Architecture\n\
+  \nDesign the project before writing any files:\n\n1. **Select template** — Match\
+  \ to a stack template from `references/stack-templates.md`\n2. **Define file tree**\
+  \ — List every file that will be created\n3. **Map features to files** — Each feature\
+  \ gets at minimum one file/component\n4. **Design database schema** — If applicable,\
+  \ define tables/collections with fields and types\n5. **Identify dependencies**\
+  \ — List every package with version constraints\n6. **Plan API routes** — If applicable,\
+  \ list every endpoint with method, path, request/response shape\n\nPresent the file\
+  \ tree to the user before generating:\n\n```\nproject-name/\n├── README.md\n├──\
+  \ .env.example\n├── .gitignore\n├── .github/workflows/ci.yml\n├── package.json /\
+  \ requirements.txt / go.mod\n├── src/\n│   ├── ...\n├── tests/\n│   ├── ...\n└──\
+  \ ...\n```\n\n### Phase 3 — Generate\n\nWrite every file. Rules:\n\n- **Real code,\
+  \ not stubs.** Every function has a real implementation. No `// TODO: implement`\
+  \ or `pass` placeholders.\n- **Syntactically valid.** Every file must parse without\
+  \ errors in its language.\n- **Imports match dependencies.** Every import must correspond\
+  \ to a package in the manifest (package.json, requirements.txt, go.mod, etc.).\n\
+  - **Types included.** TypeScript projects use types. Python projects use type hints.\
+  \ Go projects use typed structs.\n- **Environment variables.** Generate `.env.example`\
+  \ with every required variable, commented with purpose.\n- **README.md.** Include:\
+  \ project description, prerequisites, setup steps (clone, install, configure env,\
+  \ run), and available scripts/commands.\n- **CI config.** Generate `.github/workflows/ci.yml`\
+  \ with: install, lint (if linter in deps), test, build.\n- **.gitignore.** Stack-appropriate\
+  \ ignores (node_modules, __pycache__, .env, build artifacts).\n\n**File generation\
+  \ order:**\n1. Manifest (package.json / requirements.txt / go.mod)\n2. Config files\
+  \ (.env.example, .gitignore, CI)\n3. Database schema / migrations\n4. Core business\
+  \ logic\n5. API routes / endpoints\n6. UI components (if applicable)\n7. Tests\n\
+  8. README.md\n\n### Phase 4 — Validate\n\nAfter generation, run through this checklist:\n\
+  \n- [ ] Every imported package exists in the manifest\n- [ ] Every file referenced\
+  \ by an import exists in the tree\n- [ ] `.env.example` lists every env var used\
+  \ in code\n- [ ] `.gitignore` covers build artifacts and secrets\n- [ ] README has\
+  \ setup instructions that actually work\n- [ ] No hardcoded secrets, API keys, or\
+  \ passwords\n- [ ] At least one test file exists\n- [ ] Build/start command is documented\
+  \ and would work\n\nRun `scripts/validate_project.py` against the generated directory\
+  \ to catch common issues.\n\n## Examples\n\n### Example 1: Task Management API\n\
+  \n**Input spec:**\n> \"Build me a task management API. Users can create, list, update,\
+  \ and delete tasks. Tasks have a title, description, status (todo/in-progress/done),\
+  \ and due date. Use FastAPI with SQLite. Add basic auth with API keys.\"\n\n**Output\
+  \ file tree:**\n```\ntask-api/\n├── README.md\n├── .env.example              # API_KEY,\
+  \ DATABASE_URL\n├── .gitignore\n├── .github/workflows/ci.yml\n├── requirements.txt\
+  \          # fastapi, uvicorn, sqlalchemy, pytest\n├── main.py                 \
+  \  # FastAPI app, CORS, lifespan\n├── models.py                 # SQLAlchemy Task\
+  \ model\n├── schemas.py                # Pydantic request/response schemas\n├──\
+  \ database.py               # SQLite engine + session\n├── auth.py             \
+  \      # API key middleware\n├── routers/\n│   └── tasks.py              # CRUD\
+  \ endpoints\n└── tests/\n    └── test_tasks.py         # Smoke tests for each endpoint\n\
+  ```\n\n### Example 2: Recipe Sharing Web App\n\n**Input spec:**\n> \"I want a recipe\
+  \ sharing website. Users sign up, post recipes with ingredients and steps, browse\
+  \ other recipes, and save favorites. Use Next.js with Tailwind. Store data in PostgreSQL.\"\
+  \n\n**Output file tree:**\n```\nrecipe-share/\n├── README.md\n├── .env.example \
+  \             # DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL\n├── .gitignore\n├──\
+  \ .github/workflows/ci.yml\n├── package.json              # next, react, tailwindcss,\
+  \ prisma, next-auth\n├── tailwind.config.ts\n├── tsconfig.json\n├── next.config.ts\n\
+  ├── prisma/\n│   └── schema.prisma         # User, Recipe, Ingredient, Favorite\
+  \ models\n├── src/\n│   ├── app/\n│   │   ├── layout.tsx\n│   │   ├── page.tsx \
+  \         # Homepage — recipe feed\n│   │   ├── recipes/\n│   │   │   ├── page.tsx\
+  \      # Browse recipes\n│   │   │   ├── [id]/page.tsx # Recipe detail\n│   │  \
+  \ │   └── new/page.tsx  # Create recipe form\n│   │   └── api/\n│   │       ├──\
+  \ auth/[...nextauth]/route.ts\n│   │       └── recipes/route.ts\n│   ├── components/\n\
+  │   │   ├── RecipeCard.tsx\n│   │   ├── RecipeForm.tsx\n│   │   └── Navbar.tsx\n\
+  │   └── lib/\n│       ├── prisma.ts\n│       └── auth.ts\n└── tests/\n    └── recipes.test.ts\n\
+  ```\n\n### Example 3: CLI Expense Tracker\n\n**Input spec:**\n> \"Python CLI tool\
+  \ for tracking expenses. Commands: add, list, summary, export-csv. Store in a local\
+  \ SQLite file. No external API.\"\n\n**Output file tree:**\n```\nexpense-tracker/\n\
+  ├── README.md\n├── .gitignore\n├── .github/workflows/ci.yml\n├── pyproject.toml\n\
+  ├── src/\n│   └── expense_tracker/\n│       ├── __init__.py\n│       ├── cli.py\
+  \            # argparse commands\n│       ├── database.py       # SQLite operations\n\
+  │       ├── models.py         # Expense dataclass\n│       └── formatters.py   \
+  \  # Table + CSV output\n└── tests/\n    └── test_cli.py\n```\n\n## Anti-Patterns\n\
+  \n| Anti-pattern | Fix |\n|---|---|\n| **Placeholder code** — `// TODO: implement`,\
+  \ `pass`, empty function bodies | Every function has a real implementation. If complex,\
+  \ implement a working simplified version. |\n| **Stack override** — picking Next.js\
+  \ when the user said Flask | Always honor explicit tech preferences. Only infer\
+  \ when the user doesn't specify. |\n| **Missing .gitignore** — committing node_modules\
+  \ or .env | Generate stack-appropriate .gitignore as one of the first files. |\n\
+  | **Phantom imports** — importing packages not in the manifest | Cross-check every\
+  \ import against package.json / requirements.txt before finishing. |\n| **Over-engineering\
+  \ MVP** — adding Redis caching, rate limiting, WebSockets to a v1 | Build the minimum\
+  \ that works. The user can iterate. |\n| **Ignoring stated preferences** — user\
+  \ says \"PostgreSQL\" and you generate MongoDB | Parse the spec carefully. Explicit\
+  \ preferences are non-negotiable. |\n| **Missing env vars** — code reads `process.env.X`\
+  \ but `.env.example` doesn't list it | Every env var used in code must appear in\
+  \ `.env.example` with a comment. |\n| **No tests** — shipping a repo with zero test\
+  \ files | At minimum: one smoke test per API endpoint or one test per core function.\
+  \ |\n| **Hallucinated APIs** — generating code that calls library methods that don't\
+  \ exist | Stick to well-documented, stable APIs. When unsure, use the simplest approach.\
+  \ |\n\n## Validation Script\n\n### `scripts/validate_project.py`\n\nChecks a generated\
+  \ project directory for common issues:\n\n```bash\n# Validate a generated project\n\
+  python3 scripts/validate_project.py /path/to/generated-project\n\n# JSON output\n\
+  python3 scripts/validate_project.py /path/to/generated-project --format json\n```\n\
+  \nChecks performed:\n- README.md exists and is non-empty\n- .gitignore exists\n\
+  - .env.example exists (if code references env vars)\n- Package manifest exists (package.json,\
+  \ requirements.txt, go.mod, Cargo.toml, pubspec.yaml)\n- No .env file committed\
+  \ (secrets leak)\n- At least one test file exists\n- No TODO/FIXME placeholders\
+  \ in generated code\n\n## Progressive Enhancement\n\nFor complex specs, generate\
+  \ in stages:\n\n1. **MVP** — Core feature only, working end-to-end\n2. **Auth**\
+  \ — Add authentication if requested\n3. **Polish** — Error handling, validation,\
+  \ loading states\n4. **Deploy** — Docker, CI, deploy config\n\nAsk the user after\
+  \ MVP: \"Core is working. Want me to add auth/polish/deploy next, or iterate on\
+  \ what's here?\"\n\n## Cross-References\n\n- Related: `product-team/saas-scaffolder`\
+  \ — SaaS-specific scaffolding (Next.js + Stripe + Auth)\n- Related: `engineering/spec-driven-workflow`\
+  \ — spec-first development methodology\n- Related: `engineering/database-designer`\
+  \ — database schema design patterns\n- Related: `engineering-team/senior-fullstack`\
+  \ — full-stack implementation patterns"
+tags:
+- product-team
+- spec-to-repo
+capabilities:
+- product-team
+- spec-to-repo
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

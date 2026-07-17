@@ -1,0 +1,68 @@
+id: mcp-server-builder
+name: mcp-server-builder
+description: Design and ship production-ready MCP (Model Context Protocol) servers
+  from OpenAPI contracts instead of hand-written tool wrappers. Python and TypeScript
+  support, schema validation, safe evolution. Use when exposing an existing API as
+  an MCP server, building tool integrations for Claude or Codex or Cursor, or scaffolding
+  an MCP project from scratch.
+source: marketplace
+status: active
+version: 1.0.0
+content: "# MCP Server Builder\n\n**Tier:** POWERFUL · **Category:** Engineering ·\
+  \ **Domain:** AI / API Integration\n\n## Overview\n\nUse this skill to design and\
+  \ ship production-ready MCP servers from API contracts instead of hand-written one-off\
+  \ tool wrappers. It focuses on fast scaffolding, schema quality, validation, and\
+  \ safe evolution.\n\nThe workflow supports both Python and TypeScript MCP implementations\
+  \ and treats OpenAPI as the source of truth.\n\n## Core Capabilities\n\n- Convert\
+  \ OpenAPI paths/operations into MCP tool definitions\n- Generate starter server\
+  \ scaffolds (Python or TypeScript)\n- Enforce naming, descriptions, and schema consistency\n\
+  - Validate MCP tool manifests for common production failures\n- Apply versioning\
+  \ and backward-compatibility checks\n- Separate transport/runtime decisions from\
+  \ tool contract design\n\n## When to Use\n\n- You need to expose an internal/external\
+  \ REST API to an LLM agent\n- You are replacing brittle browser automation with\
+  \ typed tools\n- You want one MCP server shared across teams and assistants\n- You\
+  \ need repeatable quality checks before publishing MCP tools\n- You want to bootstrap\
+  \ an MCP server from existing OpenAPI specs\n\n## Key Workflows\n\n### 1. OpenAPI\
+  \ to MCP Scaffold\n\n1. Start from a valid OpenAPI spec.\n2. Generate tool manifest\
+  \ + starter server code.\n3. Review naming and auth strategy.\n4. Add endpoint-specific\
+  \ runtime logic.\n\n```bash\npython3 scripts/openapi_to_mcp.py \\\n  --input openapi.json\
+  \ \\\n  --server-name billing-mcp \\\n  --language python \\\n  --output-dir ./out\
+  \ \\\n  --format text\n```\n\nSupports stdin as well:\n\n```bash\ncat openapi.json\
+  \ | python3 scripts/openapi_to_mcp.py --server-name billing-mcp --language typescript\n\
+  ```\n\n### 2. Validate MCP Tool Definitions\n\nRun validator before integration\
+  \ tests:\n\n```bash\npython3 scripts/mcp_validator.py --input out/tool_manifest.json\
+  \ --strict --format text\n```\n\nChecks include duplicate names, invalid schema\
+  \ shape, missing descriptions, empty required fields, and naming hygiene.\n\n###\
+  \ 3. Runtime Selection\n\n- Choose **Python** for fast iteration and data-heavy\
+  \ backends.\n- Choose **TypeScript** for unified JS stacks and tighter frontend/backend\
+  \ contract reuse.\n- Keep tool contracts stable even if transport/runtime changes.\n\
+  \n### 4. Harden for Production\n\nKey items before publishing:\n\n- Keep secrets\
+  \ in env vars, not tool schemas\n- Prefer outbound host allowlists over open proxies\n\
+  - Use additive-only changes; never rename tool names in-place\n\nFull hardening\
+  \ guidance: [references/production-hardening-guide.md](references/production-hardening-guide.md).\n\
+  \n## Script Interfaces\n\n- `python3 scripts/openapi_to_mcp.py --help`\n  - Reads\
+  \ OpenAPI from stdin or `--input`\n  - Produces manifest + server scaffold\n  -\
+  \ Emits JSON summary or text report\n- `python3 scripts/mcp_validator.py --help`\n\
+  \  - Validates manifests and optional runtime config\n  - Returns non-zero exit\
+  \ in strict mode when errors exist\n\n## Reference Material\n\n- [references/production-hardening-guide.md](references/production-hardening-guide.md)\
+  \ — auth & safety design, versioning strategy, common pitfalls, best practices,\
+  \ architecture decisions, contract quality gates, testing strategy, deployment practices,\
+  \ security controls\n- [references/openapi-extraction-guide.md](references/openapi-extraction-guide.md)\n\
+  - [references/python-server-template.md](references/python-server-template.md)\n\
+  - [references/typescript-server-template.md](references/typescript-server-template.md)\n\
+  - [references/validation-checklist.md](references/validation-checklist.md)\n- [README.md](README.md)"
+tags:
+- engineering
+- mcp-server-builder
+capabilities:
+- engineering
+- mcp-server-builder
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}
