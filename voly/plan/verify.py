@@ -106,23 +106,54 @@ def safe_join(cwd: str, rel: str) -> Path:
     return target
 
 
-def ensure_git_repo(cwd: str, *, timeout: float = 10.0) -> bool:
-    """Initialize git in ``cwd`` when missing so hybrid verify can track files."""
-    if not cwd or not os.path.isdir(cwd):
-        return False
-    if os.path.isdir(os.path.join(cwd, ".git")):
-        return False
+def _git_has_commits(cwd: str, timeout: float = 5.0) -> bool:
     try:
-        proc = subprocess.run(
-            ["git", "init"],
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
+        p = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=cwd, capture_output=True, text=True, timeout=timeout,
         )
-        return proc.returncode == 0
+        return p.returncode == 0
     except (OSError, subprocess.SubprocessError):
         return False
+
+
+def _git_seed_commit(cwd: str, timeout: float = 10.0) -> bool:
+    """Create an empty root commit so stash/rev-parse work in a freshly init'd repo."""
+    try:
+        cfg = ["-c", "user.email=voly@local", "-c", "user.name=voly"]
+        subprocess.run(
+            ["git", *cfg, "commit", "--allow-empty", "-m", "chore: voly seed commit"],
+            cwd=cwd, capture_output=True, text=True, timeout=timeout,
+        )
+        return _git_has_commits(cwd)
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def ensure_git_repo(cwd: str, *, timeout: float = 10.0) -> bool:
+    """Initialize git in ``cwd`` when missing so hybrid verify can track files.
+
+    Also creates a seed commit when the repo has no commits yet so that
+    ``git stash create`` and ``git rev-parse HEAD`` work for safety snapshots.
+    Returns True if any initialization (init or seed commit) was performed.
+    """
+    if not cwd or not os.path.isdir(cwd):
+        return False
+    did_work = False
+    if not os.path.isdir(os.path.join(cwd, ".git")):
+        try:
+            proc = subprocess.run(
+                ["git", "init"],
+                cwd=cwd, capture_output=True, text=True, timeout=timeout,
+            )
+            if proc.returncode != 0:
+                return False
+            did_work = True
+        except (OSError, subprocess.SubprocessError):
+            return False
+    if not _git_has_commits(cwd):
+        did_work = _git_seed_commit(cwd, timeout=timeout) or did_work
+    return did_work
 
 
 def git_porcelain(cwd: str, *, timeout: float = 5.0) -> dict[str, str]:

@@ -353,6 +353,45 @@ def test_git_porcelain_live_repo(tmp_path: Path) -> None:
 # ── fail closed / batch ──────────────────────────────────────────────────────
 
 
+def test_ensure_git_repo_seeds_commit(tmp_path: Path) -> None:
+    from voly.executor.safety import git_snapshot
+    from voly.plan.verify import _git_has_commits, ensure_git_repo
+
+    # Empty dir → init + seed commit; snapshot must return a valid SHA.
+    result = ensure_git_repo(str(tmp_path))
+    assert result is True
+    assert _git_has_commits(str(tmp_path))
+    snap = git_snapshot(str(tmp_path))
+    assert len(snap) == 40, f"expected 40-char SHA, got {snap!r}"
+
+
+def test_ensure_git_repo_existing_with_commits(tmp_path: Path) -> None:
+    from voly.plan.verify import _git_has_commits, ensure_git_repo
+
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t",
+         "commit", "--allow-empty", "-m", "init"],
+        cwd=tmp_path, check=True, capture_output=True,
+    )
+    # Repo already has commits — ensure_git_repo should do nothing (return False).
+    result = ensure_git_repo(str(tmp_path))
+    assert result is False
+    assert _git_has_commits(str(tmp_path))
+
+
+def test_ensure_git_repo_git_exists_no_commits(tmp_path: Path) -> None:
+    from voly.executor.safety import git_snapshot
+    from voly.plan.verify import ensure_git_repo
+
+    # .git exists but no commits yet (the pre-fix scenario for TEST_VOLY_JOB_MA).
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    result = ensure_git_repo(str(tmp_path))
+    assert result is True
+    snap = git_snapshot(str(tmp_path))
+    assert len(snap) == 40, f"safety snapshot must be valid after seed: {snap!r}"
+
+
 def test_unknown_type_fail_closed() -> None:
     r = run_check(AcceptanceCheck(type="llm_judge"), VerifyContext())
     assert not r.ok
