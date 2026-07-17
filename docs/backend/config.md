@@ -197,6 +197,8 @@ plan:
   a2a_attach: true                 # wire gates into multi-agent when enabled
   chat_require_output: true        # chat roles: output_nonempty acceptance
   executor_require_git_diff: false # opt-in git_diff_nonempty for executor roles
+  executor_file_line_limit: 300    # changed text files above this fail verify
+  architect_approved_file_line_limit: 500 # strict architect marker may raise cap
   tester_command: ""               # e.g. "pytest -q" for tester role
 
 a2a:

@@ -26,6 +26,8 @@ plan:
   a2a_attach: true      # multi-agent uses the same gates
   chat_require_output: true
   executor_require_git_diff: false
+  executor_file_line_limit: 300
+  architect_approved_file_line_limit: 500
   tester_command: ""    # or "pytest -q" / filled from scanner when empty
 ```
 
@@ -93,10 +95,29 @@ voly plan show auth-refactor
 | `files_missing` | none of `paths` exist |
 | `git_diff_nonempty` | dirty porcelain / before-after change (optional path filter) |
 | `git_diff_contains` | changed paths match `paths` or `pattern` |
+| `file_line_limit` | every changed text file is within `max_lines`; binary files are skipped |
 | `output_nonempty` | agent output non-empty |
 | `output_regex` | agent output matches `pattern` |
 
 Unknown types **fail closed**.
+
+### Executor file-size policy
+
+Attached A2A plans add `file_line_limit` to every executor role by default.
+The verifier checks `files_touched`, falling back to the git before/after
+porcelain delta. A file over 300 physical lines fails verification.
+
+An architect dependency may raise the limit to the configured cap (500) only
+with both exact plan markers:
+
+```text
+FILE_LINE_LIMIT: 500
+FILE_LINE_LIMIT_REASON: cohesive parser requires one module to preserve its invariant
+```
+
+The reason must contain at least 10 non-whitespace characters. Missing or
+malformed markers leave the 300-line limit in force. In `active` mode the failed
+check blocks dependents; in `shadow` mode it is recorded in `verify_log`.
 
 ---
 
@@ -157,6 +178,7 @@ Defaults:
 
 - chat roles → `output_nonempty` if `chat_require_output`
 - executor → `git_diff_nonempty` only if `executor_require_git_diff`
+- executor → `file_line_limit` (300 by default; 500 with strict architect approval)
 - tester → `command` if `tester_command` set
 
 ---

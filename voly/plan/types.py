@@ -97,6 +97,8 @@ class AcceptanceCheck:
     run: str = ""
     expect_exit: int = 0
     pattern: str = ""
+    max_lines: int = 0
+    approved_max_lines: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {"type": self.type}
@@ -107,6 +109,10 @@ class AcceptanceCheck:
             d["expect_exit"] = self.expect_exit
         if self.pattern:
             d["pattern"] = self.pattern
+        if self.max_lines > 0:
+            d["max_lines"] = self.max_lines
+        if self.approved_max_lines > 0:
+            d["approved_max_lines"] = self.approved_max_lines
         return d
 
     @classmethod
@@ -119,6 +125,8 @@ class AcceptanceCheck:
             run=str(data.get("run") or ""),
             expect_exit=int(data.get("expect_exit", 0)),
             pattern=str(data.get("pattern") or ""),
+            max_lines=int(data.get("max_lines", 0)),
+            approved_max_lines=int(data.get("approved_max_lines", 0)),
         )
 
 

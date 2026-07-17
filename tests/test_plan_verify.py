@@ -24,6 +24,7 @@ from voly.plan.verify import (
     CHECK_FILES_MISSING,
     CHECK_GIT_DIFF_CONTAINS,
     CHECK_GIT_DIFF_NONEMPTY,
+    CHECK_FILE_LINE_LIMIT,
     CHECK_OUTPUT_NONEMPTY,
     CHECK_OUTPUT_REGEX,
     VerifyContext,
@@ -179,6 +180,79 @@ def test_output_regex_invalid_pattern() -> None:
     )
     assert not r.ok
     assert "invalid" in r.message
+
+
+# ── file line limit ──────────────────────────────────────────────────────────
+
+
+def test_file_line_limit_passes_at_300_and_fails_at_301(cwd: Path) -> None:
+    path = cwd / "module.py"
+    ctx = VerifyContext(cwd=str(cwd), files_touched=["module.py"])
+    check = AcceptanceCheck(
+        type=CHECK_FILE_LINE_LIMIT,
+        max_lines=300,
+        approved_max_lines=500,
+    )
+
+    path.write_text("x\n" * 300)
+    passed = run_check(check, ctx)
+    assert passed.ok
+    assert passed.detail["checked"]["module.py"] == 300
+    assert passed.detail["limit"] == 300
+
+    path.write_text("x\n" * 301)
+    failed = run_check(check, ctx)
+    assert not failed.ok
+    assert failed.detail["violations"] == {"module.py": 301}
+
+
+def test_file_line_limit_uses_strict_architect_approval(cwd: Path) -> None:
+    (cwd / "large.py").write_text("x\n" * 450)
+    check = AcceptanceCheck(
+        type=CHECK_FILE_LINE_LIMIT,
+        max_lines=300,
+        approved_max_lines=500,
+    )
+    plan = create_plan(
+        "line-approval",
+        [
+            PlanStep(
+                id="arch",
+                role="architect",
+                output=(
+                    "FILE_LINE_LIMIT: 500\n"
+                    "FILE_LINE_LIMIT_REASON: cohesive generated parser requires one module"
+                ),
+            ),
+            PlanStep(
+                id="dev",
+                role="developer",
+                depends_on=["arch"],
+                acceptance=[check],
+                files_touched=["large.py"],
+            ),
+        ],
+        cwd=str(cwd),
+    )
+
+    approved = verify_step(plan, "dev")
+    assert approved[0].ok
+    assert approved[0].detail["limit"] == 500
+    assert approved[0].detail["architect_approved"] is True
+
+    plan.get_step("arch").output = "FILE_LINE_LIMIT: 500"  # no rationale
+    rejected = verify_step(plan, "dev")
+    assert not rejected[0].ok
+    assert rejected[0].detail["limit"] == 300
+
+
+def test_file_line_limit_fails_without_changed_file_evidence(cwd: Path) -> None:
+    result = run_check(
+        AcceptanceCheck(type=CHECK_FILE_LINE_LIMIT, max_lines=300),
+        VerifyContext(cwd=str(cwd)),
+    )
+    assert not result.ok
+    assert "no changed files" in result.message
 
 
 # ── git diff ─────────────────────────────────────────────────────────────────

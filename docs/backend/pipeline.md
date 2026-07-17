@@ -204,8 +204,9 @@ as a plan step (see `voly/plan/bridge.py`):
 - Dependents start only after prior steps are **verified** (not just `ok`).
 - `active`: failed acceptance stops the role (`ok=False`); dependents skip.
 - `shadow`: failed acceptance is logged; step is soft-verified so the chain continues.
-- Defaults: chat roles get `output_nonempty`; optional `executor_require_git_diff`,
-  `tester_command`.
+- Defaults: chat roles get `output_nonempty`; executor roles always get
+  `file_line_limit` (300 lines, or 500 only with strict architect approval);
+  optional `executor_require_git_diff`, `tester_command`.
 - Telemetry: `Assignment.plan_status` / `plan_verify_ok` in `a2a_assignments`;
   `RunRecord.plan_id` + `step_statuses` (CLI: `voly runs show`).
 

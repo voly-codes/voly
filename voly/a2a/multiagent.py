@@ -34,7 +34,8 @@ _log = logging.getLogger("voly.a2a.multiagent")
 
 _FILE_LINE_POLICY = (
     "Лимит файлов: каждый создаваемый/изменяемый файл — не более 300 строк кода. "
-    "До 500 строк только если architect явно разрешил в плане с обоснованием."
+    "До 500 строк только если architect явно разрешил в плане двумя отдельными "
+    "строками `FILE_LINE_LIMIT: 500` и `FILE_LINE_LIMIT_REASON: <обоснование>`."
 )
 
 _ROLE_PROMPT: dict[str, str] = {

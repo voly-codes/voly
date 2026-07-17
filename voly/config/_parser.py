@@ -396,6 +396,10 @@ def _parse_config(raw: dict) -> VOLYConfig:
             a2a_attach=_parse_bool(p.get("a2a_attach"), True),
             chat_require_output=_parse_bool(p.get("chat_require_output"), True),
             executor_require_git_diff=_parse_bool(p.get("executor_require_git_diff"), False),
+            executor_file_line_limit=int(p.get("executor_file_line_limit", 300)),
+            architect_approved_file_line_limit=int(
+                p.get("architect_approved_file_line_limit", 500)
+            ),
             tester_command=str(p.get("tester_command", "") or ""),
         )
 

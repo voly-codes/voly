@@ -269,6 +269,10 @@ class PlanConfig:
     chat_require_output: bool = True
     # Opt-in: executor roles must leave a git dirty/diff (files_touched or porcelain).
     executor_require_git_diff: bool = False
+    # Mandatory executor policy: changed text files may not exceed this many lines.
+    executor_file_line_limit: int = 300
+    # Architect may raise the limit up to this cap with strict plan markers.
+    architect_approved_file_line_limit: int = 500
     # Opt-in: tester role runs this command as acceptance (e.g. "pytest -q").
     tester_command: str = ""
 

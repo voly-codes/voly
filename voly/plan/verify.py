@@ -34,6 +34,7 @@ CHECK_GIT_DIFF_NONEMPTY = "git_diff_nonempty"
 CHECK_GIT_DIFF_CONTAINS = "git_diff_contains"
 CHECK_OUTPUT_NONEMPTY = "output_nonempty"
 CHECK_OUTPUT_REGEX = "output_regex"
+CHECK_FILE_LINE_LIMIT = "file_line_limit"
 
 KNOWN_CHECK_TYPES = frozenset({
     CHECK_COMMAND,
@@ -43,9 +44,15 @@ KNOWN_CHECK_TYPES = frozenset({
     CHECK_GIT_DIFF_CONTAINS,
     CHECK_OUTPUT_NONEMPTY,
     CHECK_OUTPUT_REGEX,
+    CHECK_FILE_LINE_LIMIT,
 })
 
 DEFAULT_COMMAND_TIMEOUT = 120.0
+
+_LINE_LIMIT_MARKER = re.compile(r"(?im)^\s*FILE_LINE_LIMIT:\s*(\d+)\s*$")
+_LINE_LIMIT_REASON = re.compile(
+    r"(?im)^\s*FILE_LINE_LIMIT_REASON:\s*(\S.{9,})\s*$"
+)
 
 
 @dataclass
@@ -73,6 +80,8 @@ class VerifyContext:
     git_before: dict[str, str] = field(default_factory=dict)
     git_after: dict[str, str] = field(default_factory=dict)
     command_timeout: float = DEFAULT_COMMAND_TIMEOUT
+    # Raised from the default limit only by a strict architect plan marker.
+    approved_file_line_limit: int = 0
 
 
 class VerifyError(Exception):
@@ -391,6 +400,102 @@ def _check_output_regex(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyRes
     )
 
 
+def _line_count(path: Path) -> int | None:
+    """Count physical lines; return None for binary files."""
+    raw = path.read_bytes()
+    if b"\x00" in raw:
+        return None
+    if not raw:
+        return 0
+    return raw.count(b"\n") + (0 if raw.endswith(b"\n") else 1)
+
+
+def _line_limit_candidates(check: AcceptanceCheck, ctx: VerifyContext) -> list[str]:
+    if check.paths:
+        return list(dict.fromkeys(check.paths))
+    if ctx.files_touched:
+        return list(dict.fromkeys(ctx.files_touched))
+    after = _resolve_git_after(ctx)
+    changed = (
+        changed_paths(ctx.git_before, after)
+        if ctx.git_before or ctx.git_after
+        else set(after)
+    )
+    return sorted(changed)
+
+
+def _check_file_line_limit(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:
+    """Enforce per-file line limits on files changed by an executor step."""
+    base_limit = int(check.max_lines or 300)
+    approved_cap = int(check.approved_max_lines or base_limit)
+    if base_limit <= 0:
+        return VerifyResult(CHECK_FILE_LINE_LIMIT, False, "max_lines must be positive")
+    if approved_cap < base_limit:
+        return VerifyResult(
+            CHECK_FILE_LINE_LIMIT,
+            False,
+            "approved_max_lines must be >= max_lines",
+        )
+    if not ctx.cwd:
+        return VerifyResult(CHECK_FILE_LINE_LIMIT, False, "file_line_limit requires cwd")
+
+    approved = int(ctx.approved_file_line_limit or 0)
+    effective_limit = (
+        min(approved, approved_cap)
+        if approved > base_limit
+        else base_limit
+    )
+    candidates = _line_limit_candidates(check, ctx)
+    if not candidates:
+        return VerifyResult(
+            CHECK_FILE_LINE_LIMIT,
+            False,
+            "no changed files available for line-limit verification",
+            {"limit": effective_limit, "checked": {}},
+        )
+
+    checked: dict[str, int] = {}
+    skipped_binary: list[str] = []
+    violations: dict[str, int] = {}
+    try:
+        for rel in candidates:
+            target = safe_join(ctx.cwd, rel)
+            if not target.is_file():
+                continue
+            count = _line_count(target)
+            if count is None:
+                skipped_binary.append(rel)
+                continue
+            checked[rel] = count
+            if count > effective_limit:
+                violations[rel] = count
+    except (OSError, VerifyError) as exc:
+        return VerifyResult(CHECK_FILE_LINE_LIMIT, False, str(exc))
+
+    detail = {
+        "limit": effective_limit,
+        "base_limit": base_limit,
+        "architect_approved": effective_limit > base_limit,
+        "checked": checked,
+        "skipped_binary": skipped_binary,
+        "violations": violations,
+    }
+    if violations:
+        summary = ", ".join(f"{path}={lines}" for path, lines in sorted(violations.items()))
+        return VerifyResult(
+            CHECK_FILE_LINE_LIMIT,
+            False,
+            f"file line limit {effective_limit} exceeded: {summary}",
+            detail,
+        )
+    return VerifyResult(
+        CHECK_FILE_LINE_LIMIT,
+        True,
+        f"{len(checked)} text file(s) within {effective_limit} lines",
+        detail,
+    )
+
+
 _HANDLERS: dict[str, Callable[[AcceptanceCheck, VerifyContext], VerifyResult]] = {
     CHECK_COMMAND: _check_command,
     CHECK_FILES_EXIST: _check_files_exist,
@@ -399,6 +504,7 @@ _HANDLERS: dict[str, Callable[[AcceptanceCheck, VerifyContext], VerifyResult]] =
     CHECK_GIT_DIFF_CONTAINS: _check_git_diff_contains,
     CHECK_OUTPUT_NONEMPTY: _check_output_nonempty,
     CHECK_OUTPUT_REGEX: _check_output_regex,
+    CHECK_FILE_LINE_LIMIT: _check_file_line_limit,
 }
 
 
@@ -436,6 +542,31 @@ def all_passed(results: list[VerifyResult]) -> bool:
     return bool(results) and all(r.ok for r in results)
 
 
+def _architect_approved_line_limit(plan: Plan, step: PlanStep) -> int:
+    """Find a strict line-limit approval marker in transitive architect dependencies."""
+    by_id = {item.id: item for item in plan.steps}
+    pending = list(step.depends_on)
+    visited: set[str] = set()
+    approved = 0
+    while pending:
+        step_id = pending.pop()
+        if step_id in visited:
+            continue
+        visited.add(step_id)
+        prior = by_id.get(step_id)
+        if prior is None:
+            continue
+        pending.extend(prior.depends_on)
+        if (prior.role or "").strip().lower() != "architect":
+            continue
+        output = prior.output or ""
+        marker = _LINE_LIMIT_MARKER.search(output)
+        reason = _LINE_LIMIT_REASON.search(output)
+        if marker and reason:
+            approved = max(approved, int(marker.group(1)))
+    return approved
+
+
 def verify_step(
     plan: Plan,
     step_id: str,
@@ -460,6 +591,10 @@ def verify_step(
         git_before=dict(base.git_before),
         git_after=dict(base.git_after),
         command_timeout=base.command_timeout,
+        approved_file_line_limit=(
+            base.approved_file_line_limit
+            or _architect_approved_line_limit(plan, step)
+        ),
     )
     results = run_acceptance(step.acceptance, merged, stop_on_fail=stop_on_fail)
     step.verify_log = [r.to_dict() for r in results]

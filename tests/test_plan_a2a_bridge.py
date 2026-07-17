@@ -73,9 +73,16 @@ def test_default_acceptance():
     exe = default_acceptance_for_role(
         "developer",
         "executor",
-        plan_cfg=PlanConfig(executor_require_git_diff=True),
+        plan_cfg=PlanConfig(
+            executor_require_git_diff=True,
+            executor_file_line_limit=300,
+            architect_approved_file_line_limit=500,
+        ),
     )
     assert any(c.type == "git_diff_nonempty" for c in exe)
+    line_check = next(c for c in exe if c.type == "file_line_limit")
+    assert line_check.max_lines == 300
+    assert line_check.approved_max_lines == 500
 
     tester = default_acceptance_for_role(
         "tester",

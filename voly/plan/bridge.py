@@ -40,6 +40,18 @@ def default_acceptance_for_role(
     if mode_key == MODE_EXECUTOR and cfg.executor_require_git_diff:
         checks.append(AcceptanceCheck(type="git_diff_nonempty"))
 
+    if mode_key == MODE_EXECUTOR and cfg.executor_file_line_limit > 0:
+        checks.append(
+            AcceptanceCheck(
+                type="file_line_limit",
+                max_lines=cfg.executor_file_line_limit,
+                approved_max_lines=max(
+                    cfg.executor_file_line_limit,
+                    cfg.architect_approved_file_line_limit,
+                ),
+            )
+        )
+
     if role_key == "tester" and (cfg.tester_command or "").strip():
         checks.append(
             AcceptanceCheck(
