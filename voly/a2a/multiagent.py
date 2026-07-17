@@ -685,6 +685,9 @@ def run_local(
             # (degraded) instead of blocking on an empty chat reply.
             process_ok = True
             a.ok = bool(a.content.strip()) if not gates_on else True
+            if not a.content.strip():
+                a.ok = False
+                a.error = "empty response from provider"
             if a.content.strip() and memory is not None and not a.cache_hit:
                 try:
                     memory.add(

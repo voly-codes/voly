@@ -89,7 +89,7 @@ def test_lead_fallback_on_non_json():
     assert len(assignments) == 5
     tiers = {a.role: a.tier for a in assignments}
     assert tiers["architect"] == "standard"  # architect tier lowered from premium (P4)
-    assert tiers["tester"] == "cheap"
+    assert tiers["tester"] == "standard"
 
 
 def test_run_local_cache_and_memory():

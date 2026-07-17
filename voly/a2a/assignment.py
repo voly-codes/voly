@@ -19,7 +19,7 @@ _log = logging.getLogger("voly.a2a.multiagent")
 # ── Model tiers → ordered real-provider preference (filtered by health) ──────────
 _STRONG = ["anthropic", "cloudflare-dynamic", "deepseek", "opencode", "mimo"]
 _STANDARD = ["cloudflare-dynamic", "deepseek", "anthropic", "workers-ai"]
-_WEAK = ["workers-ai", "deepseek", "opencode-zen", "mimo", "omniroute"]
+_WEAK = ["workers-ai", "deepseek", "mimo", "opencode-zen", "omniroute"]
 
 _TIER_PROVIDERS: dict[str, list[str]] = {
     "premium": _STRONG,
@@ -34,7 +34,7 @@ _TIER_PROVIDERS: dict[str, list[str]] = {
 _ROLE_TIER: dict[str, str] = {
     "architect": "standard",  # plan-only; premium is overkill and ties to a single provider
     "developer": "standard",
-    "tester": "cheap",
+    "tester": "standard",
     "reviewer": "premium",
     "devops": "cheap",
     "security": "premium",

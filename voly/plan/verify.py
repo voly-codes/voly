@@ -130,6 +130,21 @@ def _git_seed_commit(cwd: str, timeout: float = 10.0) -> bool:
         return False
 
 
+def _ensure_voly_gitignore(cwd: str) -> None:
+    """Add .voly/ to the project's .gitignore so pipeline artifacts don't pollute git diff."""
+    gitignore_path = os.path.join(cwd, ".gitignore")
+    entry = ".voly/"
+    try:
+        if os.path.isfile(gitignore_path):
+            lines = Path(gitignore_path).read_text().splitlines()
+            if any(line.strip() == entry for line in lines):
+                return
+        with open(gitignore_path, "a") as f:
+            f.write(f"\n{entry}\n")
+    except OSError:
+        pass
+
+
 def ensure_git_repo(cwd: str, *, timeout: float = 10.0) -> bool:
     """Initialize git in ``cwd`` when missing so hybrid verify can track files.
 
@@ -139,6 +154,7 @@ def ensure_git_repo(cwd: str, *, timeout: float = 10.0) -> bool:
     """
     if not cwd or not os.path.isdir(cwd):
         return False
+    _ensure_voly_gitignore(cwd)
     did_work = False
     if not os.path.isdir(os.path.join(cwd, ".git")):
         try:

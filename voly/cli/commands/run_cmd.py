@@ -106,7 +106,9 @@ def run(
                 click.echo(f"\n{result.response.content}")
             click.echo(f"\n--- completed in {result.duration_ms:.0f}ms ---")
         else:
-            click.echo(f"Error: {result.error}", err=True)
+            if result.response and result.response.content:
+                click.echo(f"\n{result.response.content}")
+            click.echo(f"Error: {result.error or 'pipeline failed (partial result)'}", err=True)
             sys.exit(1)
 
 
