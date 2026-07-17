@@ -163,7 +163,7 @@ class _PipelineStageMixin:
             a2a_subtask_count=len(subtasks),
             a2a_agents_used=agents_used,
             task_prompt=task[:2000],
-            result=merged[:8000],
+            result=merged[:40000],
         )
         emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]
 
@@ -318,7 +318,7 @@ class _PipelineStageMixin:
             a2a_agents_used=agents_used,
             a2a_assignments=[a.to_event_dict() for a in assignments],
             task_prompt=task[:2000],
-            result=merged[:8000],
+            result=merged[:40000],
         )
         emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]
 
