@@ -22,11 +22,13 @@ def test_skill_scout_filters_local_and_returns_cf_ids() -> None:
     scout = SkillScout(_empty_registry(), _MP_URL)
 
     mp = MagicMock()
+    # Suggestions must overlap the task keywords (relevance gate in find_missing).
     mp.search.return_value = {
         "source": "semantic",
         "skills": [
             {"id": "skill-cf-containers", "name": "CF Containers", "description": "x", "tags": []},
-            {"id": "skill-docker", "name": "Docker", "description": "y", "tags": []},
+            {"id": "skill-docker", "name": "Docker",
+             "description": "Build and run containers", "tags": []},
         ],
     }
 

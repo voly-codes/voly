@@ -41,11 +41,23 @@ class SkillScout:
             return []
 
         local_ids: set[str] = {s.id for s in self._registry.index.list_all()}
+        import re
+        keywords = {
+            w for w in re.sub(r"[^\w\s]", "", task.lower()).split() if len(w) > 3
+        }
 
         suggestions: list[dict[str, Any]] = []
         for raw in result.get("skills", []):
             sid = raw.get("id", "")
             if not sid or sid in local_ids:
+                continue
+            # Marketplace FTS can rank loosely related skills; require at least
+            # one task keyword in the skill's name/description/tags before
+            # suggesting an install (pre-run gate relevance).
+            haystack = " ".join(
+                [raw.get("name", ""), raw.get("description", ""), *raw.get("tags", [])]
+            ).lower()
+            if keywords and not any(w in haystack for w in keywords):
                 continue
             suggestions.append({
                 "id": sid,

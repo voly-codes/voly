@@ -284,8 +284,20 @@ task, or skip and run immediately.
 
 **SkillScout** (`voly/registry/scout.py`): wraps `MarketplaceClient.search()`
 and filters the results against the local `SkillRegistry` index. Long task
-prompts are truncated to ~240 characters for FTS. Returns slim
-dicts `{id, name, description, repository, install_kind, tags}`.
+prompts are truncated to ~240 characters for FTS. Suggestions must share at
+least one task keyword with the skill's name/description/tags (loose FTS hits
+are dropped). Returns slim dicts
+`{id, name, description, repository, install_kind, tags}`.
+
+**Relevance scoring (SKILL_INJECT / A2A skills):**
+`match_skills_for_task` (`voly/pipeline/skills.py`) scores every candidate
+against the task keywords, agent, and project stack; skills below the
+threshold are not injected. Installed marketplace/org skills are **no longer
+unconditionally included** — they need a task-keyword or language/framework
+match. PROJECT-source skills (generated from this repo's docs) are always
+kept; curated builtins may qualify on agent compatibility alone. The lead
+orchestrator respects an explicit empty `skills` choice from the lead model —
+the top-2 candidate fallback applies only when the lead call itself failed.
 
 **Design invariants:**
 - Always non-blocking: any marketplace error is swallowed; the pipeline proceeds.

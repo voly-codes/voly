@@ -67,7 +67,11 @@ class LeadOrchestrator:
                 tier = _ROLE_TIER.get(st.agent, "standard")
             valid_ids = {sid for sid, _ in skill_candidates[i]}
             skills = [s for s in entry.get("skills", []) if s in valid_ids]
-            if not skills:
+            if not skills and not plan:
+                # Deterministic fallback (lead unavailable): take the top
+                # relevance-filtered candidates. When the lead answered and
+                # picked no skills for this role, respect that choice instead
+                # of force-injecting.
                 skills = [sid for sid, _ in skill_candidates[i][:2]]
             model, provider = resolve_role_model(st.agent, tier, self.checker)
             execution = str(entry.get("execution") or "").strip().lower()

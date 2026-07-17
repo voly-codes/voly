@@ -6,54 +6,139 @@ import re
 from typing import Any
 
 
+def _task_keywords(task: str) -> set[str]:
+    return {w for w in re.sub(r"[^\w\s]", "", task.lower()).split() if len(w) > 3}
+
+
+def _tokens(text: str) -> set[str]:
+    """Word-boundary tokens — substring matching lets 'write' hit 'writing'."""
+    return {t for t in re.split(r"[^\w]+", text.lower()) if t}
+
+
+def _score_skill(
+    skill: Any,
+    *,
+    keywords: set[str],
+    agent_name: str | None,
+    languages: set[str],
+    frameworks: set[str],
+    project_source: Any,
+    curated_sources: tuple[Any, ...],
+) -> float:
+    """Relevance of one skill to (task, agent, project stack).
+
+    PROJECT skills are generated from this repo's own docs — always relevant.
+    Curated builtins may qualify on agent compatibility alone; marketplace/org
+    skills self-declare compatibility, so they need a concrete task or stack
+    signal (keyword or language/framework match) — otherwise every installed
+    skill leaks into every prompt (marketing-ops on a FastAPI task).
+    """
+    if skill.source == project_source:
+        return 10.0
+    score = 0.0
+    if agent_name and agent_name in (skill.compatible_agents or []):
+        score += 2.0 if skill.source in curated_sources else 0.5
+    langs = {x.lower() for x in (skill.compatible_languages or []) if x != "*"}
+    fws = {x.lower() for x in (skill.compatible_frameworks or []) if x != "*"}
+    if langs & languages:
+        score += 2.0
+    if fws & frameworks:
+        score += 2.0
+    hay_tokens = _tokens(
+        " ".join([skill.name or "", *(skill.tags or []), *(skill.capabilities or [])])
+    )
+    score += min(len(keywords & hay_tokens), 3)
+    if keywords & _tokens(skill.description or ""):
+        score += 0.5
+    return score
+
+
 class _SkillsMixin:
     """Mixin for Pipeline: skill matching and agent-for-task resolution."""
+
+    # Minimum relevance to inject a skill into a prompt. Curated builtins need
+    # one concrete signal (keyword / stack / agent match). Marketplace and org
+    # skills self-declare metadata and dev tasks share generic words (review,
+    # tests, update…), so a single keyword hit is not enough — they need two
+    # signals (two keywords, or a project language/framework match).
+    SKILL_RELEVANCE_THRESHOLD = 1.0
+    SKILL_RELEVANCE_THRESHOLD_UNCURATED = 2.0
 
     def match_skills_for_task(self, task: str, agent_name: str | None = None) -> list[Any]:
         """Return up to 10 active skills relevant for the given task.
 
-        Matching priority:
-        1. Marketplace / organization skills the user explicitly installed — always included.
-        2. Agent-specific skills (compatible_agents contains agent_name).
-        3. Language / framework skills from the project profile (if scanner enabled).
-        4. Keyword-level text match against skill name / description / tags / capabilities.
+        Candidates are gathered from installed sources, agent-specific
+        built-ins, project language/framework matches, and task-keyword
+        search — then **scored for relevance** and filtered: a skill must
+        show at least one concrete signal for this task/stack. Installed
+        marketplace/org skills are no longer unconditionally injected.
         """
         from voly.registry.skills import SkillSource
 
         profile = self.scan_project() if self.config.scanner.enabled else None  # type: ignore[attr-defined]
-        skills: list[Any] = []
+        keywords = _task_keywords(task)
+        languages = {lang.name.lower() for lang in profile.languages} if profile else set()
+        frameworks = {fw.name.lower() for fw in profile.frameworks} if profile else set()
 
-        # 1. Project / marketplace / org skills — always included.
-        #    PROJECT: generated from this project's docs (CLAUDE.md, README, etc.) → always relevant.
-        #    MARKETPLACE / ORGANIZATION: explicitly installed by the user → explicit intent to use.
+        candidates: list[Any] = []
+
+        # 1. Installed sources. PROJECT skills (generated from this repo's docs)
+        #    are always relevant; MARKETPLACE / ORGANIZATION ones still have to
+        #    pass relevance scoring below.
         for source in (SkillSource.PROJECT, SkillSource.MARKETPLACE, SkillSource.ORGANIZATION):
-            skills.extend(self.skill_registry.search(source=source))  # type: ignore[attr-defined]
+            candidates.extend(self.skill_registry.search(source=source))  # type: ignore[attr-defined]
 
         # 2. Agent-specific built-ins.
         if agent_name:
-            skills.extend(self.skill_registry.search(agent=agent_name))  # type: ignore[attr-defined]
+            candidates.extend(self.skill_registry.search(agent=agent_name))  # type: ignore[attr-defined]
 
         # 3. Project language / framework skills.
         if profile:
             for lang in profile.languages:
-                skills.extend(self.skill_registry.search(language=lang.name))  # type: ignore[attr-defined]
+                candidates.extend(self.skill_registry.search(language=lang.name))  # type: ignore[attr-defined]
             for fw in profile.frameworks:
-                skills.extend(self.skill_registry.search(framework=fw.name))  # type: ignore[attr-defined]
+                candidates.extend(self.skill_registry.search(framework=fw.name))  # type: ignore[attr-defined]
 
         # 4. Keyword matching: split task into significant words and search each.
-        keywords = [w for w in re.sub(r"[^\w\s]", "", task.lower()).split() if len(w) > 3]
         for word in keywords:
-            skills.extend(self.skill_registry.search(query=word))  # type: ignore[attr-defined]
+            candidates.extend(self.skill_registry.search(query=word))  # type: ignore[attr-defined]
 
-        # Deduplicate preserving priority order.
+        # Deduplicate preserving discovery order, then score and filter.
         seen: set[str] = set()
         unique: list[Any] = []
-        for s in skills:
+        for s in candidates:
             if s.id not in seen:
                 seen.add(s.id)
                 unique.append(s)
 
-        return unique[:10]
+        curated = (SkillSource.BUILTIN,)
+        scored = [
+            (
+                _score_skill(
+                    s,
+                    keywords=keywords,
+                    agent_name=agent_name,
+                    languages=languages,
+                    frameworks=frameworks,
+                    project_source=SkillSource.PROJECT,
+                    curated_sources=curated,
+                ),
+                i,
+                s,
+            )
+            for i, s in enumerate(unique)
+        ]
+        def _threshold(s: Any) -> float:
+            if s.source in curated or s.source == SkillSource.PROJECT:
+                return self.SKILL_RELEVANCE_THRESHOLD
+            return self.SKILL_RELEVANCE_THRESHOLD_UNCURATED
+
+        relevant = [
+            (score, i, s) for score, i, s in scored
+            if score >= _threshold(s)
+        ]
+        relevant.sort(key=lambda t: (-t[0], t[1]))
+        return [s for _, _, s in relevant[:10]]
 
     def match_agent_for_task(self, task: str) -> dict[str, Any]:
         route = self.router.route(task)  # type: ignore[attr-defined]
