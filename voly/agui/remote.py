@@ -75,7 +75,9 @@ def resolve_agui_remote_url(config_url: str = "") -> str:
     url = os.path.expandvars((config_url or "").strip())
     if url and not _is_unresolved(url):
         return url.rstrip("/")
-    for key in ("CF_WORKER_AGUI_URL", "AGUI_URL", "AGUI_REMOTE_URL"):
+    # AGUI sessions (/agui/*) are served by the spend worker when a dedicated
+    # CF_WORKER_AGUI_URL is not configured.
+    for key in ("CF_WORKER_AGUI_URL", "AGUI_URL", "AGUI_REMOTE_URL", "CF_WORKER_SPEND_URL"):
         env_url = os.environ.get(key, "").strip()
         if env_url:
             return env_url.rstrip("/")
