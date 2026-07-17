@@ -211,6 +211,9 @@ a2a:
   lead_model: ""               # lead orchestrator model; empty → premium from healthy pool
   federation_url: ""           # only for execution_mode=federation
   task_timeout_seconds: 600    # per-role timeout (hybrid executor); watchdog uses it as base
+  parallel_waves: true         # independent roles run in dependency waves; a wave's
+                               # chat calls execute concurrently (executors stay serial)
+  max_parallel_roles: 3        # thread cap for one wave's chat calls; 1 → sequential
 
 telemetry:
   enabled: true

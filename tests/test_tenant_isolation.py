@@ -133,7 +133,9 @@ def test_run_local_stops_on_spend_limit() -> None:
 
     roles = ["architect", "developer", "tester", "reviewer"]
     assignments = [
-        Assignment(idx=i, role=r, description=r, depends_on=[],
+        # Linear dependency chain — with wave scheduling, independent roles
+        # share a wave and are called together; the spend stop halts waves.
+        Assignment(idx=i, role=r, description=r, depends_on=[i - 1] if i else [],
                    tier="cheap", model="m", provider="p", skills=[])
         for i, r in enumerate(roles)
     ]

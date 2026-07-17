@@ -65,6 +65,10 @@ a2a:
   # Per-role executor timeout (hybrid developer/tester via claude-code).
   # Greenfield projects need more than the old 120s default.
   task_timeout_seconds: 600
+  # Wave parallelism: independent roles (e.g. tester+devops after developer)
+  # issue their chat calls concurrently; executor roles stay serial.
+  parallel_waves: true
+  max_parallel_roles: 3
 
 # Plan gates (Rung B): mirror multi-agent roles as Plan steps with verification.
 # shadow — run verifiers (git diff, file line limits, tester command) and log;

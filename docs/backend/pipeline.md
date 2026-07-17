@@ -64,7 +64,13 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
      needed). Manual exclude still works via env.
   4. `run_local` executes sub-agents **in-process** via `AIGateway.chat()` in
      dependency order, passing results from previous roles. Each agent has its
-     own model, persona, and skills.
+     own model, persona, and skills. Roles whose dependencies are all satisfied
+     share a **wave** (`a2a.parallel_waves`, default on): the wave's chat calls
+     run concurrently in threads (cap: `a2a.max_parallel_roles`), while executor
+     roles always run serially (shared cwd/git). Prompt building, memory access,
+     plan-gate transitions, and telemetry stay on the caller thread — only the
+     gateway call itself is parallel. A spend limit stops scheduling further
+     waves.
   5. Merge → `TaskEvent` with `a2a_dispatched=True`, `a2a_agents_used`,
      `a2a_assignments` (role/tier/model/skills/tokens/cost).
      **Outcome status:** `completed` only when all active roles succeed;

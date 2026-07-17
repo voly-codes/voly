@@ -284,6 +284,8 @@ class _PipelineStageMixin:
             executor_default=getattr(a2a_cfg, "executor_default", "claude-code") or "claude-code",
             executor_roles=list(getattr(a2a_cfg, "executor_roles", None) or []),
             executor_runner=executor_runner,
+            parallel_waves=bool(getattr(a2a_cfg, "parallel_waves", True)),
+            max_parallel_roles=int(getattr(a2a_cfg, "max_parallel_roles", 3) or 3),
             plan_config=plan_cfg,
         )
 

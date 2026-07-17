@@ -169,6 +169,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
             hybrid_require_cwd=_parse_bool(a.get("hybrid_require_cwd"), True),
             executor_default=a.get("executor_default", "claude-code"),
             executor_roles=list(a.get("executor_roles") or []),
+            parallel_waves=_parse_bool(a.get("parallel_waves"), True),
+            max_parallel_roles=int(a.get("max_parallel_roles", 3)),
         )
 
     if not config.a2a.federation_url:

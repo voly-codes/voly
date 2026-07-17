@@ -120,6 +120,11 @@ class A2AConfig:
     executor_default: str = "claude-code"
     # Empty → use built-in default set (developer, bugfixer, tester).
     executor_roles: list[str] = field(default_factory=list)
+    # Wave parallelism (P4): roles whose dependencies are all satisfied run in
+    # the same wave. Chat roles of a wave execute concurrently (bounded by
+    # max_parallel_roles); executor roles always run serially (shared cwd/git).
+    parallel_waves: bool = True
+    max_parallel_roles: int = 3
 
 
 @dataclass

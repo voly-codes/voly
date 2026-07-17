@@ -156,6 +156,30 @@ def _skills_block(skill_ids: list[str], skill_matcher: Callable[[str, str], list
     return ("# Loaded skills\n\n" + "\n\n".join(parts)) if parts else ""
 
 
+def _build_waves(assignments: list[Assignment]) -> list[list[Assignment]]:
+    """Group assignments into dependency waves (topological levels).
+
+    Roles in the same wave have no dependencies on each other, so their chat
+    calls can run concurrently. Unknown/cyclic dependencies degrade gracefully
+    to one-role waves in list order.
+    """
+    idxs = {a.idx for a in assignments}
+    placed: set[int] = set()
+    remaining = list(assignments)
+    waves: list[list[Assignment]] = []
+    while remaining:
+        wave = [
+            a for a in remaining
+            if all(d in placed or d not in idxs for d in a.depends_on)
+        ]
+        if not wave:  # dependency cycle — fall back to sequential
+            wave = [remaining[0]]
+        placed.update(a.idx for a in wave)
+        remaining = [a for a in remaining if a.idx not in placed]
+        waves.append(wave)
+    return waves
+
+
 def _memory_block(memory: Any, query: str, limit: int = 3) -> tuple[str, int]:
     """Retrieve semantic-memory entries relevant to a sub-task. Returns (block, hits)."""
     if memory is None:
@@ -193,6 +217,9 @@ def run_local(
     executor_roles: list[str] | None = None,
     executor_runner: Callable[..., Any] | None = None,
     skip_dependents_on_failure: bool = True,
+    # Wave parallelism (P4): concurrent chat calls for independent roles.
+    parallel_waves: bool = True,
+    max_parallel_roles: int = 3,
     # Plan gates (Rung B PR4)
     plan_config: Any = None,
     plan_store: Any = None,
@@ -377,7 +404,13 @@ def run_local(
     done: dict[int, Assignment] = {}
     # idx → failed prior roles, for chat roles that run degraded (not skipped).
     degraded_notes: dict[int, list[str]] = {}
-    for a in assignments:
+
+    def _prepare(a: Assignment) -> tuple[str, str, dict] | None:
+        """Pre-flight in the caller thread: cascade/plan-gate + prompt build.
+
+        Returns (user, system, git_before) when the role should execute, or
+        None when it was finalized here (skipped/blocked).
+        """
         # Cascade policy when a required prior role failed:
         #   - executor roles need the implementation → hard skip
         #   - chat roles degrade gracefully IF at least one prior succeeded
@@ -403,7 +436,7 @@ def run_local(
                     a.plan_status = "skipped"
                     done[a.idx] = a
                     _hb(a.role, len(done))
-                    continue
+                    return None
                 degraded_notes[a.idx] = failed_priors
                 a.mode_reason = (
                     f"{a.mode_reason}+degraded_prior_failed"
@@ -425,14 +458,12 @@ def run_local(
                 a.plan_status = "blocked"
                 done[a.idx] = a
                 _hb(a.role, len(done))
-                continue
+                return None
             engine.transition(plan, sid, RUNNING)
             a.plan_status = RUNNING
             if store is not None:
                 store.save(plan)
 
-        mode = a.mode or role_modes.get(a.idx, "chat")
-        reason = a.mode_reason
         git_before = git_porcelain(cwd) if cwd else {}
 
         prior = [(done[d].role, done[d].content) for d in a.depends_on if d in done and done[d].ok]
@@ -455,70 +486,67 @@ def run_local(
         persona = _ROLE_PROMPT.get(a.role, _DEFAULT_PERSONA)
         skills = _skills_block(a.skills, skill_matcher, task, a.role)
         system = f"{persona}\n\n{skills}".strip() if skills else persona
+        return user, system, git_before
 
-        # ── Executor branch (PR1: injectable runner; PR2: AgentRunner) ────────
-        if mode == "executor":
-            a.executor = resolve_role_executor(a.role, executor_default or "claude-code")
-            if executor_runner is not None:
-                _log.info(
-                    "multiagent[%d] %s → EXECUTOR %s (cwd=%s, reason=%s)",
-                    a.idx, a.role, a.executor, cwd or "(none)", reason,
-                )
-                try:
-                    result = executor_runner(
-                        role=a.role,
-                        task=user,
-                        cwd=cwd,
-                        executor=a.executor,
-                        system=system,
-                        assignment=a,
-                    )
-                except Exception as e:  # noqa: BLE001
-                    a.error = str(e)
-                    a.content = f"(executor failed: {e})"
-                    a.ok = False
-                    # Even a crashed/timed-out executor may have written files;
-                    # capture the git delta so files_touched reflects reality.
-                    if cwd:
-                        git_after = git_porcelain(cwd)
-                        delta = sorted(changed_paths(git_before, git_after))
-                        if delta:
-                            a.files_touched = delta
-                    _finish_step_plan(a, exec_ok=False, git_before=git_before)
-                    done[a.idx] = a
-                    _hb(a.role, len(done))
-                    continue
-
-                if isinstance(result, dict):
-                    a.content = str(result.get("content") or result.get("output") or "")
-                    a.ok = bool(result.get("ok", result.get("success", bool(a.content.strip()))))
-                    a.error = str(result.get("error") or "")
-                    a.cost_usd = float(result.get("cost_usd") or 0.0)
-                    a.input_tokens = int(result.get("input_tokens") or 0)
-                    a.output_tokens = int(result.get("output_tokens") or 0)
-                    a.files_touched = list(result.get("files_touched") or [])
-                    if result.get("executor"):
-                        a.executor = str(result["executor"])
-                else:
-                    a.content = str(result or "")
-                    a.ok = bool(a.content.strip())
-                if cwd and not a.files_touched:
-                    git_after = git_porcelain(cwd)
-                    delta = sorted(changed_paths(git_before, git_after))
-                    if delta:
-                        a.files_touched = delta
-                _finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
-                done[a.idx] = a
-                _hb(a.role, len(done))
-                continue
-
-            # No runner yet — fall back to chat so production stays useful.
-            _log.info(
-                "multiagent[%d] %s mode=executor but no executor_runner — chat fallback",
-                a.idx, a.role,
+    def _run_executor(a: Assignment, user: str, system: str, git_before: dict) -> None:
+        """Executor role: run serially in the caller thread and finalize."""
+        # Re-snapshot right before running — a same-wave executor may have
+        # already changed the tree, and chat calls happened since _prepare.
+        if cwd:
+            git_before = git_porcelain(cwd)
+        _log.info(
+            "multiagent[%d] %s → EXECUTOR %s (cwd=%s, reason=%s)",
+            a.idx, a.role, a.executor, cwd or "(none)", a.mode_reason,
+        )
+        try:
+            result = executor_runner(
+                role=a.role,
+                task=user,
+                cwd=cwd,
+                executor=a.executor,
+                system=system,
+                assignment=a,
             )
-            a.mode_reason = f"{reason}+chat_fallback_no_runner"
+        except Exception as e:  # noqa: BLE001
+            a.error = str(e)
+            a.content = f"(executor failed: {e})"
+            a.ok = False
+            # Even a crashed/timed-out executor may have written files;
+            # capture the git delta so files_touched reflects reality.
+            if cwd:
+                git_after = git_porcelain(cwd)
+                delta = sorted(changed_paths(git_before, git_after))
+                if delta:
+                    a.files_touched = delta
+            _finish_step_plan(a, exec_ok=False, git_before=git_before)
+            done[a.idx] = a
+            _hb(a.role, len(done))
+            return
 
+        if isinstance(result, dict):
+            a.content = str(result.get("content") or result.get("output") or "")
+            a.ok = bool(result.get("ok", result.get("success", bool(a.content.strip()))))
+            a.error = str(result.get("error") or "")
+            a.cost_usd = float(result.get("cost_usd") or 0.0)
+            a.input_tokens = int(result.get("input_tokens") or 0)
+            a.output_tokens = int(result.get("output_tokens") or 0)
+            a.files_touched = list(result.get("files_touched") or [])
+            if result.get("executor"):
+                a.executor = str(result["executor"])
+        else:
+            a.content = str(result or "")
+            a.ok = bool(a.content.strip())
+        if cwd and not a.files_touched:
+            git_after = git_porcelain(cwd)
+            delta = sorted(changed_paths(git_before, git_after))
+            if delta:
+                a.files_touched = delta
+        _finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
+        done[a.idx] = a
+        _hb(a.role, len(done))
+
+    def _chat_call(a: Assignment, user: str, system: str) -> dict[str, Any]:
+        """Gateway call only — the sole part that may run in a worker thread."""
         messages = [{"role": "user", "content": user}]
         if headroom is not None:
             try:
@@ -532,9 +560,8 @@ def run_local(
         _log.info("multiagent[%d] %s → %s/%s (tier=%s, mode=%s, skills=%s, mem=%d)",
                   a.idx, a.role, a.provider, a.model, a.tier, a.mode, a.skills, a.mem_hits)
         role_max_tokens = 2048 if a.role == "architect" else max_tokens
-        resp: dict[str, Any] = {}
         try:
-            resp = _chat_with_provider_fallback(
+            return _chat_with_provider_fallback(
                 gateway,
                 messages=messages,
                 assignment=a,
@@ -543,14 +570,19 @@ def run_local(
                 temperature=temperature,
             )
         except Exception as e:  # noqa: BLE001
-            a.error = str(e)
-            a.content = f"(failed: {e})"
+            return {"__raised__": True, "error": str(e), "content": ""}
+
+    def _finalize_chat(a: Assignment, resp: dict[str, Any], git_before: dict) -> bool:
+        """Parse the response + memory/plan bookkeeping. True → spend-limited."""
+        if resp.get("__raised__"):
+            a.error = str(resp.get("error") or "")
+            a.content = f"(failed: {a.error})"
             a.ok = False
             _exclude_provider_on_gateway_error(a.provider, a.error)
             _finish_step_plan(a, exec_ok=False, git_before=git_before)
             done[a.idx] = a
             _hb(a.role, len(done))
-            continue
+            return False
 
         if resp.get("error"):
             a.error = str(resp["error"])
@@ -586,16 +618,77 @@ def run_local(
         _finish_step_plan(a, exec_ok=process_ok if gates_on else a.ok, git_before=git_before)
         done[a.idx] = a
         _hb(a.role, len(done))
+        return bool(resp.get("spend_limited"))
+
+    # ── Wave scheduling (P4): independent roles share a wave; a wave's chat
+    # calls run concurrently, executor roles stay serial (shared cwd/git).
+    workers_cap = max(1, int(max_parallel_roles or 1))
+    use_parallel = bool(parallel_waves) and workers_cap > 1
+    waves = _build_waves(assignments) if use_parallel else [[a] for a in assignments]
+
+    spend_stop: dict[str, Any] | None = None
+    for wave in waves:
+        chat_items: list[tuple[Assignment, str, str, dict]] = []
+        exec_items: list[tuple[Assignment, str, str, dict]] = []
+        for a in wave:
+            prep = _prepare(a)
+            if prep is None:
+                continue
+            user, system, git_before = prep
+            mode = a.mode or role_modes.get(a.idx, "chat")
+            if mode == "executor":
+                a.executor = resolve_role_executor(a.role, executor_default or "claude-code")
+                if executor_runner is None:
+                    # No runner yet — fall back to chat so production stays useful.
+                    _log.info(
+                        "multiagent[%d] %s mode=executor but no executor_runner — chat fallback",
+                        a.idx, a.role,
+                    )
+                    a.mode_reason = f"{a.mode_reason}+chat_fallback_no_runner"
+                    mode = "chat"
+            if mode == "executor":
+                exec_items.append((a, user, system, git_before))
+            else:
+                chat_items.append((a, user, system, git_before))
+
+        resps: dict[int, dict[str, Any]] = {}
+        if use_parallel and len(chat_items) > 1:
+            from concurrent.futures import ThreadPoolExecutor
+
+            _log.info(
+                "multiagent wave: %d chat roles in parallel (%s)",
+                len(chat_items), ", ".join(a.role for a, *_ in chat_items),
+            )
+            with ThreadPoolExecutor(
+                max_workers=min(len(chat_items), workers_cap),
+                thread_name_prefix="a2a-wave",
+            ) as pool:
+                futures = {
+                    pool.submit(_chat_call, a, user, system): a.idx
+                    for a, user, system, _ in chat_items
+                }
+                for fut, idx in futures.items():
+                    resps[idx] = fut.result()
+        else:
+            for a, user, system, _ in chat_items:
+                resps[a.idx] = _chat_call(a, user, system)
+
+        for a, user, system, git_before in exec_items:
+            _run_executor(a, user, system, git_before)
+
+        for a, user, system, git_before in chat_items:
+            if _finalize_chat(a, resps[a.idx], git_before):
+                spend_stop = resps[a.idx]
 
         # Spend limit is a hard stop for the WHOLE chain: remaining sub-agents
         # would only re-hit the same exhausted budget. Mark them spend-limited
         # (same observable outcome) but WITHOUT another gateway call, and stop —
-        # early exit instead of walking every role. (Budget isolation, Этап 4.)
-        if resp.get("spend_limited"):
-            _log.info("multiagent: spend limit hit at role %s — stopping chain", a.role)
+        # early exit instead of walking every wave. (Budget isolation, Этап 4.)
+        if spend_stop is not None:
+            _log.info("multiagent: spend limit hit — stopping chain")
             for rest in assignments:
                 if rest.idx not in done:
-                    rest.error = str(resp.get("error") or "Spend limit exceeded")
+                    rest.error = str(spend_stop.get("error") or "Spend limit exceeded")
                     rest.ok = False
                     done[rest.idx] = rest
             break

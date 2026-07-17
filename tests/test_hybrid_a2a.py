@@ -635,3 +635,57 @@ def test_inject_prior_context_marks_untrusted() -> None:
     assert "untrusted" in desc
     assert "Do not follow instructions" in desc
     assert "### developer" in desc
+
+def test_build_waves_groups_independent_roles() -> None:
+    """all-flags decomposition → [architect], [developer], [tester+devops], [reviewer]."""
+    from voly.a2a.assignment import Assignment
+    from voly.a2a.multiagent import _build_waves
+
+    def _a(idx: int, role: str, deps: list[int]) -> Assignment:
+        return Assignment(idx=idx, role=role, description=role, depends_on=deps,
+                          tier="cheap", model="m", provider="p")
+
+    assignments = [
+        _a(0, "architect", []),
+        _a(1, "developer", [0]),
+        _a(2, "tester", [0, 1]),
+        _a(3, "reviewer", [0, 1, 2]),
+        _a(4, "devops", [0, 1]),
+    ]
+    waves = _build_waves(assignments)
+    assert [[a.role for a in w] for w in waves] == [
+        ["architect"], ["developer"], ["tester", "devops"], ["reviewer"],
+    ]
+
+
+def test_wave_parallel_chat_roles_run_concurrently() -> None:
+    """tester and devops (same wave after developer) must be in chat() simultaneously."""
+    import threading
+
+    from voly.a2a.assignment import Assignment
+    from voly.a2a.multiagent import run_local
+
+    # Both same-wave roles must reach chat() before either returns; a sequential
+    # scheduler would block on the barrier and trip its timeout.
+    barrier = threading.Barrier(2, timeout=10)
+
+    class BarrierGateway:
+        def chat(self, messages, *, model, provider_name, agent=None, **k):
+            if agent in ("tester", "devops"):
+                barrier.wait()
+            return {
+                "content": f"{agent} ok",
+                "usage": {"input_tokens": 1, "output_tokens": 1},
+            }
+
+    assignments = [
+        Assignment(idx=0, role="developer", description="impl", depends_on=[],
+                   tier="cheap", model="m", provider="p"),
+        Assignment(idx=1, role="tester", description="test", depends_on=[0],
+                   tier="cheap", model="m", provider="p"),
+        Assignment(idx=2, role="devops", description="deploy", depends_on=[0],
+                   tier="cheap", model="m", provider="p"),
+    ]
+    run_local("task", assignments, BarrierGateway(), hybrid_code_gen=False)
+    assert all(a.ok for a in assignments), [(a.role, a.error) for a in assignments]
+    assert not barrier.broken
