@@ -69,6 +69,8 @@ def run(
 
     result = pipeline.run(
         task,
+        # Same as the web route: --cwd reaches hybrid multi-agent via context.
+        context={"cwd": cwd} if cwd else None,
         delegate_to_a2a=a2a_delegate,
         force_model=model,
         force_agent=agent,
