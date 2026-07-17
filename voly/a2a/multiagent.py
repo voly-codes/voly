@@ -132,7 +132,7 @@ def run_local(
     from voly.plan.engine import PlanEngine
     from voly.plan.store import PlanStore
     from voly.plan.types import FAILED, RUNNING, VERIFIED, VERIFYING
-    from voly.plan.verify import VerifyContext, complete_verification, git_porcelain
+    from voly.plan.verify import VerifyContext, changed_paths, complete_verification, git_porcelain
     from voly.telemetry import _estimate_cost
 
     has_cwd = bool((cwd or "").strip())
@@ -364,6 +364,11 @@ def run_local(
                 else:
                     a.content = str(result or "")
                     a.ok = bool(a.content.strip())
+                if cwd and not a.files_touched:
+                    git_after = git_porcelain(cwd)
+                    delta = sorted(changed_paths(git_before, git_after))
+                    if delta:
+                        a.files_touched = delta
                 _finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
                 done[a.idx] = a
                 _hb(a.role, len(done))
