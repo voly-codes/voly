@@ -207,6 +207,8 @@ class MemoryStore:
         except Exception:
             rows = []
         return [self._row_to_entry(r) for r in rows]
+
+    def list_by_category(self, category: str, limit: int = 50) -> list[MemoryEntry]:
         rows = self.conn.execute(
             "SELECT * FROM memories WHERE category = ? ORDER BY timestamp DESC LIMIT ?",
             (category, limit),
