@@ -209,10 +209,16 @@
                     <div class="agent-skills">
                       {#each a.skills ?? [] as s}<span class="agent-skill">{s}</span>{/each}
                     </div>
+                    {#if (a.duration_ms ?? 0) > 0}
+                      <span class="agent-duration">{a.duration_ms >= 1000 ? `${Math.round(a.duration_ms / 1000)}s` : `${Math.round(a.duration_ms)}ms`}</span>
+                    {/if}
                     {#if (a.cost_usd ?? 0) > 0 || !task._live}
                       <span class="agent-cost">${(a.cost_usd ?? 0).toFixed(4)}</span>
                     {/if}
                   </div>
+                  {#if !a.ok && a.error && a.mode !== 'running' && a.mode !== 'pending'}
+                    <div class="agent-error" title={a.error}>{a.error}</div>
+                  {/if}
                 {/each}
               </div>
             </ExtrasSection>
@@ -418,6 +424,18 @@
     border: 1px solid color-mix(in srgb, var(--accent-teal) 30%, transparent); color: var(--accent-teal);
   }
   .agent-cost { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+  .agent-duration { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+  .agent-error {
+    margin: 2px 0 4px 14px;
+    font-size: 10px;
+    color: var(--accent-red);
+    background: color-mix(in srgb, var(--accent-red) 8%, transparent);
+    border-radius: var(--radius-sm);
+    padding: 2px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   .extra-row {
     display: flex;

@@ -1,5 +1,6 @@
 <script>
   import { AlertCircleIcon } from '../../icons.js'
+  import RoleStrip from './RoleStrip.svelte'
   import { fmtRel, statusRu } from './lib/utils.js'
   import { t } from '../../i18n/localeStore.svelte.ts'
 
@@ -41,6 +42,10 @@
       <AlertCircleIcon size="13" strokeWidth="2" />
       {task.error}
     </div>
+  {/if}
+
+  {#if task.a2a_dispatched && task.a2a_assignments?.length}
+    <RoleStrip assignments={task.a2a_assignments} />
   {/if}
 
   {#if task._live && task._live_progress}

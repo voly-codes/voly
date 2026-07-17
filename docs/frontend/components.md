@@ -130,6 +130,27 @@ re-open the Run drawer.
 
 ---
 
+## TaskHeader.svelte
+
+Header of the task card inside `PipelineInspector`: task id, status badge
+(`completed` / `partial` / `failed` / `running`), meta badges (agent, model,
+provider, executor, type), top-level `task.error`, and live progress.
+
+For multi-agent tasks (`task.a2a_dispatched` + `a2a_assignments`) it renders
+`RoleStrip` so a `partial` status is explainable at a glance.
+
+## RoleStrip.svelte
+
+Props: `assignments` (the `a2a_assignments` array from the TaskEvent).
+Compact per-role chips — green/red dot, role name, `duration_ms` — plus a red
+error line for every failed role (truncated to ~90 chars, full text in the
+`title` tooltip). Used by `TaskHeader`.
+
+`PipelineInspector`'s multi-agent section also shows per-role `duration_ms`
+and an error line under failed agent rows.
+
+---
+
 ## WorkReport.svelte
 
 Shows `work_report` from ExecutorResult:
