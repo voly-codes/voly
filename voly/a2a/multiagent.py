@@ -21,7 +21,7 @@ from typing import Any
 
 # Re-exported for backward compatibility — external callers import these from
 # voly.a2a.multiagent (pipeline/stages.py, telemetry, tests).
-from voly.a2a.assignment import Assignment, resolve_tier_model  # noqa: F401
+from voly.a2a.assignment import Assignment, evaluate_multiagent_outcome, resolve_tier_model  # noqa: F401
 from voly.a2a.lead import LeadOrchestrator, _parse_plan  # noqa: F401
 
 _log = logging.getLogger("voly.a2a.multiagent")
@@ -456,10 +456,10 @@ def run_local(
             store.save(plan)
 
     if tracker is not None and task_id:
-        any_ok = any(a.ok for a in assignments)
+        _, ma_status = evaluate_multiagent_outcome(assignments)
         tracker.finish(
             task_id,
-            status="completed" if any_ok else "failed",
+            status=ma_status,
             step_statuses=_step_snapshot() if plan is not None else None,
         )
     return assignments

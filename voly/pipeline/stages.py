@@ -194,6 +194,7 @@ class _PipelineStageMixin:
         import time as _time
 
         from voly.a2a.hybrid import make_agent_runner_executor
+        from voly.a2a.assignment import evaluate_multiagent_outcome
         from voly.a2a.multiagent import LeadOrchestrator, merge_report, run_local
         from voly.pipeline.types import PipelineResult, PipelineStage
         from voly.router import RouteDecision
@@ -204,6 +205,8 @@ class _PipelineStageMixin:
             skill_matcher=self.match_skills_for_task,  # type: ignore[attr-defined]
             lead_model=getattr(self.config.a2a, 'lead_model', ''),  # type: ignore[attr-defined]
         )
+        # Same as single-model path: surface marketplace skills not yet installed.
+        skill_suggestions = self._stage_skill_suggest(task)  # type: ignore[attr-defined]
         assignments = lead.assign(task, subtasks)
         self._fire(PipelineStage.A2A_DELEGATE, a2a_tasks=assignments)  # type: ignore[attr-defined]
 
@@ -272,6 +275,9 @@ class _PipelineStageMixin:
         )
 
         merged = merge_report(task, assignments)
+        ma_success, ma_status = evaluate_multiagent_outcome(
+            assignments, requires_code_gen=requires_code_gen,
+        )
         duration_ms = (_time.monotonic() - started) * 1000
         total_in = sum(a.input_tokens for a in assignments)
         total_out = sum(a.output_tokens for a in assignments)
@@ -296,7 +302,7 @@ class _PipelineStageMixin:
         ev = TaskEvent(
             task_id=task_id,
             agent='a2a-local',
-            status='completed' if any(a.ok for a in assignments) else 'failed',
+            status=ma_status,
             tokens=TokenMetrics(input=total_in, output=total_out, saved_headroom=total_saved),
             # Aggregate gateway view: cache hit only when the whole chain was cached.
             gateway=GatewayMetrics(cache_hit=bool(assignments) and cache_hits == len(assignments)),
@@ -327,7 +333,7 @@ class _PipelineStageMixin:
             usage = _FakeUsage()
 
         return PipelineResult(
-            success=any(a.ok for a in assignments),
+            success=ma_success,
             stage=PipelineStage.DONE,
             response=_FakeResponse(),
             route=route,
@@ -335,6 +341,7 @@ class _PipelineStageMixin:
             duration_ms=duration_ms,
             event=ev,
             injected_skills=skill_ids,
+            skill_suggestions=skill_suggestions,
             memory_hits=[{}] * mem_hits,
             tokens_saved_by_headroom=total_saved,
         )

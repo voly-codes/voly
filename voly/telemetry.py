@@ -143,7 +143,7 @@ TASK_EVENT_SCHEMA_VERSION = 3
 class TaskEvent:
     task_id: str
     agent: str
-    status: str  # completed | failed | budget_exceeded | dlp_blocked | rate_limited | spend_limited
+    status: str  # completed | partial | failed | budget_exceeded | dlp_blocked | rate_limited | spend_limited
     schema_version: int = TASK_EVENT_SCHEMA_VERSION
     # Cross-service correlation (API ↔ runner ↔ CF Workers Logs). Optional on
     # legacy v1/v2 events; v3+ writers should always set it.

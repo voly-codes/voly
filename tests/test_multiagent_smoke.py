@@ -4,6 +4,7 @@ Uses a fake gateway so no real provider calls are made.
 """
 from __future__ import annotations
 
+from voly.a2a.assignment import evaluate_multiagent_outcome
 from voly.a2a.decomposer import TaskDecomposer
 from voly.a2a.multiagent import (
     Assignment,
@@ -126,3 +127,36 @@ def test_merge_report_contains_roles_and_models():
                    model="claude-sonnet-4-6", provider="anthropic", content="design", ok=True)
     report = merge_report("task", [a])
     assert "architect" in report and "claude-sonnet-4-6" in report and "design" in report
+
+
+def test_evaluate_multiagent_outcome_partial_when_only_architect_ok():
+    arch = Assignment(
+        idx=0, role="architect", description="d", depends_on=[], tier="premium",
+        model="m", provider="p", ok=True,
+    )
+    dev = Assignment(
+        idx=1, role="developer", description="d", depends_on=[0], tier="standard",
+        model="m", provider="p", mode="executor", ok=False, error="timeout",
+    )
+    tester = Assignment(
+        idx=2, role="tester", description="d", depends_on=[1], tier="cheap",
+        model="m", provider="p", ok=False, error="skipped: prior role(s) failed (developer)",
+    )
+    success, status = evaluate_multiagent_outcome([arch, dev, tester])
+    assert success is False
+    assert status == "partial"
+
+
+def test_evaluate_multiagent_outcome_completed_when_all_active_ok():
+    roles = ["architect", "developer", "tester"]
+    assignments = [
+        Assignment(
+            idx=i, role=role, description="d",
+            depends_on=list(range(i)), tier="standard",
+            model="m", provider="p", ok=True,
+        )
+        for i, role in enumerate(roles)
+    ]
+    success, status = evaluate_multiagent_outcome(assignments)
+    assert success is True
+    assert status == "completed"

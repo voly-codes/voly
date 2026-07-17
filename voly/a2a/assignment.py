@@ -42,6 +42,51 @@ _ROLE_TIER: dict[str, str] = {
 
 _VALID_TIERS = ("premium", "standard", "cheap")
 
+# Roles that must succeed for a code-gen multi-agent run to count as completed.
+_IMPLEMENT_ROLES = frozenset({"developer", "bugfixer"})
+
+
+def _assignment_active(a: Assignment) -> bool:
+    if a.plan_status in ("skipped", "blocked"):
+        return False
+    if (a.error or "").startswith("skipped:"):
+        return False
+    return True
+
+
+def evaluate_multiagent_outcome(
+    assignments: list[Assignment],
+    *,
+    requires_code_gen: bool = True,
+) -> tuple[bool, str]:
+    """Return ``(pipeline_success, telemetry_status)``.
+
+    ``telemetry_status`` is one of ``completed``, ``partial``, or ``failed``.
+    ``pipeline_success`` is True only when status is ``completed``.
+    """
+    if not assignments:
+        return False, "failed"
+
+    active = [a for a in assignments if _assignment_active(a)]
+    if not active:
+        return False, "failed"
+
+    if not any(a.ok for a in active):
+        return False, "failed"
+
+    if all(a.ok for a in active):
+        return True, "completed"
+
+    if requires_code_gen:
+        impl = [
+            a for a in assignments
+            if a.mode == "executor" or a.role in _IMPLEMENT_ROLES
+        ]
+        if impl and not any(a.ok for a in impl):
+            return False, "partial"
+
+    return False, "partial"
+
 
 @dataclass
 class Assignment:
