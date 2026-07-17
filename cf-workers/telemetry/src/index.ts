@@ -173,4 +173,49 @@ app.get("/events", async (c) => {
   return c.json({ events: rows.results ?? [], count: (rows.results ?? []).length });
 });
 
+// /ingest is an alias for /events — matches CF_PIPELINE_TELEMETRY_ENDPOINT convention
+app.post("/ingest", async (c) => {
+  if (!authorize(c)) return c.json({ error: "Unauthorized" }, 401);
+
+  let records: EventRecord[];
+  try {
+    const body = await c.req.json();
+    records = Array.isArray(body) ? body : [body];
+  } catch {
+    return c.json({ error: "Invalid JSON" }, 400);
+  }
+
+  await ensureTable(c.env.DB);
+
+  let ingested = 0;
+  for (const record of records) {
+    if (!record?.task_id) continue;
+    const key = `events/${record.task_id}.json`;
+    await c.env.EVENTS_BUCKET.put(key, JSON.stringify(record), {
+      httpMetadata: { contentType: "application/json" },
+    });
+    const now = Date.now();
+    await c.env.DB.prepare(
+      `INSERT OR REPLACE INTO telemetry
+        (task_id,executor,status,cost_usd,duration_seconds,input_tokens,output_tokens,model,provider,memory_hits,created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?)`
+    ).bind(
+      record.task_id,
+      record.executor ?? null,
+      record.status ?? null,
+      record.cost_usd ?? null,
+      record.duration_seconds ?? null,
+      record.input_tokens ?? null,
+      record.output_tokens ?? null,
+      record.model ?? null,
+      record.provider ?? null,
+      record.memory_hits ?? 0,
+      now,
+    ).run();
+    ingested++;
+  }
+
+  return c.json({ ok: true, ingested });
+});
+
 export default app;
