@@ -87,6 +87,17 @@ docs/
 | Svelte component | `docs/frontend/components.md` |
 | API call from UI | `docs/frontend/api-client.md` |
 
+### Fix log and local checklist (MANDATORY)
+
+- `docs/problems-checklist.md` is a local working document. Never stage, commit,
+  or push changes to it.
+- After every functional fix commit, append an English entry to `fix.md` with
+  the exact short commit hash and a concise description of what was fixed.
+  The follow-up `fix.md` update may be included in the next documentation or
+  batch commit; verify that all functional fix commits are listed before push.
+- Run integration and end-to-end test tasks only in
+  `/home/lanies/git/codeops/TEST_VOLY_JOB_MA/`, never in this repository.
+
 ---
 
 ## Choosing an agent for a task
