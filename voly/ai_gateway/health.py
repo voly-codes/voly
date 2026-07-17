@@ -57,11 +57,24 @@ def _byok_env_default() -> bool:
 class ProviderHealthChecker:
     def __init__(self) -> None:
         self._cache: dict[str, ProviderStatus] = {}
+        self._runtime_excluded: set[str] = set()
         # None → follow the VOLY_BYOK env default; set via configure_byok()
         # when a gateway is built from config (pipeline/core.py).
         self._byok_enabled: bool | None = None
         self._byok_providers: list[str] = []
 
+    def mark_unhealthy(self, provider: str, reason: str = "") -> None:
+        """Exclude a provider for the rest of this process (e.g. after 401/billing)."""
+        provider = (provider or "").strip()
+        if not provider:
+            return
+        self._runtime_excluded.add(provider)
+        self._cache[provider] = ProviderStatus(
+            name=provider,
+            healthy=False,
+            reason=reason or "runtime excluded",
+        )
+        _log.warning("provider %s marked unhealthy: %s", provider, reason or "runtime excluded")
     def configure_byok(self, enabled: bool, providers: list[str] | None = None) -> None:
         """Sync BYOK state from config; resets cached statuses."""
         self._byok_enabled = enabled
@@ -85,6 +98,11 @@ class ProviderHealthChecker:
         return bool(account and token)
 
     def check(self, provider: str) -> ProviderStatus:
+        if provider in self._runtime_excluded:
+            cached = self._cache.get(provider)
+            reason = cached.reason if cached else "runtime excluded"
+            return ProviderStatus(name=provider, healthy=False, reason=reason)
+
         cached = self._cache.get(provider)
         if cached and not cached.expired():
             return cached

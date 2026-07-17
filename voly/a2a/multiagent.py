@@ -55,6 +55,26 @@ _ROLE_PROMPT: dict[str, str] = {
 }
 _DEFAULT_PERSONA = "Ты профильный инженер. Выполни назначенную суб-задачу качественно и кратко."
 
+_RECOVERABLE_PROVIDER_ERRORS = frozenset({
+    "unauthorized",
+    "quota_exhausted",
+    "account_deactivated",
+    "oauth_invalid_token",
+    "forbidden",
+})
+
+
+def _exclude_provider_on_gateway_error(provider: str, error: str) -> None:
+    """Mark provider unhealthy after auth/billing failures so tier resolution skips it."""
+    if not provider or not error:
+        return
+    from voly.ai_gateway.error_classifier import classify_provider_error
+    from voly.ai_gateway.health import get_checker
+
+    kind = classify_provider_error(None, error, provider=provider)
+    if kind in _RECOVERABLE_PROVIDER_ERRORS:
+        get_checker().mark_unhealthy(provider, reason=kind or "gateway error")
+
 
 def _skills_block(skill_ids: list[str], skill_matcher: Callable[[str, str], list[Any]] | None,
                   task: str, role: str) -> str:
@@ -419,6 +439,7 @@ def run_local(
             a.error = str(e)
             a.content = f"(failed: {e})"
             a.ok = False
+            _exclude_provider_on_gateway_error(a.provider, a.error)
             _finish_step_plan(a, exec_ok=False, git_before=git_before)
             done[a.idx] = a
             _hb(a.role, len(done))
@@ -429,6 +450,7 @@ def run_local(
             a.content = f"(failed: {a.error})"
             a.ok = False
             process_ok = False
+            _exclude_provider_on_gateway_error(a.provider, a.error)
         else:
             a.content = resp.get("content", "") or ""
             usage = resp.get("usage", {}) or {}

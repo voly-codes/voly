@@ -17,7 +17,7 @@ from voly.router import _PROVIDER_MODELS
 _log = logging.getLogger("voly.a2a.multiagent")
 
 # ── Model tiers → ordered real-provider preference (filtered by health) ──────────
-_STRONG = ["anthropic", "cloudflare-dynamic"]
+_STRONG = ["anthropic", "cloudflare-dynamic", "deepseek", "opencode", "mimo"]
 _STANDARD = ["cloudflare-dynamic", "deepseek", "anthropic", "workers-ai"]
 _WEAK = ["workers-ai", "deepseek", "opencode-zen", "mimo", "omniroute"]
 

@@ -160,3 +160,13 @@ def test_evaluate_multiagent_outcome_completed_when_all_active_ok():
     success, status = evaluate_multiagent_outcome(assignments)
     assert success is True
     assert status == "completed"
+
+
+def test_exclude_provider_on_gateway_error_marks_unhealthy(monkeypatch):
+    from voly.ai_gateway.health import ProviderHealthChecker
+    from voly.a2a.multiagent import _exclude_provider_on_gateway_error
+
+    checker = ProviderHealthChecker()
+    monkeypatch.setattr("voly.ai_gateway.health._checker", checker)
+    _exclude_provider_on_gateway_error("anthropic", "401 Unauthorized: invalid x-api-key")
+    assert checker.check("anthropic").healthy is False
