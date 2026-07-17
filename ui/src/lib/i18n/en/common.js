@@ -37,6 +37,7 @@ export default {
 
   // Task statuses
   'status.completed': 'completed',
+  'status.partial': 'partial',
   'status.failed': 'failed',
   'status.running': 'running',
   'status.error': 'failed',

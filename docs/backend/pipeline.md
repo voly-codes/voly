@@ -57,13 +57,25 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
      failure — deterministic fallback (`_ROLE_TIER` + top skills for the role).
   3. Tier → concrete (model, provider) via `resolve_tier_model()`: real pool
      `_PROVIDER_MODELS`, filtered by `ProviderHealthChecker`
-     (strong = anthropic/cloudflare-dynamic, weak = workers-ai/deepseek/opencode-zen/
-     mimo/omniroute).
+     (premium = anthropic/cloudflare-dynamic/deepseek/opencode/mimo;
+     weak = workers-ai/deepseek/opencode-zen/mimo/omniroute).
+     After auth/billing errors in `run_local`, the failing provider is marked
+     unhealthy for the rest of the process (no manual `VOLY_A2A_EXCLUDE_PROVIDERS`
+     needed). Manual exclude still works via env.
   4. `run_local` executes sub-agents **in-process** via `AIGateway.chat()` in
      dependency order, passing results from previous roles. Each agent has its
      own model, persona, and skills.
   5. Merge → `TaskEvent` with `a2a_dispatched=True`, `a2a_agents_used`,
      `a2a_assignments` (role/tier/model/skills/tokens/cost).
+     **Outcome status:** `completed` only when all active roles succeed;
+     `partial` when implement roles fail but earlier roles produced output;
+     `failed` when nothing succeeded. `PipelineResult.success` is true only
+     for `completed`.
+
+**Architect / implement policy:** architect chat is plan-only (no full code
+dumps, `max_tokens=2048`); developer/tester prompts enforce ≤300 lines per
+file (≤500 only when architect explicitly allows in the plan). Prior-role
+context snippets are capped at 2500 chars per role.
 
 - **`federation`** — sub-tasks go to remote agents (`a2a.federation_url`)
   via `dispatch_parallel` (legacy path).
@@ -98,9 +110,13 @@ Config (`voly.yaml` → `a2a`):
 
 **PR2 (current):** when hybrid is active and `cwd` is set, the pipeline injects
 `make_agent_runner_executor(config)` so implement roles call **AgentRunner** with
-the billing fallback chain (`claude-code → wrangler → opencode → zen`). Sub-role
+the billing fallback chain (`claude-code → cursor → deepseek → wrangler →
+opencode → zen`). Sub-role
 runs use `emit_event=False` so the parent multi-agent `TaskEvent` stays primary;
 per-role cost/files land on `Assignment` (`files_touched`, `executor`, `cost_usd`).
+On executor failure/timeout, `files_touched` falls back to a git porcelain diff
+when the runner did not report files. Empty greenfield `cwd` gets `git init`
+before hybrid so tracking works on the first pass.
 
 Without `cwd`, hybrid stays chat-only. Without a runner (tests can still inject
 mocks), executor-mode roles fall back to chat with `chat_fallback_no_runner`.
@@ -215,13 +231,21 @@ This is used in `web/routes/run.py` for smart dispatch.
 ## Lazy skill suggestion (SKILL_SUGGEST stage)
 
 `voly/pipeline/stages.py::_stage_skill_suggest()` — runs between `RTK_FILTER`
-and `SKILL_INJECT`. Queries the CF marketplace for skills relevant to the task
-that are not installed locally, then emits a `SKILL_SUGGEST` stage event. The
-UI receives the suggestions list in the `done` SSE payload (`skill_suggestions`)
-and shows an install banner.
+and `SKILL_INJECT` on the single-model path, and at the start of local multi-agent
+(`_run_multiagent_local`) so A2A runs also return `skill_suggestions`.
+
+Queries the CF marketplace for skills relevant to the task that are not installed
+locally, then emits a `SKILL_SUGGEST` stage event. The UI receives the suggestions
+list in the `done` SSE payload (`skill_suggestions`) and shows an install banner.
+
+**Pre-run skill gate (Web UI):** before `POST /api/run`, `RunPanel` calls
+`GET /api/marketplace/skills/suggest?task=…`. If suggestions exist, a modal lets
+the user install skills (and wait until install finishes) before starting the
+task, or skip and run immediately.
 
 **SkillScout** (`voly/registry/scout.py`): wraps `MarketplaceClient.search()`
-and filters the results against the local `SkillRegistry` index. Returns slim
+and filters the results against the local `SkillRegistry` index. Long task
+prompts are truncated to ~240 characters for FTS. Returns slim
 dicts `{id, name, description, repository, install_kind, tags}`.
 
 **Design invariants:**
@@ -233,7 +257,7 @@ dicts `{id, name, description, repository, install_kind, tags}`.
 - `install_kind='single'` (default) — existing flat-YAML behaviour.
 
 **API endpoints:**
-- `GET /api/marketplace/skills/suggest?task=<text>` — direct query for UI polling.
+- `GET /api/marketplace/skills/suggest?task=<text>` — direct query for UI polling / pre-run gate.
 - `POST /api/marketplace/skills/{skill_id}/install` — trigger install (existing).
 
 ---

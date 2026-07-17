@@ -10,6 +10,12 @@ Main task run panel. Contains:
 - `<RunParams>` — executor / agent / model / cwd selection
 - Run button
 - `<RunResult>` for output
+- `<SkillSuggestModal>` — pre-run marketplace skill gate
+
+**Pre-run skill gate:** on Run / Ctrl+Enter, calls
+`GET /api/marketplace/skills/suggest`. If missing skills are found, opens a modal
+to Install / Install all / wait for install / then **Run with skills**, or
+**Skip & run**. If suggest fails or returns `[]`, the run starts immediately.
 
 **Executor order** (file-writing first, text-only last):
 ```
@@ -26,6 +32,17 @@ warning banner (e.g. "Hybrid code generation skipped (no cwd set)...").
 
 **Environment:** on mount (and when cwd changes) calls `GET /api/environment?cwd=…`,
 passes `executors` map into `RunParams`, and shows tips via `EnvironmentBanner`.
+
+---
+
+## SkillSuggestModal.svelte
+
+Modal shown before a run when marketplace has relevant skills not installed locally.
+
+**Props:** `open` (bindable), `suggestions`, `installing` (bindable), `onRun`, `onSkip`.
+
+**Actions:** Install / Install all (waits for each install), Run with skills, Skip & run.
+Blocks closing while an install is in progress.
 
 ---
 
@@ -97,14 +114,19 @@ Each stage is a colored badge. A failed stage is highlighted red.
 "In progress" block at the top of `TaskSidebar`: polls `/api/runs?active=1`
 every 4s and lists runs that are still executing (including CLI-launched
 ones) — task text, current role/executor, progress `done/total`, elapsed.
-Click expands a drill-down: task id, heartbeat age (red when >60s), role
-chips (done/current), plan `step_statuses`, error. When the last active run
-finishes, the store refreshes so the completed task appears in the list.
+Click opens the live task card in `PipelineInspector` (via `tasksStore.selectLive`)
+and expands a drill-down: task id, heartbeat age (red when >60s), role
+chips (done/current), plan `step_statuses`, error. While the card is open,
+poll patches progress in place. When the last active run finishes, the store
+refreshes and the completed TaskEvent replaces the live card.
 
 ## TaskSidebar.svelte
 
 List of previous tasks. Data from `GET /api/tasks` (SSE).
-Click — loads the task into RunPanel.
+Click — loads the task into `PipelineInspector`.
+In-flight rows from the Run drawer (`ui.activeRuns`) are clickable: resolve to
+a server `/api/runs` record when possible and open the live card; otherwise
+re-open the Run drawer.
 
 ---
 
@@ -141,7 +163,7 @@ value is sent once on save and never rendered back.
 
 | Component | Purpose |
 |---|---|
-| `StatusDot` | colored dot: green/yellow/red/gray |
+| `StatusDot` | colored dot: green/amber (partial)/red/gray |
 | `CopyButton` | copy text to clipboard |
 | `InfoTooltip` | `?` button with tooltip |
 | `Drawer` | slide-in side panel |

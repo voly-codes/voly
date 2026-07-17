@@ -32,6 +32,7 @@ export default {
   'common.or': 'или',
 
   'status.completed': 'выполнено',
+  'status.partial': 'частично',
   'status.failed': 'ошибка',
   'status.running': 'в работе',
   'status.error': 'ошибка',

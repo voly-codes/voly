@@ -4,6 +4,7 @@
   const map = {
     completed: { color: 'var(--accent-green)', pulse: false },
     running:   { color: 'var(--running-fg)',   pulse: true  },
+    partial:   { color: 'var(--accent-amber, #d4a017)', pulse: false },
     failed:    { color: 'var(--accent-red)',    pulse: false },
     error:     { color: 'var(--accent-red)',    pulse: false },
     pending:   { color: 'var(--status-waiting)',pulse: false },

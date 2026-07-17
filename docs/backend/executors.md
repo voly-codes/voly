@@ -12,10 +12,12 @@ All executors inherit from `voly/executor/base.py:Executor` and return `Executor
 When a paid executor returns a billing error, `AgentRunner` automatically walks:
 
 ```
-claude-code  →  wrangler  →  opencode  →  zen
+claude-code  →  cursor  →  deepseek  →  wrangler  →  opencode  →  zen
 ```
 
 - `claude-code` — Anthropic account runs out of credits
+- `cursor` — Cursor API (`CURSOR_API_KEY`)
+- `deepseek` — DeepSeek API file-writing executor (`DEEPSEEK_API_KEY`)
 - `wrangler` — CF Workers AI via local wrangler dev (separate CF billing)
 - `opencode` — OpenCode Go (free models first, then user's own provider keys)
 - `zen` — opencode.ai Zen models (free tier / subscription)
@@ -29,7 +31,7 @@ required"`) or a specific billing phrase (`"billing issue"`, `"billing
 error"`, …) — a bare `"402"` inside an unrelated number (port, PID) or a
 passing mention of the word "billing" does not trigger a false positive.
 
-Only file-writing executors are in the chain. `deepseek`/`workers-ai` are text-only and cannot apply file changes — they must NOT appear here.
+Only file-writing executors are in the chain.
 
 ---
 
@@ -253,7 +255,7 @@ not inside a single executor.
 ## AgentRunner billing fallback (`voly/runner/agent_runner.py`)
 
 ```python
-BILLING_FALLBACK_CHAIN = ["claude-code", "wrangler", "opencode", "zen"]
+BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 
 # In AgentRunner.run():
 if result.billing_error and executor_name in BILLING_FALLBACK_CHAIN:

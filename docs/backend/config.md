@@ -60,6 +60,8 @@ VOLY_A2A_TOKEN=...
 
 VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
 # Exclude providers from the multi-agent tier pool (e.g. when credits are exhausted).
+# Runtime: auth/billing errors in `run_local` also mark providers unhealthy for
+# the rest of the process (see `ProviderHealthChecker.mark_unhealthy`).
 
 VOLY_PLAN_ENABLED=true
 VOLY_PLAN_MODE=active
@@ -191,7 +193,7 @@ a2a:
   execution_mode: local        # local (lead + sub-agents in-process) | federation (remote)
   lead_model: ""               # lead orchestrator model; empty → premium from healthy pool
   federation_url: ""           # only for execution_mode=federation
-  task_timeout_seconds: 120    # per-role timeout; watchdog uses it as base
+  task_timeout_seconds: 600    # per-role timeout (hybrid executor); watchdog uses it as base
 
 telemetry:
   enabled: true

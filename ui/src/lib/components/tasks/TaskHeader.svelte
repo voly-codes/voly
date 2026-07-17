@@ -42,6 +42,15 @@
       {task.error}
     </div>
   {/if}
+
+  {#if task._live && task._live_progress}
+    <div class="live-progress">
+      Live · {task._live_progress.done_roles}/{task._live_progress.total_roles}
+      {#if task._live_progress.current_role}
+        · {task._live_progress.current_role}
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -94,6 +103,7 @@
     padding: 1px 6px;
   }
   .status-completed { background: color-mix(in srgb, var(--accent-green) 15%, transparent); color: var(--accent-green); }
+  .status-partial { background: color-mix(in srgb, var(--accent-amber, #d4a017) 15%, transparent); color: var(--accent-amber, #d4a017); }
   .status-failed, .status-error { background: color-mix(in srgb, var(--accent-red) 15%, transparent); color: var(--accent-red); }
   .status-running { background: color-mix(in srgb, var(--running-fg) 15%, transparent); color: var(--running-fg); }
 
@@ -193,6 +203,16 @@
     font-size: 11px;
     color: var(--accent-red);
     background: color-mix(in srgb, var(--accent-red) 10%, transparent);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+  }
+
+  .live-progress {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--running-fg, var(--accent-amber));
+    background: color-mix(in srgb, var(--running-fg, var(--accent-amber)) 10%, transparent);
     border-radius: var(--radius-sm);
     padding: 4px 8px;
   }
