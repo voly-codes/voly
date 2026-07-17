@@ -114,10 +114,12 @@ EXECUTOR_NAMES = frozenset({
 #
 # Chain:
 #   claude-code  — Anthropic (billed to Anthropic account)
+#   cursor       — Cursor API (CURSOR_API_KEY)
+#   deepseek     — DeepSeek API file-writing executor
 #   wrangler     — CF Workers AI via wrangler dev (billed to CF account, separate billing)
 #   opencode     — OpenCode Go (opencode.ai/zen/go); starts with mimo-v2.5-free
 #   zen          — OpenCode Zen (opencode.ai/zen); tries all free models in sequence
-BILLING_FALLBACK_CHAIN: list[str] = ["claude-code", "wrangler", "opencode", "zen"]
+BILLING_FALLBACK_CHAIN: list[str] = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 
 EXECUTOR_ALIASES: dict[str, str] = {
     "claude": "claude-code",
