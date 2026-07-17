@@ -238,6 +238,10 @@ class _PipelineStageMixin:
         requires_code_gen = bool(
             getattr(analysis, "requires_code_gen", True) if analysis is not None else True
         )
+        if cwd and bool(getattr(a2a_cfg, "hybrid_code_gen", True)):
+            from voly.plan.verify import ensure_git_repo
+
+            ensure_git_repo(cwd)
         # Hybrid PR2: implement roles use AgentRunner + billing fallback (no per-role TaskEvent).
         timeout = int(getattr(a2a_cfg, "task_timeout_seconds", 120) or 120)
         executor_runner = None

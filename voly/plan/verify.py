@@ -97,6 +97,25 @@ def safe_join(cwd: str, rel: str) -> Path:
     return target
 
 
+def ensure_git_repo(cwd: str, *, timeout: float = 10.0) -> bool:
+    """Initialize git in ``cwd`` when missing so hybrid verify can track files."""
+    if not cwd or not os.path.isdir(cwd):
+        return False
+    if os.path.isdir(os.path.join(cwd, ".git")):
+        return False
+    try:
+        proc = subprocess.run(
+            ["git", "init"],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return proc.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 def git_porcelain(cwd: str, *, timeout: float = 5.0) -> dict[str, str]:
     """Return {path: status_code} from ``git status --porcelain``."""
     if not cwd or not os.path.isdir(cwd):
