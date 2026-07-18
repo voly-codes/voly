@@ -127,6 +127,9 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             gw.fallback.enabled = self.config.ai_gateway.fallback_enabled
             gw.fallback.chain = self.config.ai_gateway.fallback_chain
             gw.fallback.retries = self.config.ai_gateway.fallback_retries
+            gw.request_timeout_seconds = float(
+                getattr(self.config.ai_gateway, "request_timeout_seconds", 15.0) or 15.0
+            )
             gw.dlp.enabled = self.config.ai_gateway.dlp_enabled
             gw.dlp.block_secrets = self.config.ai_gateway.dlp_block_secrets
             gw.dlp.block_pii = self.config.ai_gateway.dlp_block_pii
@@ -179,15 +182,34 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         return self._project_profile
 
     def setup_environment(self) -> bool:
+        """Bring up local helpers and log each subsystem (see docs/post-run-checklist.md)."""
         ok = True
+        import os
+
+        logger.info(
+            "[PIPELINE:SETUP] begin rtk=%s headroom=%s a2a=%s spend=%s gateway=%s",
+            self.config.rtk.enabled,
+            self.config.headroom.enabled,
+            self.config.a2a.enabled,
+            getattr(self.config.spend, "enabled", False),
+            self.config.ai_gateway.enabled,
+        )
 
         if self.config.rtk.enabled:
             try:
                 self.rtk.ensure_installed(auto_install=self.config.rtk.auto_install)
                 self.rtk.register_hooks("claude")
+                logger.info(
+                    "[PIPELINE:SETUP] rtk ok installed=%s path=%s",
+                    self.rtk.is_installed(),
+                    getattr(self.rtk, "binary_path", ""),
+                )
             except Exception as e:
+                logger.warning("[PIPELINE:SETUP] rtk FAILED: %s", e)
                 self._fire(PipelineStage.ERROR, error=f"RTK setup failed: {e}")
                 ok = False
+        else:
+            logger.info("[PIPELINE:SETUP] rtk skipped (disabled)")
 
         if self.config.headroom.enabled:
             try:
@@ -199,18 +221,69 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                     code_graph=self.config.headroom.code_graph,
                 )
                 self.headroom_mgr.start(wait=True)
+                hstatus = self.headroom_mgr.status()
+                logger.info(
+                    "[PIPELINE:SETUP] headroom ok running=%s port=%s profile=%s",
+                    hstatus.running,
+                    hstatus.port,
+                    self.config.headroom.savings_profile,
+                )
             except Exception as e:
+                logger.warning("[PIPELINE:SETUP] headroom FAILED: %s", e)
                 self._fire(PipelineStage.ERROR, error=f"Headroom setup failed: {e}")
                 ok = False
+        else:
+            logger.info("[PIPELINE:SETUP] headroom skipped (disabled)")
 
         if self.config.a2a.enabled:
             try:
+                fed = (self.config.a2a.federation_url or "").strip()
+                logger.info(
+                    "[PIPELINE:SETUP] a2a mode=%s federation=%s lead_mode=%s hybrid=%s",
+                    getattr(self.config.a2a, "execution_mode", "local"),
+                    fed or "(local-only)",
+                    getattr(self.config.a2a, "lead_mode", "auto"),
+                    getattr(self.config.a2a, "hybrid_code_gen", False),
+                )
                 for url in self.config.a2a.remote_agents:
                     self.a2a.register_remote_agent(url)
+                    logger.info("[PIPELINE:SETUP] a2a remote registered %s", url)
+                logger.info("[PIPELINE:SETUP] a2a ok")
             except Exception as e:
+                logger.warning("[PIPELINE:SETUP] a2a FAILED: %s", e)
                 self._fire(PipelineStage.ERROR, error=f"A2A discovery failed: {e}")
                 ok = False
+        else:
+            logger.info("[PIPELINE:SETUP] a2a skipped (disabled)")
 
+        # CF / spend — config presence only (no hard fail; checklist verifies live health).
+        spend_url = (getattr(self.config.spend, "remote_url", "") or "").strip()
+        logger.info(
+            "[PIPELINE:SETUP] spend enabled=%s url=%s",
+            getattr(self.config.spend, "enabled", False),
+            spend_url or "(unset)",
+        )
+        for name, env_key in (
+            ("CF_WORKER_A2A_URL", "CF_WORKER_A2A_URL"),
+            ("CF_WORKER_SPEND_URL", "CF_WORKER_SPEND_URL"),
+            ("CF_WORKER_AGUI_URL", "CF_WORKER_AGUI_URL"),
+            ("CF_WORKER_MEMORY_URL", "CF_WORKER_MEMORY_URL"),
+            ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_ACCOUNT_ID"),
+            ("CLOUDFLARE_AI_GATEWAY_ID", "CLOUDFLARE_AI_GATEWAY_ID"),
+        ):
+            val = (os.environ.get(env_key) or "").strip()
+            logger.info(
+                "[PIPELINE:SETUP] cf_env %s=%s",
+                name,
+                "set" if val else "MISSING",
+            )
+
+        logger.info(
+            "[PIPELINE:SETUP] gateway request_timeout=%ss plan.command_timeout=%ss",
+            getattr(self.config.ai_gateway, "request_timeout_seconds", 15),
+            getattr(self.config.plan, "command_timeout_seconds", 60),
+        )
+        logger.info("[PIPELINE:SETUP] done ok=%s", ok)
         return ok
 
     def shutdown(self) -> None:

@@ -28,6 +28,7 @@ plan:
   executor_require_git_diff: false
   executor_file_line_limit: 300
   architect_approved_file_line_limit: 500
+  command_timeout_seconds: 60   # full project pytest; hung command fails before 60s
   tester_command: ""    # or "pytest -q" / filled from scanner when empty
 ```
 

@@ -301,6 +301,14 @@ def run_local(
     if hybrid_code_gen and not has_cwd:
         _log.warning("multiagent hybrid: no cwd — all roles stay chat (hybrid_skipped_no_cwd)")
 
+    _log.info(
+        "[PIPELINE:A2A] run_local roles=%s cwd=%s hybrid=%s task_id=%s",
+        [a.role for a in assignments],
+        cwd or "(none)",
+        hybrid_on,
+        task_id or "",
+    )
+
     # Pre-resolve hybrid modes so the plan mirror matches execution.
     role_modes: dict[int, str] = {}
     for a in assignments:
@@ -405,7 +413,7 @@ def run_local(
                 git_before=git_before,
                 git_after=git_after,
                 command_timeout=float(
-                    getattr(plan_config, "command_timeout_seconds", 120.0) or 120.0
+                    getattr(plan_config, "command_timeout_seconds", 60.0) or 60.0
                 ),
             )
             step, _results = complete_verification(

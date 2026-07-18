@@ -60,6 +60,8 @@ class AIGateway(_GatewayProvidersMixin):
         # (VOLY risk R1). Set once per project run — see voly/ai_gateway/
         # project_state.py and pipeline/core.py. Empty → no scope (prior behaviour).
         self.cache_scope = ""
+        # Provider HTTP stall timeout (urlopen). Config: ai_gateway.request_timeout_seconds.
+        self.request_timeout_seconds = 15.0
 
     @property
     def enabled(self) -> bool:

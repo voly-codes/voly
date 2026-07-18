@@ -15,6 +15,25 @@ class _GatewayProvidersMixin:
     """Low-level API call methods for each LLM provider.
     Expects self.account_id, self.gateway_id, self.api_token from AIGateway."""
 
+    def _http_timeout(self) -> float:
+        """Whole-response stall timeout for provider HTTP calls (default 15s)."""
+        return float(getattr(self, "request_timeout_seconds", 15.0) or 15.0)
+
+    def _urlopen_read(self, req: urllib.request.Request, *, label: str) -> bytes:
+        """urlopen with configured timeout; map stalls to RuntimeError for fallback."""
+        timeout = self._http_timeout()
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read()
+        except urllib.error.HTTPError:
+            raise
+        except urllib.error.URLError as e:
+            raise RuntimeError(
+                f"{label} timeout/unreachable after {timeout}s: {e.reason}"
+            ) from e
+        except TimeoutError as e:
+            raise RuntimeError(f"{label} timeout after {timeout}s") from e
+
     # ── Format adapters ─────────────────────────────────────────────────────────
 
     def _call_anthropic(
@@ -34,8 +53,7 @@ class _GatewayProvidersMixin:
             f"{url}/v1/messages", data=json.dumps(body).encode(), headers=headers, method="POST"
         )
         try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
+            data = json.loads(self._urlopen_read(req, label="Anthropic").decode())
         except urllib.error.HTTPError as e:
             body_text = e.read().decode(errors="replace")
             try:
@@ -77,8 +95,7 @@ class _GatewayProvidersMixin:
             f"{url}/v1/chat/completions", data=json.dumps(body).encode(), headers=headers, method="POST"
         )
         try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
+            data = json.loads(self._urlopen_read(req, label="OpenAI").decode())
         except urllib.error.HTTPError as e:
             body_text = e.read().decode(errors="replace")
             try:
@@ -121,8 +138,7 @@ class _GatewayProvidersMixin:
             data=json.dumps(body).encode(), headers=headers, method="POST"
         )
         try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
+            data = json.loads(self._urlopen_read(req, label="Google").decode())
         except urllib.error.HTTPError as e:
             body_text = e.read().decode(errors="replace")
             try:
@@ -172,8 +188,7 @@ class _GatewayProvidersMixin:
         body: dict[str, Any] = {"messages": msgs, "max_tokens": max_tokens, "temperature": temperature}
         req  = urllib.request.Request(url, data=json.dumps(body).encode(), headers=hdrs, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
+            data = json.loads(self._urlopen_read(req, label="WorkersAI").decode())
         except urllib.error.HTTPError as e:
             body_text = e.read().decode(errors="replace")
             try:
@@ -286,8 +301,7 @@ class _GatewayProvidersMixin:
         _log.info("CF compat: %s → %s", compat_model, url)
         req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=hdrs, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
+            data = json.loads(self._urlopen_read(req, label="CF-gateway").decode())
         except urllib.error.HTTPError as e:
             body_text = e.read().decode(errors="replace")
             try:
@@ -387,8 +401,7 @@ class _GatewayProvidersMixin:
         _log.info("OmniRoute routing: %s → %s", model, url)
         req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=hdrs, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=120.0) as resp:
-                data = json.loads(resp.read().decode())
+            data = json.loads(self._urlopen_read(req, label="OmniRoute").decode())
         except urllib.error.HTTPError as e:
             body_text = e.read().decode(errors="replace")
             try:
@@ -396,11 +409,14 @@ class _GatewayProvidersMixin:
             except Exception:
                 msg = body_text
             raise RuntimeError(f"OmniRoute {e.code}: {msg}") from e
-        except urllib.error.URLError as e:
-            raise RuntimeError(
-                f"OmniRoute unreachable at {base} ({e.reason}). "
-                f"Start it (`omniroute` / docker) or set OMNIROUTE_BASE_URL."
-            ) from e
+        except RuntimeError as e:
+            # Re-wrap stall errors with OmniRoute setup hint when host is unreachable.
+            if "timeout/unreachable" in str(e) or "timeout after" in str(e):
+                raise RuntimeError(
+                    f"OmniRoute unreachable at {base} ({e}). "
+                    f"Start it (`omniroute` / docker) or set OMNIROUTE_BASE_URL."
+                ) from e
+            raise
 
         choice = (data.get("choices") or [{}])[0]
         return {

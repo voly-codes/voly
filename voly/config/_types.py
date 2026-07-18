@@ -200,6 +200,8 @@ class AIGatewayConfig:
     fallback_enabled: bool = True
     fallback_chain: list[dict[str, str]] = field(default_factory=list)
     fallback_retries: int = 3
+    # Whole-response HTTP timeout for provider urlopen calls. Stall → error → fallback.
+    request_timeout_seconds: float = 15.0
     dlp_enabled: bool = False
     dlp_block_secrets: bool = True
     dlp_block_pii: bool = True
@@ -273,7 +275,7 @@ class PlanConfig:
     max_step_retries: int = 1
     # stop | retry | continue — active mode; shadow treats verify fail as soft
     default_on_verify_fail: str = "stop"
-    command_timeout_seconds: float = 120.0
+    command_timeout_seconds: float = 60.0
     allow_skip: bool = False
     # Default executor for mode=executor steps without step.executor
     executor_default: str = "claude-code"

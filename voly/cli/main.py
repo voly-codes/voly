@@ -6,6 +6,8 @@ Subcommands live in voly.cli.commands.*
 
 from __future__ import annotations
 
+import logging
+
 import click
 
 from voly.config import load_config
@@ -48,8 +50,20 @@ from voly.cli.commands import (
 @click.group()
 @click.version_option(version="0.1.0", prog_name="VOLY")
 @click.option("--config", "-c", default=None, help="Path to voly.yaml")
+@click.option("-v", "--verbose", is_flag=True, help="DEBUG logs for all voly.* loggers")
 @click.pass_context
-def main(ctx: click.Context, config: str | None) -> None:
+def main(ctx: click.Context, config: str | None, verbose: bool) -> None:
+    # Surface [PIPELINE:SETUP] / [PIPELINE:A2A] on every CLI run (see docs/post-run-checklist.md).
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+        force=True,
+    )
+    logging.getLogger("voly.pipeline").setLevel(logging.INFO)
+    logging.getLogger("voly.a2a").setLevel(logging.INFO)
+    if verbose:
+        logging.getLogger("voly").setLevel(logging.DEBUG)
     ctx.ensure_object(dict)
     ctx.obj["config_path"] = config
     ctx.obj["config"] = load_config(config)

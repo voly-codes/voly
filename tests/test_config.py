@@ -176,3 +176,18 @@ def test_load_dotenv_does_not_cross_git_root(
     monkeypatch.delenv("VOLY_ANCESTOR_SECRET", raising=False)
     _load_dotenv(nested)
     assert "VOLY_ANCESTOR_SECRET" not in os.environ
+
+
+def test_load_request_and_plan_command_timeouts(tmp_path: Path) -> None:
+    path = tmp_path / "voly.yaml"
+    path.write_text(
+        """
+ai_gateway:
+  request_timeout_seconds: 15
+plan:
+  command_timeout_seconds: 60
+"""
+    )
+    cfg = load_config(path)
+    assert cfg.ai_gateway.request_timeout_seconds == 15.0
+    assert cfg.plan.command_timeout_seconds == 60.0

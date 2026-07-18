@@ -24,6 +24,13 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 5. **Routing** — CF AI Gateway or direct call, then model fallback
 6. **Empty-content guard** — fake success (HTTP 200 with no content) → synthetic error → model fallback
 
+### Provider HTTP stall timeout
+
+`ai_gateway.request_timeout_seconds` (default **15**) caps each provider
+`urlopen` call. If Anthropic/CF/etc. never returns a response, the call errors
+after that many seconds and the configured model fallback chain (or multi-agent
+provider loop) tries the next provider — instead of waiting 120s.
+
 ---
 
 ## Providers

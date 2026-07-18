@@ -168,6 +168,7 @@ ai_gateway:
   provider: cloudflare   # cloudflare | custom
   cloudflare_account_id: ""
   cloudflare_gateway_id: default
+  request_timeout_seconds: 15  # provider HTTP stall → error → model fallback
   upstream: ""           # "omniroute" → delegate non-CF routing to external gateway
   upstream_model: ""     # "auto" = auto-combo OmniRoute; "" = passthrough caller's model
   upstream_fallback_direct: true  # if upstream unavailable — direct provider adapter
@@ -216,7 +217,7 @@ plan:
   store_dir: .voly/plans
   max_step_retries: 1
   default_on_verify_fail: stop  # stop | retry | continue
-  command_timeout_seconds: 120
+  command_timeout_seconds: 60   # full suite pytest; hung PATH-pytest still fails before 60s
   allow_skip: false
   executor_default: claude-code
   step_timeout_seconds: 300

@@ -89,6 +89,8 @@ a2a:
 plan:
   enabled: true
   mode: shadow
+  # Full project pytest often needs >15s; hung PATH-pytest still fails before 60s.
+  command_timeout_seconds: 60
   # Executor roles must leave a git diff — pairs with the hard rule in
   # run_local (executor success with zero files_touched → role failed).
   executor_require_git_diff: true
@@ -142,6 +144,8 @@ ai_gateway:
     enabled: true
     daily_budget_usd: 20
     per_agent_budget: {}
+  # Stall timeout for provider HTTP (urlopen). Silent hang → error → fallback.
+  request_timeout_seconds: 15
   fallback:
     enabled: true
     chain:

@@ -45,7 +45,8 @@ def test_is_protected_defaults() -> None:
     for p in (".env", ".env.local", "config/.env", "certs/server.pem",
               "id_rsa", ".git/config", "keys/private.key"):
         assert is_protected(p, DEFAULT_PROTECTED_PATHS), p
-    for p in ("src/a.py", "docs/env.md", "environment.py"):
+    for p in ("src/a.py", "docs/env.md", "environment.py",
+              ".env.example", ".env.sample", ".env.template"):
         assert not is_protected(p, DEFAULT_PROTECTED_PATHS), p
 
 

@@ -37,6 +37,13 @@ DEFAULT_PROTECTED_PATHS: tuple[str, ...] = (
     ".git/**",
 )
 
+# Committed env templates are OK for greenfield scaffolds (.env.* would match them).
+_ENV_TEMPLATE_ALLOW: frozenset[str] = frozenset({
+    ".env.example",
+    ".env.sample",
+    ".env.template",
+})
+
 _DIFF_PREVIEW_LIMIT = 20_000  # chars kept in metadata for UI preview
 
 
@@ -53,6 +60,8 @@ class SafetyOutcome:
 def is_protected(path: str, patterns: list[str] | tuple[str, ...]) -> bool:
     norm = path.replace(os.sep, "/")
     base = norm.rsplit("/", 1)[-1]
+    if base in _ENV_TEMPLATE_ALLOW:
+        return False
     for pat in patterns:
         if fnmatch(norm, pat) or fnmatch(base, pat):
             return True

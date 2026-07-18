@@ -2,6 +2,10 @@
 
 import json
 import time
+import urllib.error
+import urllib.request
+
+import pytest
 
 from voly.ai_gateway import (
     AIGateway,
@@ -490,3 +494,47 @@ def test_no_upstream_configured_behavior_unchanged(monkeypatch) -> None:
     result = gw.chat([{"role": "user", "content": "hi"}], model="m", provider_name="anthropic")
     assert calls == ["anthropic"]
     assert "upstream" not in result and "upstream_fallback" not in result
+
+
+def test_http_timeout_default_and_override() -> None:
+    gw = AIGateway()
+    assert gw._http_timeout() == 15.0
+    gw.request_timeout_seconds = 7.5
+    assert gw._http_timeout() == 7.5
+
+
+def test_urlopen_read_passes_configured_timeout(monkeypatch) -> None:
+    gw = AIGateway()
+    gw.request_timeout_seconds = 12.0
+    seen: dict[str, float | None] = {}
+
+    class _Resp:
+        def read(self) -> bytes:
+            return b'{"ok": true}'
+
+        def __enter__(self) -> "_Resp":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    def fake_urlopen(req: object, timeout: float | None = None) -> _Resp:
+        seen["timeout"] = timeout
+        return _Resp()
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    data = gw._urlopen_read(urllib.request.Request("https://example.com"), label="Test")
+    assert seen["timeout"] == 12.0
+    assert data == b'{"ok": true}'
+
+
+def test_urlopen_read_timeout_raises_runtimeerror(monkeypatch) -> None:
+    gw = AIGateway()
+    gw.request_timeout_seconds = 15.0
+
+    def fake_urlopen(req: object, timeout: float | None = None) -> object:
+        raise urllib.error.URLError(TimeoutError("timed out"))
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    with pytest.raises(RuntimeError, match="Anthropic timeout/unreachable after 15"):
+        gw._urlopen_read(urllib.request.Request("https://example.com"), label="Anthropic")

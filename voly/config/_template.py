@@ -147,6 +147,8 @@ ai_gateway:
     enabled: true
     daily_budget_usd: 20
     per_agent_budget: {}
+  # Stall timeout for provider HTTP (urlopen). Silent hang → error → fallback.
+  request_timeout_seconds: 15
   fallback:
     enabled: true
     chain: []
@@ -205,7 +207,7 @@ plan:
   store_dir: ".voly/plans"
   max_step_retries: 1
   default_on_verify_fail: stop # stop | retry | continue
-  command_timeout_seconds: 120
+  command_timeout_seconds: 60
   allow_skip: false
   executor_default: claude-code
   step_timeout_seconds: 300

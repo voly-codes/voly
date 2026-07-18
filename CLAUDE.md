@@ -210,6 +210,7 @@ pytest tests/ -q                          # full run
 | CI fails with test collection | Check `pyproject.toml` pytest config |
 | Plan gate `command: exit 4` on pytest | Prefer `.venv/bin/pytest` — auto-fill does this when `.venv/bin/pytest` exists; or set `plan.tester_command` |
 | Multi-agent only developer+tester | ≥2 capability flags now auto-set `requires_review` (3 roles). Explicit deploy/architecture keywords still needed for devops/architect |
+| Provider hang / slow fallback | `ai_gateway.request_timeout_seconds` (default 15) — stall → next fallback; plan gates use `plan.command_timeout_seconds: 15` |
 
 <!-- OPENWIKI:START -->
 
