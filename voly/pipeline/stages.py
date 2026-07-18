@@ -307,6 +307,14 @@ class _PipelineStageMixin:
         mem_hits = sum(a.mem_hits for a in assignments)
         skill_ids = sorted({s for a in assignments for s in a.skills})
         agents_used = [a.role for a in assignments]
+        # Multi-agent path previously skipped RTK stats → saved_rtk always 0.
+        rtk_stats = self._stage_rtk()
+        saved_rtk = int(
+            rtk_stats.get("tokens_saved")
+            or rtk_stats.get("saved_tokens")
+            or rtk_stats.get("tokens_filtered")
+            or 0
+        )
 
         # Reflect multi-agent activity in the UI stage panel instead of defaults.
         self._fire(PipelineStage.MEMORY_RETRIEVE, hits=[{}] * mem_hits)  # type: ignore[attr-defined]
@@ -323,7 +331,10 @@ class _PipelineStageMixin:
             task_id=task_id,
             agent='a2a-local',
             status=ma_status,
-            tokens=TokenMetrics(input=total_in, output=total_out, saved_headroom=total_saved),
+            tokens=TokenMetrics(
+                input=total_in, output=total_out,
+                saved_headroom=total_saved, saved_rtk=saved_rtk,
+            ),
             # Aggregate gateway view: cache hit only when the whole chain was cached.
             gateway=GatewayMetrics(cache_hit=bool(assignments) and cache_hits == len(assignments)),
             cost_usd=total_cost,

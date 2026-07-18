@@ -18,6 +18,7 @@ DEFAULT_EXECUTOR_ROLES: frozenset[str] = frozenset({
     "developer",
     "bugfixer",
     "tester",
+    "devops",
 })
 
 # Roles that may use hybrid executor mode (lead cannot promote others).
@@ -25,6 +26,7 @@ EXECUTOR_CAPABLE_ROLES: frozenset[str] = frozenset({
     "developer",
     "bugfixer",
     "tester",
+    "devops",
 })
 
 # Per-role executor when hybrid mode=executor (env: VOLY_A2A_EXECUTOR_<ROLE>).
@@ -32,13 +34,13 @@ _ROLE_EXECUTOR: dict[str, str] = {
     "developer": "cursor",
     "bugfixer": "deepseek",
     "tester": "cursor",
+    "devops": "cursor",
 }
 
 # Roles that never default to executor (lead cannot promote to executor).
 DEFAULT_CHAT_ROLES: frozenset[str] = frozenset({
     "architect",
     "reviewer",
-    "devops",
     "security",
     "documenter",
 })
@@ -101,7 +103,7 @@ def resolve_role_mode(
     Policy (v2):
     - hybrid off → always chat
     - lead ``execution`` override only for EXECUTOR_CAPABLE_ROLES
-    - default executor roles: developer, bugfixer, tester (devops → chat unless listed)
+    - default executor roles: developer, bugfixer, tester, devops
     - everything else → chat
     """
     role_key = (role or "").strip().lower()

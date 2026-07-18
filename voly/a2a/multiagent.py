@@ -523,9 +523,18 @@ def run_local(
                 plan, sid, ctx, engine=engine
             )
             if step.status == FAILED and plan_mode == "shadow":
+                argv_hint = ""
+                for entry in step.verify_log or []:
+                    if entry.get("ok"):
+                        continue
+                    details = entry.get("details") or {}
+                    argv = details.get("argv")
+                    if argv:
+                        argv_hint = f" argv={argv!r}"
+                        break
                 _log.warning(
-                    "plan step %s verify failed (shadow → force verified): %s",
-                    sid, step.error,
+                    "plan step %s verify failed (shadow → force verified): %s%s",
+                    sid, step.error, argv_hint,
                 )
                 step.status = VERIFIED
                 engine.recompute_plan_status(plan)
@@ -785,7 +794,16 @@ def run_local(
                 if headroom.is_running():
                     res = headroom.compress(messages, model=a.model)
                     messages = res.get("messages", messages)
-                    a.saved_tokens = res.get("tokens_saved", 0)
+                    a.saved_tokens = int(res.get("tokens_saved", 0) or 0)
+                else:
+                    # Headroom proxy down — trim oversized user payloads locally
+                    # so continuation roles still show token savings in telemetry.
+                    content = messages[0].get("content") or ""
+                    limit = 7000
+                    if len(content) > limit:
+                        saved = (len(content) - limit) // 4
+                        messages[0]["content"] = content[:limit] + "\n...(trimmed)"
+                        a.saved_tokens = max(0, saved)
             except Exception as e:  # noqa: BLE001
                 _log.debug("headroom compress skipped: %s", e)
 

@@ -71,8 +71,8 @@ def test_resolve_role_mode_lead_override() -> None:
     mode_devops, reason_devops = resolve_role_mode(
         "devops", hybrid_enabled=True, lead_execution="executor",
     )
-    assert mode_devops == "chat"
-    assert reason_devops == "lead_executor_denied"
+    assert mode_devops == "executor"
+    assert reason_devops == "lead_override"
 
 
 def test_hybrid_active_requires_cwd() -> None:
@@ -338,8 +338,9 @@ def test_default_executor_roles_constant() -> None:
     assert "bugfixer" in DEFAULT_EXECUTOR_ROLES
     assert "tester" in DEFAULT_EXECUTOR_ROLES
     assert "tester" in EXECUTOR_CAPABLE_ROLES
+    assert "devops" in DEFAULT_EXECUTOR_ROLES
+    assert "devops" in EXECUTOR_CAPABLE_ROLES
     assert "architect" not in DEFAULT_EXECUTOR_ROLES
-    assert "devops" not in EXECUTOR_CAPABLE_ROLES
 
 
 def test_resolve_role_executor_defaults() -> None:

@@ -106,8 +106,8 @@ When `a2a.hybrid_code_gen` is true **and** a project `cwd` is available
 
 | Role | Default mode |
 |---|---|
-| architect, reviewer, devops | `chat` → `AIGateway.chat()` |
-| developer, bugfixer, tester (code-gen) | `executor` → AgentRunner (file-capable) |
+| architect, reviewer | `chat` → `AIGateway.chat()` |
+| developer, bugfixer, tester, devops (code-gen) | `executor` → AgentRunner (file-capable) |
 | developer, bugfixer | `executor` → AgentRunner (PR2); PR1 falls back to chat if no runner |
 
 Per-role **chat providers** are spread across the healthy tier pool via
