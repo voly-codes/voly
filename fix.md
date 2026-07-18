@@ -33,3 +33,4 @@ commit hash and an English description.
 - `cb3a0d2` — Scope bare pytest verify to touched tests; compact prior context with files_touched; cwd executor lock + mtime-filtered git delta; deepseek in _template fallback.chain.
 - `11a48e8` — Reviewer/tester get git-diff evidence from prior files_touched; dual HTTP timeouts (stall 15s + total 60s) for slow live providers.
 - `c86d39b` — Role-aware skill relevance (drop generic markdown on FastAPI roles); tester hybrid executor on code-gen; architect_max_tokens 4096.
+- `b356179` — Devops hybrid executor; shadow verify logs pytest argv; RTK + local trim savings on multi-agent path.
