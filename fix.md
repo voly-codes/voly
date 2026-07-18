@@ -35,3 +35,5 @@ commit hash and an English description.
 - `c86d39b` — Role-aware skill relevance (drop generic markdown on FastAPI roles); tester hybrid executor on code-gen; architect_max_tokens 4096.
 - `b356179` — Devops hybrid executor; shadow verify logs pytest argv; RTK + local trim savings on multi-agent path.
 - `5d58716` — Split multiagent helpers (context/waves/chat_fallback); pre-mark VOLY_A2A_EXCLUDE_PROVIDERS; CLI A2A role files/verify summary.
+
+- `7c40c0b` — Include voly.pxpipe in setuptools packages so pip-installed CI environments can import ClaudeCodeExecutor.
