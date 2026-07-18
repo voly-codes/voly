@@ -30,3 +30,4 @@ commit hash and an English description.
 - `df916a5` — Prefer .venv/bin/pytest for plan tester_command auto-fill; auto-set requires_review when ≥2 capability flags (code-gen+tests → 3 roles); add deepseek to gateway fallback.chain; tighten AGENTS.md/CLAUDE.md.
 - `10b0b13` — 15s provider HTTP stall timeout with fallback; plan command_timeout 60s; allowlist .env.example for greenfield; pipeline SETUP/A2A logging and post-run checklist.
 - `150c685` — Soft-fail safety when protected paths roll back but other files remain; treat files_touched as code so multi-agent does not cascade-skip chat roles; demote Anthropic to last in strong/standard provider tiers.
+- `cb3a0d2` — Scope bare pytest verify to touched tests; compact prior context with files_touched; cwd executor lock + mtime-filtered git delta; deepseek in _template fallback.chain.
