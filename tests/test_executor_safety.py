@@ -225,7 +225,7 @@ def test_config_defaults_and_yaml(tmp_path: Path) -> None:
 
 
 def test_agent_runner_enforces_policy(repo: Path, monkeypatch) -> None:
-    """End-to-end: runner marks the run failed and rolls back a protected write."""
+    """Protected write is rolled back; useful files keep the run successful (soft)."""
     from voly.runner import agent_runner as runner_mod
     from voly.runner.agent_runner import AgentRunner
 
@@ -243,11 +243,34 @@ def test_agent_runner_enforces_policy(repo: Path, monkeypatch) -> None:
     from voly.config import RTKConfig
     r = AgentRunner(VOLYConfig(rtk=RTKConfig(enabled=False)))
     out = r.run("t", "claude-code", cwd=str(repo), emit_event=False)
-    assert out.success is False
-    assert "protected path" in (out.result.error or "")
+    assert out.success is True
+    assert out.result.metadata.get("safety_soft") is True
+    assert "protected path" in (out.result.metadata.get("safety_violation") or "")
     assert (repo / ".env").read_text(encoding="utf-8") == "SECRET=original\n"
     assert (repo / "src" / "ok.py").exists()
     assert out.result.metadata.get("safety_rolled_back") == [".env"]
+
+
+def test_agent_runner_hard_fails_when_only_protected_files(repo: Path, monkeypatch) -> None:
+    """If every touched file is protected and rolled back, the run fails hard."""
+    from voly.runner import agent_runner as runner_mod
+    from voly.runner.agent_runner import AgentRunner
+
+    def _fake_build(name, model=None):
+        class _E:
+            def run(self, task, *, cwd, max_turns=30, timeout=300, **kw):
+                Path(cwd, ".env").write_text("SECRET=agent\n", encoding="utf-8")
+                return ExecutorResult(success=True, output="done")
+        return _E()
+
+    monkeypatch.setattr(runner_mod, "_build_executor", _fake_build)
+    monkeypatch.setattr(runner_mod, "emit_event_from_config", lambda *a, **k: None)
+
+    from voly.config import RTKConfig
+    r = AgentRunner(VOLYConfig(rtk=RTKConfig(enabled=False)))
+    out = r.run("t", "claude-code", cwd=str(repo), emit_event=False)
+    assert out.success is False
+    assert "protected path" in (out.result.error or "")
 
 
 def test_agent_runner_dry_run_flag(repo: Path, monkeypatch) -> None:

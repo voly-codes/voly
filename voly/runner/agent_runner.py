@@ -579,16 +579,40 @@ class AgentRunner:
             result.metadata["dry_run"] = True
             if safety.diff_preview:
                 result.metadata["dry_run_diff"] = safety.diff_preview
-        if safety.rolled_back:
-            result.metadata["safety_rolled_back"] = safety.rolled_back
         if safety.violations:
             result.metadata["safety_violation"] = "; ".join(safety.violations)
-            result.success = False
-            result.error = "safety: " + "; ".join(safety.violations) + (
+            if safety.rolled_back:
+                result.metadata["safety_rolled_back"] = list(safety.rolled_back)
+            # Soft vs hard: max_files / full rollback → fail. Protected-path-only
+            # rollback that leaves other files → keep success so multi-agent does
+            # not cascade-skip tester/reviewer after a useful greenfield write.
+            report_files = set()
+            if work_report is not None:
+                report_files = set(work_report.files_changed or []) | set(
+                    work_report.files_created or []
+                )
+            remaining = sorted(report_files - set(safety.rolled_back or []))
+            hard = any("max_files_touched" in v for v in safety.violations) or not remaining
+            msg = "safety: " + "; ".join(safety.violations) + (
                 f" (rolled back: {', '.join(safety.rolled_back[:10])})"
                 if safety.rolled_back else ""
             )
-            _chain_log.warning("[CHAIN:SAFETY] %s", result.error[:200])
+            if hard:
+                result.success = False
+                result.error = msg
+                _chain_log.warning("[CHAIN:SAFETY] hard fail: %s", msg[:200])
+            else:
+                result.metadata["safety_soft"] = True
+                result.metadata["safety_remaining_files"] = remaining[:40]
+                note = (
+                    f"\n\n[safety] protected paths rolled back "
+                    f"({', '.join(safety.rolled_back[:8])}); "
+                    f"{len(remaining)} other file(s) kept — run continues."
+                )
+                result.output = ((result.output or "").rstrip() + note).strip()
+                _chain_log.warning("[CHAIN:SAFETY] soft: %s kept=%d", msg[:160], len(remaining))
+        elif safety.rolled_back:
+            result.metadata["safety_rolled_back"] = list(safety.rolled_back)
 
         automation_score, manual_steps = compute_automation_metrics(
             executor_name, result, task_type=task_type

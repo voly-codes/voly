@@ -17,8 +17,10 @@ from voly.router import _PROVIDER_MODELS
 _log = logging.getLogger("voly.a2a.multiagent")
 
 # ── Model tiers → ordered real-provider preference (filtered by health) ──────────
-_STRONG = ["anthropic", "cloudflare-dynamic", "deepseek", "opencode", "mimo"]
-_STANDARD = ["cloudflare-dynamic", "deepseek", "anthropic", "workers-ai"]
+# Anthropic last among paid peers: credit/billing outages are common and must not
+# burn the first attempt of every role before fallback (mark_unhealthy still applies).
+_STRONG = ["cloudflare-dynamic", "deepseek", "opencode", "mimo", "anthropic"]
+_STANDARD = ["cloudflare-dynamic", "deepseek", "workers-ai", "anthropic"]
 _WEAK = ["workers-ai", "deepseek", "mimo", "opencode-zen", "omniroute"]
 
 _TIER_PROVIDERS: dict[str, list[str]] = {
@@ -118,7 +120,16 @@ def evaluate_multiagent_outcome(
             a for a in assignments
             if a.mode == "executor" or a.role in _IMPLEMENT_ROLES
         ]
-        if impl and not any(a.ok for a in impl):
+
+        def _impl_ok(a: Assignment) -> bool:
+            if a.ok:
+                return True
+            # Soft: wrote project files despite role ok=False (e.g. legacy safety hard-fail).
+            return any(
+                f and not str(f).startswith(".voly/") for f in (a.files_touched or [])
+            )
+
+        if impl and not any(_impl_ok(a) for a in impl):
             return False, "partial"
 
     if all(a.ok for a in active):

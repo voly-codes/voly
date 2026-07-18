@@ -219,6 +219,39 @@ def test_run_local_early_exits_chat_roles_on_developer_failure_code_gen() -> Non
     assert by_role["devops"].plan_status == "skipped"
 
 
+def test_run_local_continues_chat_when_executor_wrote_files_despite_fail() -> None:
+    """Safety/soft fail with files_touched must not cascade-skip tester/reviewer."""
+    subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())
+    gw = _FakeGateway()
+    assignments = LeadOrchestrator(gateway=gw, skill_matcher=None).assign("build", subs)
+
+    def runner(*, role, task, cwd, executor, system, assignment):
+        if role == "developer":
+            return {
+                "ok": False,
+                "error": "safety: protected path(s) modified: .env",
+                "content": "implemented",
+                "files_touched": ["app/main.py", "tests/test_x.py"],
+            }
+        return {"ok": True, "content": f"ok {role}", "files_touched": []}
+
+    run_local(
+        "build",
+        assignments,
+        gw,
+        cwd="/tmp/proj",
+        hybrid_code_gen=True,
+        requires_code_gen=True,
+        executor_runner=runner,
+        skip_dependents_on_failure=True,
+    )
+    by_role = {a.role: a for a in assignments}
+    assert by_role["developer"].ok is False
+    assert by_role["tester"].plan_status != "skipped"
+    assert by_role["reviewer"].plan_status != "skipped"
+    assert "skipped_no_code" not in (by_role["tester"].mode_reason or "")
+
+
 def test_run_local_degrades_chat_roles_when_not_requires_code_gen() -> None:
     """requires_code_gen=False disables early-exit → post-impl chat roles degrade (not skip)."""
     subs = TaskDecomposer().decompose("build a service", _FakeAnalysis())

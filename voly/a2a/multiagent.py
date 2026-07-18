@@ -467,11 +467,22 @@ def run_local(
             if failed_priors:
                 role_mode = role_modes.get(a.idx, a.mode or "chat")
                 # Early-exit for code_gen tasks: when all executor roles that have
-                # completed have failed, post-impl chat roles (tester/reviewer/devops)
-                # cannot meaningfully act on non-existent code — skip them rather
-                # than wasting a premium chat call on an architect-plan-only context.
+                # completed produced no code, post-impl chat roles cannot act —
+                # skip them. An executor that wrote files but failed soft safety
+                # still counts as code produced (do not cascade-skip).
                 impl_done = [done[i] for i in done if done[i].mode == "executor"]
-                all_impl_failed = bool(impl_done) and not any(d.ok for d in impl_done)
+
+                def _impl_has_code(d: Assignment) -> bool:
+                    if d.ok:
+                        return True
+                    return any(
+                        f and not str(f).startswith(".voly/")
+                        for f in (d.files_touched or [])
+                    )
+
+                all_impl_failed = bool(impl_done) and not any(
+                    _impl_has_code(d) for d in impl_done
+                )
                 if requires_code_gen and role_mode == "chat" and ok_priors and all_impl_failed:
                     a.ok = False
                     a.error = (
