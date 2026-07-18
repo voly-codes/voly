@@ -85,7 +85,7 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
      for `completed`.
 
 **Architect / implement policy:** architect chat is plan-only (no full code
-dumps, `max_tokens=2048`); developer/tester prompts enforce ≤300 lines per
+dumps, `architect_max_tokens` default 4096); developer/tester prompts enforce ≤300 lines per
 file (≤500 only when architect explicitly allows in the plan). Prior-role
 context snippets are capped at 2500 chars per role.
 
@@ -106,7 +106,8 @@ When `a2a.hybrid_code_gen` is true **and** a project `cwd` is available
 
 | Role | Default mode |
 |---|---|
-| architect, reviewer, devops, tester | `chat` → `AIGateway.chat()` |
+| architect, reviewer, devops | `chat` → `AIGateway.chat()` |
+| developer, bugfixer, tester (code-gen) | `executor` → AgentRunner (file-capable) |
 | developer, bugfixer | `executor` → AgentRunner (PR2); PR1 falls back to chat if no runner |
 
 Per-role **chat providers** are spread across the healthy tier pool via

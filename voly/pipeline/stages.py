@@ -288,6 +288,9 @@ class _PipelineStageMixin:
             executor_runner=executor_runner,
             parallel_waves=bool(getattr(a2a_cfg, "parallel_waves", True)),
             max_parallel_roles=int(getattr(a2a_cfg, "max_parallel_roles", 3) or 3),
+            architect_max_tokens=int(
+                getattr(a2a_cfg, "architect_max_tokens", 4096) or 4096
+            ),
             plan_config=plan_cfg,
         )
 

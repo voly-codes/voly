@@ -47,7 +47,7 @@ def test_resolve_role_mode_map() -> None:
     assert resolve_role_mode("architect", hybrid_enabled=True)[0] == "chat"
     assert resolve_role_mode("developer", hybrid_enabled=True)[0] == "executor"
     assert resolve_role_mode("bugfixer", hybrid_enabled=True)[0] == "executor"
-    assert resolve_role_mode("tester", hybrid_enabled=True, requires_code_gen=True)[0] == "chat"
+    assert resolve_role_mode("tester", hybrid_enabled=True, requires_code_gen=True)[0] == "executor"
     assert resolve_role_mode("tester", hybrid_enabled=True, requires_code_gen=False)[0] == "chat"
     assert resolve_role_mode("reviewer", hybrid_enabled=True)[0] == "chat"
     assert resolve_role_mode("developer", hybrid_enabled=False)[0] == "chat"
@@ -170,18 +170,18 @@ def test_run_local_executor_runner_mock() -> None:
     by_role = {a.role: a for a in assignments}
     assert by_role["architect"].mode == "chat"
     assert by_role["developer"].mode == "executor"
-    assert by_role["tester"].mode == "chat"
+    assert by_role["tester"].mode == "executor"
     assert by_role["reviewer"].mode == "chat"
     assert by_role["developer"].ok
     assert by_role["developer"].files_touched == ["src/developer.py"]
     assert by_role["developer"].executor == "cursor"
     assert "developer" in executed
-    assert "tester" not in executed
+    assert "tester" in executed
     assert "architect" not in executed
     # Chat roles still call gateway; implement roles do not
     chat_roles = [c for c in gw.calls if c in ("architect", "tester", "reviewer", "devops")]
     assert "architect" in chat_roles
-    assert "tester" in chat_roles
+    assert "tester" not in chat_roles
     assert "developer" not in gw.calls or gw.calls.count("developer") == 0
     _ = chat_before  # lead assign may have called already
 
@@ -336,7 +336,8 @@ def test_run_local_executor_without_runner_falls_back_to_chat() -> None:
 def test_default_executor_roles_constant() -> None:
     assert "developer" in DEFAULT_EXECUTOR_ROLES
     assert "bugfixer" in DEFAULT_EXECUTOR_ROLES
-    assert "tester" not in DEFAULT_EXECUTOR_ROLES
+    assert "tester" in DEFAULT_EXECUTOR_ROLES
+    assert "tester" in EXECUTOR_CAPABLE_ROLES
     assert "architect" not in DEFAULT_EXECUTOR_ROLES
     assert "devops" not in EXECUTOR_CAPABLE_ROLES
 
@@ -344,7 +345,7 @@ def test_default_executor_roles_constant() -> None:
 def test_resolve_role_executor_defaults() -> None:
     assert resolve_role_executor("developer", "claude-code") == "cursor"
     assert resolve_role_executor("bugfixer", "claude-code") == "deepseek"
-    assert resolve_role_executor("tester", "claude-code") == "claude-code"
+    assert resolve_role_executor("tester", "claude-code") == "cursor"
 
 
 def test_resolve_role_executor_config_override() -> None:

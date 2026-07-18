@@ -103,10 +103,9 @@ class LeadOrchestrator:
             valid_ids = {sid for sid, _ in skill_candidates[i]}
             skills = [s for s in entry.get("skills", []) if s in valid_ids]
             if not skills and not plan:
-                # Deterministic fallback (lead unavailable): take the top
-                # relevance-filtered candidates. When the lead answered and
-                # picked no skills for this role, respect that choice instead
-                # of force-injecting.
+                # Deterministic fallback: top relevance-filtered candidates for
+                # THIS role only (matcher already role-scored). Cap at 2.
+                # When the lead answered and picked no skills, respect that.
                 skills = [sid for sid, _ in skill_candidates[i][:2]]
             model, provider = resolve_role_model(st.agent, tier, self.checker)
             execution = str(entry.get("execution") or "").strip().lower()
@@ -138,8 +137,8 @@ class LeadOrchestrator:
             "relevant skills. Criteria: complex design/review/security → 'premium'; "
             "ordinary implementation → 'standard'; routine tests/deploy/batch → 'cheap'. "
             "Pick skills ONLY from each role's skills_available (may be empty). "
-            "Optionally set execution: 'executor' ONLY for developer/bugfixer "
-            "(they write files in the project); tester/reviewer/devops/architect — always 'chat'. "
+            "Optionally set execution: 'executor' for developer/bugfixer/tester/devops "
+            "(they may write files); architect/reviewer/security — always 'chat'. "
             "If unsure, omit the field. "
             "Answer STRICTLY with a JSON array, no explanations: "
             '[{"idx":0,"tier":"premium","skills":["id1"],"execution":"chat"}, ...]'

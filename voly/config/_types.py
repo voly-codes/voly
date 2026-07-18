@@ -132,6 +132,8 @@ class A2AConfig:
     # max_parallel_roles); executor roles always run serially (shared cwd/git).
     parallel_waves: bool = True
     max_parallel_roles: int = 3
+    # Architect plan-only chat budget (was hard-capped at 2048 and truncated).
+    architect_max_tokens: int = 4096
     # Per-role tier overrides (P4): reduce premium calls for roles where quality
     # difference is acceptable. E.g. {architect: standard} saves one premium
     # call per run. Empty → use built-in defaults from assignment._ROLE_TIER.

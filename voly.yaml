@@ -77,6 +77,8 @@ a2a:
   # per-role map (developer→cursor, bugfixer→deepseek) when set to anything
   # other than "claude-code". Per-role env VOLY_A2A_EXECUTOR_<ROLE> still wins.
   executor_default: claude-code
+  # Architect plan chat budget (avoid truncating designs at 2048).
+  architect_max_tokens: 4096
   # Per-role model tier overrides (premium | standard | cheap).
   # architect defaults to standard — plan-only, not tied to a single provider.
   # Set architect: premium to restore Opus-level planning when budget allows.

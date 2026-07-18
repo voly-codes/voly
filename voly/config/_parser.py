@@ -170,6 +170,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             hybrid_require_cwd=_parse_bool(a.get("hybrid_require_cwd"), True),
             executor_default=a.get("executor_default", "claude-code"),
             executor_roles=list(a.get("executor_roles") or []),
+            architect_max_tokens=int(a.get("architect_max_tokens", 4096) or 4096),
             parallel_waves=_parse_bool(a.get("parallel_waves"), True),
             max_parallel_roles=int(a.get("max_parallel_roles", 3)),
             role_tiers={str(k): str(v) for k, v in (a.get("role_tiers") or {}).items()},

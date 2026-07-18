@@ -154,6 +154,40 @@ def test_lead_deterministic_fallback_still_injects_candidates() -> None:
     assert assignments[0].skills == ["fastapi-patterns"]
 
 
+def test_markdown_skills_do_not_attach_to_every_role_via_generic_words() -> None:
+    """Regression: md-review / markdown-html leaked onto FastAPI A2A roles."""
+    md = Skill(
+        id="md-review",
+        name="md-review",
+        description="Review markdown and code documentation quality",
+        source=SkillSource.ORGANIZATION,
+        tags=["markdown", "review", "code"],
+        compatible_agents=["documenter", "reviewer"],
+        content="body",
+    )
+    html = Skill(
+        id="markdown-html-orchestrator",
+        name="markdown html",
+        description="Transform markdown writing into HTML",
+        source=SkillSource.ORGANIZATION,
+        tags=["markdown", "html", "writing"],
+        compatible_agents=["documenter"],
+        content="body",
+    )
+    fastapi = _skill(
+        "fastapi-patterns", SkillSource.MARKETPLACE,
+        tags=["fastapi", "pytest"], agents=["developer"],
+    )
+    h = _Harness([md, html, fastapi])
+    for role in ("architect", "developer", "tester", "devops"):
+        got = {s.id for s in h.match_skills_for_task(TASK, agent_name=role)}
+        assert "md-review" not in got
+        assert "markdown-html-orchestrator" not in got
+    assert [s.id for s in h.match_skills_for_task(TASK, agent_name="developer")] == [
+        "fastapi-patterns"
+    ]
+
+
 def test_scout_filters_suggestions_without_task_overlap(monkeypatch) -> None:
     from voly.registry import scout as scout_mod
     from voly.registry.scout import SkillScout

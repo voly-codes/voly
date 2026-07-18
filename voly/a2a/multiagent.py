@@ -318,6 +318,7 @@ def run_local(
     gateway: Any,
     skill_matcher: Callable[[str, str], list[Any]] | None = None,
     max_tokens: int = 4096,
+    architect_max_tokens: int = 4096,
     *,
     memory: Any = None,
     headroom: Any = None,
@@ -585,7 +586,8 @@ def run_local(
                 all_impl_failed = bool(impl_done) and not any(
                     _impl_has_code(d) for d in impl_done
                 )
-                if requires_code_gen and role_mode == "chat" and ok_priors and all_impl_failed:
+                # Post-impl roles (chat or tester-executor) skip when no code exists.
+                if requires_code_gen and ok_priors and all_impl_failed:
                     a.ok = False
                     a.error = (
                         f"skipped: no code produced — all executor roles failed "
@@ -601,7 +603,17 @@ def run_local(
                         a.idx, a.role,
                     )
                     return None
-                hard_block = role_mode == "executor" or not ok_priors
+                # Executor dependents (e.g. tester) may proceed when a prior wrote
+                # files despite ok=False (soft safety). Chat still needs ≥1 ok prior.
+                if role_mode == "executor":
+                    usable_priors = [
+                        done[d].role
+                        for d in a.depends_on
+                        if d in done and (done[d].ok or _impl_has_code(done[d]))
+                    ]
+                    hard_block = not usable_priors
+                else:
+                    hard_block = not ok_priors
                 if hard_block:
                     a.ok = False
                     a.error = f"skipped: prior role(s) failed ({', '.join(failed_priors)})"
@@ -779,7 +791,11 @@ def run_local(
 
         _log.info("multiagent[%d] %s → %s/%s (tier=%s, mode=%s, skills=%s, mem=%d)",
                   a.idx, a.role, a.provider, a.model, a.tier, a.mode, a.skills, a.mem_hits)
-        role_max_tokens = 2048 if a.role == "architect" else max_tokens
+        role_max_tokens = (
+            int(architect_max_tokens or max_tokens)
+            if a.role == "architect"
+            else max_tokens
+        )
         _t0 = time.monotonic()
         try:
             return _chat_with_provider_fallback(

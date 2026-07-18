@@ -6,8 +6,19 @@ import re
 from typing import Any
 
 
+# Ultra-generic task words that let markdown/review skills match every code task.
+_GENERIC_TASK_TOKENS = frozenset({
+    "code", "review", "tests", "test", "write", "writing", "update", "changes",
+    "implement", "implementation", "add", "create", "check", "with", "from",
+    "that", "this", "have", "into", "your", "file", "files", "project",
+})
+
+
 def _task_keywords(task: str) -> set[str]:
-    return {w for w in re.sub(r"[^\w\s]", "", task.lower()).split() if len(w) > 3}
+    return {
+        w for w in re.sub(r"[^\w\s]", "", task.lower()).split()
+        if len(w) > 3 and w not in _GENERIC_TASK_TOKENS
+    }
 
 
 def _tokens(text: str) -> set[str]:
@@ -35,8 +46,18 @@ def _score_skill(
     """
     if skill.source == project_source:
         return 10.0
+    # Uncurated skills that name compatible agents must match the role —
+    # otherwise the same top-2 markdown skills attach to every A2A role.
+    agents = list(skill.compatible_agents or [])
+    if (
+        agent_name
+        and agents
+        and agent_name not in agents
+        and skill.source not in curated_sources
+    ):
+        return 0.0
     score = 0.0
-    if agent_name and agent_name in (skill.compatible_agents or []):
+    if agent_name and agent_name in agents:
         score += 2.0 if skill.source in curated_sources else 0.5
     langs = {x.lower() for x in (skill.compatible_languages or []) if x != "*"}
     fws = {x.lower() for x in (skill.compatible_frameworks or []) if x != "*"}

@@ -12,22 +12,26 @@ from typing import Any, Literal
 
 RoleMode = Literal["chat", "executor"]
 
-# Default implement set when a2a.executor_roles is empty (tester writes tests via chat).
+# Default implement set when a2a.executor_roles is empty.
+# tester writes pytest files on code-gen tasks (chat-only left empty trees).
 DEFAULT_EXECUTOR_ROLES: frozenset[str] = frozenset({
     "developer",
     "bugfixer",
+    "tester",
 })
 
 # Roles that may use hybrid executor mode (lead cannot promote others).
 EXECUTOR_CAPABLE_ROLES: frozenset[str] = frozenset({
     "developer",
     "bugfixer",
+    "tester",
 })
 
 # Per-role executor when hybrid mode=executor (env: VOLY_A2A_EXECUTOR_<ROLE>).
 _ROLE_EXECUTOR: dict[str, str] = {
     "developer": "cursor",
     "bugfixer": "deepseek",
+    "tester": "cursor",
 }
 
 # Roles that never default to executor (lead cannot promote to executor).
@@ -97,7 +101,7 @@ def resolve_role_mode(
     Policy (v2):
     - hybrid off → always chat
     - lead ``execution`` override only for EXECUTOR_CAPABLE_ROLES
-    - default executor roles: developer, bugfixer (tester/devops → chat)
+    - default executor roles: developer, bugfixer, tester (devops → chat unless listed)
     - everything else → chat
     """
     role_key = (role or "").strip().lower()
