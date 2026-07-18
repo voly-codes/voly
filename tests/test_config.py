@@ -184,10 +184,12 @@ def test_load_request_and_plan_command_timeouts(tmp_path: Path) -> None:
         """
 ai_gateway:
   request_timeout_seconds: 15
+  request_total_timeout_seconds: 60
 plan:
   command_timeout_seconds: 60
 """
     )
     cfg = load_config(path)
     assert cfg.ai_gateway.request_timeout_seconds == 15.0
+    assert cfg.ai_gateway.request_total_timeout_seconds == 60.0
     assert cfg.plan.command_timeout_seconds == 60.0

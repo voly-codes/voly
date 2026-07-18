@@ -130,6 +130,8 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             gw.request_timeout_seconds = float(
                 getattr(self.config.ai_gateway, "request_timeout_seconds", 15.0) or 15.0
             )
+            total_to = getattr(self.config.ai_gateway, "request_total_timeout_seconds", 60.0)
+            gw.request_total_timeout_seconds = float(total_to) if total_to else None
             gw.dlp.enabled = self.config.ai_gateway.dlp_enabled
             gw.dlp.block_secrets = self.config.ai_gateway.dlp_block_secrets
             gw.dlp.block_pii = self.config.ai_gateway.dlp_block_pii

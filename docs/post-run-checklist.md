@@ -20,7 +20,7 @@ Known greenfield pitfall: safety used to treat `.env.example` as protected
 | Check | How | Pass |
 |---|---|---|
 | Account + gateway env | `[PIPELINE:SETUP] cf_env CLOUDFLARE_ACCOUNT_ID=set` and `CLOUDFLARE_AI_GATEWAY_ID=set` | both `set` |
-| AI Gateway route | Role using `cloudflare-dynamic` / Workers AI succeeds or fails over within `request_timeout_seconds` (15s) | no 120s hang |
+| AI Gateway route | Role using `cloudflare-dynamic` / Workers AI succeeds or fails over within `request_total_timeout_seconds` (60s) | no 120s hang |
 | A2A worker URL | `CF_WORKER_A2A_URL` set; `voly a2a status` (or federation health) if using remote mode | OK / local-only intentional |
 | Spend worker URL | `CF_WORKER_SPEND_URL` set; `voly spend status` | OK or intentionally local |
 | AGUI / Memory workers | `CF_WORKER_AGUI_URL`, `CF_WORKER_MEMORY_URL` | set if those features used |

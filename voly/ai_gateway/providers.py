@@ -16,8 +16,23 @@ class _GatewayProvidersMixin:
     Expects self.account_id, self.gateway_id, self.api_token from AIGateway."""
 
     def _http_timeout(self) -> float:
-        """Whole-response stall timeout for provider HTTP calls (default 15s)."""
-        return float(getattr(self, "request_timeout_seconds", 15.0) or 15.0)
+        """Timeout passed to urlopen.
+
+        Prefer ``request_total_timeout_seconds`` (slow live generation) when set
+        on the gateway/config; otherwise fall back to ``request_timeout_seconds``
+        (stall / legacy single budget — keeps unit tests that only set stall).
+        """
+        stall = float(getattr(self, "request_timeout_seconds", 15.0) or 15.0)
+        total = getattr(self, "request_total_timeout_seconds", None)
+        if total is None:
+            return stall
+        try:
+            t = float(total)
+        except (TypeError, ValueError):
+            return stall
+        if t <= 0:
+            return stall
+        return max(t, stall)
 
     def _urlopen_read(self, req: urllib.request.Request, *, label: str) -> bytes:
         """urlopen with configured timeout; map stalls to RuntimeError for fallback."""

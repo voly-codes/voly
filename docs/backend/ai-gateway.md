@@ -26,10 +26,12 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 
 ### Provider HTTP stall timeout
 
-`ai_gateway.request_timeout_seconds` (default **15**) caps each provider
-`urlopen` call. If Anthropic/CF/etc. never returns a response, the call errors
-after that many seconds and the configured model fallback chain (or multi-agent
-provider loop) tries the next provider — instead of waiting 120s.
+`ai_gateway.request_timeout_seconds` (default **15**) is the stall/legacy
+budget; `ai_gateway.request_total_timeout_seconds` (default **60**) is the
+wall-clock budget for a full response when the pipeline configures the gateway.
+`urlopen` uses `max(stall, total)` so slow but live CF/deepseek calls can
+finish. If a provider never returns, the call errors after that budget and the
+model fallback chain (or multi-agent provider loop) tries the next provider.
 
 ---
 

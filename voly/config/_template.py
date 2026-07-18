@@ -147,8 +147,10 @@ ai_gateway:
     enabled: true
     daily_budget_usd: 20
     per_agent_budget: {}
-  # Stall timeout for provider HTTP (urlopen). Silent hang → error → fallback.
+  # Stall / legacy single-timeout (used when total unset on bare gateway).
   request_timeout_seconds: 15
+  # Full response budget for live but slow models (CF/deepseek generation).
+  request_total_timeout_seconds: 60
   fallback:
     enabled: true
     # Default paid peer when primary (often Anthropic) is out of credits.

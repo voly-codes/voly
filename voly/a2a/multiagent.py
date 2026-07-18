@@ -40,6 +40,60 @@ _PROJECT_CONTEXT_FILES = ("CLAUDE.md", "README.md", "ARCHITECTURE.md", "docs/ARC
 _PROJECT_CONTEXT_MAX_CHARS = 2500
 
 
+def _git_diff_evidence(
+    cwd: str,
+    files: list[str],
+    *,
+    max_chars: int = 3500,
+    max_files: int = 12,
+) -> str:
+    """Unified git diff for reviewer/tester — real file evidence, not summaries."""
+    import subprocess
+
+    if not cwd or not files:
+        return ""
+    paths = [
+        f for f in files
+        if f and not str(f).startswith(".voly/")
+    ][:max_files]
+    if not paths:
+        return ""
+    try:
+        proc = subprocess.run(
+            ["git", "-C", cwd, "diff", "--no-color", "--", *paths],
+            capture_output=True,
+            text=True,
+            timeout=8,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    diff = (proc.stdout or "").strip()
+    if not diff:
+        # Untracked new files: show brief content heads.
+        heads: list[str] = []
+        for rel in paths[:8]:
+            fp = Path(cwd) / rel
+            if not fp.is_file():
+                continue
+            try:
+                text = fp.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            heads.append(f"--- a/{rel}\n+++ b/{rel}\n@@ new file @@\n" + text[:400])
+        diff = "\n".join(heads)
+    if not diff:
+        return ""
+    if len(diff) > max_chars:
+        diff = diff[:max_chars] + "\n...(diff truncated)"
+    return (
+        "## Working-tree evidence (untrusted git diff)\n"
+        "Use this as ground truth for which files exist and what changed. "
+        "Do not invent missing files that appear here.\n\n"
+        f"```diff\n{diff}\n```"
+    )
+
+
 def _delta_for_role(
     cwd: str,
     git_before: dict,
@@ -596,6 +650,18 @@ def run_local(
             if d in done and done[d].ok
         ]
         user = TaskDecomposer.inject_prior_context(a.description, prior)
+        # Reviewer/tester need real diffs — chat-only summaries cause hallucinations
+        # ("no migration") when the developer already wrote the file.
+        if a.role in ("reviewer", "tester") and cwd:
+            evidence_files: list[str] = []
+            for d in a.depends_on:
+                prior_a = done.get(d)
+                if prior_a is None:
+                    continue
+                evidence_files.extend(prior_a.files_touched or [])
+            evidence = _git_diff_evidence(cwd, evidence_files)
+            if evidence:
+                user = f"{user}\n\n{evidence}"
 
         if a.idx in degraded_notes:
             failed = ", ".join(degraded_notes[a.idx])

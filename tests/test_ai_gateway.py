@@ -501,6 +501,11 @@ def test_http_timeout_default_and_override() -> None:
     assert gw._http_timeout() == 15.0
     gw.request_timeout_seconds = 7.5
     assert gw._http_timeout() == 7.5
+    # When total is configured (pipeline path), urlopen uses max(stall, total).
+    gw.request_total_timeout_seconds = 60.0
+    assert gw._http_timeout() == 60.0
+    gw.request_timeout_seconds = 90.0
+    assert gw._http_timeout() == 90.0
 
 
 def test_urlopen_read_passes_configured_timeout(monkeypatch) -> None:

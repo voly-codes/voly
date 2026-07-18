@@ -168,7 +168,8 @@ ai_gateway:
   provider: cloudflare   # cloudflare | custom
   cloudflare_account_id: ""
   cloudflare_gateway_id: default
-  request_timeout_seconds: 15  # provider HTTP stall → error → model fallback
+  request_timeout_seconds: 15       # stall / legacy single budget
+  request_total_timeout_seconds: 60 # full response budget (slow live models)
   upstream: ""           # "omniroute" → delegate non-CF routing to external gateway
   upstream_model: ""     # "auto" = auto-combo OmniRoute; "" = passthrough caller's model
   upstream_fallback_direct: true  # if upstream unavailable — direct provider adapter

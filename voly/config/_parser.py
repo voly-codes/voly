@@ -277,6 +277,9 @@ def _parse_config(raw: dict) -> VOLYConfig:
             fallback_chain=g.get("fallback", {}).get("chain", []),
             fallback_retries=g.get("fallback", {}).get("retries", 3),
             request_timeout_seconds=float(g.get("request_timeout_seconds", 15.0) or 15.0),
+            request_total_timeout_seconds=float(
+                g.get("request_total_timeout_seconds", 60.0) or 60.0
+            ),
             dlp_enabled=g.get("dlp", {}).get("enabled", False),
             dlp_block_secrets=g.get("dlp", {}).get("block_secrets", True),
             dlp_block_pii=g.get("dlp", {}).get("block_pii", True),
