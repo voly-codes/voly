@@ -48,7 +48,9 @@ VOLY = two layers with different value:
 ```
 docs/
   backend/
-    pipeline.md      ← Pipeline stages, AgentRouter, smart dispatch
+    pipeline.md      ← Pipeline stages, AgentRouter, smart dispatch, hybrid A2A
+    a2a.md           ← A2A modules, auto-dispatch, federation, context handoff
+    plan.md          ← Plan gates, verify, tester_command scoping
     executors.md     ← All executors, billing fallback chain, WranglerExecutor
     ai-gateway.md    ← AIGateway, CF route schema, providers, env vars
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter
@@ -71,6 +73,8 @@ docs/
 |---|---|
 | Executor (added/changed) | `docs/backend/executors.md` |
 | Pipeline stage / PipelineResult | `docs/backend/pipeline.md` + `docs/ARCHITECTURE.md` |
+| Multi-agent / hybrid / cascade | `docs/backend/pipeline.md` + `docs/backend/a2a.md` |
+| Plan gates / verify | `docs/backend/plan.md` |
 | AI Gateway / provider | `docs/backend/ai-gateway.md` |
 | DSPy program / config | `docs/backend/dspy.md` |
 | Config / env var | `docs/backend/config.md` |
@@ -208,9 +212,11 @@ pytest tests/ -q                          # full run
 | Smart dispatch does not trigger | Set `VOLY_PROJECT_CWD` or `default_cwd` in `voly.yaml` |
 | Wrangler executor unavailable | Run `cd cf-workers/agent && wrangler dev` |
 | CI fails with test collection | Check `pyproject.toml` pytest config |
-| Plan gate `command: exit 4` on pytest | Prefer `.venv/bin/pytest` — auto-fill does this when `.venv/bin/pytest` exists; or set `plan.tester_command` |
-| Multi-agent only developer+tester | ≥2 capability flags now auto-set `requires_review` (3 roles). Explicit deploy/architecture keywords still needed for devops/architect |
-| Provider hang / slow fallback | `ai_gateway.request_timeout_seconds` (default 15) — stall → next fallback; plan gates use `plan.command_timeout_seconds: 15` |
+| Plan gate `command: exit 4` on pytest | Prefer `.venv/bin/pytest` — auto-fill when `.venv/bin/pytest` exists; or set `plan.tester_command`. Verify scopes bare pytest to touched `test_*.py` |
+| Multi-agent only developer+tester | ≥2 capability flags auto-set `requires_review` (3 roles). Deploy/architecture keywords still needed for devops/architect |
+| Hybrid roles stay chat / no files | Pass `--cwd` (or `VOLY_PROJECT_CWD`). Defaults: developer/tester/devops = executor |
+| Anthropic burns every role first | `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic` (pre-marked unhealthy) or wait for credit/billing mark_unhealthy |
+| Provider hang / slow fallback | `request_timeout_seconds` (15 stall) + `request_total_timeout_seconds` (60 full response); plan gates use `plan.command_timeout_seconds: 60` |
 
 <!-- OPENWIKI:START -->
 

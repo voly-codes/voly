@@ -60,17 +60,18 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
      (premium = anthropic/cloudflare-dynamic/deepseek/opencode/mimo;
      weak = workers-ai/deepseek/opencode-zen/mimo/omniroute).
      After auth/billing errors in `run_local`, the failing provider is marked
-     unhealthy for the rest of the process (no manual `VOLY_A2A_EXCLUDE_PROVIDERS`
-     needed). Manual exclude still works via env.
-  4. `run_local` executes sub-agents **in-process** via `AIGateway.chat()` in
-     dependency order, passing results from previous roles. Each agent has its
-     own model, persona, and skills. Roles whose dependencies are all satisfied
-     share a **wave** (`a2a.parallel_waves`, default on): the wave's chat calls
-     run concurrently in threads (cap: `a2a.max_parallel_roles`), while executor
-     roles always run serially (shared cwd/git). Prompt building, memory access,
-     plan-gate transitions, and telemetry stay on the caller thread — only the
-     gateway call itself is parallel. A spend limit stops scheduling further
-     waves.
+     unhealthy for the rest of the process. `VOLY_A2A_EXCLUDE_PROVIDERS` is also
+     applied **before the first chat call** (`apply_env_provider_exclusions`) so
+     an assigned but excluded provider (e.g. Anthropic out of credits) does not
+     burn one doomed attempt per role.
+  4. `run_local` runs roles in dependency order. With hybrid + `cwd`, implement
+     roles use **AgentRunner** (file-capable); architect/reviewer stay on
+     `AIGateway.chat()`. Roles whose dependencies are all satisfied share a
+     **wave** (`a2a.parallel_waves`, default on): the wave's **chat** calls run
+     concurrently (cap: `a2a.max_parallel_roles`); **executor** roles always run
+     serially (shared cwd/git, `.voly/executor.lock`). Prompt building, memory,
+     plan-gate transitions, and telemetry stay on the caller thread. A spend
+     limit stops scheduling further waves.
      **Executor honesty:** on a code-gen task, an executor role that reports
      success but leaves `files_touched` empty (no git delta either) is marked
      failed — a plausible text summary without file changes is not an
@@ -85,9 +86,11 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
      for `completed`.
 
 **Architect / implement policy:** architect chat is plan-only (no full code
-dumps, `architect_max_tokens` default 4096); developer/tester prompts enforce ≤300 lines per
-file (≤500 only when architect explicitly allows in the plan). Prior-role
-context snippets are capped at 2500 chars per role.
+dumps, `a2a.architect_max_tokens` default **4096**); developer/tester prompts
+enforce ≤300 lines per file (≤500 only when architect explicitly allows in the
+plan). Prior-role context is compact (files list + truncated body, default
+~1400 chars); reviewer/tester also get a git-diff evidence block from prior
+`files_touched`.
 
 - **`federation`** — sub-tasks go to remote agents (`a2a.federation_url`)
   via `dispatch_parallel` (legacy path).
@@ -107,19 +110,20 @@ When `a2a.hybrid_code_gen` is true **and** a project `cwd` is available
 | Role | Default mode |
 |---|---|
 | architect, reviewer | `chat` → `AIGateway.chat()` |
-| developer, bugfixer, tester, devops (code-gen) | `executor` → AgentRunner (file-capable) |
-| developer, bugfixer | `executor` → AgentRunner (PR2); PR1 falls back to chat if no runner |
+| developer, bugfixer, tester (code-gen), devops | `executor` → AgentRunner (file-capable) |
+| tester without `requires_code_gen` | `chat` (`tester_text_only`) |
 
 Per-role **chat providers** are spread across the healthy tier pool via
-`resolve_role_model()` (architect → first premium, developer → second, tester →
-third, …). On gateway error, chat roles retry the next healthy provider in the
-tier (`_chat_with_provider_fallback`).
+`resolve_role_model()`. On gateway error, chat roles retry the next healthy
+provider in the tier (`chat_with_provider_fallback`). Anthropic is last in
+strong/standard tier pools so credit-balance errors do not burn the first
+attempt of every role.
 
-Per-role **executors** (`resolve_role_executor`): developer defaults to
-`cursor`, bugfixer to `deepseek` (override per role:
-`VOLY_A2A_EXECUTOR_DEVELOPER`, `VOLY_A2A_EXECUTOR_BUGFIXER`). Lead may set
-`execution: executor` only for developer/bugfixer; tester/devops/reviewer/architect
-are always chat.
+Per-role **executors** (`resolve_role_executor`): developer / tester / devops →
+`cursor`, bugfixer → `deepseek` (override:
+`VOLY_A2A_EXECUTOR_<ROLE>`). Lead may set `execution: executor` for any role in
+`EXECUTOR_CAPABLE_ROLES` (developer, bugfixer, tester, devops); architect /
+reviewer / security stay chat.
 
 Config (`voly.yaml` → `a2a`):
 
@@ -128,7 +132,8 @@ Config (`voly.yaml` → `a2a`):
 | `hybrid_code_gen` | `true` | Master switch (`VOLY_A2A_HYBRID` env override) |
 | `hybrid_require_cwd` | `true` | Without cwd, all roles stay chat |
 | `executor_default` | `claude-code` | Fallback when role has no mapped executor |
-| `executor_roles` | developer, bugfixer | Roles that prefer executor mode |
+| `executor_roles` | developer, bugfixer, tester, devops | Roles that prefer executor mode (empty → this built-in set) |
+| `architect_max_tokens` | `4096` | Chat budget for architect (plan-only) |
 
 **PR1:** mode map + `run_local` branch + injectable `executor_runner`.
 
@@ -162,14 +167,20 @@ When a dependency role fails (`skip_dependents_on_failure`, default on):
 
 | Dependent role | Policy |
 |---|---|
-| executor (developer/bugfixer) | **hard skip** — needs the missing implementation (`mode_reason=skipped_prior_failed`) |
-| chat (tester/reviewer/devops) with ≥1 successful prior | **degraded run** on the surviving context (architect plan); prompt gets a note that the implementation is missing (`mode_reason=…+degraded_prior_failed`) |
-| any role with **all** priors failed | hard skip |
+| post-impl role + code-gen + **no code** from any executor | **early skip** (`skipped_no_code`) — including soft-fail with empty `files_touched` |
+| executor dependent with usable prior code (`ok` **or** non-`.voly/` `files_touched`) | **continues** (soft safety: protected-path rollback that left other files) |
+| executor dependent with no usable prior | **hard skip** (`skipped_prior_failed`) |
+| chat with ≥1 successful prior | **degraded run** on surviving context (`…+degraded_prior_failed`) |
+| any role with **all** priors failed and no usable code | hard skip |
 
-So a failed developer no longer skips the whole chain: `_all_flags` wires
-tester/reviewer/devops to depend on **architect** as well, so they still review
-the plan / draft tests / prep deploy and the run reports `partial` instead of
-`failed`.
+Soft safety in `AgentRunner`: protected-path rollback that leaves other files
+keeps `success=True` (`safety_soft`) so the multi-agent chain does not
+cascade-skip tester/reviewer/devops after a useful greenfield write.
+
+So a failed developer no longer skips the whole chain when files exist:
+`_all_flags` also wires tester/reviewer/devops to depend on **architect**, so
+they can still act on the plan and the run reports `partial` instead of
+`failed` when implementation is missing.
 
 **PR3:** request `cwd` is passed through `pipeline.run(context={"cwd": …})` so
 hybrid file writes target the UI/API project path, not only `default_cwd`.

@@ -151,14 +151,28 @@ Non-code-generating text tasks go through a single model call on the same pipeli
 When a task enters multi-agent mode (`a2a.execution_mode=local`, default):
 
 1. **`TaskDecomposer`** splits the task into roles with dependencies (architect → developer → tester → reviewer → devops).
-2. **Lead orchestrator** — a strong (premium) model scores the task and assigns each role a **model tier** (`premium | standard | cheap`) and **skills** from the registry. On lead LLM failure — deterministic fallback.
-3. Tier → concrete `(model, provider)` from a **live pool** filtered by `ProviderHealthChecker`:
-   - **strong**: `anthropic`, `cloudflare-dynamic`
-   - **weak/cheap**: `workers-ai`, `deepseek`, `opencode-zen`, `mimo`, `omniroute`
-4. Sub-agents run **in-process** via `AIGateway.chat()` in dependency order; prior role outputs are passed forward.
-5. Merge → `TaskEvent` with `a2a_assignments` (role / tier / model / skills / tokens / cost / cache_hit). Visible in the Web UI (“Multi-agents” panel).
+2. **Lead orchestrator** — assigns each role a **model tier** (`premium | standard | cheap`) and **skills** (`lead_mode=auto` skips the LLM lead on standard role sets). On lead failure — deterministic fallback with role-aware skill relevance.
+3. Tier → concrete `(model, provider)` from a **live pool** filtered by `ProviderHealthChecker` (Anthropic last among paid peers).
+4. With `--cwd`, **hybrid** runs developer / tester / devops via file-capable executors; architect / reviewer stay on `AIGateway.chat()`. Prior outputs + git-diff evidence are passed forward.
+5. Merge → `TaskEvent` with `a2a_assignments` (role / mode / files / verify / cost). CLI prints a compact role summary; Web UI shows the Multi-agents panel.
 
-**Repeat savings:** sub-agents are deterministic (`temperature=0`), and the gateway cache is **persistent** (on disk) — an identical re-run hits the cache across the whole chain (cost → $0). Skip a provider (e.g. out of credits): `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic`.
+**Repeat savings:** sub-agents are deterministic (`temperature=0`), and the gateway cache is **persistent** (on disk). Skip a provider (e.g. out of credits): `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic` (applied before the first chat call).
+
+### Live multi-agent run (greenfield PulseBoard)
+
+Measured on an empty `--cwd` (no prior project files). Hybrid roles: developer / tester / devops write files via executors; architect / reviewer stay on chat.
+
+| | |
+|---|---|
+| **Task** | Design a production PulseBoard API (FastAPI + PostgreSQL + Redis): architecture, mission CRUD + JWT auth, pytest integration tests, security review, Docker Compose + CI for release |
+| **Host** | CPU: Intel Core i5-6200U @ 2.30GHz (4 threads) · RAM: 8 GB · OS: CachyOS Linux (x86_64) · Disk: ~220 GB SSD (`/home`) |
+| **Wall time** | **~17.1 min** (1024 s) |
+| **Cost** | **$0.013** |
+| **Tokens** | in 7 032 · out 4 738 · headroom saved 773 |
+| **Roles** | architect (chat) · developer (executor, 44 files) · tester (executor, 5 files) · reviewer (chat) · devops (executor, 4 files) — all `ok`, plan verify yes |
+| **Result** | **completed** · scaffold + Compose/CI · **56 pytest passed** |
+
+Earlier greenfield on the same host (tester/devops still chat-only): wall **~3.3 min**, cost **$0.014**, developer 44 files, **18 pytest passed**, status completed — faster, but no file-writing tester/devops.
 
 ## Quick start
 
@@ -393,7 +407,9 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSP
 | File | Purpose |
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | High-level map: pipeline, executor, gateway, A2A |
-| [docs/backend/pipeline.md](docs/backend/pipeline.md) | Stages, AgentRouter, auto multi-agent, smart dispatch |
+| [docs/backend/pipeline.md](docs/backend/pipeline.md) | Stages, AgentRouter, hybrid multi-agent, cascade |
+| [docs/backend/a2a.md](docs/backend/a2a.md) | A2A modules, auto-dispatch, federation, context handoff |
+| [docs/backend/plan.md](docs/backend/plan.md) | Plan gates, verify, scoped pytest |
 | [docs/backend/executors.md](docs/backend/executors.md) | Executors, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, providers, OmniRoute, persistent cache |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |

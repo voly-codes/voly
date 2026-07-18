@@ -104,7 +104,7 @@ Changing a contract = version bump + docs update + snapshot update in the contra
 | `INIT` | — | setup |
 | `AGUI_START` | `_stage_agui_start` | AG-UI SSE session |
 | `A2A_DISCOVER` | `_stage_a2a` / `_stage_a2a_auto` | A2A federation + auto-decompose |
-| `A2A_DELEGATE` | `_stage_a2a_auto` → `_run_multiagent_local` | lead assigns tier+skills; sub-agents via AIGateway (`a2a.execution_mode=local`) |
+| `A2A_DELEGATE` | `_stage_a2a_auto` → `_run_multiagent_local` | lead assigns tier+skills; hybrid: implement roles → AgentRunner, architect/reviewer → AIGateway (`a2a.execution_mode=local`) |
 | `ROUTE` | `_stage_route` | AgentRouter → RouteDecision |
 | `MEMORY_RETRIEVE` | `_stage_memory_retrieve` | MemoryStore.search |
 | `RTK_FILTER` | `_stage_rtk` | RTK token stats |

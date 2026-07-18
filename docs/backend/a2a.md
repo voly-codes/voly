@@ -11,9 +11,20 @@ parallel subtask execution, and result merging.
 |---|---|
 | `__init__.py` | `A2AOrchestrator`, `A2AClient`, `dispatch_parallel()` |
 | `decomposer.py` | `TaskDecomposer` — rule-based split from `TaskAnalysis` flags |
+| `multiagent.py` | `run_local` — local multi-agent orchestration (hybrid chat/executor) |
+| `hybrid.py` | Role → `chat` / `executor` policy + `make_agent_runner_executor` |
+| `context.py` | Role prompts, git-diff evidence, skills/memory blocks |
+| `waves.py` | Dependency-wave grouping for parallel chat roles |
+| `chat_fallback.py` | Healthy-provider fallback loop for chat roles |
+| `assignment.py` | Tiers, outcome evaluation, `VOLY_A2A_EXCLUDE_PROVIDERS` |
+| `lead.py` | Lead orchestrator (tier + skills; `lead_mode` auto/llm/deterministic) |
 | `merger.py` | `ResultMerger` — combine subtask outputs |
-| `report.py` | `A2AReport` — telemetry report after auto-dispatch |
+| `report.py` | `A2AReport` + `merge_report` for local multi-agent |
+| `cwd_lock.py` | Cross-process executor lock on shared `--cwd` |
 | `federation.py` | HTTP client for `cf-workers/a2a` (D1 + Queues) |
+
+Local hybrid details (default executor roles, cascade, plan gates): see
+[`docs/backend/pipeline.md`](pipeline.md) § Multi-agent / Hybrid.
 
 ---
 
@@ -35,7 +46,9 @@ Config (`voly.yaml` → `a2a`):
 | `enabled` | `true` | Master switch |
 | `auto_dispatch` | `true` | Auto-decompose complex tasks |
 | `min_flags_for_dispatch` | `2` | Min capability flags to trigger |
-| `task_timeout_seconds` | `120` | Poll timeout per auto-dispatch run |
+| `task_timeout_seconds` | `600` | Per-role hybrid executor timeout (watchdog base) |
+| `architect_max_tokens` | `4096` | Architect plan chat budget |
+| `executor_roles` | (built-in) | Empty → developer, bugfixer, tester, devops |
 | `federation_url` | — | CF A2A worker URL |
 
 ---
@@ -66,21 +79,24 @@ calls — the budget won't recover mid-run. Tested in
 
 ## Context handoff between waves
 
-`dispatch_parallel()` runs subtasks in dependency waves:
+`dispatch_parallel()` (federation) and `run_local` (local) both process roles in
+dependency waves:
 
-1. Wave 0 — no `depends_on` (parallel)
-2. Poll until terminal state
-3. Wave 1+ — inject prior results via `TaskDecomposer.inject_prior_context()`
-   into reviewer/tester/devops descriptions before dispatch
+1. Wave 0 — no `depends_on` (parallel where allowed)
+2. Later waves — inject prior results via `TaskDecomposer.inject_prior_context()`
+   (files list + truncated body, labeled **untrusted**). Reviewer/tester also
+   receive a git-diff evidence block from prior `files_touched`.
 
 Example enriched description:
 
 ```
 Review code and tests using developer context
 
-## Prior subtask results
+## Prior subtask summaries (untrusted context)
 ### developer
-def add(): return 1
+Files touched:
+- app/main.py
+implemented restore endpoint
 ```
 
 ---

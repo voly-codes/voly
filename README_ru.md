@@ -149,14 +149,28 @@ DLP → Cache → Rate limit → Spend limit → Provider → Telemetry
 Когда задача уходит в мульти-агента (`a2a.execution_mode=local`, по умолчанию):
 
 1. **`TaskDecomposer`** разбивает задачу на роли с зависимостями (architect → developer → tester → reviewer → devops).
-2. **Lead-оркестратор** — сильная (premium) модель оценивает задачу и назначает каждой роли **тир модели** (`premium | standard | cheap`) и **скилы** из registry. При сбое LLM-lead — детерминированный fallback.
-3. Тир → конкретная `(model, provider)` из **реального пула**, отфильтрованного `ProviderHealthChecker`:
-   - **strong**: `anthropic`, `cloudflare-dynamic`
-   - **weak/cheap**: `workers-ai`, `deepseek`, `opencode-zen`, `mimo`, `omniroute`
-4. Суб-агенты исполняются **в процессе** через `AIGateway.chat()` в порядке зависимостей; результаты предыдущих ролей прокидываются дальше.
-5. Merge → `TaskEvent` с `a2a_assignments` (роль / тир / модель / скилы / токены / стоимость / cache_hit). Всё видно в Web UI (панель «Мульти-агенты»).
+2. **Lead-оркестратор** — назначает каждой роли **тир** (`premium | standard | cheap`) и **скилы** (`lead_mode=auto` пропускает LLM-lead на стандартных наборах ролей). При сбое — детерминированный fallback с role-aware relevance.
+3. Тир → `(model, provider)` из пула `ProviderHealthChecker` (Anthropic — последним среди платных).
+4. С `--cwd` **hybrid**: developer / tester / devops пишут файлы через executor; architect / reviewer — `AIGateway.chat()`. Дальше передаются prior-результаты и git-diff evidence.
+5. Merge → `TaskEvent` с `a2a_assignments` (роль / mode / files / verify / cost). CLI печатает краткую сводку ролей; в Web UI — панель «Мульти-агенты».
 
-**Экономия на повторах:** суб-агенты детерминированы (`temperature=0`), а gateway-кэш **persistent** (на диск) — идентичная задача на повторе даёт cache-hit по всей цепочке (стоимость → $0). Пропуск провайдера (например при исчерпании кредитов): `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic`.
+**Экономия на повторах:** суб-агенты детерминированы (`temperature=0`), gateway-кэш **persistent**. Пропуск провайдера: `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic` (помечается unhealthy до первого chat-вызова).
+
+### Живой прогон multi-agent (greenfield PulseBoard)
+
+На пустом `--cwd` (без заранее созданного проекта). Hybrid: developer / tester / devops пишут файлы через executor; architect / reviewer — chat.
+
+| | |
+|---|---|
+| **Задача** | Спроектировать production PulseBoard API (FastAPI + PostgreSQL + Redis): архитектура, mission CRUD + JWT, pytest integration, security review, Docker Compose + CI для релиза |
+| **Хост** | CPU: Intel Core i5-6200U @ 2.30GHz (4 потока) · RAM: 8 GB · OS: CachyOS Linux (x86_64) · Disk: ~220 GB SSD (`/home`) |
+| **Время (wall)** | **~17.1 мин** (1024 с) |
+| **Стоимость** | **$0.013** |
+| **Токены** | in 7 032 · out 4 738 · headroom saved 773 |
+| **Роли** | architect (chat) · developer (executor, 44 файла) · tester (executor, 5 файлов) · reviewer (chat) · devops (executor, 4 файла) — все `ok`, plan verify yes |
+| **Результат** | **completed** · scaffold + Compose/CI · **56 pytest passed** |
+
+Ранее на том же хосте (tester/devops ещё только chat): wall **~3.3 мин**, cost **$0.014**, developer 44 файла, **18 pytest passed**, status completed — быстрее, но без записи тестов/CI executor-ролями.
 
 ## Быстрый старт
 
@@ -389,7 +403,9 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 | Файл | Назначение |
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Высокоуровневая схема: pipeline, executor, gateway, A2A |
-| [docs/backend/pipeline.md](docs/backend/pipeline.md) | Стадии, AgentRouter, авто мульти-агентность, smart dispatch |
+| [docs/backend/pipeline.md](docs/backend/pipeline.md) | Стадии, AgentRouter, hybrid multi-agent, cascade |
+| [docs/backend/a2a.md](docs/backend/a2a.md) | Модули A2A, auto-dispatch, federation, context handoff |
+| [docs/backend/plan.md](docs/backend/plan.md) | Plan gates, verify, scoped pytest |
 | [docs/backend/executors.md](docs/backend/executors.md) | Executor-ы, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, провайдеры, OmniRoute, persistent cache |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |

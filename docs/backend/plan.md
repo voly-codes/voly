@@ -35,7 +35,8 @@ plan:
 Bare `pytest -q` / `.venv/bin/pytest -q` is **scoped at verify time** to
 `test_*.py` / `*_test.py` paths from the role's (or prior executor)
 `files_touched` when present — so greenfield scaffolds do not wait on the
-entire suite before `.venv` is ready.
+entire suite before `.venv` is ready. In **shadow** mode, a failed verify still
+force-opens the gate; the warning log includes the scoped `argv` when present.
 
 Env: `VOLY_PLAN_ENABLED`, `VOLY_PLAN_MODE`.
 

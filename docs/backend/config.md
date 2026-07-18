@@ -85,11 +85,13 @@ VOLY_A2A_TOKEN=...
 
 VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
 # Exclude providers from the multi-agent tier pool (e.g. when credits are exhausted).
-# Runtime: auth/billing errors in `run_local` also mark providers unhealthy for
-# the rest of the process (see `ProviderHealthChecker.mark_unhealthy`).
+# Applied before the first chat call (mark_unhealthy) and on every tier resolve.
+# Runtime auth/billing errors in `run_local` also mark providers unhealthy (TTL).
 
 VOLY_A2A_EXECUTOR_DEVELOPER=cursor
 VOLY_A2A_EXECUTOR_BUGFIXER=deepseek
+VOLY_A2A_EXECUTOR_TESTER=cursor
+VOLY_A2A_EXECUTOR_DEVOPS=cursor
 # Per-role executor override for hybrid mode=executor (see voly/a2a/hybrid.py).
 
 VOLY_PLAN_ENABLED=true
@@ -240,6 +242,9 @@ a2a:
                                # llm (always) | deterministic (never — role→tier map)
   federation_url: ""           # only for execution_mode=federation
   task_timeout_seconds: 600    # per-role timeout (hybrid executor); watchdog uses it as base
+  architect_max_tokens: 4096   # plan-only architect chat budget
+  # Empty executor_roles → developer, bugfixer, tester, devops
+  executor_roles: []
   parallel_waves: true         # independent roles run in dependency waves; a wave's
                                # chat calls execute concurrently (executors stay serial)
   max_parallel_roles: 3        # thread cap for one wave's chat calls; 1 → sequential
@@ -310,8 +315,9 @@ config.ai_gateway.spend_limit_usd_per_day
 |---|---|
 | `a2a.hybrid_code_gen` / `VOLY_A2A_HYBRID` | Enable hybrid role modes |
 | `a2a.hybrid_require_cwd` | Without cwd keep all roles on chat |
-| `a2a.executor_default` | Overrides the built-in per-role map (`developer→cursor`, `bugfixer→deepseek`) when set to any value other than `"claude-code"`. Per-role env still wins. |
-| `a2a.executor_roles` | Roles that prefer executor mode (default: developer, bugfixer) |
+| `a2a.executor_default` | Overrides the built-in per-role map when set to any value other than `"claude-code"`. Per-role env still wins. Built-in map: developer/tester/devops→`cursor`, bugfixer→`deepseek`. |
+| `a2a.executor_roles` | Roles that prefer executor mode (empty → developer, bugfixer, tester, devops) |
+| `a2a.architect_max_tokens` | Architect chat budget (default 4096) |
 | `VOLY_A2A_EXECUTOR_<ROLE>` | Per-role executor override (highest priority). E.g. `VOLY_A2A_EXECUTOR_DEVELOPER=wrangler` |
 
 See `docs/proposals/hybrid-multiagent-executor.md` and `docs/backend/pipeline.md`.
