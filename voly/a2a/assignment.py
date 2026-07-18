@@ -205,6 +205,20 @@ def _excluded_providers() -> set[str]:
     return {p.strip() for p in raw.split(",") if p.strip()}
 
 
+def apply_env_provider_exclusions() -> list[str]:
+    """Mark ``VOLY_A2A_EXCLUDE_PROVIDERS`` unhealthy before the first chat call.
+
+    Tier resolution already skips the env list; this also demotes an assigned
+    provider (e.g. Anthropic with empty credits) so fallback does not burn a
+    doomed first attempt per role.
+    """
+    marked: list[str] = []
+    for provider in sorted(_excluded_providers()):
+        get_checker().mark_unhealthy(provider, reason="VOLY_A2A_EXCLUDE_PROVIDERS")
+        marked.append(provider)
+    return marked
+
+
 def _healthy_providers_for_tier(tier: str, checker: Any) -> list[str]:
     """Ordered healthy provider names for a tier (excludes VOLY_A2A_EXCLUDE_PROVIDERS)."""
     excluded = _excluded_providers()

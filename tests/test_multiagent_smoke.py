@@ -170,3 +170,15 @@ def test_exclude_provider_on_gateway_error_marks_unhealthy(monkeypatch):
     monkeypatch.setattr("voly.ai_gateway.health._checker", checker)
     _exclude_provider_on_gateway_error("anthropic", "401 Unauthorized: invalid x-api-key")
     assert checker.check("anthropic").healthy is False
+
+
+def test_apply_env_provider_exclusions_marks_before_chat(monkeypatch):
+    from voly.a2a.assignment import apply_env_provider_exclusions
+    from voly.ai_gateway.health import ProviderHealthChecker
+
+    checker = ProviderHealthChecker()
+    monkeypatch.setattr("voly.ai_gateway.health._checker", checker)
+    monkeypatch.setenv("VOLY_A2A_EXCLUDE_PROVIDERS", "anthropic")
+    marked = apply_env_provider_exclusions()
+    assert "anthropic" in marked
+    assert checker.check("anthropic").healthy is False

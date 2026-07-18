@@ -96,6 +96,9 @@ def run(
             }
         if result.error:
             output["error"] = result.error
+        assigns = _a2a_assignments(result)
+        if assigns:
+            output["a2a_assignments"] = assigns
         click.echo(json.dumps(output, ensure_ascii=False, indent=2))
     else:
         if result.success:
@@ -104,12 +107,48 @@ def run(
                 click.echo(f"Model:  {result.route.model} ({result.route.provider})")
             if result.response:
                 click.echo(f"\n{result.response.content}")
+            _echo_a2a_role_summary(result)
             click.echo(f"\n--- completed in {result.duration_ms:.0f}ms ---")
         else:
             if result.response and result.response.content:
                 click.echo(f"\n{result.response.content}")
+            _echo_a2a_role_summary(result)
             click.echo(f"Error: {result.error or 'pipeline failed (partial result)'}", err=True)
             sys.exit(1)
+
+
+def _a2a_assignments(result: Any) -> list[dict[str, Any]]:
+    ev = getattr(result, "event", None)
+    raw = getattr(ev, "a2a_assignments", None) if ev is not None else None
+    if not raw and ev is not None and isinstance(ev, dict):
+        raw = ev.get("a2a_assignments")
+    if not raw:
+        return []
+    out: list[dict[str, Any]] = []
+    for a in raw:
+        if isinstance(a, dict):
+            out.append(a)
+        elif hasattr(a, "to_event_dict"):
+            out.append(a.to_event_dict())
+    return out
+
+
+def _echo_a2a_role_summary(result: Any) -> None:
+    """Compact per-role mode / files / verify line after multi-agent runs."""
+    assigns = _a2a_assignments(result)
+    if not assigns:
+        return
+    click.echo("\nA2A roles:")
+    for a in assigns:
+        role = a.get("role", "?")
+        ok = "ok" if a.get("ok") else "fail"
+        mode = a.get("mode") or "chat"
+        n_files = len(a.get("files_touched") or [])
+        verify = a.get("plan_verify_ok")
+        verify_s = (
+            "verify=yes" if verify is True else "verify=no" if verify is False else "verify=—"
+        )
+        click.echo(f"  {role}: {ok} mode={mode} files={n_files} {verify_s}")
 
 
 def _run_with_executor(

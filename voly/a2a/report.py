@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from voly.a2a.assignment import Assignment
+
 
 @dataclass
 class A2AReport:
@@ -59,3 +61,37 @@ class A2AReport:
             total_duration_ms=duration_ms,
             agents_used=agents_used,
         )
+
+
+def merge_report(task: str, assignments: list[Assignment]) -> str:
+    """Human-readable merged report: what each agent (model/tier) produced."""
+    per_role_max = 3500
+    total_max = 40000
+    lines = [f"# Multi-agent result: {task[:120]}", ""]
+    for a in assignments:
+        status = "✓" if a.ok else "✗"
+        skills = ", ".join(a.skills) if a.skills else "—"
+        lines.append(
+            f"## [{a.role}] {status}  ·  {a.provider}/{a.model} (tier={a.tier})  ·  skills: {skills}"
+        )
+        if a.error and not a.ok:
+            lines.append(f"**Error:** {a.error.strip()}")
+        if a.files_touched:
+            shown = ", ".join(a.files_touched[:12])
+            suffix = (
+                f" (+{len(a.files_touched) - 12} more)"
+                if len(a.files_touched) > 12
+                else ""
+            )
+            lines.append(f"**Files:** {shown}{suffix}")
+        lines.append("")
+        body = (a.content or "").strip() or "(no output)"
+        cap = per_role_max if a.ok else per_role_max + 1500
+        if len(body) > cap:
+            body = body[:cap] + "\n...(truncated)"
+        lines.append(body)
+        lines.append("\n---\n")
+    report = "\n".join(lines).strip()
+    if len(report) > total_max:
+        report = report[:total_max] + "\n...(report truncated)"
+    return report
