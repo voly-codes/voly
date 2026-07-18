@@ -357,8 +357,11 @@ def _check_command(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:
         return VerifyResult(CHECK_COMMAND, False, "command requires run")
     if not ctx.cwd:
         return VerifyResult(CHECK_COMMAND, False, "command requires cwd")
+    from voly.plan.suggest import scope_pytest_command
+
+    run = scope_pytest_command(str(check.run).strip(), list(ctx.files_touched or []))
     try:
-        argv = shlex.split(check.run, posix=os.name != "nt")
+        argv = shlex.split(run, posix=os.name != "nt")
     except ValueError as exc:
         return VerifyResult(CHECK_COMMAND, False, f"invalid run string: {exc}")
     if not argv:

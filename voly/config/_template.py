@@ -151,7 +151,10 @@ ai_gateway:
   request_timeout_seconds: 15
   fallback:
     enabled: true
-    chain: []
+    # Default paid peer when primary (often Anthropic) is out of credits.
+    chain:
+      - provider: deepseek
+        model: deepseek-chat
     retries: 3
   dlp:
     enabled: false

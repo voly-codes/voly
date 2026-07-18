@@ -32,6 +32,11 @@ plan:
   tester_command: ""    # or "pytest -q" / filled from scanner when empty
 ```
 
+Bare `pytest -q` / `.venv/bin/pytest -q` is **scoped at verify time** to
+`test_*.py` / `*_test.py` paths from the role's (or prior executor)
+`files_touched` when present — so greenfield scaffolds do not wait on the
+entire suite before `.venv` is ready.
+
 Env: `VOLY_PLAN_ENABLED`, `VOLY_PLAN_MODE`.
 
 ---

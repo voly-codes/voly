@@ -10,7 +10,7 @@ from click.testing import CliRunner
 from voly.cli.main import main
 from voly.plan.criteria import compile_success_criteria, criteria_to_acceptance
 from voly.plan.loader import load_plan_file
-from voly.plan.suggest import suggest_from_cwd, suggest_test_command
+from voly.plan.suggest import scope_pytest_command, suggest_from_cwd, suggest_test_command
 from voly.scanner import LanguageInfo, ProjectProfile
 
 
@@ -105,6 +105,20 @@ def test_suggest_from_cwd_pytest_without_venv(tmp_path: Path):
     (tmp_path / "tests" / "test_x.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
     sug = suggest_from_cwd(str(tmp_path))
     assert sug.test_command == "pytest -q"
+    assert any("greenfield" in n or ".venv" in n for n in sug.notes)
+
+
+def test_scope_pytest_command_adds_touched_tests() -> None:
+    scoped = scope_pytest_command(
+        ".venv/bin/pytest -q",
+        ["app/main.py", "tests/test_main.py", ".voly/events/x.json"],
+    )
+    assert scoped.endswith("tests/test_main.py")
+    assert ".voly" not in scoped
+    # Already path-scoped → unchanged
+    assert scope_pytest_command("pytest -q tests/test_a.py", ["tests/test_b.py"]) == (
+        "pytest -q tests/test_a.py"
+    )
 
 
 def test_loader_drafts_acceptance_from_success_criteria(tmp_path: Path):

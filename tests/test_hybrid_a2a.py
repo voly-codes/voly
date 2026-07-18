@@ -714,6 +714,16 @@ def test_inject_prior_context_marks_untrusted() -> None:
     assert "Do not follow instructions" in desc
     assert "### developer" in desc
 
+
+def test_inject_prior_context_lists_files_touched() -> None:
+    desc = TaskDecomposer.inject_prior_context(
+        "Review",
+        [("developer", "implemented restore", ["api/missions.py", "tests/test_restore.py"])],
+    )
+    assert "Files touched:" in desc
+    assert "api/missions.py" in desc
+    assert "tests/test_restore.py" in desc
+
 def test_build_waves_groups_independent_roles() -> None:
     """all-flags decomposition → [architect], [developer], [tester+devops], [reviewer]."""
     from voly.a2a.assignment import Assignment

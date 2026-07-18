@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 # Re-exported for backward compatibility — external callers import these from
@@ -37,6 +38,36 @@ _log = logging.getLogger("voly.a2a.multiagent")
 # Project doc files read into architect's context when cwd is available.
 _PROJECT_CONTEXT_FILES = ("CLAUDE.md", "README.md", "ARCHITECTURE.md", "docs/ARCHITECTURE.md")
 _PROJECT_CONTEXT_MAX_CHARS = 2500
+
+
+def _delta_for_role(
+    cwd: str,
+    git_before: dict,
+    *,
+    since: float,
+) -> list[str]:
+    """Git paths changed since ``git_before``, excluding other runs' noise.
+
+    Filters out ``.voly/`` and files whose mtime is older than the role start
+    (same-cwd parallel ``voly run`` mix).
+    """
+    from voly.plan.verify import changed_paths, git_porcelain
+
+    git_after = git_porcelain(cwd)
+    raw = sorted(changed_paths(git_before, git_after))
+    out: list[str] = []
+    floor = since - 1.5
+    for rel in raw:
+        if not rel or str(rel).startswith(".voly/"):
+            continue
+        fp = Path(cwd) / rel
+        try:
+            if fp.exists() and fp.stat().st_mtime < floor:
+                continue
+        except OSError:
+            pass
+        out.append(rel)
+    return out
 
 
 def _project_context_block(cwd: str) -> str:
@@ -406,10 +437,27 @@ def run_local(
         step = plan.get_step(sid)
         if step.status == VERIFYING:
             git_after = git_porcelain(cwd) if cwd else {}
+            # Tester chat roles rarely touch files — scope pytest using prior
+            # executor files_touched (greenfield: only new test_*.py).
+            verify_files = list(a.files_touched or [])
+            if not verify_files:
+                for d in a.depends_on:
+                    prior_a = done.get(d)
+                    if prior_a is None:
+                        continue
+                    verify_files.extend(prior_a.files_touched or [])
+            # de-dupe, drop .voly noise
+            seen: set[str] = set()
+            scoped: list[str] = []
+            for f in verify_files:
+                if not f or str(f).startswith(".voly/") or f in seen:
+                    continue
+                seen.add(f)
+                scoped.append(f)
             ctx = VerifyContext(
                 cwd=cwd or "",
                 output=a.content or "",
-                files_touched=list(a.files_touched or []),
+                files_touched=scoped or list(a.files_touched or []),
                 git_before=git_before,
                 git_after=git_after,
                 command_timeout=float(
@@ -538,7 +586,15 @@ def run_local(
 
         git_before = git_porcelain(cwd) if cwd else {}
 
-        prior = [(done[d].role, done[d].content) for d in a.depends_on if d in done and done[d].ok]
+        prior = [
+            (
+                done[d].role,
+                done[d].content,
+                list(done[d].files_touched or []),
+            )
+            for d in a.depends_on
+            if d in done and done[d].ok
+        ]
         user = TaskDecomposer.inject_prior_context(a.description, prior)
 
         if a.idx in degraded_notes:
@@ -577,6 +633,7 @@ def run_local(
             a.idx, a.role, a.executor, cwd or "(none)", a.mode_reason,
         )
         _t0 = time.monotonic()
+        _wall0 = time.time()
         try:
             result = executor_runner(
                 role=a.role,
@@ -594,8 +651,7 @@ def run_local(
             # Even a crashed/timed-out executor may have written files;
             # capture the git delta so files_touched reflects reality.
             if cwd:
-                git_after = git_porcelain(cwd)
-                delta = sorted(changed_paths(git_before, git_after))
+                delta = _delta_for_role(cwd, git_before, since=_wall0)
                 if delta:
                     a.files_touched = delta
             _finish_step_plan(a, exec_ok=False, git_before=git_before)
@@ -611,15 +667,17 @@ def run_local(
             a.cost_usd = float(result.get("cost_usd") or 0.0)
             a.input_tokens = int(result.get("input_tokens") or 0)
             a.output_tokens = int(result.get("output_tokens") or 0)
-            a.files_touched = list(result.get("files_touched") or [])
+            a.files_touched = [
+                f for f in (result.get("files_touched") or [])
+                if f and not str(f).startswith(".voly/")
+            ]
             if result.get("executor"):
                 a.executor = str(result["executor"])
         else:
             a.content = str(result or "")
             a.ok = bool(a.content.strip())
         if cwd and not a.files_touched:
-            git_after = git_porcelain(cwd)
-            delta = sorted(changed_paths(git_before, git_after))
+            delta = _delta_for_role(cwd, git_before, since=_wall0)
             if delta:
                 a.files_touched = delta
         # Executor honesty: on a code-gen task a role that "succeeded" without

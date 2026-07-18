@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import re
+import shlex
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from voly.plan.types import AcceptanceCheck
+
+_TEST_FILE_RE = re.compile(
+    r"(?:^|/)(?:test_[^/]+\.py|[^/]+_test\.py)$",
+    re.IGNORECASE,
+)
 
 
 def _prefer_venv_pytest(command: str, cwd: str) -> str:
@@ -20,6 +27,43 @@ def _prefer_venv_pytest(command: str, cwd: str) -> str:
     if not venv_pytest.is_file():
         return command
     return " ".join([".venv/bin/pytest", *parts[1:]])
+
+
+def is_pytest_command(command: str) -> bool:
+    if not (command or "").strip():
+        return False
+    try:
+        parts = shlex.split(command, posix=True)
+    except ValueError:
+        return False
+    return bool(parts) and Path(parts[0]).name.lower() == "pytest"
+
+
+def scope_pytest_command(command: str, files_touched: list[str] | None) -> str:
+    """Scope a bare pytest suite to newly touched test files (greenfield-friendly).
+
+    Leaves the command unchanged when it already has path args, is not pytest,
+    or no test files appear in ``files_touched``.
+    """
+    if not command or not files_touched or not is_pytest_command(command):
+        return command
+    try:
+        parts = shlex.split(command, posix=True)
+    except ValueError:
+        return command
+    # Already targeted (path args after flags).
+    if any(not a.startswith("-") for a in parts[1:]):
+        return command
+    tests = sorted(
+        {
+            f.replace("\\", "/")
+            for f in files_touched
+            if f and not str(f).startswith(".voly/") and _TEST_FILE_RE.search(f.replace("\\", "/"))
+        }
+    )
+    if not tests:
+        return command
+    return " ".join([*parts, *tests[:24]])
 
 
 @dataclass
@@ -115,6 +159,12 @@ def suggest_from_cwd(cwd: str) -> PlanSuggestions:
     }
     out.test_command = _prefer_venv_pytest(suggest_test_command(profile), cwd)
     out.lint_command = suggest_lint_command(profile)
+    venv_pytest = Path(cwd) / ".venv" / "bin" / "pytest"
+    if out.test_command.startswith("pytest") and not venv_pytest.is_file():
+        out.notes.append(
+            "no .venv/bin/pytest — full-suite verify may fail on greenfield; "
+            "plan verify will scope pytest to touched test_*.py when available"
+        )
 
     if out.test_command:
         out.acceptance_tester.append(

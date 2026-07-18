@@ -160,21 +160,28 @@ def make_agent_runner_executor(
             )
         # Role-specific executor (developer→cursor, bugfixer→deepseek, …).
         agent_key = resolve_role_executor(role, (executor or "claude-code").strip() or "claude-code")
-        rr = runner.run(
-            full_task,
-            agent_key,
-            cwd=cwd or "",
-            max_turns=max_turns,
-            timeout=timeout,
-            emit_event=emit_event,
-        )
+        from voly.a2a.cwd_lock import cwd_executor_lock
+
+        with cwd_executor_lock(cwd or "", timeout=float(timeout or 900) + 30.0):
+            rr = runner.run(
+                full_task,
+                agent_key,
+                cwd=cwd or "",
+                max_turns=max_turns,
+                timeout=timeout,
+                emit_event=emit_event,
+            )
         er = rr.result
         files: list[str] = []
         if er.report is not None:
             files = list(
                 dict.fromkeys(
-                    list(er.report.files_changed or [])
-                    + list(er.report.files_created or [])
+                    f
+                    for f in (
+                        list(er.report.files_changed or [])
+                        + list(er.report.files_created or [])
+                    )
+                    if f and not str(f).startswith(".voly/")
                 )
             )
         return {
