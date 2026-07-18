@@ -30,12 +30,13 @@
 
 VOLY is not another AI agent. It is a **self-hosted control plane** between the developer and the agents:
 
-- **routes** tasks across executors with an automatic billing fallback chain;
-- **decomposes** complex work into sub-agents (architect → developer → tester → reviewer → devops), where a strong lead orchestrator assigns model tiers and skills;
-- **guards file writes** — dry-run with diff preview, protected paths, max-files limit, git-based rollback;
+- **routes** tasks across file-capable executors with an automatic billing fallback chain;
+- **decomposes** complex work into sub-agents (architect → developer → tester → reviewer → devops) with per-role model tiers; with `--cwd`, **hybrid** runs implement roles (developer / tester / devops) via executors and keeps architect / reviewer on chat;
+- **guards file writes** — dry-run with diff preview, protected paths (`.env*`, keys; `.env.example` allowlisted), soft rollback, max-files limit, git-based rollback;
 - **controls spend** via Cloudflare AI Gateway, spend limits, and cost policy;
 - **reduces tokens** with a persistent cache, Headroom, model routing, and determinism;
-- **collects telemetry** per run and surfaces metrics in the Web UI;
+- **verifies** multi-agent steps with plan gates (shadow/active; scoped pytest when possible);
+- **collects telemetry** per run (CLI role summary + Web UI);
 - supports **DSPy** as an optional optimization layer;
 - stays **project-agnostic** — the target project is passed via `--cwd` or `VOLY_PROJECT_CWD`.
 
@@ -47,12 +48,12 @@ single CLI cannot answer:
 
 | The question | VOLY's answer |
 |---|---|
-| The agent ran out of credits mid-task | Billing fallback chain `claude-code → wrangler → opencode → zen`, automatic |
-| What did this run actually cost? | Per-run `TaskEvent`: cost, tokens, retries, per-role breakdown in the UI |
-| A complex task = one giant prompt? | Multi-agent decomposition with a model tier per role; implement roles write files, review stays on chat |
-| Is it safe to let an agent write files? | Safety policy: `--dry-run` with diff preview, protected paths (`.env*`, keys), max-files limit, git rollback |
-| A premium model for a routine fix? | Cost policy + tier routing: cheap models for cheap roles |
-| Provider keys in `.env` on every machine? | BYOK: keys live in Cloudflare Secrets Store, resolved by the gateway per request |
+| The agent ran out of credits mid-task | Billing fallback `claude-code → cursor → deepseek → wrangler → opencode → zen` |
+| What did this run actually cost? | Per-run `TaskEvent`: cost, tokens, retries, per-role mode/files/verify in CLI + UI |
+| A complex task = one giant prompt? | Multi-agent + hybrid: developer/tester/devops write files; architect/reviewer stay on chat |
+| Is it safe to let an agent write files? | Safety: `--dry-run`, protected paths, soft rollback (keep other files), max-files, git rollback |
+| A premium model for a routine fix? | Cost policy + tier routing (Anthropic last among paid peers; exclude via env) |
+| Provider keys in `.env` on every machine? | BYOK: keys in Cloudflare Secrets Store, resolved by the gateway per request |
 
 If all you need is "write code from a prompt" — use an agent directly. VOLY
 pays off when agents become part of the **daily workflow** and you need
@@ -77,9 +78,9 @@ voly ui                                     # web dashboard on :7788
 ```
 
 A complex request ("redesign auth, add tests, review it") goes multi-agent
-automatically: the lead model assigns roles and tiers, implement roles write
-files through executors, the reviewer stays on chat — the report shows
-role / model / cost / files per agent.
+automatically (`lead_mode=auto` skips a premium lead chat on standard role
+sets). With `--cwd`, hybrid implement roles write files; architect/reviewer
+stay on chat — the report shows role / mode / cost / files / verify.
 
 ### Run report (Web UI)
 
@@ -122,23 +123,24 @@ Developer / Web UI / CLI / CI
         │                                 │
         ▼                                 ▼
   PIPELINE · MULTI-AGENT            EXECUTOR PATH
-  (A2A local)                       (file-capable)
+  (A2A local + hybrid)              (file-capable)
         │                                 │
-  Lead orchestrator                 executor.run(task, cwd)
-   ├─ tier + skills per role        Billing Fallback Chain:
-   ├─ architect → developer         claude-code → wrangler → opencode → zen
-   ├─ tester / reviewer / devops          │
-   └─ each via AIGateway.chat()           │
-        │                                 │
-        └────────────┬────────────────────┘
-                     ▼
-              AIGateway.chat()
-DLP → Cache → Rate limit → Spend limit → Provider → Telemetry
+  Decompose + tier/skills           executor.run(task, cwd)
+   ├─ architect / reviewer          Billing Fallback Chain:
+   │    → AIGateway.chat()          claude-code → cursor → deepseek →
+   ├─ developer / tester / devops     wrangler → opencode → zen
+   │    → AgentRunner (files)               │
+   └─ plan gates + merge report             │
+        │                                   │
+        └──────────────┬────────────────────┘
+                       ▼
+         chat roles → AIGateway.chat()
+         DLP → Cache → Rate/Spend → Provider → Telemetry
 ```
 
 Non-code-generating text tasks go through a single model call on the same pipeline path.
 
-**`AIGateway.chat()`** is the only exit point to models. Pipeline, sub-agents, DSPy, and runtimes all go through it — cache, DLP, spend limits, fallback, and telemetry stay consistent.
+**`AIGateway.chat()`** is the only exit to **models** (pipeline chat roles, DSPy, runtimes). File-capable **executors** are a separate path (CLI/SDK subprocesses) with their own billing fallback.
 
 **Smart dispatch** (`POST /api/run`, `executor=pipeline`):
 
@@ -167,10 +169,19 @@ Measured on an empty `--cwd` (no prior project files). Hybrid roles: developer /
 | **Task** | Design a production PulseBoard API (FastAPI + PostgreSQL + Redis): architecture, mission CRUD + JWT auth, pytest integration tests, security review, Docker Compose + CI for release |
 | **Host** | CPU: Intel Core i5-6200U @ 2.30GHz (4 threads) · RAM: 8 GB · OS: CachyOS Linux (x86_64) · Disk: ~220 GB SSD (`/home`) |
 | **Wall time** | **~17.1 min** (1024 s) |
-| **Cost** | **$0.013** |
+| **Cost** | **$0.013** (telemetry sum; Cursor executor usage is estimated) |
 | **Tokens** | in 7 032 · out 4 738 · headroom saved 773 |
-| **Roles** | architect (chat) · developer (executor, 44 files) · tester (executor, 5 files) · reviewer (chat) · devops (executor, 4 files) — all `ok`, plan verify yes |
-| **Result** | **completed** · scaffold + Compose/CI · **56 pytest passed** |
+| **Result** | **completed** · scaffold + Compose/CI · **56 pytest passed** · all roles `ok`, plan verify yes |
+
+Agents that ran (event `f65c2bdc`, hybrid):
+
+| Role | Mode | Runtime | Tier | Files | Cost | Wall |
+|---|---|---|---|---:|---:|---:|
+| architect | chat | `cloudflare-dynamic` / `dynamic/ai_route` | standard | — | $0.003 | 56 s |
+| developer | executor | `cursor` | standard | 44 | $0.002 | 151 s |
+| tester | executor | `cursor` | standard | 5 | $0.003 | 161 s |
+| reviewer | chat | `deepseek` / `deepseek-chat` | premium | — | $0.001 | 7 s |
+| devops | executor | `cursor` | cheap | 4 | $0.003 | 622 s |
 
 Earlier greenfield on the same host (tester/devops still chat-only): wall **~3.3 min**, cost **$0.014**, developer 44 files, **18 pytest passed**, status completed — faster, but no file-writing tester/devops.
 
@@ -229,25 +240,26 @@ See [docs/backend/api.md](docs/backend/api.md) for login and protected routes.
 
 ## Billing fallback chain (executor path)
 
-If the current executor runs out of budget, `AgentRunner` walks the chain:
+If the current executor hits a billing / not-available error, `AgentRunner` walks:
 
 ```
-claude-code  →  wrangler  →  opencode  →  zen
-(Anthropic)    (CF Workers)  (OpenCode)   (free / last resort)
+claude-code → cursor → deepseek → wrangler → opencode → zen
+(Anthropic)   (Cursor)  (DeepSeek)  (CF)      (OpenCode)  (last resort)
 ```
 
-`ExecutorResult.billing_error = True` → next executor. All of these can write files under `--cwd`.
+`ExecutorResult.billing_error = True` (or `not_available`) → next in chain. Hybrid defaults: developer/tester/devops → `cursor`, bugfixer → `deepseek` (override with `VOLY_A2A_EXECUTOR_<ROLE>`).
 
 ## Executors
 
 | Executor | Writes files | Billing | Chain position |
 |---|---|---|---|
 | `claude-code` | yes — Claude CLI | Anthropic | 1st |
-| `wrangler` | yes — LocalPatchApplier | CF Workers AI | 2nd |
-| `opencode` | yes — OpenCode CLI | opencode.ai | 3rd |
-| `zen` | yes — opencode CLI | free / subscription | 4th (last resort) |
-| `cursor` | yes — Cursor Agent | Cursor | standalone |
-| `deepseek` / `mimo` | no — text only | API | outside chain |
+| `cursor` | yes — Cursor Agent SDK | Cursor | 2nd (hybrid default for developer/tester/devops) |
+| `deepseek` | yes — DeepSeek file executor | DeepSeek API | 3rd (hybrid default for bugfixer) |
+| `wrangler` | yes — LocalPatchApplier | CF Workers AI | 4th |
+| `opencode` | yes — OpenCode CLI | opencode.ai | 5th |
+| `zen` | yes — opencode CLI | free / subscription | 6th (last resort) |
+| `mimo` | text / limited | API | outside chain |
 
 ```bash
 voly run "implement auth refactor" --executor claude-code --cwd /path/to/target-project
@@ -298,24 +310,40 @@ voly dspy promote code-review.v2 --tag production
 ## Configuration
 
 ```yaml
-# voly.yaml
+# voly.yaml (essentials — see docs/backend/config.md)
 default_cwd: ""              # target project path (or VOLY_PROJECT_CWD)
 
 ai_gateway:
   provider: cloudflare
   cache_enabled: true
-  cache_persist_dir: .voly/gateway_cache   # disk cache; empty → in-memory only
+  cache_persist_dir: .voly/gateway_cache
+  request_timeout_seconds: 15          # stall / legacy
+  request_total_timeout_seconds: 60    # full provider response budget
   spend_limit_usd_per_day: 20.0
+  fallback:
+    enabled: true
+    chain:
+      - provider: deepseek
+        model: deepseek-chat
 
 a2a:
   enabled: true
-  auto_dispatch: true         # auto multi-agent for complex tasks
-  min_flags_for_dispatch: 2   # capability-flag threshold
-  execution_mode: local       # local (lead + sub-agents) | federation (remote)
-  lead_model: ""              # lead model; empty → premium from healthy pool
+  auto_dispatch: true
+  min_flags_for_dispatch: 2
+  execution_mode: local
+  lead_mode: auto                      # skip premium lead chat on standard role sets
+  hybrid_code_gen: true                # developer/tester/devops → executors when cwd set
+  architect_max_tokens: 4096
+  task_timeout_seconds: 900
+
+plan:
+  enabled: true
+  mode: shadow                         # soft-verify; active = hard gates
+  command_timeout_seconds: 60
+  executor_require_git_diff: true
 
 auth:
-  enabled: false              # set true + VOLY_JWT_SECRET before network exposure
+  enabled: false
   cors_origins:
     - "http://localhost:7788"
     - "http://localhost:5173"
@@ -331,17 +359,20 @@ dspy:
 Key env vars:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...              # claude-code / premium tier
-OPENCODE_API_KEY=...                      # zen / opencode-zen
-CLOUDFLARE_ACCOUNT_ID=...                 # CF AI Gateway + Workers AI
+ANTHROPIC_API_KEY=sk-ant-...              # claude-code / chat tier
+CURSOR_API_KEY=...                        # cursor executor (hybrid developer default)
+DEEPSEEK_API_KEY=...                      # deepseek executor + gateway fallback
+OPENCODE_API_KEY=...                      # zen / opencode
+CLOUDFLARE_ACCOUNT_ID=...
 CLOUDFLARE_API_TOKEN=...
-CF_AIG_TOKEN=...                          # CF Dashboard → AI Gateway → Settings
+CF_AIG_TOKEN=...                          # CF AI Gateway
 VOLY_PROJECT_CWD=/path/to/proj            # default cwd for executor and UI
-VOLY_A2A_EXCLUDE_PROVIDERS=               # e.g. "anthropic" — hide from tier pool
+VOLY_A2A_EXCLUDE_PROVIDERS=anthropic      # skip before first chat (credits)
+VOLY_A2A_EXECUTOR_DEVELOPER=cursor        # optional per-role override
 VOLY_AUTH_ENABLED=false
 VOLY_JWT_SECRET=
 VOLY_AUTH_USERS=admin:change-me
-OMNIROUTE_BASE_URL=http://localhost:20128 # if using the OmniRoute adapter
+OMNIROUTE_BASE_URL=http://localhost:20128
 ```
 
 ### BYOK — provider keys in Cloudflare (optional)

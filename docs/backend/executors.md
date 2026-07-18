@@ -46,12 +46,12 @@ Only file-writing executors are in the chain.
 | Executor | File writes | Billing | Fallback position |
 |---|---|---|---|
 | `claude-code` | yes — Claude CLI | Anthropic | 1st in chain |
-| `wrangler` | yes — LocalPatchApplier | Cloudflare Workers AI | 2nd in chain |
-| `zen` | yes — opencode CLI | free / opencode subscription | 3rd (last resort) |
 | `cursor` | yes — Cursor Agent SDK (`cursor-sdk`) | Cursor | 2nd in chain |
-| `opencode` | yes — OpenCode CLI | opencode.ai | standalone |
+| `deepseek` | yes — DeepSeek file executor | DeepSeek API | 3rd in chain |
+| `wrangler` | yes — LocalPatchApplier | Cloudflare Workers AI | 4th in chain |
+| `opencode` | yes — OpenCode CLI | opencode.ai | 5th in chain |
+| `zen` | yes — opencode CLI | free / opencode subscription | 6th (last resort) |
 | `cf-containers` | remote — CF Container / Sandbox | Cloudflare Containers | standalone (PoC) |
-| `deepseek` | no — text only | DeepSeek API | NOT in chain |
 | `mimo` | no — text only | MiMo API | NOT in chain |
 
 ---
@@ -267,7 +267,7 @@ BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "open
 if result.billing_error and executor_name in BILLING_FALLBACK_CHAIN:
     for fallback_name in chain[start_idx:]:
         # try next executor
-        # logs: [CHAIN:BILLING_FALLBACK] claude-code → wrangler  reason=...
+        # logs: [CHAIN:BILLING_FALLBACK] claude-code → cursor  reason=...
         if not result.billing_error:
             break
 ```

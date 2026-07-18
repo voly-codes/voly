@@ -30,12 +30,13 @@
 
 VOLY — не ещё один AI-агент. Это **self-hosted control plane** между разработчиком и агентами:
 
-- **маршрутизирует** задачи по executor-ам с автоматическим billing fallback chain;
-- **дробит сложные задачи** на суб-агентов (architect → developer → tester → reviewer → devops), где сильный агент-оркестратор раздаёт каждому уровень модели и скилы;
-- **страхует записи в файлы** — dry-run с превью диффа, защищённые пути, лимит на число файлов, git-откат;
+- **маршрутизирует** задачи по file-capable executor-ам с автоматическим billing fallback chain;
+- **дробит сложные задачи** на суб-агентов (architect → developer → tester → reviewer → devops) с тиром модели на роль; с `--cwd` **hybrid** гоняет implement-роли (developer / tester / devops) через executor-ы, а architect / reviewer оставляет на chat;
+- **страхует записи в файлы** — dry-run с превью диффа, защищённые пути (`.env*`, ключи; `.env.example` в allowlist), soft rollback, лимит файлов, git-откат;
 - **контролирует расходы** через Cloudflare AI Gateway, spend limits и cost policy;
 - **снижает расход токенов** через persistent-кэш, Headroom, model routing и детерминизм;
-- **собирает telemetry** по каждому запуску и показывает реальные метрики в Web UI;
+- **верифицирует** шаги мульти-агента plan-гейтами (shadow/active; scoped pytest когда возможно);
+- **собирает telemetry** по каждому запуску (CLI summary по ролям + Web UI);
 - поддерживает **DSPy** как optional optimization layer;
 - остаётся **project-agnostic** — целевой проект передаётся через `--cwd` или `VOLY_PROJECT_CWD`.
 
@@ -47,11 +48,11 @@ Claude Code, Cursor и Codex — отличные **исполнители**. VO
 
 | Вопрос | Ответ VOLY |
 |---|---|
-| У агента кончились кредиты посреди задачи | Billing fallback chain `claude-code → wrangler → opencode → zen`, автоматически |
-| Сколько реально стоил этот запуск? | `TaskEvent` на каждый запуск: стоимость, токены, ретраи, разбивка по ролям в UI |
-| Сложная задача = один гигантский промпт? | Мульти-агентная декомпозиция с уровнем модели на роль; implement-роли пишут файлы, ревью — на chat |
-| Безопасно ли пускать агента в файлы? | Safety policy: `--dry-run` с превью диффа, защищённые пути (`.env*`, ключи), лимит файлов, git-откат |
-| Premium-модель на рутинную правку? | Cost policy + tier routing: дешёвые модели для дешёвых ролей |
+| У агента кончились кредиты посреди задачи | Billing fallback `claude-code → cursor → deepseek → wrangler → opencode → zen` |
+| Сколько реально стоил этот запуск? | `TaskEvent` на запуск: cost, токены, ретраи, mode/files/verify по ролям в CLI + UI |
+| Сложная задача = один гигантский промпт? | Мульти-агент + hybrid: developer/tester/devops пишут файлы; architect/reviewer — chat |
+| Безопасно ли пускать агента в файлы? | Safety: `--dry-run`, protected paths, soft rollback (остальные файлы остаются), max-files, git-откат |
+| Premium-модель на рутинную правку? | Cost policy + tier routing (Anthropic последним среди платных; exclude через env) |
 | Ключи провайдеров в `.env` на каждой машине? | BYOK: ключи в Cloudflare Secrets Store, gateway подставляет их сам |
 
 Если нужно только «написать код по промпту» — используй агента напрямую.
@@ -76,9 +77,10 @@ voly ui                                     # web-дашборд на :7788
 ```
 
 Сложный запрос («переделай auth, добавь тесты, сделай ревью») автоматически
-уходит в мульти-агент: lead-модель раздаёт роли и тиры, implement-роли пишут
-файлы через executor-ы, ревьюер остаётся на chat — в отчёте видно
-роль / модель / стоимость / файлы по каждому агенту.
+уходит в мульти-агент (`lead_mode=auto` пропускает premium lead-chat на
+стандартных наборах ролей). С `--cwd` hybrid implement-роли пишут файлы;
+architect/reviewer остаются на chat — в отчёте видно роль / mode / cost /
+файлы / verify.
 
 ### Отчёт по запуску (Web UI)
 
@@ -120,23 +122,24 @@ Developer / Web UI / CLI / CI
         │                                 │
         ▼                                 ▼
   PIPELINE · MULTI-AGENT            EXECUTOR PATH
-  (A2A local)                       (file-capable)
+  (A2A local + hybrid)              (file-capable)
         │                                 │
-  Lead-оркестратор                  executor.run(task, cwd)
-   ├─ tier + skills на роль         Billing Fallback Chain:
-   ├─ architect → developer         claude-code → wrangler → opencode → zen
-   ├─ tester / reviewer / devops          │
-   └─ каждый через AIGateway.chat()       │
-        │                                 │
-        └────────────┬────────────────────┘
-                     ▼
-              AIGateway.chat()
-DLP → Cache → Rate limit → Spend limit → Provider → Telemetry
+  Decompose + tier/skills           executor.run(task, cwd)
+   ├─ architect / reviewer          Billing Fallback Chain:
+   │    → AIGateway.chat()          claude-code → cursor → deepseek →
+   ├─ developer / tester / devops     wrangler → opencode → zen
+   │    → AgentRunner (файлы)               │
+   └─ plan-гейты + merge-отчёт              │
+        │                                   │
+        └──────────────┬────────────────────┘
+                       ▼
+         chat-роли → AIGateway.chat()
+         DLP → Cache → Rate/Spend → Provider → Telemetry
 ```
 
 Текстовые (не код-генерящие) задачи проходят одиночным вызовом модели через тот же pipeline.
 
-**`AIGateway.chat()`** — единственная точка выхода к моделям. Pipeline, суб-агенты, DSPy и все рантаймы идут через него; сохраняются cache, DLP, spend limits, fallback и telemetry.
+**`AIGateway.chat()`** — единственный выход к **моделям** (chat-роли pipeline, DSPy, рантаймы). File-capable **executor-ы** — отдельный путь (CLI/SDK subprocess) со своим billing fallback.
 
 **Smart dispatch** (`POST /api/run`, `executor=pipeline`):
 
@@ -165,10 +168,19 @@ DLP → Cache → Rate limit → Spend limit → Provider → Telemetry
 | **Задача** | Спроектировать production PulseBoard API (FastAPI + PostgreSQL + Redis): архитектура, mission CRUD + JWT, pytest integration, security review, Docker Compose + CI для релиза |
 | **Хост** | CPU: Intel Core i5-6200U @ 2.30GHz (4 потока) · RAM: 8 GB · OS: CachyOS Linux (x86_64) · Disk: ~220 GB SSD (`/home`) |
 | **Время (wall)** | **~17.1 мин** (1024 с) |
-| **Стоимость** | **$0.013** |
+| **Стоимость** | **$0.013** (сумма telemetry; usage Cursor executor — оценка) |
 | **Токены** | in 7 032 · out 4 738 · headroom saved 773 |
-| **Роли** | architect (chat) · developer (executor, 44 файла) · tester (executor, 5 файлов) · reviewer (chat) · devops (executor, 4 файла) — все `ok`, plan verify yes |
-| **Результат** | **completed** · scaffold + Compose/CI · **56 pytest passed** |
+| **Результат** | **completed** · scaffold + Compose/CI · **56 pytest passed** · все роли `ok`, plan verify yes |
+
+Агенты в прогоне (event `f65c2bdc`, hybrid):
+
+| Роль | Mode | Runtime | Tier | Файлы | Cost | Wall |
+|---|---|---|---|---:|---:|---:|
+| architect | chat | `cloudflare-dynamic` / `dynamic/ai_route` | standard | — | $0.003 | 56 с |
+| developer | executor | `cursor` | standard | 44 | $0.002 | 151 с |
+| tester | executor | `cursor` | standard | 5 | $0.003 | 161 с |
+| reviewer | chat | `deepseek` / `deepseek-chat` | premium | — | $0.001 | 7 с |
+| devops | executor | `cursor` | cheap | 4 | $0.003 | 622 с |
 
 Ранее на том же хосте (tester/devops ещё только chat): wall **~3.3 мин**, cost **$0.014**, developer 44 файла, **18 pytest passed**, status completed — быстрее, но без записи тестов/CI executor-ролями.
 
@@ -227,25 +239,26 @@ export VOLY_AUTH_USERS='admin:change-me'
 
 ## Billing Fallback Chain (executor path)
 
-Если у текущего executor-а кончаются деньги, `AgentRunner` автоматически переходит к следующему:
+Если у текущего executor-а billing / not-available, `AgentRunner` идёт по цепочке:
 
 ```
-claude-code  →  wrangler  →  opencode  →  zen
-(Anthropic)    (CF Workers)  (OpenCode)   (free / last resort)
+claude-code → cursor → deepseek → wrangler → opencode → zen
+(Anthropic)   (Cursor)  (DeepSeek)  (CF)      (OpenCode)  (last resort)
 ```
 
-`ExecutorResult.billing_error = True` → следующий executor в цепочке. Все пишут файлы в `--cwd`.
+`ExecutorResult.billing_error = True` (или `not_available`) → следующий. Hybrid по умолчанию: developer/tester/devops → `cursor`, bugfixer → `deepseek` (override: `VOLY_A2A_EXECUTOR_<ROLE>`).
 
 ## Executors
 
 | Executor | Запись файлов | Billing | Позиция в цепочке |
 |---|---|---|---|
 | `claude-code` | да — Claude CLI | Anthropic | 1-й |
-| `wrangler` | да — LocalPatchApplier | CF Workers AI | 2-й |
-| `opencode` | да — OpenCode CLI | opencode.ai | 3-й |
-| `zen` | да — opencode CLI | free / subscription | 4-й (last resort) |
-| `cursor` | да — Cursor Agent | Cursor | standalone |
-| `deepseek` / `mimo` | нет — text only | API | вне цепочки |
+| `cursor` | да — Cursor Agent SDK | Cursor | 2-й (hybrid default для developer/tester/devops) |
+| `deepseek` | да — DeepSeek file executor | DeepSeek API | 3-й (hybrid default для bugfixer) |
+| `wrangler` | да — LocalPatchApplier | CF Workers AI | 4-й |
+| `opencode` | да — OpenCode CLI | opencode.ai | 5-й |
+| `zen` | да — opencode CLI | free / subscription | 6-й (last resort) |
+| `mimo` | text / limited | API | вне цепочки |
 
 ```bash
 voly run "implement auth refactor" --executor claude-code --cwd /path/to/target-project
@@ -296,24 +309,40 @@ voly dspy promote code-review.v2 --tag production
 ## Конфигурация
 
 ```yaml
-# voly.yaml
+# voly.yaml (основное — см. docs/backend/config.md)
 default_cwd: ""              # путь к целевому проекту (или VOLY_PROJECT_CWD)
 
 ai_gateway:
   provider: cloudflare
   cache_enabled: true
-  cache_persist_dir: .voly/gateway_cache   # disk-кэш; пусто → только in-memory
+  cache_persist_dir: .voly/gateway_cache
+  request_timeout_seconds: 15          # stall / legacy
+  request_total_timeout_seconds: 60    # полный бюджет ответа провайдера
   spend_limit_usd_per_day: 20.0
+  fallback:
+    enabled: true
+    chain:
+      - provider: deepseek
+        model: deepseek-chat
 
 a2a:
   enabled: true
-  auto_dispatch: true         # авто мульти-агентность для сложных задач
-  min_flags_for_dispatch: 2   # порог capability-флагов
-  execution_mode: local       # local (lead + суб-агенты) | federation (remote)
-  lead_model: ""              # модель lead-оркестратора; пусто → premium из пула
+  auto_dispatch: true
+  min_flags_for_dispatch: 2
+  execution_mode: local
+  lead_mode: auto                      # без premium lead-chat на стандартных ролях
+  hybrid_code_gen: true                # developer/tester/devops → executor при cwd
+  architect_max_tokens: 4096
+  task_timeout_seconds: 900
+
+plan:
+  enabled: true
+  mode: shadow                         # soft-verify; active = жёсткие гейты
+  command_timeout_seconds: 60
+  executor_require_git_diff: true
 
 auth:
-  enabled: false              # true + VOLY_JWT_SECRET перед сетевым доступом
+  enabled: false
   cors_origins:
     - "http://localhost:7788"
     - "http://localhost:5173"
@@ -329,17 +358,20 @@ dspy:
 Ключевые env vars:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...              # claude-code / premium tier
-OPENCODE_API_KEY=...                      # zen / opencode-zen
-CLOUDFLARE_ACCOUNT_ID=...                 # CF AI Gateway + Workers AI
+ANTHROPIC_API_KEY=sk-ant-...              # claude-code / chat tier
+CURSOR_API_KEY=...                        # cursor executor (hybrid developer default)
+DEEPSEEK_API_KEY=...                      # deepseek executor + gateway fallback
+OPENCODE_API_KEY=...                      # zen / opencode
+CLOUDFLARE_ACCOUNT_ID=...
 CLOUDFLARE_API_TOKEN=...
-CF_AIG_TOKEN=...                          # CF Dashboard → AI Gateway → Settings
+CF_AIG_TOKEN=...                          # CF AI Gateway
 VOLY_PROJECT_CWD=/path/to/proj            # default cwd для executor-а и UI
-VOLY_A2A_EXCLUDE_PROVIDERS=               # напр. "anthropic" — скрыть из tier-пула
+VOLY_A2A_EXCLUDE_PROVIDERS=anthropic      # skip до первого chat (кредиты)
+VOLY_A2A_EXECUTOR_DEVELOPER=cursor        # опциональный override на роль
 VOLY_AUTH_ENABLED=false
 VOLY_JWT_SECRET=
 VOLY_AUTH_USERS=admin:change-me
-OMNIROUTE_BASE_URL=http://localhost:20128 # если используешь OmniRoute-адаптер
+OMNIROUTE_BASE_URL=http://localhost:20128
 ```
 
 ### BYOK — ключи провайдеров в Cloudflare (опционально)

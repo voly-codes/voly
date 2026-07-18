@@ -27,8 +27,8 @@ Developer / UI / CI
 │   ↓ ROUTE       │       │   ↓ _dspy_plan_task()  (optional)    │
 │   ↓ MEMORY      │       │   ↓ executor.run(refined_task, cwd)  │
 │   ↓ RTK         │       │   ↓ BILLING FALLBACK CHAIN:          │
-│   ↓ SKILL_SUGGEST*      │     claude-code → wrangler → zen     │
-│   ↓ SKILL       │       │   ↓ _dspy_store_example()            │
+│   ↓ SKILL_SUGGEST*      │     claude-code → cursor → deepseek  │
+│   ↓ SKILL       │       │     → wrangler → opencode → zen      │
 │   ↓ HEADROOM    │       │   ↓ _dspy_store_example()            │
 │   ↓ DSPY*       │       │   ↓ WorkReport (git diff)            │
 │   ↓ MODEL_CALL  │       │   ↓ emit TaskEvent                   │
@@ -38,26 +38,28 @@ Developer / UI / CI
          │
          ▼
 ┌──────────────────────────────────────────────────┐
-│ AIGateway.chat()  (sole exit to models)          │
+│ AIGateway.chat()  (sole exit to chat models)     │
 │ DLP → Cache → Rate limit → Spend limit → Provider │
 │ Cloudflare AI Gateway · Direct adapters           │
 └──────────────────────────────────────────────────┘
 ```
 
 **Smart dispatch** (`voly/web/routes/run.py`): when `POST /api/run` receives
-`executor=pipeline` and the task requires code generation (`requires_code_gen=True`) — it
-automatically switches to the executor path with `executor=claude-code`.
+`executor=pipeline` and the task is complex (≥ `a2a.min_flags_for_dispatch` or
+`complexity=high`) it stays in multi-agent; a simple code-gen task promotes to
+the executor path (default `claude-code` + cwd). With `--cwd`, multi-agent
+**hybrid** runs implement roles via `AgentRunner` and architect/reviewer via chat.
 
 ---
 
 ## Design principles
 
 1. **VOLY stays project-agnostic.** No product-specific logic in `voly/`.
-2. **AIGateway is the sole exit to models.** DSPy, InferenceManager, and all runtimes go through it.
+2. **AIGateway is the sole exit to chat models.** DSPy, InferenceManager, and pipeline chat roles go through it; file-capable executors are a separate path.
 3. **Optimization is layered.** RTK, Headroom, and DSPy are independent with explicit fallback.
 4. **Shadow before active.** New optimizer behavior starts in shadow, then becomes active.
 5. **Runtime state is not source.** `.voly/events/`, datasets, compiled programs are generated artifacts.
-6. **Billing fallback chain.** On a billing error the executor is automatically replaced: `claude-code → wrangler → opencode → zen`.
+6. **Billing fallback chain.** On a billing error the executor is automatically replaced: `claude-code → cursor → deepseek → wrangler → opencode → zen`.
 
 ---
 
@@ -144,12 +146,12 @@ class PipelineResult:
 ### Billing fallback chain
 
 ```
-claude-code  →  wrangler  →  zen
-(Anthropic)    (CF Workers)  (free)
+claude-code → cursor → deepseek → wrangler → opencode → zen
+(Anthropic)   (Cursor)  (DeepSeek)  (CF)      (OpenCode)  (last resort)
 ```
 
-`ExecutorResult.billing_error = True` → next executor in the chain.
-Only file-capable executors. Text-only (deepseek, workers-ai) — not in the chain.
+`ExecutorResult.billing_error = True` (or `not_available`) → next in chain.
+Only file-capable executors. Text-only (`mimo`, workers-ai chat) — not in the chain.
 
 ### DSPy in the executor path
 
@@ -178,11 +180,11 @@ voly.chain logger:
 | Executor | File writes | Billing | Chain position |
 |---|---|---|---|
 | `claude-code` | yes — Claude CLI | Anthropic | 1st |
-| `wrangler` | yes — LocalPatchApplier | CF Workers AI | 2nd |
-| `zen` | yes — opencode CLI | free | 3rd (last resort) |
-| `cursor` | yes — Cursor Agent | Cursor | standalone |
-| `opencode` | yes — OpenCode CLI | opencode.ai | standalone |
-| `deepseek` | no — text only | DeepSeek API | NOT in chain |
+| `cursor` | yes — Cursor Agent SDK | Cursor | 2nd |
+| `deepseek` | yes — DeepSeek file executor | DeepSeek API | 3rd |
+| `wrangler` | yes — LocalPatchApplier | CF Workers AI | 4th |
+| `opencode` | yes — OpenCode CLI | opencode.ai | 5th |
+| `zen` | yes — opencode CLI | free | 6th (last resort) |
 | `mimo` | no — text only | MiMo API | NOT in chain |
 
 ---
@@ -261,7 +263,7 @@ EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepse
 | `zen.py` | ZenExecutor | opencode CLI, free tier |
 | `cursor.py` | CursorExecutor | Cursor Agent |
 | `opencode.py` | OpenCodeExecutor | OpenCode CLI/API |
-| `deepseek.py` | DeepSeekExecutor | text only |
+| `deepseek.py` | DeepSeekExecutor | file-capable DeepSeek executor (in billing chain) |
 
 ### `voly/inference/runtime.py` — runtime selection
 
