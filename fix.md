@@ -28,3 +28,4 @@ commit hash and an English description.
 - `6596c8a` — Surface per-role errors and durations for multi-agent tasks in the UI: RoleStrip chips in TaskHeader plus error lines under failed agent rows in PipelineInspector, so a partial run is explainable at a glance.
 - `8a805b3` — Fix tester model tier (cheap→standard, uses paid providers), empty-response false positive in chat roles (ok=False when content empty regardless of gates_on), auto-add .voly/ to target project .gitignore in ensure_git_repo, and show partial multi-agent output on CLI failure instead of bare "Error: ".
 - `df916a5` — Prefer .venv/bin/pytest for plan tester_command auto-fill; auto-set requires_review when ≥2 capability flags (code-gen+tests → 3 roles); add deepseek to gateway fallback.chain; tighten AGENTS.md/CLAUDE.md.
+- `10b0b13` — 15s provider HTTP stall timeout with fallback; plan command_timeout 60s; allowlist .env.example for greenfield; pipeline SETUP/A2A logging and post-run checklist.
