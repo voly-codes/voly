@@ -88,6 +88,10 @@ VOLY_A2A_EXCLUDE_PROVIDERS=anthropic,openai
 # Applied before the first chat call (mark_unhealthy) and on every tier resolve.
 # Runtime auth/billing errors in `run_local` also mark providers unhealthy (TTL).
 
+VOLY_PROVIDER_EXCLUDE_TTL=3600
+# Seconds to keep a provider unhealthy after auth/billing errors (`0` = forever).
+# See docs/backend/ai-gateway.md.
+
 VOLY_A2A_EXECUTOR_DEVELOPER=cursor
 VOLY_A2A_EXECUTOR_BUGFIXER=deepseek
 VOLY_A2A_EXECUTOR_TESTER=cursor
@@ -102,6 +106,15 @@ VOLY_RUN_POOL_WORKERS=16
 # Thread pool size for POST /api/run (web/routes/run.py). Executor calls are
 # I/O-bound subprocess waits, not CPU-bound, so a larger pool is cheap and
 # reduces invisible queuing under concurrent requests.
+
+VOLY_JSON_LOGS=1
+# JSON-lines logs with correlation_id (web server). See docs/backend/api.md.
+
+VOLY_CF_CONTAINERS_URL=http://127.0.0.1:8791
+VOLY_CF_CONTAINERS_TOKEN=
+VOLY_CF_CONTAINERS_MODE=probe
+VOLY_CF_CONTAINERS_REPO=
+# Optional CF Containers executor (PoC). See docs/backend/executors.md.
 
 VOLY_CLOUD_ENABLED=true
 VOLY_CLOUD_URL=http://127.0.0.1:7790

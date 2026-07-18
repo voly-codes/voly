@@ -29,7 +29,10 @@ EXECUTOR_CAPABLE_ROLES: frozenset[str] = frozenset({
     "devops",
 })
 
-# Per-role executor when hybrid mode=executor (env: VOLY_A2A_EXECUTOR_<ROLE>).
+# Per-role executor when hybrid mode=executor.
+# Env overrides (also listed for scripts/check_env_doc_sync.py):
+# VOLY_A2A_EXECUTOR_DEVELOPER, VOLY_A2A_EXECUTOR_BUGFIXER,
+# VOLY_A2A_EXECUTOR_TESTER, VOLY_A2A_EXECUTOR_DEVOPS.
 _ROLE_EXECUTOR: dict[str, str] = {
     "developer": "cursor",
     "bugfixer": "deepseek",

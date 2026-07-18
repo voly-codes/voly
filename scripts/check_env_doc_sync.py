@@ -35,11 +35,16 @@ INTERNAL_ALLOWLIST = {
 }
 
 
+def _real_env_names(names: set[str]) -> set[str]:
+    """Drop f-string / docstring prefixes like VOLY_CLOUD_ or VOLY_A2A_EXECUTOR_."""
+    return {n for n in names if not n.endswith("_")}
+
+
 def scan_code_vars() -> set[str]:
     found: set[str] = set()
     for path in CODE_DIR.rglob("*.py"):
         found.update(VAR_RE.findall(path.read_text(encoding="utf-8")))
-    return found
+    return _real_env_names(found)
 
 
 def env_example_vars() -> set[str]:
@@ -47,7 +52,7 @@ def env_example_vars() -> set[str]:
         return set()
     # Accept both active (KEY=) and commented (# KEY=) declarations.
     keys = re.findall(r"(?m)^\s*#?\s*(VOLY_[A-Z0-9_]+)\s*=", ENV_EXAMPLE.read_text(encoding="utf-8"))
-    return set(keys)
+    return _real_env_names(set(keys))
 
 
 def documented_vars() -> set[str]:
@@ -55,7 +60,7 @@ def documented_vars() -> set[str]:
     if DOCS_DIR.exists():
         for path in DOCS_DIR.rglob("*.md"):
             found.update(VAR_RE.findall(path.read_text(encoding="utf-8")))
-    return found
+    return _real_env_names(found)
 
 
 def main() -> int:
