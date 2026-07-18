@@ -31,3 +31,4 @@ commit hash and an English description.
 - `10b0b13` — 15s provider HTTP stall timeout with fallback; plan command_timeout 60s; allowlist .env.example for greenfield; pipeline SETUP/A2A logging and post-run checklist.
 - `150c685` — Soft-fail safety when protected paths roll back but other files remain; treat files_touched as code so multi-agent does not cascade-skip chat roles; demote Anthropic to last in strong/standard provider tiers.
 - `cb3a0d2` — Scope bare pytest verify to touched tests; compact prior context with files_touched; cwd executor lock + mtime-filtered git delta; deepseek in _template fallback.chain.
+- `11a48e8` — Reviewer/tester get git-diff evidence from prior files_touched; dual HTTP timeouts (stall 15s + total 60s) for slow live providers.
