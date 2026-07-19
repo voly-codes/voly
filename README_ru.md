@@ -97,7 +97,9 @@ developer → tester → reviewer. Готовая игра с тестами и 
 **5 мин 58 с** и **$0.0130** (без retry).
 
 <p align="center">
-  <video src="docs/assets/export-1784466924338-compact.mp4" controls muted width="900"></video>
+
+https://github.com/voly-codes/voly/releases/download/demo-voxel-tanks/export-1784466924338-compact.mp4
+
 </p>
 
 ## Open core vs Cloud
