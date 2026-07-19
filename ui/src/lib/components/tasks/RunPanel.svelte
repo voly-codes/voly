@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
   import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills, detectTech } from '../../api/client.js'
+  import CategoryPickerModal from './CategoryPickerModal.svelte'
   import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunResult from './RunResult.svelte'
@@ -32,6 +33,8 @@
   let techDetected = $state([])
   let confirmedTechStack = $state([])
   let checkingTech = $state(false)
+
+  let categoryPickerOpen = $state(false)
 
   const HYBRID_WARNING_LABELS = {
     hybrid_skipped_no_cwd: 'Hybrid code generation skipped (no cwd set) — running chat-only.',
@@ -127,9 +130,8 @@
     await checkTechGate()
   }
 
-  /** Gate 2: detect tech stack, show modal if anything found. */
+  /** Gate 2: detect tech stack — show TechSelectionModal if found, CategoryPickerModal if not. */
   async function checkTechGate() {
-    // Only run tech detection for pipeline/executor runs, not pure chat
     if (executor === 'pipeline' || executor === 'claude-code' || executor === 'cursor') {
       checkingTech = true
       try {
@@ -140,6 +142,9 @@
           techGateOpen = true
           return
         }
+        // Nothing detected — show category picker so user can choose a stack
+        categoryPickerOpen = true
+        return
       } catch {
         // Detection endpoint down — don't block the run.
       } finally {
@@ -147,6 +152,11 @@
       }
     }
     await startRun([])
+  }
+
+  function onCategoryPick(entries) {
+    techDetected = entries
+    techGateOpen = true
   }
 
   function onTechConfirm(selected) {
@@ -308,6 +318,12 @@
   detected={techDetected}
   onConfirm={onTechConfirm}
   onSkip={onTechSkip}
+/>
+
+<CategoryPickerModal
+  bind:open={categoryPickerOpen}
+  onPick={onCategoryPick}
+  onSkip={() => startRun([])}
 />
 
 <style>

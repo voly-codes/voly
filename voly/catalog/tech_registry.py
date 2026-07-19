@@ -228,7 +228,43 @@ _REGISTRY: list[dict[str, Any]] = [
         "companions": [],
         "notes": "v28: BuildKit default, compose v2 (docker compose), improved networking.",
     },
-    # ── Game engines ──────────────────────────────────────────────────────
+    # ── Game engines / frameworks ─────────────────────────────────────────
+    {
+        "name": "pygame",
+        "label": "Pygame",
+        "versions": ["2.6.1", "2.5.2"],
+        "category": "frontend",
+        "keywords": ["pygame", "python game", "2d game python", "arcade"],
+        "companions": ["python", "pytest"],
+        "notes": "2.6: SDL2-based 2D sprites, event loop, sound. Best for Python 2D/retro games.",
+    },
+    {
+        "name": "godot",
+        "label": "Godot",
+        "versions": ["4.4.1", "3.6.0"],
+        "category": "frontend",
+        "keywords": ["godot", "gdscript", "godot engine", "godot4"],
+        "companions": [],
+        "notes": "v4: GDScript 2.0, Vulkan renderer, C# support. v3: stable, large community.",
+    },
+    {
+        "name": "phaser",
+        "label": "Phaser",
+        "versions": ["3.88.2", "3.80.1"],
+        "category": "frontend",
+        "keywords": ["phaser", "phaser3", "html5 game", "browser game", "canvas game"],
+        "companions": ["typescript", "vite"],
+        "notes": "v3: WebGL/Canvas, arcade physics, tilemaps, asset loader. Best for browser 2D games.",
+    },
+    {
+        "name": "love2d",
+        "label": "LÖVE 2D",
+        "versions": ["11.5", "11.4"],
+        "category": "frontend",
+        "keywords": ["love2d", "lua game", "löve", "love framework"],
+        "companions": [],
+        "notes": "Lua-based 2D framework. Lightweight, cross-platform, good for indie/retro games.",
+    },
     {
         "name": "unity",
         "label": "Unity",
@@ -369,6 +405,55 @@ def _entry_with_defaults(entry: dict[str, Any]) -> dict[str, Any]:
 def get_registry() -> list[dict[str, Any]]:
     """Return the full tech registry for CF/API exposure."""
     return [_entry_with_defaults(e) for e in _REGISTRY]
+
+
+# ── Category definitions ──────────────────────────────────────────────────────
+
+_CATEGORIES: list[dict[str, Any]] = [
+    {
+        "id": "web",
+        "label": "Web Frontend",
+        "description": "Browser apps and dashboards — React, Svelte, Vue, Next.js",
+        "techs": ["svelte", "sveltekit", "react", "nextjs", "vue", "nuxt", "typescript", "vite", "vitest"],
+    },
+    {
+        "id": "backend",
+        "label": "Python Backend",
+        "description": "APIs and services — FastAPI, Django, Flask",
+        "techs": ["fastapi", "django", "flask", "python", "pydantic", "uvicorn", "pytest", "httpx", "postgresql"],
+    },
+    {
+        "id": "game",
+        "label": "Game",
+        "description": "2D/3D games — Pygame, Phaser, Godot, Unity",
+        "techs": ["pygame", "phaser", "godot", "unity", "love2d", "python", "typescript", "csharp"],
+    },
+    {
+        "id": "cli",
+        "label": "CLI / Script",
+        "description": "Command-line tools and automation scripts",
+        "techs": ["python", "node", "typescript", "pytest"],
+    },
+    {
+        "id": "data",
+        "label": "Data / ML",
+        "description": "Data pipelines, analysis, machine learning",
+        "techs": ["python", "pytest", "postgresql", "redis", "httpx"],
+    },
+]
+
+
+def get_categories() -> list[dict[str, Any]]:
+    """Return project categories with their resolved tech entries for the fallback picker."""
+    return [
+        {
+            "id": cat["id"],
+            "label": cat["label"],
+            "description": cat["description"],
+            "entries": [_entry_with_defaults(_BY_NAME[n]) for n in cat["techs"] if n in _BY_NAME],
+        }
+        for cat in _CATEGORIES
+    ]
 
 
 def tech_stack_context(selected: list[dict[str, Any]]) -> str:

@@ -1,5 +1,5 @@
 <script>
-  import { BookOpenIcon, LayersIcon } from '../../icons.js'
+  import { BookOpenIcon, FolderIcon, LayersIcon } from '../../icons.js'
   import BillingChainTimelog from './BillingChainTimelog.svelte'
   import MultiAgentPanel from './MultiAgentPanel.svelte'
   import PxpipeArtifacts from './PxpipeArtifacts.svelte'
@@ -34,6 +34,13 @@
       <summary>Diff preview (dry-run — changes were rolled back)</summary>
       <pre class="diff-content">{result.dry_run_diff}</pre>
     </details>
+  {/if}
+
+  {#if result.greenfield && result.project_dir}
+    <div class="greenfield-notice">
+      <FolderIcon size="11" strokeWidth="2" />
+      <span>New project created at <code>{result.project_dir}</code></span>
+    </div>
   {/if}
 
   {#if result.tech_stack?.length}
@@ -106,6 +113,24 @@
     color: var(--text-secondary);
     background: var(--bg-surface);
     white-space: pre;
+  }
+
+  .greenfield-notice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-muted);
+    font-size: 11px;
+    color: var(--accent-teal);
+  }
+
+  .greenfield-notice code {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    background: color-mix(in srgb, var(--accent-teal) 12%, transparent);
+    padding: 1px 4px;
+    border-radius: 3px;
   }
 
   .injected-skills {

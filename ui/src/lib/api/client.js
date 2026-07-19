@@ -100,6 +100,9 @@ export const detectTech = (task, cwd = '') =>
 export const techPreflight = (tech) =>
   post('/api/tech/preflight', { tech }).then(r => r.json())
 
+/** Return project-type categories with pre-resolved tech entries (fallback picker). */
+export const fetchTechCategories = () => get('/api/tech/categories')
+
 export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 0) =>
   get(`/api/marketplace/plugins?${new URLSearchParams({ status, limit, offset })}`)
 
