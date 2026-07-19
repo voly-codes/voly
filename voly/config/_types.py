@@ -189,6 +189,9 @@ class ReuseConfig:
     ])
     pack_max_chars: int = 80_000
     apply_dest: str = "vendor/reuse"
+    auto: bool = False              # auto-run search+pick before each executor call
+    auto_max_age_seconds: int = 7 * 24 * 3600  # skip if fresh report exists
+    auto_max_repos: int = 3         # smaller limit to keep latency low
 
 
 @dataclass

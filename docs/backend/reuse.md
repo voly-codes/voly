@@ -58,6 +58,9 @@ reuse:
   deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
   pack_max_chars: 80000
   apply_dest: "vendor/reuse"
+  auto: false                  # auto-run search+pick before each executor call
+  auto_max_age_seconds: 604800 # skip if fresh report exists (7 days)
+  auto_max_repos: 3            # smaller limit to keep latency low
 ```
 
 | Field | Meaning |
@@ -70,6 +73,9 @@ reuse:
 | `allowed_licenses` / `deny_licenses` | SPDX keys (lowercase); deny wins; unknown → not allowed for apply |
 | `pack_max_chars` | Budget for packed tree + snippets |
 | `apply_dest` | Destination under `--cwd` |
+| `auto` | Auto-run GitHub search+pick before each run (adds ~10–30s, opt-in) |
+| `auto_max_age_seconds` | Skip auto-search if existing report is younger than this |
+| `auto_max_repos` | Repo limit in auto mode (smaller than `max_repos` to stay fast) |
 
 ---
 
@@ -98,12 +104,29 @@ reuse:
 
 ---
 
-## Pipeline integration (thin)
+## Pipeline integration
 
-If `reuse.enabled` and `.voly/reuse/reports/latest.json` exists under the target
-cwd (and is recent), `_gather_local_context` prepends a short **Code reuse report**
-block before the executor/pipeline local files. This does **not** auto-search
-GitHub on every run (network/rate-limit cost).
+### Passive inject (always on when `enabled: true`)
+
+If `.voly/reuse/reports/latest.json` exists under the target cwd and is recent,
+`_gather_local_context` prepends a short **Code reuse report** block before
+executor/pipeline local files.
+
+### Auto-search (`auto: true`, opt-in)
+
+When `reuse.auto: true`, the pipeline runs `auto_reuse()` before each executor call:
+
+1. Checks if a report younger than `auto_max_age_seconds` exists — skips if yes.
+2. Calls `search_and_pack` (up to `auto_max_repos` repos) + `pick_modules`.
+3. Saves the report to `.voly/reuse/reports/` — immediately picked up by the passive inject.
+4. Never raises: network errors, rate limits, missing GitHub token → silent skip.
+
+Enable per-project in `voly.yaml`:
+```yaml
+reuse:
+  auto: true
+  auto_max_repos: 3
+```
 
 Skill playbook: `.voly/skills/code-reuse.yaml` — directs agents to the CLI;
 skills remain prompt-text, not executable workflows.

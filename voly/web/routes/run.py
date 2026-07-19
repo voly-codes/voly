@@ -125,6 +125,23 @@ def _scaffold_greenfield(work_dir: str, tech_stack: list[dict]) -> bool:
     return True
 
 
+# ── Auto-reuse pre-stage ─────────────────────────────────────────────────────
+
+def _run_auto_reuse(task: str, cwd: str, config: Any) -> None:
+    """Search GitHub for similar repos and save a reuse report before executor runs.
+
+    No-op when reuse.auto is false, cwd is empty, or any error occurs.
+    The saved report is picked up automatically by _gather_local_context via context.py.
+    """
+    if not cwd:
+        return
+    try:
+        from voly.reuse.pipeline import auto_reuse
+        auto_reuse(task, cwd=cwd, config=config)
+    except Exception:
+        pass
+
+
 # ── Local context gathering ───────────────────────────────────────────────────
 
 def _gather_local_context(task: str, cwd: str, max_chars: int = 6000) -> str:
@@ -238,6 +255,7 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
     pipeline.setup_environment()
     run_cwd = os.path.expanduser(req.cwd) if req.cwd else ""
     greenfield = _scaffold_greenfield(run_cwd, req.tech_stack) if run_cwd else False
+    _run_auto_reuse(req.task, run_cwd, cfg)
     context: dict[str, Any] = {}
     if run_cwd:
         context["cwd"] = run_cwd
@@ -323,6 +341,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
 
     work_dir = os.path.expanduser(req.cwd) if req.cwd else os.getcwd()
     greenfield = _scaffold_greenfield(work_dir, req.tech_stack) if req.cwd else False
+    _run_auto_reuse(req.task, work_dir if req.cwd else "", cfg)
 
     # Enrich task with local context for code tasks
     task = req.task

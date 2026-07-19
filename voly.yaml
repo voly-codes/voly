@@ -145,6 +145,9 @@ reuse:
   deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
   pack_max_chars: 80000
   apply_dest: "vendor/reuse"
+  auto: true
+  auto_max_repos: 3
+  auto_max_age_seconds: 604800
 
 ai_gateway:
   enabled: true

@@ -171,6 +171,63 @@ def pack_one(
     )
 
 
+def auto_reuse(
+    task: str,
+    *,
+    cwd: str | Path,
+    config: VOLYConfig | None = None,
+    gateway: Any = None,
+) -> ReuseReport | None:
+    """Run search+pick automatically before an executor call.
+
+    Skips silently if: auto disabled, no GitHub token, fresh report already exists,
+    or any network/API error occurs. Never raises — must not block the main run.
+    """
+    import time
+
+    cfg = _reuse_cfg(config)
+    if not cfg.auto:
+        return None
+
+    reports_dir = Path(cfg.reports_dir)
+    if not reports_dir.is_absolute():
+        reports_dir = Path(cwd).expanduser() / reports_dir
+
+    try:
+        from voly.reuse.report import latest_report_path
+        path = latest_report_path(reports_dir)
+        if path is not None:
+            age = time.time() - path.stat().st_mtime
+            if age < cfg.auto_max_age_seconds:
+                _log.debug("auto_reuse: fresh report exists (%ds old), skipping", int(age))
+                return None
+    except Exception:
+        pass
+
+    if gateway is None and config is not None:
+        try:
+            gateway = _build_gateway(config)
+        except Exception:
+            pass
+
+    try:
+        report = search_and_pack(
+            task,
+            config=config,
+            limit=cfg.auto_max_repos,
+            gateway=gateway,
+            pack=True,
+        )
+        report.picked = pick_modules(task, report.candidates, gateway)
+        path = save_report(report, reports_dir)
+        _log.info("auto_reuse: saved %s (%d candidates, %d picked)",
+                  path, len(report.candidates), len(report.picked))
+        return report
+    except Exception as exc:
+        _log.warning("auto_reuse: skipped due to error: %s", exc)
+        return None
+
+
 def run_reuse(
     task: str,
     *,
