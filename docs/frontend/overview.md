@@ -53,7 +53,7 @@ ui/
         tasks/
           RunPanel.svelte               # main task run panel
           RunParams.svelte              # params: executor, agent, model, cwd
-          RunResult.svelte              # task result output
+          RunResult.svelte              # task result shell (+ Header / Chain / MultiAgent / SkillSuggest)
           TaskHeader.svelte
           TaskSidebar.svelte
           PipelineStages.svelte         # pipeline stage visualization

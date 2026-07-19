@@ -84,18 +84,19 @@ Hint: `cwd ? 'executor writes here' : 'leave empty for text-only'`
 
 ## RunResult.svelte
 
-The run report screen — renders everything the `done` SSE payload carries:
-- header chips: agent / model / executor / status, plus `dry-run` (amber),
-  `safety` (red, tooltip = violation text), `→ <executor>` billing fallback
-- stats: duration, tokens, cost_usd, num_turns
-- billing chain timelog (per-attempt executor / model / status / duration)
-- multi-agent panel: role / tier / mode / plan status / executor or
-  provider+model / files / cached / mem / skills / tokens / cost per agent
-- hybrid summary row: N executor / M chat roles, union of files touched
-- `WorkReport` (files created/changed/deleted, summary, actions)
-- `safety_rolled_back` note and a collapsible **dry-run diff preview**
-  (`dry_run_diff`, max-height scroll)
-- injected skills, content, error
+The run report screen — shell that composes focused subcomponents for the
+`done` SSE payload:
+
+| Component | Renders |
+|---|---|
+| `RunResultHeader.svelte` | chips (agent/model/executor/status/dry-run/safety/fallback/corr) + stats |
+| `BillingChainTimelog.svelte` | per-attempt billing chain (executor / model / status / duration) |
+| `MultiAgentPanel.svelte` | A2A role rows + hybrid summary (executor/chat counts, files) |
+| `SkillSuggestBanner.svelte` | marketplace skill install suggestions |
+| `WorkReport` / `PxpipeArtifacts` | files report + artifacts (existing) |
+
+Also in the shell: `safety_rolled_back` note, dry-run diff preview, injected
+skills, content, error.
 
 ---
 
