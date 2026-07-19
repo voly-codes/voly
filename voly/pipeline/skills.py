@@ -6,6 +6,10 @@ import re
 from typing import Any
 
 
+# Navigation/index skills that list other skills but have no executable expertise.
+# Kept in sync with is_index:true flags in the catalog; this list survives catalog resyncs.
+_KNOWN_INDEX_SKILL_IDS = frozenset({"engineering-skills"})
+
 # Ultra-generic task words that let markdown/review skills match every code task.
 _GENERIC_TASK_TOKENS = frozenset({
     "code", "review", "tests", "test", "write", "writing", "update", "changes",
@@ -44,7 +48,7 @@ def _score_skill(
     signal (keyword or language/framework match) — otherwise every installed
     skill leaks into every prompt (marketing-ops on a FastAPI task).
     """
-    if getattr(skill, "is_index", False):
+    if getattr(skill, "is_index", False) or skill.id in _KNOWN_INDEX_SKILL_IDS:
         return 0.0
     if skill.source == project_source:
         return 10.0
