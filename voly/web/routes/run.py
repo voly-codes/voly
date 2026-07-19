@@ -33,7 +33,7 @@ _RUN_HEARTBEAT_SECONDS = 15
 _log = logging.getLogger("voly.web.run")
 
 # Code extensions to search when gathering context
-_CODE_EXTS = ("*.py", "*.ts", "*.tsx", "*.js", "*.jsx", "*.go", "*.rs", "*.cs", "*.java")
+_CODE_EXTS = ("*.py", "*.ts", "*.tsx", "*.js", "*.jsx", "*.go", "*.rs", "*.cs", "*.java", "*.asmdef")
 
 # Common English/Russian stop-words to skip during keyword extraction
 _STOP_WORDS = frozenset({
@@ -77,6 +77,7 @@ _RUNTIME_BINS: dict[str, str] = {
     "python": "python3",
     "node": "node",
     "docker": "docker",
+    "unity": "unity",  # Unity Hub CLI or Editor symlink in PATH
 }
 
 
@@ -479,11 +480,11 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
 async def detect_tech(req: TechDetectRequest) -> dict:
     """Detect the tech stack implied by a task description.
 
-    Returns a list of framework/library entries with version choices the user
-    can confirm or override in the UI before the run starts.
+    When cwd points to a Unity project the exact Editor version is read from
+    ProjectSettings/ProjectVersion.txt and used instead of the registry default.
     """
     from voly.catalog.tech_registry import detect_tech_from_task
-    detected = detect_tech_from_task(req.task)
+    detected = detect_tech_from_task(req.task, cwd=req.cwd)
     return {"detected": detected}
 
 

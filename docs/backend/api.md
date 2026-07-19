@@ -88,6 +88,62 @@ Logs: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FA
 
 ---
 
+## POST /api/tech/detect
+
+Keyword-based detection of the tech stack implied by a task description.
+When `cwd` points to a Unity project (`ProjectSettings/ProjectVersion.txt` exists),
+the exact Editor version is read from disk and overrides the registry default.
+
+```typescript
+// Request
+{ task: string, cwd?: string }
+
+// Response
+{
+  detected: [{
+    name: string,       // registry ID
+    label: string,      // display name
+    version: string,    // selected default (latest or detected from cwd)
+    versions: string[], // all available choices
+    category: string,   // frontend | backend | language | build | testing | database | infra
+    notes: string,      // what changed in latest version (injected into agent prompt)
+  }]
+}
+```
+
+Used by `RunPanel.svelte` before the run starts — detected stack is shown to the user via
+`TechSelectionModal` for confirmation/override. Confirmed stack is sent as `tech_stack` in
+`POST /api/run`.
+
+## POST /api/tech/preflight
+
+Check which of the requested tech runtimes are available as system binaries.
+Only checks language/infra runtimes that have a system-level binary
+(`python3`, `node`, `docker`, `unity`). Framework packages (fastapi, react, pytest, etc.)
+are managed by package managers and are not checked here.
+
+```typescript
+// Request
+{ tech: string[] }   // registry names to check
+
+// Response
+{ available: { [name: string]: boolean } }   // only entries that have a binary mapping
+```
+
+Called by `TechSelectionModal.svelte` when the modal opens. Missing runtimes get an amber
+"not installed" badge in the UI — the run is not blocked, just warned.
+
+## GET /api/tech/registry
+
+Returns the full tech registry (all frameworks and their version lists) for CF/UI exposure.
+
+```typescript
+// Response
+{ registry: TechEntry[] }
+```
+
+---
+
 ## GET /api/environment
 
 Local readiness for the Web UI / onboarding. Does **not** call remote provider

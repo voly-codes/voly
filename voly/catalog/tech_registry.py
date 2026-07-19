@@ -228,6 +228,31 @@ _REGISTRY: list[dict[str, Any]] = [
         "companions": [],
         "notes": "v28: BuildKit default, compose v2 (docker compose), improved networking.",
     },
+    # ── Game engines ──────────────────────────────────────────────────────
+    {
+        "name": "unity",
+        "label": "Unity",
+        "versions": ["6000.0.47", "2022.3.62", "2021.3.47", "2020.3.48"],
+        "category": "frontend",
+        "keywords": ["unity", "monobehaviour", "gameobject", "hdrp", "urp", "unityengine", "unity3d", "prefab"],
+        "companions": ["csharp"],
+        "notes": (
+            "Unity 6 (6000.x): ECS/DOTS stable, new Physics, Render Graph. "
+            "2022.3 LTS: recommended for production. "
+            "IMPORTANT: every new .cs file needs a sibling .meta file with a unique GUID — "
+            "missing .meta breaks script references in the Editor. "
+            "Tests run via Unity Test Runner (NUnit) inside the Editor, NOT pytest."
+        ),
+    },
+    {
+        "name": "csharp",
+        "label": "C#",
+        "versions": ["12.0", "11.0", "9.0"],
+        "category": "language",
+        "keywords": ["csharp", "c#", ".cs", "dotnet", "monobehaviour", "scriptableobject"],
+        "companions": [],
+        "notes": "C# 12 (Unity 2022+): record structs, default interface members, pattern matching.",
+    },
 ]
 
 # Build lookup index by name
@@ -236,8 +261,25 @@ _BY_NAME: dict[str, dict[str, Any]] = {e["name"]: e for e in _REGISTRY}
 
 # ── Detection logic ───────────────────────────────────────────────────────────
 
-def detect_tech_from_task(task: str) -> list[dict[str, Any]]:
+def detect_unity_version(cwd: str) -> str | None:
+    """Read Unity version from ProjectSettings/ProjectVersion.txt if present."""
+    import os
+    version_file = os.path.join(os.path.expanduser(cwd), "ProjectSettings", "ProjectVersion.txt")
+    try:
+        with open(version_file, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("m_EditorVersion:"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return None
+
+
+def detect_tech_from_task(task: str, cwd: str = "") -> list[dict[str, Any]]:
     """Deterministic keyword-based detection of tech stack from task description.
+
+    When cwd points to a Unity project (ProjectSettings/ProjectVersion.txt exists),
+    the exact Editor version is read and used instead of the registry default.
 
     Returns a list of registry entries (with defaults set) for the detected stack,
     companions included and deduplicated, ordered by relevance.
@@ -295,7 +337,22 @@ def detect_tech_from_task(task: str) -> list[dict[str, Any]]:
         return (int(is_companion), -expanded[name])
 
     ordered = sorted(expanded.keys(), key=_sort_key)
-    return [_entry_with_defaults(_BY_NAME[n]) for n in ordered if n in _BY_NAME]
+    results = [_entry_with_defaults(_BY_NAME[n]) for n in ordered if n in _BY_NAME]
+
+    # For Unity projects: override version with the actual Editor version from disk.
+    if cwd and any(r["name"] == "unity" for r in results):
+        actual = detect_unity_version(cwd)
+        if actual:
+            entry = _BY_NAME["unity"]
+            known = list(entry["versions"])
+            if actual not in known:
+                known.insert(0, actual)
+            results = [
+                {**r, "version": actual, "versions": known} if r["name"] == "unity" else r
+                for r in results
+            ]
+
+    return results
 
 
 def _entry_with_defaults(entry: dict[str, Any]) -> dict[str, Any]:
@@ -326,4 +383,18 @@ def tech_stack_context(selected: list[dict[str, Any]]) -> str:
         "Do not install or suggest newer versions. "
         "Do not upgrade pinned versions during implementation."
     )
+
+    names = {item["name"] for item in selected}
+    if "unity" in names:
+        lines += [
+            "",
+            "**Unity project rules (MANDATORY):**",
+            "- Every new .cs file MUST have a sibling .meta file containing a unique GUID"
+            " (format: `guid: <32 hex chars>`). Without it the Editor loses the script reference.",
+            "- Do NOT use pytest, npm test, or any non-Unity test runner.",
+            "- Tests run via Unity Test Runner (NUnit) inside the Editor — not from CLI.",
+            "- When writing a plan, set tester_command to:"
+            " `echo 'Run Unity Test Runner manually in Editor'`",
+        ]
+
     return "\n".join(lines)
