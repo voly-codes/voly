@@ -50,6 +50,13 @@ Developer / UI / CI
 the executor path (default `claude-code` + cwd). With `--cwd`, multi-agent
 **hybrid** runs implement roles via `AgentRunner` and architect/reviewer via chat.
 
+**Tech stack gate** (`voly/catalog/tech_registry.py` + `/api/tech/*` in
+`routes/run.py`): pinned framework/version registry with keyword detection, a
+category fallback picker for greenfield tasks, a runtime preflight check, and a
+confirmed-stack constraint block prepended to the task before pipeline and
+executor runs. A non-existent `cwd` is greenfield-scaffolded (dir + `git init` +
+stack-aware `.gitignore` + initial commit). Details: `docs/backend/api.md`.
+
 **Code reuse** (`voly reuse`, Layer B): optional CLI/library cycle
 search → shallow clone → pack → LLM/heuristic module pick → license-gated copy
 into `--cwd` (`vendor/reuse/…`). Reports under `.voly/reuse/reports/`; a fresh
@@ -92,7 +99,7 @@ open versioned interfaces — they are frozen by contract tests
 
 | Contract | Version | Where documented |
 |---|---|---|
-| `TaskEvent` (task telemetry) | `schema_version: 1` | `voly/telemetry.py`, `docs/backend/api.md` |
+| `TaskEvent` (task telemetry) | `schema_version: 3` | `voly/telemetry.py`, `docs/backend/api.md` |
 | Spend protocol (`/spend/record`, `/spend/check`, …) | v1 | `docs/backend/spend-protocol.md` |
 | A2A federation | — | `cf-workers/a2a/`, `docs/backend/api.md` |
 
@@ -115,6 +122,7 @@ Changing a contract = version bump + docs update + snapshot update in the contra
 | `ROUTE` | `_stage_route` | AgentRouter → RouteDecision |
 | `MEMORY_RETRIEVE` | `_stage_memory_retrieve` | MemoryStore.search |
 | `RTK_FILTER` | `_stage_rtk` | RTK token stats |
+| `SKILL_SUGGEST` | `_stage_skill_suggest` | non-blocking marketplace skill suggestions |
 | `SKILL_INJECT` | `_stage_skill_inject` | inject skill into system prompt |
 | `HEADROOM_COMPRESS` | — | context compression |
 | `DSPY_PROGRAM_CALL` | — | DSPyRunner.run() if enabled |
@@ -327,10 +335,14 @@ Middleware stack: DLP → Cache → Rate limit → Spend limit → Provider call
 | File | Purpose |
 |---|---|
 | `server.py` | FastAPI app, CORS, health |
-| `routes/run.py` | POST `/api/run` — SSE + smart dispatch + context gather |
-| `routes/tasks.py` | GET `/api/tasks`, SSE stream |
+| `routes/run.py` | POST `/api/run` — SSE + smart dispatch + context gather + tech gate endpoints (`/api/tech/*`) + greenfield scaffolding |
+| `routes/tasks.py` | GET `/api/tasks`, SSE stream, artifacts |
+| `routes/runs.py` | GET `/api/runs` — in-flight RunRecords (Rung A) |
 | `routes/registry.py` | agents, models, skills |
+| `routes/marketplace.py` | skill suggest / install (pre-run gate) |
+| `routes/environment.py` | GET `/api/environment` — local readiness |
 | `routes/gateway.py` | gateway status |
+| `routes/providers.py` | BYOK provider keys (localhost-only) |
 | `routes/telemetry.py` | spending analytics |
 | `routes/dspy.py` | DSPy status |
 | `routes/cf.py` | CF workers status |
@@ -345,6 +357,8 @@ Hash-based routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`.
 | `tasks/RunPanel.svelte` | task runner: executor selector, SSE stream |
 | `tasks/RunParams.svelte` | parameters: executor, agent, model, cwd |
 | `tasks/RunResult.svelte` | result: content, billing_fallback badge, cost |
+| `tasks/TechSelectionModal.svelte` | pre-run tech gate: version dropdowns, runtime preflight badges |
+| `tasks/CategoryPickerModal.svelte` | fallback project-type picker when tech detection is empty |
 | `tasks/TaskSidebar.svelte` | task list, search, filter |
 | `tasks/PipelineInspector.svelte` | pipeline stages, token flow, DSPy metadata |
 | `tasks/CostPanel.svelte` | spend summary cards |
@@ -369,6 +383,7 @@ Wrangler dev Worker for WranglerExecutor.
 | `GET /health` | availability + `pipeline_configured` / `a2a_callback_configured` |
 | `POST /infer` | CF AI Gateway route schema → FILE blocks → LocalPatchApplier |
 | `POST /agents/:name/run` | run task via pipeline runner (or `/infer` fallback) + A2A callback |
+| `GET /tech-registry` | static tech version registry (mirrors `voly/catalog/tech_registry.py`), 1h cache |
 | `/mcp` | MCP agent tools |
 
 `infer.ts`: tries CF AI Gateway (`CF_ACCOUNT_ID`+`CF_AIG_TOKEN` → `dynamic/ai_route`),
@@ -422,13 +437,15 @@ CLAUDE.md                   ← agent instructions, skill references, doc naviga
 docs/ARCHITECTURE.md        ← this file — high-level scheme
 docs/backend/
   pipeline.md               ← Pipeline stages, AgentRouter, smart dispatch
+  a2a.md                    ← A2A modules, auto-dispatch, federation, context handoff
   executors.md              ← Executors, billing fallback chain, WranglerExecutor
   ai-gateway.md             ← AIGateway middleware, CF route schema, providers
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
   plan.md                   ← plan gates (shadow/active, acceptance, CLI)
   reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
   config.md                 ← env vars, voly.yaml, VOLYConfig
-  api.md                    ← FastAPI endpoints, SSE events
+  api.md                    ← FastAPI endpoints, SSE events, tech gate, CF Worker endpoints
+  spend-protocol.md         ← spend protocol contract (/spend/record, /spend/check)
 docs/frontend/
   overview.md               ← Svelte 5 stack, ui/ structure, dev/build
   components.md             ← component catalog, props, executor order

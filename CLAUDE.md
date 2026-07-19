@@ -176,7 +176,8 @@ voly a2a                    voly agui                 voly rtk
 voly headroom               voly mcp                  voly runner
 voly telemetry              voly balance              voly init
 voly setup                  voly config               voly tunnel
-voly spend status           voly cloud login
+voly spend status           voly cloud login          voly pxpipe
+voly plan list|show
 voly reuse search|pack|pick|apply|run
 ```
 
@@ -219,7 +220,7 @@ pytest tests/ -q                          # full run
 | Multi-agent only developer+tester | ≥2 capability flags auto-set `requires_review` (3 roles). Deploy/architecture keywords still needed for devops/architect |
 | Hybrid roles stay chat / no files | Pass `--cwd` (or `VOLY_PROJECT_CWD`). Defaults: developer/tester/devops = executor |
 | Anthropic burns every role first | `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic` (pre-marked unhealthy) or wait for credit/billing mark_unhealthy |
-| Provider hang / slow fallback | `request_timeout_seconds` (15 stall) + `request_total_timeout_seconds` (60 full response); plan gates use `plan.command_timeout_seconds: 60` |
+| Provider hang / slow fallback | `request_timeout_seconds` (15 stall) + `request_total_timeout_seconds` (60 full response); plan gates use `plan.command_timeout_seconds: 120` |
 
 <!-- OPENWIKI:START -->
 

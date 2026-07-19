@@ -10,19 +10,30 @@ Main task run panel. Contains:
 - `<RunParams>` — executor / agent / model / cwd selection
 - Run button
 - `<RunResult>` for output
-- `<SkillSuggestModal>` — pre-run marketplace skill gate
+- `<SkillSuggestModal>` — pre-run marketplace skill gate (Gate 1)
+- `<TechSelectionModal>` / `<CategoryPickerModal>` — pre-run tech stack gate (Gate 2)
 
-**Pre-run skill gate:** on Run / Ctrl+Enter, calls
+**Gate 1 — skills:** on Run / Ctrl+Enter, calls
 `GET /api/marketplace/skills/suggest`. If missing skills are found, opens a modal
 to Install / Install all / wait for install / then **Run with skills**, or
-**Skip & run**. If suggest fails or returns `[]`, the run starts immediately.
+**Skip & run**. If suggest fails or returns `[]`, the flow continues to Gate 2.
 
-**Executor order** (file-writing first, text-only last):
+**Gate 2 — tech stack:** for `pipeline` / `claude-code` / `cursor` executors,
+calls `detectTech(task, cwd)` (`POST /api/tech/detect`). If frameworks are
+detected, opens `TechSelectionModal`; if nothing is detected, opens
+`CategoryPickerModal` (pick a category → `TechSelectionModal` with its entries).
+The confirmed stack is sent as `tech_stack` in `POST /api/run` and shown as
+chips in the running status bar. If detection fails, the run starts without a
+stack. Skipping either modal starts the run.
+
+**Executor order** (`pipeline` default first, then file-writing, text-only last):
 ```
-claude-code → wrangler → zen → cursor → opencode → pipeline → deepseek → workers-ai → cloudflare-dynamic
+pipeline → claude-code → wrangler → cf-containers → zen → cursor → opencode → deepseek → workers-ai → cloudflare-dynamic
 ```
 
-**Props:** `config`, `agents`, `models`
+**Props:** `onTaskComplete` (callback fired on the `done` SSE event).
+Agents / models are fetched by the panel itself (`fetchAgents` / `fetchModels`)
+and passed down to `RunParams`.
 
 **Events:** SSE stream from `POST /api/run` — types: `start`, `done`, `error`.
 A `start` event carrying `hybrid_warning` is rendered as a visible amber
@@ -46,6 +57,38 @@ Blocks closing while an install is in progress.
 
 ---
 
+## TechSelectionModal.svelte
+
+Pre-run tech gate: pin exact framework/library versions so agents don't guess
+or auto-upgrade. Entries are grouped by category
+(frontend / backend / language / build / testing / database / infra), each with
+a version `<select>` (first option marked `latest`).
+
+**Props:** `open` (bindable), `detected` (entries from `POST /api/tech/detect`
+or a category pick), `onConfirm(selections)`, `onSkip`.
+
+**Preflight:** on open, calls `techPreflight(names)`
+(`POST /api/tech/preflight`) and shows an amber **not installed** badge on
+entries whose runtime binary (python3, node, docker, …) is missing from
+`PATH` — warns only, never blocks the run.
+
+**Keys:** Escape = skip, Ctrl/Cmd+Enter = confirm.
+
+---
+
+## CategoryPickerModal.svelte
+
+Fallback for Gate 2 when tech detection returns nothing (e.g. "create a 2D
+tank game"). Loads `GET /api/tech/categories` and shows a card grid
+(Web / Backend / Game / CLI / Data). Picking a category hands its pre-resolved
+tech entries to `TechSelectionModal`; Skip starts the run without a stack.
+
+**Props:** `open` (bindable), `onPick(entries)`, `onSkip`.
+
+**Keys:** Escape = skip, Ctrl/Cmd+Enter = pick.
+
+---
+
 ## EnvironmentBanner.svelte
 
 Light readiness strip above run params. Props: `report`, `loading`, `onRefresh`.
@@ -64,6 +107,8 @@ let {
   model = $bindable(''),
   cwd = $bindable(''),
   executors = [],
+  agents = [],
+  models = [],
   running = false,
   executorAvailability = {},  // from GET /api/environment
 } = $props()
@@ -71,11 +116,13 @@ let {
 
 Executor `<option>` labels append `✓` or `— not installed` from `executorAvailability`.
 
-**Executor hints** — hint under each executor:
+**Executor hints** — `executorHints` map shows a hint under the selected
+executor (all ids covered: `pipeline`, `claude-code`, `wrangler`,
+`cf-containers`, `zen`, `cursor`, `opencode`, `deepseek`, `workers-ai`,
+`cloudflare-dynamic`), e.g.:
 - `pipeline`: "AI Gateway — cache, DLP, spend control (text only)"
 - `claude-code`: "Claude Code CLI — reads/writes files · billing fallback → wrangler → zen"
-- `wrangler`: "CF Workers AI via wrangler dev — writes files via LocalPatchApplier"
-- `zen`: "OpenCode Zen — free tier, file-capable via opencode CLI"
+- `cf-containers`: "Cloudflare Containers via sandbox-spike — needs VOLY_CF_CONTAINERS_URL + JWT"
 
 **Working dir:** always visible (not hidden for pipeline) — smart dispatch needs cwd even for pipeline.
 Hint: `cwd ? 'executor writes here' : 'leave empty for text-only'`
@@ -95,8 +142,10 @@ The run report screen — shell that composes focused subcomponents for the
 | `SkillSuggestBanner.svelte` | marketplace skill install suggestions |
 | `WorkReport` / `PxpipeArtifacts` | files report + artifacts (existing) |
 
-Also in the shell: `safety_rolled_back` note, dry-run diff preview, injected
-skills, content, error.
+Also in the shell: `safety_rolled_back` note, dry-run diff preview, tech stack
+chips (`result.tech_stack`, above skills in the footer), a "New project created
+at …" notice when a greenfield cwd was scaffolded (`result.greenfield` +
+`result.project_dir`), injected skills, content, error.
 
 ---
 
@@ -201,6 +250,17 @@ value is sent once on save and never rendered back.
 
 ---
 
+## Other pages
+
+| Component | Role |
+|---|---|
+| `cf/MarketplacePage.svelte` | Skill catalog: browse / search / install marketplace skills |
+| `cf/PluginsPage.svelte` | Marketplace plugins list (`GET /api/marketplace/plugins`), search + configured/hint states |
+| `dspy/DSPyPage.svelte` | DSPy programs and lifecycle (`/api/dspy/*`) |
+| `telemetry/TelemetryPage.svelte` | Spend analytics: daily, by_agent, by_model |
+
+---
+
 ## Shared components
 
 | Component | Purpose |
@@ -241,7 +301,8 @@ Active section — `--accent-blue`.
 2. `RunParams.svelte` — add `executorHints[id]` with a description
 3. Update this file
 
-Known cloud-native executor: `cf-containers` (Cloudflare Containers / sandbox-spike).
+Cloud-native executor already wired in: `cf-containers` (Cloudflare Containers /
+sandbox-spike, requires `VOLY_CF_CONTAINERS_URL` + JWT).
 
 ## Correlation ID
 

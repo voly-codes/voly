@@ -35,6 +35,8 @@ VOLY — не ещё один AI-агент. Это **self-hosted control plane*
 - **страхует записи в файлы** — dry-run с превью диффа, защищённые пути (`.env*`, ключи; `.env.example` в allowlist), soft rollback, лимит файлов, git-откат;
 - **контролирует расходы** через Cloudflare AI Gateway, spend limits и cost policy;
 - **снижает расход токенов** через persistent-кэш, Headroom, model routing и детерминизм;
+- **переиспользует проверенный код** — `voly reuse`: GitHub search → pack → pick → apply, с опциональным авто-поиском перед каждым запуском executor-а ([docs/backend/reuse.md](docs/backend/reuse.md));
+- **фиксирует tech stack** — выбор версий перед запуском (реестр фреймворков + preflight рантаймов), category picker и greenfield-scaffolding для пустых проектов;
 - **верифицирует** шаги мульти-агента plan-гейтами (shadow/active; scoped pytest когда возможно);
 - **собирает telemetry** по каждому запуску (CLI summary по ролям + Web UI);
 - поддерживает **DSPy** как optional optimization layer;
@@ -285,7 +287,8 @@ Svelte 5 SPA с hash-routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` + 
 
 | Компонент | Назначение |
 |---|---|
-| `RunPanel` / `RunParams` | Запуск задачи (executor, agent, model, cwd), SSE-стрим |
+| `RunPanel` / `RunParams` | Запуск задачи (executor, agent, model, cwd), SSE-стрим, pre-run гейты: подсказки скилов + подтверждение tech stack |
+| `TechSelectionModal` / `CategoryPickerModal` | Фиксация версий фреймворков перед запуском (preflight-бейджи рантаймов); выбор категории проекта, когда ничего не определилось — greenfield cwd скаффолдится автоматически |
 | `RunResult` | Результат: content, billing chain, **панель «Мульти-агенты»** (роль/тир/модель/скилы/cached) |
 | `PipelineInspector` | Стадии pipeline, token flow, назначения суб-агентов, память, DSPy |
 | `GatewayPage` | Кэш/rate/spend/fallback/DLP + блоки «По провайдерам / По моделям / состояние ключей» |
@@ -412,7 +415,16 @@ voly model list                        # модели и цены
 voly ai-gateway status                 # статус AI Gateway
 voly spend status                      # текущий дневной spend
 voly dspy status                       # DSPy programs + режим
+voly plan list | show <id>             # планы мульти-агента + статус verify
+voly cloud login --url https://cloud.voly.codes   # подтверждение в браузере; общая история запусков
+voly cloud sync                                 # выгрузить прошлые локальные запуски после привязки
+voly reuse search "<task>"             # GitHub code reuse (также: pack | pick | apply)
+voly reuse run "<task>" --cwd /path/to/project  # полный reuse-pipeline (dry-run apply)
 ```
+
+Остальные группы (`voly --help`): `a2a`, `agui`, `memory`, `rtk`, `headroom`,
+`pxpipe`, `mcp`, `runner`, `telemetry`, `runs`, `catalog`, `skill`, `scan`,
+`compare`, `balance`, `tunnel`, `init`, `setup`, `config`.
 
 ## CI и тесты
 
@@ -442,10 +454,13 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 | [docs/backend/plan.md](docs/backend/plan.md) | Plan gates, verify, scoped pytest |
 | [docs/backend/executors.md](docs/backend/executors.md) | Executor-ы, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, провайдеры, OmniRoute, persistent cache |
+| [docs/backend/reuse.md](docs/backend/reuse.md) | Code reuse: GitHub search → pack → pick → apply, auto-режим |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 стек, структура ui/, dev/build |
+| [docs/frontend/components.md](docs/frontend/components.md) | UI-компоненты, props, pre-run гейты |
+| [docs/frontend/api-client.md](docs/frontend/api-client.md) | API-вызовы из UI, SSE-события, fallback |
 | [CLAUDE.md](CLAUDE.md) | Инструкции для AI-агентов в этом репозитории |
 | [README.md](README.md) | English version of this README |
 

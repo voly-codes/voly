@@ -29,7 +29,10 @@ Start a task. Returns an SSE stream.
   max_turns?: number,  // default 30
   timeout?: number,    // default 300 — total executor deadline (s), incl. internal model fallback
   a2a_delegate?: bool, // delegate to A2A federation
-  dry_run?: bool       // run executor, then roll back all file changes (diff preview in result)
+  dry_run?: bool,      // run executor, then roll back all file changes (diff preview in result)
+  tech_stack?: [{      // user-confirmed stack from TechSelectionModal / CategoryPickerModal
+    name: string, label: string, version: string, category: string, notes?: string
+  }]
 }
 
 // SSE events
@@ -86,6 +89,24 @@ or the `VOLY_PROJECT_CWD` env var.
 
 Logs: `[DISPATCH] pipeline → claude-code`, `[CHAIN:START]`, `[CHAIN:BILLING_FALLBACK]`
 
+**Tech stack constraint:** when `tech_stack` is non-empty, `tech_stack_context()`
+(`voly/catalog/tech_registry.py`) formats it as an *"Approved tech stack — use these
+exact versions"* block prepended to the task before both pipeline and executor runs
+(Unity stacks additionally inject `.meta`-file and test-runner rules). The confirmed
+stack is echoed back in the `done` event as `tech_stack` so the UI can render it.
+
+**Greenfield scaffolding:** if the request `cwd` does not exist, `_scaffold_greenfield`
+(`voly/web/routes/run.py`) creates the directory, runs `git init`, writes a
+stack-aware `.gitignore` (Python / Node / Unity / Godot sections based on
+`tech_stack`) and makes an initial commit — so `git_diff_nonempty` plan checks and
+`WorkReport` work after the executor's first write. The `done` event then carries
+`greenfield: true` and `project_dir` (the created path). Logs: `[GREENFIELD]`.
+
+**Auto reuse pre-stage:** when `reuse.auto: true`, `_run_auto_reuse` calls
+`auto_reuse()` (GitHub search → pack → pick → saved report) before each
+pipeline/executor run; the report is then injected by the local-context gatherer.
+Best-effort — any error is swallowed. See `docs/backend/reuse.md`.
+
 ---
 
 ## POST /api/tech/detect
@@ -111,9 +132,18 @@ the exact Editor version is read from disk and overrides the registry default.
 }
 ```
 
+Detection expands **companions** one level (e.g. `fastapi` pulls in `python`,
+`pydantic`, `uvicorn`, `pytest`, `httpx`), but companion expansion is
+**ecosystem-aware**: Python-ecosystem companions are only suggested when a
+Python-ecosystem entry was directly detected, and likewise for the JS/TS
+ecosystem — so `sqlalchemy` does not leak into a Next.js task. Direct matches
+sort before companions. The Python default version is 3.12 (LTS production
+default; 3.13 remains selectable in the modal).
+
 Used by `RunPanel.svelte` before the run starts — detected stack is shown to the user via
 `TechSelectionModal` for confirmation/override. Confirmed stack is sent as `tech_stack` in
-`POST /api/run`.
+`POST /api/run`. When detection returns empty, the UI falls back to
+`GET /api/tech/categories` (see below).
 
 ## POST /api/tech/preflight
 
@@ -141,6 +171,27 @@ Returns the full tech registry (all frameworks and their version lists) for CF/U
 // Response
 { registry: TechEntry[] }
 ```
+
+## GET /api/tech/categories
+
+Project-type categories with pre-resolved tech entries for the **fallback category
+picker**. Used by `CategoryPickerModal.svelte` when `POST /api/tech/detect` returns
+nothing (e.g. "create a 2D tank game" with no framework named) — the user picks a
+project type and the relevant stack opens in `TechSelectionModal`.
+
+```typescript
+// Response
+{
+  categories: [{
+    id: string,          // web | backend | game | cli | data
+    label: string,       // "Web Frontend", "Python Backend", "Game", ...
+    description: string,
+    entries: TechEntry[] // same shape as /api/tech/detect entries
+  }]
+}
+```
+
+Category definitions live in `_CATEGORIES` in `voly/catalog/tech_registry.py`.
 
 ---
 
@@ -325,6 +376,7 @@ Separate Worker for CF-native tasks. Start: `wrangler dev`.
 | `/health` | GET | Availability check + pipeline/A2A callback status |
 | `/infer` | POST | CF AI Gateway inference → FILE blocks for LocalPatchApplier |
 | `/agents/:name/run` | POST | Run a task + A2A callback (`task_id` optional) |
+| `/tech-registry` | GET | Static tech registry (`src/tech-registry.ts`, mirrors `voly/catalog/tech_registry.py`), served with 1h `Cache-Control` |
 | `/mcp` | * | MCP tools (`run_task`) |
 
 **A2A callback:** `completeA2ATask()` POSTs `/tasks/:id/complete` to the federation worker via

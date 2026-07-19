@@ -35,6 +35,8 @@ VOLY is not another AI agent. It is a **self-hosted control plane** between the 
 - **guards file writes** — dry-run with diff preview, protected paths (`.env*`, keys; `.env.example` allowlisted), soft rollback, max-files limit, git-based rollback;
 - **controls spend** via Cloudflare AI Gateway, spend limits, and cost policy;
 - **reduces tokens** with a persistent cache, Headroom, model routing, and determinism;
+- **reuses proven code** — `voly reuse`: GitHub search → pack → pick → apply, with optional auto-search before every executor run ([docs/backend/reuse.md](docs/backend/reuse.md));
+- **pins the tech stack** — pre-run version selection (framework registry + runtime preflight), category picker and greenfield scaffolding for empty projects;
 - **verifies** multi-agent steps with plan gates (shadow/active; scoped pytest when possible);
 - **collects telemetry** per run (CLI role summary + Web UI);
 - supports **DSPy** as an optional optimization layer;
@@ -285,7 +287,8 @@ Svelte 5 SPA with hash routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` 
 
 | Component | Role |
 |---|---|
-| `RunPanel` / `RunParams` | Run a task (executor, agent, model, cwd), SSE stream |
+| `RunPanel` / `RunParams` | Run a task (executor, agent, model, cwd), SSE stream, pre-run gates: skill suggestions + tech-stack confirmation |
+| `TechSelectionModal` / `CategoryPickerModal` | Pin framework versions before the run (runtime preflight badges); pick a project category when nothing is detected — greenfield cwd is scaffolded automatically |
 | `RunResult` | Result: content, billing chain, **Multi-agents** panel (role / tier / model / skills / cached) |
 | `PipelineInspector` | Pipeline stages, token flow, sub-agent assignments, memory, DSPy |
 | `GatewayPage` | Cache / rate / spend / fallback / DLP + by-provider / by-model / key health |
@@ -412,10 +415,16 @@ voly model list                        # models and pricing
 voly ai-gateway status                 # AI Gateway status
 voly spend status                      # current daily spend
 voly dspy status                       # DSPy programs + mode
+voly plan list | show <id>             # multi-agent plans + verify status
 voly cloud login --url https://cloud.voly.codes   # browser confirm; shared run history
 voly cloud sync                                 # upload past local runs after link
-voly reuse run "<task>" --cwd /path/to/project  # GitHub reuse pipeline (dry-run apply)
+voly reuse search "<task>"             # GitHub code reuse (also: pack | pick | apply)
+voly reuse run "<task>" --cwd /path/to/project  # full reuse pipeline (dry-run apply)
 ```
+
+More groups (`voly --help`): `a2a`, `agui`, `memory`, `rtk`, `headroom`,
+`pxpipe`, `mcp`, `runner`, `telemetry`, `runs`, `catalog`, `skill`, `scan`,
+`compare`, `balance`, `tunnel`, `init`, `setup`, `config`.
 
 ## CI and tests
 
@@ -445,10 +454,13 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSP
 | [docs/backend/plan.md](docs/backend/plan.md) | Plan gates, verify, scoped pytest |
 | [docs/backend/executors.md](docs/backend/executors.md) | Executors, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, providers, OmniRoute, persistent cache |
+| [docs/backend/reuse.md](docs/backend/reuse.md) | Code reuse: GitHub search → pack → pick → apply, auto mode |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 stack, ui/ layout, dev/build |
+| [docs/frontend/components.md](docs/frontend/components.md) | UI components, props, pre-run gates |
+| [docs/frontend/api-client.md](docs/frontend/api-client.md) | UI API calls, SSE events, fallback handling |
 | [CLAUDE.md](CLAUDE.md) | Instructions for AI agents in this repo |
 | [README_ru.md](README_ru.md) | Russian version of this README |
 

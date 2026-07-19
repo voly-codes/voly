@@ -99,6 +99,15 @@ plan). Prior-role context is compact (files list + truncated body, default
 promoted to `claude-code` — `_would_dispatch_a2a()` keeps it in the pipeline.
 Simple code tasks (1 flag) still go to the `claude-code` executor.
 
+**Pre-run gates on the web path** (`voly/web/routes/run.py`, see
+`docs/backend/api.md`): the UI runs a skill-suggest gate and a **tech stack
+gate** (`POST /api/tech/detect`, fallback `GET /api/tech/categories`) before
+`POST /api/run`; a confirmed `tech_stack` is prepended to the task as a version
+constraint block (`voly/catalog/tech_registry.py:tech_stack_context`). A
+non-existent `cwd` is greenfield-scaffolded (dir + `git init` + stack-aware
+`.gitignore` + initial commit), and `reuse.auto: true` triggers a GitHub reuse
+search before the run.
+
 ### Hybrid multi-agent (implement roles → files) — PR1 skeleton
 
 Design: [`docs/proposals/hybrid-multiagent-executor.md`](../proposals/hybrid-multiagent-executor.md).
@@ -310,6 +319,14 @@ match. PROJECT-source skills (generated from this repo's docs) are always
 kept; curated builtins may qualify on agent compatibility alone. The lead
 orchestrator respects an explicit empty `skills` choice from the lead model —
 the top-2 candidate fallback applies only when the lead call itself failed.
+
+**Index skills are never injected.** A skill flagged `is_index: true` in its
+YAML (a table-of-contents skill that lists other skills but carries no
+executable expertise, e.g. `engineering-skills`) scores `0.0` in
+`_score_skill`. The flag is loaded by `voly/registry/loader.py` /
+`registry/skills.py` (`Skill.is_index`); additionally the hardcoded ID
+blocklist `_KNOWN_INDEX_SKILL_IDS` in `voly/pipeline/skills.py` keeps such
+skills blocked even after a catalog resync drops the flag.
 
 **Design invariants:**
 - Always non-blocking: any marketplace error is swallowed; the pipeline proceeds.

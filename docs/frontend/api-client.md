@@ -18,7 +18,8 @@ const response = await fetch('/api/run', {
     agent,      // "" = auto
     model,      // "" = auto
     cwd,        // path to target project (may be left empty)
-    max_turns: 30
+    max_turns: 30,
+    tech_stack: []  // confirmed entries from the tech gate (may be empty)
   })
 })
 
@@ -119,11 +120,14 @@ const { agents } = await fetch('/api/registry/agents').then(r => r.json())
 
 ---
 
-## GET /api/models
+## GET /api/registry/models
 
 ```javascript
-const { models } = await fetch('/api/models').then(r => r.json())
-// models: ["claude-sonnet-4-6", "gpt-4o", ...]
+import { fetchModels } from '../api/client.js'
+
+const { models } = await fetchModels('pipeline')
+// GET /api/registry/models?executor=pipeline
+// models: ["claude-sonnet-4-6", "gpt-4o", ...]  (filtered per executor)
 ```
 
 ---
@@ -168,6 +172,12 @@ Single-model and local multi-agent paths may also include `skill_suggestions`
 (marketplace skills not installed locally) — shown as a post-run install banner
 in `RunResult.svelte`.
 
+Both paths echo `tech_stack` (the confirmed stack from the tech gate, rendered
+as chips in the result footer) and `greenfield` — `true` when the cwd did not
+exist and was scaffolded (mkdir + `git init` + stack-aware `.gitignore` +
+initial commit); then `project_dir` carries the created path and
+`RunResult.svelte` shows a "New project created at …" notice.
+
 ---
 
 ## Marketplace skills (pre-run gate)
@@ -188,6 +198,32 @@ or Skip & run. Suggest failures do not block the run.
 
 ---
 
+## Tech stack gate (pre-run)
+
+```javascript
+import { detectTech, techPreflight, fetchTechCategories } from './api/client.js'
+
+// Gate 2 in RunPanel (pipeline / claude-code / cursor executors)
+const { detected } = await detectTech(task, cwd)
+// POST /api/tech/detect → detected: [{ name, label, category, version, versions, notes }]
+
+// TechSelectionModal: which runtimes exist as system binaries (python3, node, docker…)
+const { available } = await techPreflight(['python', 'node'])
+// POST /api/tech/preflight → { available: { python: true, node: false } }
+
+// CategoryPickerModal: fallback when nothing was detected
+const { categories } = await fetchTechCategories()
+// GET /api/tech/categories → [{ id, label, description, entries[] }]
+```
+
+The confirmed selection is sent as `tech_stack` in `POST /api/run`; the backend
+prepends a "use these exact versions" constraint block to the task and echoes
+`tech_stack` in the `done` event. `GET /api/tech/registry` exposes the full
+registry (used by external consumers / the CF Worker mirror, not the UI).
+All tech-gate failures are non-blocking — the run proceeds without a stack.
+
+---
+
 ## Handling billing_fallback in the UI
 
 If `done.billing_fallback` is present — show a badge:
@@ -199,6 +235,21 @@ If `done.billing_fallback` is present — show a badge:
   </span>
 {/if}
 ```
+
+---
+
+## Other endpoints used by pages
+
+| `client.js` helper | Endpoint | Used by |
+|---|---|---|
+| `fetchTasks` / `fetchTask` / `fetchSummary` | `GET /api/tasks`, `/api/tasks/{id}`, `/api/tasks/stats/summary` | `tasksStore`, `TaskSidebar` |
+| `fetchSkills` | `GET /api/registry/skills` | registry views |
+| `fetchInstalledSkills` / `fetchMarketplaceSkills` / `searchMarketplace` | `GET /api/marketplace/skills/*` | `MarketplacePage` |
+| `fetchMarketplacePlugins` / `publishMarketplacePlugins` | `GET /api/marketplace/plugins`, `POST …/plugins/sync` | `PluginsPage` |
+| `fetchGatewayStatus` / `fetchProviderHealth` | `GET /api/gateway/status`, `/api/providers/health` | `GatewayPage` |
+| `fetchTelemetry` | `GET /api/telemetry/summary?days=…` | `TelemetryPage` |
+| `fetchCFWorkersStatus` / `fetchCFSpend` | `GET /api/cf/workers/status`, `/api/cf/spend/summary` | `CFPage` |
+| `fetchDSPyStatus` | `GET /api/dspy/status` | `DSPyPage` |
 
 ---
 

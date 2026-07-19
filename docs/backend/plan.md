@@ -28,7 +28,8 @@ plan:
   executor_require_git_diff: false
   executor_file_line_limit: 300
   architect_approved_file_line_limit: 500
-  command_timeout_seconds: 60   # full project pytest; hung command fails before 60s
+  command_timeout_seconds: 120  # pip install -e . + pytest on greenfield projects can exceed 60s
+  file_line_limit_exclude_patterns: []  # extra basenames/prefixes on top of built-in exclusions
   tester_command: ""    # or "pytest -q" / filled from scanner when empty
 ```
 
@@ -102,7 +103,7 @@ voly plan show auth-refactor
 | `files_missing` | none of `paths` exist |
 | `git_diff_nonempty` | dirty porcelain / before-after change (optional path filter) |
 | `git_diff_contains` | changed paths match `paths` or `pattern` |
-| `file_line_limit` | every changed text file is within `max_lines`; binary files are skipped |
+| `file_line_limit` | every changed text file is within `max_lines`; binary and generated/lock files are skipped (plus `exclude_patterns`) |
 | `output_nonempty` | agent output non-empty |
 | `output_regex` | agent output matches `pattern` |
 
@@ -122,6 +123,20 @@ Verifier modules (`voly/plan/`; public import remains `voly.plan.verify`):
 Attached A2A plans add `file_line_limit` to every executor role by default.
 The verifier checks `files_touched`, falling back to the git before/after
 porcelain delta. A file over 300 physical lines fails verification.
+
+**Generated/lock files are always excluded** from `file_line_limit`
+(`voly/plan/verify_checks.py`): basenames in `_GENERATED_BASENAMES`
+(`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`,
+`Pipfile.lock`, `Cargo.lock`, `go.sum`, `composer.lock`, `.coverage`) and paths
+under `_GENERATED_PREFIXES` (`node_modules/`, `.venv/`, `venv/`, `__pycache__/`,
+`.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.tox/`). Executor agents
+cannot control the size of these files — `npm install` / `pip install -e .` /
+`cargo build` generate them as side effects, and flagging them would hide real
+violations. Skipped paths are reported in the check detail as
+`skipped_generated`. Project-specific extras come from
+`plan.file_line_limit_exclude_patterns` in `voly.yaml` (wired through
+`AcceptanceCheck.exclude_patterns` by `voly/plan/bridge.py`); a pattern matches
+either an exact basename or a path prefix.
 
 An architect dependency may raise the limit to the configured cap (500) only
 with both exact plan markers:

@@ -1,6 +1,8 @@
 # Config & Env — Backend Reference
 
-Config is loaded from `voly.yaml` + `.env`. Class: `voly/config.py:VOLYConfig`.
+Config is loaded from `voly.yaml` + `.env`. Class: `voly/config/_types.py:VOLYConfig`
+(package `voly/config/`: `_types.py` dataclasses, `_parser.py` yaml parsing,
+`_loader.py` discovery, `_defaults.py`, `_template.py`).
 
 Priority: `.env` > `voly.yaml` > defaults in code.
 
@@ -239,10 +241,20 @@ plan:
   store_dir: .voly/plans
   max_step_retries: 1
   default_on_verify_fail: stop  # stop | retry | continue
-  command_timeout_seconds: 60   # full suite pytest; hung PATH-pytest still fails before 60s
+  command_timeout_seconds: 120  # pip install -e . + pytest on greenfield projects can exceed 60s
   allow_skip: false
   executor_default: claude-code
   step_timeout_seconds: 300
+  max_turns: 30
+  a2a_attach: true                 # wire gates into multi-agent when enabled
+  chat_require_output: true        # chat roles: output_nonempty acceptance
+  executor_require_git_diff: false # opt-in git_diff_nonempty for executor roles (repo voly.yaml: true)
+  executor_file_line_limit: 300    # changed text files above this fail verify
+  architect_approved_file_line_limit: 500 # strict architect marker may raise cap
+  tester_command: ""               # e.g. "pytest -q" for tester role
+  # Extra basenames / path prefixes to skip in file_line_limit checks, on top of
+  # built-in exclusions (package-lock.json, poetry.lock, node_modules/, …).
+  file_line_limit_exclude_patterns: []
 
 # Code reuse: GitHub search → clone → pack → pick → apply (see docs/backend/reuse.md)
 reuse:
@@ -255,15 +267,11 @@ reuse:
   deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
   pack_max_chars: 80000
   apply_dest: "vendor/reuse"
+  auto: false                  # code default; repo voly.yaml enables auto-search before each run
+  auto_max_repos: 3            # smaller limit in auto mode to keep latency low
+  auto_max_age_seconds: 604800 # skip auto-search if a report younger than 7 days exists
   # Requires GITHUB_TOKEN or GH_TOKEN for search rate limits.
   # CLI: voly reuse search|pack|pick|apply|run
-  max_turns: 30
-  a2a_attach: true                 # wire gates into multi-agent when enabled
-  chat_require_output: true        # chat roles: output_nonempty acceptance
-  executor_require_git_diff: false # opt-in git_diff_nonempty for executor roles
-  executor_file_line_limit: 300    # changed text files above this fail verify
-  architect_approved_file_line_limit: 500 # strict architect marker may raise cap
-  tester_command: ""               # e.g. "pytest -q" for tester role
 
 a2a:
   enabled: true
