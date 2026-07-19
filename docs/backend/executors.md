@@ -258,7 +258,10 @@ not inside a single executor.
 
 ---
 
-## AgentRunner billing fallback (`voly/runner/agent_runner.py`)
+## AgentRunner billing fallback (`voly/runner/`)
+
+Chain constants and `_build_executor` live in `executor_factory.py`;
+`AgentRunner.run()` (in `agent_runner.py`) walks the chain.
 
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
@@ -354,7 +357,7 @@ the web UI knows where to write files.
 
 1. Create `voly/executor/my_exec.py` — inherit `Executor`, return `ExecutorResult`
 2. Set `billing_error=True` when error indicates billing failure
-3. Add to `EXECUTOR_NAMES` and `_build_executor()` factory in `agent_runner.py`
+3. Add to `EXECUTOR_NAMES` and `_build_executor()` factory in `executor_factory.py`
 4. If file-capable and has its own billing: add to `BILLING_FALLBACK_CHAIN` in correct order
 5. Update this doc and `docs/ARCHITECTURE.md`
 

@@ -245,13 +245,19 @@ Does not contain product logic.
 | `_stage_skill_inject` / `_stage_skill_suggest` | `stages_context` | skills |
 | `_emit_task_event` | `stages_emit` | telemetry |
 
-### `voly/runner/agent_runner.py` — executor path
+### `voly/runner/` — executor path
 
 `AgentRunner.run()` orchestrates: DSPy plan → executor → billing fallback → git diff → telemetry.
 
+| Module | Role |
+|---|---|
+| `agent_runner.py` | `AgentRunner` / `RunnerResult` (+ stable re-exports) |
+| `executor_factory.py` | `EXECUTOR_NAMES`, `BILLING_FALLBACK_CHAIN`, `_build_executor` |
+| `work_report.py` | git porcelain → `WorkReport` |
+| `dspy_hooks.py` | optional TaskPlanner plan/store |
+
 ```python
-BILLING_FALLBACK_CHAIN = ["claude-code", "wrangler", "zen"]
-EXECUTOR_NAMES = frozenset({"cursor", "claude-code", "mimo", "opencode", "deepseek", "zen", "wrangler"})
+BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 ```
 
 ### `voly/executor/` — file-capable runtimes
