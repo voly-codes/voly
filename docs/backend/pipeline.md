@@ -51,7 +51,7 @@ goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
 - **`local`** — `_run_multiagent_local`:
   1. `TaskDecomposer` splits the task into roles (architect → developer → tester →
      reviewer → devops) with dependencies.
-  2. **Lead orchestrator** (`a2a/multiagent.py::LeadOrchestrator`) — a strong model
+  2. **Lead orchestrator** (`a2a/lead.py::LeadOrchestrator`, re-exported from `multiagent.py`) — a strong model
      (premium tier or `a2a.lead_model`) evaluates the task and assigns each role a
      **model tier** (`premium|standard|cheap`) and **skills** (from the registry). On LLM-lead
      failure — deterministic fallback (`_ROLE_TIER` + top skills for the role).

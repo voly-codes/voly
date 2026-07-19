@@ -11,7 +11,10 @@ parallel subtask execution, and result merging.
 |---|---|
 | `__init__.py` | `A2AOrchestrator`, `A2AClient`, `dispatch_parallel()` |
 | `decomposer.py` | `TaskDecomposer` — rule-based split from `TaskAnalysis` flags |
-| `multiagent.py` | `run_local` — local multi-agent orchestration (hybrid chat/executor) |
+| `multiagent.py` | Public surface: `run_local`, `LeadOrchestrator`, `merge_report` re-exports |
+| `multiagent_run.py` | `_LocalRun` + wave scheduling (`run_local` implementation) |
+| `multiagent_plan.py` | Plan-gate setup / `finish_step_plan` |
+| `multiagent_roles.py` | Role prepare / executor / chat helpers |
 | `hybrid.py` | Role → `chat` / `executor` policy + `make_agent_runner_executor` |
 | `context.py` | Role prompts, git-diff evidence, skills/memory blocks |
 | `waves.py` | Dependency-wave grouping for parallel chat roles |
