@@ -92,11 +92,11 @@ _REGISTRY: list[dict[str, Any]] = [
     {
         "name": "python",
         "label": "Python",
-        "versions": ["3.13.2", "3.12.8", "3.11.12"],
+        "versions": ["3.12.8", "3.13.2", "3.11.12"],
         "category": "language",
         "keywords": ["python", "py", "fastapi", "django", "flask", "pytest", "pydantic"],
         "companions": [],
-        "notes": "3.13: JIT compiler (opt-in), free-threaded mode, improved REPL. 3.12 is LTS production default.",
+        "notes": "3.12 is LTS production default. 3.13 adds JIT (opt-in) and free-threaded mode.",
     },
     {
         "name": "node",
@@ -159,8 +159,17 @@ _REGISTRY: list[dict[str, Any]] = [
         "versions": ["2.0.40", "1.4.54"],
         "category": "backend",
         "keywords": ["sqlalchemy", "sqla", "orm"],
-        "companions": ["python", "alembic"],
+        "companions": ["python"],
         "notes": "v2: fully typed ORM, async-first, select() style replaces Query.",
+    },
+    {
+        "name": "httpx",
+        "label": "httpx",
+        "versions": ["0.28.1", "0.27.2"],
+        "category": "testing",
+        "keywords": ["httpx"],
+        "companions": ["python", "pytest"],
+        "notes": "Async HTTP client; used with FastAPI TestClient for integration tests.",
     },
     # ── Build / Testing ───────────────────────────────────────────────────
     {
@@ -197,7 +206,7 @@ _REGISTRY: list[dict[str, Any]] = [
         "versions": ["17.4", "16.8"],
         "category": "database",
         "keywords": ["postgresql", "postgres", "psql", "pg"],
-        "companions": ["sqlalchemy"],
+        "companions": [],
         "notes": "v17: incremental sort, logical replication improvements.",
     },
     {
@@ -257,11 +266,27 @@ def detect_tech_from_task(task: str) -> list[dict[str, Any]]:
     if not matched:
         return []
 
+    # Determine which language ecosystems are present in direct matches.
+    _PYTHON_ECOSYSTEM = frozenset({"python", "fastapi", "django", "flask", "sqlalchemy",
+                                   "pydantic", "uvicorn", "pytest", "httpx", "alembic"})
+    _JS_ECOSYSTEM = frozenset({"node", "typescript", "react", "nextjs", "vue", "nuxt",
+                                "svelte", "sveltekit", "vite", "vitest"})
+    has_python = bool(set(matched) & _PYTHON_ECOSYSTEM)
+    has_js = bool(set(matched) & _JS_ECOSYSTEM)
+
+    def _companion_allowed(companion: str) -> bool:
+        """Reject companions that belong to a different ecosystem than what's detected."""
+        if companion in _PYTHON_ECOSYSTEM and not has_python:
+            return False
+        if companion in _JS_ECOSYSTEM and not has_js:
+            return False
+        return True
+
     # Expand companions one level
     expanded: dict[str, int] = dict(matched)
     for name, score in list(matched.items()):
         for companion in (_BY_NAME.get(name) or {}).get("companions", []):
-            if companion not in expanded:
+            if companion not in expanded and _companion_allowed(companion):
                 expanded[companion] = max(score - 1, 1)
 
     # Sort: direct matches first, companions second; within each by hit count desc
