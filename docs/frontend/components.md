@@ -203,6 +203,18 @@ value is sent once on save and never rendered back.
 
 ---
 
+## GatewayPage.svelte
+
+AI Gateway dashboard (`GET /api/gateway/status` + provider health). Shell loads
+data; UI is split into:
+
+| Component | Role |
+|---|---|
+| `GatewayStatusBar.svelte` | enabled/disabled banner + refresh |
+| `GatewayMetricCards.svelte` | cache / rate / spend / fallback / DLP / errors cards |
+| `GatewayTotals.svelte` | requests / tokens / cost / rpm chips |
+| `GatewayBreakdown.svelte` | by-provider / by-model bars + health bricks |
+
 ## AppHeader.svelte
 
 Top navigation: logo, links to Tasks / Agents / Models / Spend.

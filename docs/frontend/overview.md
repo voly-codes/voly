@@ -63,6 +63,8 @@ ui/
           StatsOverview.svelte
           WorkReport.svelte
           ExtrasSection.svelte
+        gateway/
+          GatewayPage.svelte            # status shell (+ StatusBar / MetricCards / Totals / Breakdown)
 ```
 
 ---
