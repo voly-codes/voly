@@ -16,6 +16,42 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
+# Basenames of auto-generated / vendor files that must never be size-checked.
+# Executor agents cannot control the byte-count of these files (npm install,
+# pip install, cargo build, etc. generate them as side-effects of doing their
+# actual job).  Flagging them as violations produces false negatives that hide
+# real violations and confuse the agent feedback loop.
+_GENERATED_BASENAMES: frozenset[str] = frozenset({
+    # JavaScript / Node lockfiles
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    # Python lockfiles
+    "poetry.lock",
+    "Pipfile.lock",
+    # Rust
+    "Cargo.lock",
+    # Go
+    "go.sum",
+    # PHP
+    "composer.lock",
+    # Coverage artefacts
+    ".coverage",
+})
+
+# Path prefixes (always forward-slash, relative to cwd) whose contents are
+# generated / vendored.  A file under any of these is always excluded.
+_GENERATED_PREFIXES: tuple[str, ...] = (
+    "node_modules/",
+    ".venv/",
+    "venv/",
+    "__pycache__/",
+    ".pytest_cache/",
+    ".mypy_cache/",
+    ".ruff_cache/",
+    ".tox/",
+)
+
 from voly.plan.types import (
     FAILED,
     VERIFIED,
@@ -450,6 +486,30 @@ def _check_output_regex(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyRes
     )
 
 
+def _is_generated_file(rel: str, extra_patterns: list[str] | None = None) -> bool:
+    """Return True for auto-generated / vendor files that must not be size-checked.
+
+    Checks built-in basenames and path prefixes, then any caller-supplied
+    ``extra_patterns`` (each treated as a basename or path-prefix).
+    """
+    norm = rel.replace("\\", "/").lstrip("./")
+    basename = Path(rel).name
+    if basename in _GENERATED_BASENAMES:
+        return True
+    for prefix in _GENERATED_PREFIXES:
+        if norm.startswith(prefix) or f"/{prefix}" in f"/{norm}":
+            return True
+    for pat in (extra_patterns or []):
+        pat_norm = pat.replace("\\", "/").strip("/")
+        if not pat_norm:
+            continue
+        if basename == pat_norm or norm == pat_norm:
+            return True
+        if norm.startswith(pat_norm + "/") or pat_norm in norm.split("/"):
+            return True
+    return False
+
+
 def _line_count(path: Path) -> int | None:
     """Count physical lines; return None for binary files."""
     raw = path.read_bytes()
@@ -504,11 +564,16 @@ def _check_file_line_limit(check: AcceptanceCheck, ctx: VerifyContext) -> Verify
             {"limit": effective_limit, "checked": {}},
         )
 
+    extra_exclude = list(check.exclude_patterns or [])
     checked: dict[str, int] = {}
     skipped_binary: list[str] = []
+    skipped_generated: list[str] = []
     violations: dict[str, int] = {}
     try:
         for rel in candidates:
+            if _is_generated_file(rel, extra_exclude):
+                skipped_generated.append(rel)
+                continue
             target = safe_join(ctx.cwd, rel)
             if not target.is_file():
                 continue
@@ -528,6 +593,7 @@ def _check_file_line_limit(check: AcceptanceCheck, ctx: VerifyContext) -> Verify
         "architect_approved": effective_limit > base_limit,
         "checked": checked,
         "skipped_binary": skipped_binary,
+        "skipped_generated": skipped_generated,
         "violations": violations,
     }
     if violations:

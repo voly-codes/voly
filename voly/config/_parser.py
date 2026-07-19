@@ -410,6 +410,9 @@ def _parse_config(raw: dict) -> VOLYConfig:
                 p.get("architect_approved_file_line_limit", 500)
             ),
             tester_command=str(p.get("tester_command", "") or ""),
+            file_line_limit_exclude_patterns=[
+                str(x) for x in (p.get("file_line_limit_exclude_patterns") or [])
+            ],
         )
 
     if os.environ.get("VOLY_PLAN_ENABLED", "").lower() in ("1", "true", "yes"):

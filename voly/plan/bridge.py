@@ -49,6 +49,9 @@ def default_acceptance_for_role(
                     cfg.executor_file_line_limit,
                     cfg.architect_approved_file_line_limit,
                 ),
+                exclude_patterns=list(
+                    getattr(cfg, "file_line_limit_exclude_patterns", None) or []
+                ),
             )
         )
 

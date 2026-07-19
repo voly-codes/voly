@@ -255,6 +255,82 @@ def test_file_line_limit_fails_without_changed_file_evidence(cwd: Path) -> None:
     assert "no changed files" in result.message
 
 
+# ── file_line_limit generated-file exclusions ─────────────────────────────────
+
+
+def test_file_line_limit_skips_builtin_lock_files(cwd: Path) -> None:
+    """package-lock.json and other lock files are always excluded regardless of size."""
+    lock = cwd / "package-lock.json"
+    lock.write_text("x\n" * 5000)
+    real = cwd / "app.py"
+    real.write_text("x\n" * 10)
+    ctx = VerifyContext(cwd=str(cwd), files_touched=["package-lock.json", "app.py"])
+    result = run_check(AcceptanceCheck(type=CHECK_FILE_LINE_LIMIT, max_lines=300), ctx)
+    assert result.ok, result.message
+    assert "package-lock.json" in result.detail["skipped_generated"]
+    assert "app.py" in result.detail["checked"]
+
+
+@pytest.mark.parametrize("lockfile", [
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "poetry.lock",
+    "Pipfile.lock",
+    "Cargo.lock",
+    "go.sum",
+    "composer.lock",
+    ".coverage",
+])
+def test_file_line_limit_skips_all_builtin_lockfiles(cwd: Path, lockfile: str) -> None:
+    (cwd / lockfile).write_text("x\n" * 9999)
+    ctx = VerifyContext(cwd=str(cwd), files_touched=[lockfile])
+    result = run_check(AcceptanceCheck(type=CHECK_FILE_LINE_LIMIT, max_lines=300), ctx)
+    # A single generated file produces "no changed files available" because all
+    # candidates were skipped — that is also a non-violation (not a size error).
+    assert not result.detail.get("violations"), result.detail
+
+
+def test_file_line_limit_skips_node_modules_prefix(cwd: Path) -> None:
+    nm = cwd / "node_modules" / "lodash"
+    nm.mkdir(parents=True)
+    (nm / "index.js").write_text("x\n" * 2000)
+    ctx = VerifyContext(
+        cwd=str(cwd), files_touched=["node_modules/lodash/index.js"]
+    )
+    result = run_check(AcceptanceCheck(type=CHECK_FILE_LINE_LIMIT, max_lines=300), ctx)
+    assert not result.detail.get("violations")
+    assert "node_modules/lodash/index.js" in result.detail.get("skipped_generated", [])
+
+
+def test_file_line_limit_extra_exclude_patterns(cwd: Path) -> None:
+    """AcceptanceCheck.exclude_patterns adds custom project-specific exclusions."""
+    gen = cwd / "generated_schema.json"
+    gen.write_text("x\n" * 1000)
+    ctx = VerifyContext(cwd=str(cwd), files_touched=["generated_schema.json"])
+    check = AcceptanceCheck(
+        type=CHECK_FILE_LINE_LIMIT,
+        max_lines=300,
+        exclude_patterns=["generated_schema.json"],
+    )
+    result = run_check(check, ctx)
+    assert not result.detail.get("violations")
+    assert "generated_schema.json" in result.detail.get("skipped_generated", [])
+
+
+def test_file_line_limit_real_violation_still_caught(cwd: Path) -> None:
+    """Regular source files over the limit still fail even with generated-file exclusions."""
+    (cwd / "package-lock.json").write_text("x\n" * 5000)
+    (cwd / "big_module.py").write_text("x\n" * 500)
+    ctx = VerifyContext(
+        cwd=str(cwd),
+        files_touched=["package-lock.json", "big_module.py"],
+    )
+    result = run_check(AcceptanceCheck(type=CHECK_FILE_LINE_LIMIT, max_lines=300), ctx)
+    assert not result.ok
+    assert "big_module.py" in result.detail["violations"]
+    assert "package-lock.json" not in result.detail.get("violations", {})
+
+
 # ── git diff ─────────────────────────────────────────────────────────────────
 
 

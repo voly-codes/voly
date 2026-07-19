@@ -280,7 +280,9 @@ class PlanConfig:
     max_step_retries: int = 1
     # stop | retry | continue — active mode; shadow treats verify fail as soft
     default_on_verify_fail: str = "stop"
-    command_timeout_seconds: float = 60.0
+    # Timeout for command-type acceptance checks (e.g. pytest, pip install -e .,
+    # ruff check).  Greenfield Python packages with slow installs need >60s.
+    command_timeout_seconds: float = 120.0
     allow_skip: bool = False
     # Default executor for mode=executor steps without step.executor
     executor_default: str = "claude-code"
@@ -298,6 +300,10 @@ class PlanConfig:
     architect_approved_file_line_limit: int = 500
     # Opt-in: tester role runs this command as acceptance (e.g. "pytest -q").
     tester_command: str = ""
+    # Extra basenames or path prefixes to skip in file_line_limit checks,
+    # beyond the built-in generated-file exclusions (lock files, node_modules/, etc.).
+    # Example: ["my_generated/", "schema.json"]
+    file_line_limit_exclude_patterns: list[str] = field(default_factory=list)
 
     VALID_MODES = frozenset({"off", "shadow", "active"})
     VALID_ON_FAIL = frozenset({"stop", "retry", "continue"})

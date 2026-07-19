@@ -91,11 +91,16 @@ a2a:
 plan:
   enabled: true
   mode: shadow
-  # Full project pytest often needs >15s; hung PATH-pytest still fails before 60s.
-  command_timeout_seconds: 60
+  # pytest + pip install -e . on greenfield Python projects can exceed 60s.
+  # ruff check, coverage runs, and npm install all add to the budget.
+  command_timeout_seconds: 120
   # Executor roles must leave a git diff — pairs with the hard rule in
   # run_local (executor success with zero files_touched → role failed).
   executor_require_git_diff: true
+  # Extra basenames / path prefixes to skip in file_line_limit checks.
+  # These are added on top of the built-in exclusions (package-lock.json,
+  # yarn.lock, poetry.lock, Cargo.lock, go.sum, node_modules/, etc.).
+  file_line_limit_exclude_patterns: []
 
 agui:
   enabled: true

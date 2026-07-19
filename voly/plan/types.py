@@ -99,6 +99,9 @@ class AcceptanceCheck:
     pattern: str = ""
     max_lines: int = 0
     approved_max_lines: int = 0
+    # Glob-style basenames or path prefixes to skip in file_line_limit checks.
+    # Extends the built-in generated-file exclusions (lock files, node_modules/, etc.).
+    exclude_patterns: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {"type": self.type}
@@ -113,6 +116,8 @@ class AcceptanceCheck:
             d["max_lines"] = self.max_lines
         if self.approved_max_lines > 0:
             d["approved_max_lines"] = self.approved_max_lines
+        if self.exclude_patterns:
+            d["exclude_patterns"] = list(self.exclude_patterns)
         return d
 
     @classmethod
@@ -127,6 +132,7 @@ class AcceptanceCheck:
             pattern=str(data.get("pattern") or ""),
             max_lines=int(data.get("max_lines", 0)),
             approved_max_lines=int(data.get("approved_max_lines", 0)),
+            exclude_patterns=[str(p) for p in (data.get("exclude_patterns") or [])],
         )
 
 
