@@ -60,9 +60,12 @@ class Skill:
     usage_count: int = 0
     success_rate: float = 1.0
     metadata: dict[str, Any] = field(default_factory=dict)
+    # Navigation/index skills list other skills but contain no expertise themselves.
+    # They are excluded from agent prompt injection via _score_skill().
+    is_index: bool = False
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d: dict[str, Any] = {
             "id": self.id,
             "name": self.name,
             "description": self.description,
@@ -78,6 +81,9 @@ class Skill:
             "usage_count": self.usage_count,
             "success_rate": self.success_rate,
         }
+        if self.is_index:
+            d["is_index"] = True
+        return d
 
     @classmethod
     def from_dict(cls, data: dict) -> Skill:
@@ -100,6 +106,7 @@ class Skill:
             usage_count=data.get("usage_count", 0),
             success_rate=data.get("success_rate", 1.0),
             metadata=data.get("metadata", {}),
+            is_index=bool(data.get("is_index", False)),
         )
 
 

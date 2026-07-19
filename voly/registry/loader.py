@@ -48,6 +48,7 @@ def skill_from_dict(data: dict[str, Any]) -> Skill:
         usage_count=int(data.get("usage_count") or 0),
         success_rate=float(data.get("success_rate") if data.get("success_rate") is not None else 1.0),
         metadata=dict(data.get("metadata") or {}),
+        is_index=bool(data.get("is_index", False)),
     )
 
 
@@ -72,6 +73,8 @@ def skill_to_yaml_dict(skill: Skill) -> dict[str, Any]:
         "success_rate": skill.success_rate,
         "metadata": skill.metadata,
     }
+    if skill.is_index:
+        out["is_index"] = True
     # Promote package install fields from metadata so the CF marketplace
     # worker persists them in the repository/install_kind columns.
     if skill.metadata.get("repository"):

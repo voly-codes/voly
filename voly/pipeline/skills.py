@@ -44,6 +44,8 @@ def _score_skill(
     signal (keyword or language/framework match) — otherwise every installed
     skill leaks into every prompt (marketing-ops on a FastAPI task).
     """
+    if getattr(skill, "is_index", False):
+        return 0.0
     if skill.source == project_source:
         return 10.0
     # Uncurated skills that name compatible agents must match the role —

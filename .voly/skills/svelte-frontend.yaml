@@ -1,0 +1,284 @@
+id: svelte-frontend
+name: svelte-frontend
+description: >
+  Frontend development expertise for Svelte 5, React, Vue, and TypeScript UIs.
+  Use when building dashboards, components, forms, data visualizations, or any
+  browser-side feature. Covers Svelte 5 runes, component architecture, CSS custom
+  properties, accessibility (WCAG AA), SVG charts, and responsive layout patterns.
+  Trigger on: "build a dashboard", "create a component", "Svelte", "SvelteKit",
+  "React", "TypeScript frontend", "data visualization", "UI", "chart", "form".
+source: marketplace
+status: active
+version: 1.0.0
+tags:
+  - frontend
+  - svelte
+  - sveltekit
+  - react
+  - vue
+  - typescript
+  - javascript
+  - css
+  - accessibility
+  - dashboard
+  - components
+  - charts
+  - ui
+compatible_languages:
+  - typescript
+  - javascript
+compatible_frameworks:
+  - svelte
+  - sveltekit
+  - react
+  - vue
+  - nuxt
+capabilities:
+  - svelte5-runes
+  - react-hooks
+  - component-architecture
+  - css-custom-properties
+  - svg-charts
+  - wcag-accessibility
+  - responsive-layout
+  - typescript-strict
+content: |
+  # Senior Frontend
+
+  Frontend engineering skill for Svelte 5, React, and TypeScript projects.
+
+  ---
+
+  ## Svelte 5 Runes
+
+  **Always use runes syntax — never the old Options API.**
+
+  ```svelte
+  <script lang="ts">
+    // State
+    let count = $state(0);
+    let items = $state<string[]>([]);
+
+    // Derived (replaces $: reactive)
+    let doubled = $derived(count * 2);
+    let hasItems = $derived(items.length > 0);
+
+    // Props
+    interface Props {
+      title: string;
+      value?: number;
+      onchange?: (v: number) => void;
+    }
+    let { title, value = 0, onchange }: Props = $props();
+
+    // Side effects
+    $effect(() => {
+      document.title = title;
+    });
+  </script>
+  ```
+
+  **Component event pattern (no createEventDispatcher):**
+  ```svelte
+  <!-- Parent -->
+  <Child onselect={(item) => selected = item} />
+
+  <!-- Child -->
+  <script lang="ts">
+    let { onselect }: { onselect: (item: string) => void } = $props();
+  </script>
+  ```
+
+  ---
+
+  ## Component Architecture
+
+  **Single responsibility**: one component = one concern. Split when:
+  - A component exceeds 150 lines of template
+  - It renders both data-fetching logic and display
+  - A sub-section is reused elsewhere
+
+  **File structure for a feature:**
+  ```
+  src/lib/components/
+    DataTable.svelte        ← pure display, all data via props
+    DataTable.test.ts
+  src/routes/
+    Dashboard.svelte        ← fetch + compose components
+  ```
+
+  **Props contract**: define a TypeScript `interface Props` at top of `<script>`, never use `any`.
+
+  ---
+
+  ## CSS Architecture
+
+  **Custom properties for theming** — never hardcode hex values in component styles:
+  ```css
+  :root {
+    --color-primary: #2563eb;
+    --color-surface: #ffffff;
+    --color-text: #111827;
+    --radius-md: 0.5rem;
+    --space-4: 1rem;
+  }
+  ```
+
+  **Responsive layout with CSS Grid** (prefer Grid over Flexbox for 2D layouts):
+  ```css
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+  }
+  ```
+
+  **Scoped styles**: Svelte scopes `<style>` automatically. Use `:global()` only for
+  third-party elements. Never use `!important`.
+
+  ---
+
+  ## SVG Data Visualization
+
+  For charts, use inline SVG — no runtime library needed for simple cases:
+
+  ```svelte
+  <script lang="ts">
+    interface Point { x: number; y: number; label: string }
+    let { data, width = 560, height = 220 }: { data: Point[]; width?: number; height?: number } = $props();
+
+    const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+    let innerW = $derived(width - pad.left - pad.right);
+    let innerH = $derived(height - pad.top - pad.bottom);
+
+    let xMax = $derived(Math.max(...data.map(d => d.x)));
+    let yMax = $derived(Math.max(...data.map(d => d.y)));
+
+    function sx(x: number) { return (x / xMax) * innerW; }
+    function sy(y: number) { return innerH - (y / yMax) * innerH; }
+
+    let pathD = $derived(
+      data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${sx(d.x)} ${sy(d.y)}`).join(' ')
+    );
+    let areaD = $derived(`${pathD} L ${sx(xMax)} ${innerH} L 0 ${innerH} Z`);
+  </script>
+
+  <svg {width} {height} role="img" aria-label="Chart">
+    <title>Data chart</title>
+    <g transform="translate({pad.left},{pad.top})">
+      <path d={areaD} fill="var(--color-primary)" opacity="0.15" />
+      <path d={pathD} stroke="var(--color-primary)" stroke-width="2" fill="none" />
+    </g>
+  </svg>
+  ```
+
+  **Rules:**
+  - Always add `role="img"` + `aria-label` + `<title>` to every `<svg>`
+  - Use `viewBox` for fluid scaling; set explicit `width`/`height` as defaults only
+  - Prefer `var(--color-*)` for stroke/fill, not hardcoded hex
+
+  ---
+
+  ## Accessibility (WCAG AA)
+
+  **Interactive elements:**
+  ```svelte
+  <!-- Buttons: always explicit type -->
+  <button type="button" on:click={handle}>Action</button>
+
+  <!-- Never make divs/spans clickable — use button or a -->
+  <!-- ❌ <div on:click={...}> -->
+  <!-- ✅ <button type="button" on:click={...}> -->
+  ```
+
+  **Forms:**
+  ```svelte
+  <label for="email">Email address</label>
+  <input id="email" type="email" bind:value={email} aria-required="true" />
+
+  <!-- Error messages -->
+  <input aria-describedby="email-error" aria-invalid={!!error} />
+  {#if error}
+    <p id="email-error" role="alert">{error}</p>
+  {/if}
+  ```
+
+  **Loading states:**
+  ```svelte
+  <div aria-live="polite" aria-busy={loading}>
+    {#if loading}
+      <span class="sr-only">Loading...</span>
+    {:else}
+      <!-- content -->
+    {/if}
+  </div>
+  ```
+
+  **Color contrast**: text on background must be ≥ 4.5:1 (AA). Use CSS custom properties
+  so contrast is defined once in `:root`.
+
+  ---
+
+  ## Data Fetching Pattern (SvelteKit)
+
+  Prefer server-side loading; fall back to client fetch only for user-triggered actions:
+
+  ```ts
+  // +page.server.ts
+  export async function load({ fetch }) {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw error(res.status);
+    return { items: await res.json() };
+  }
+  ```
+
+  Client-side refresh (e.g. on filter change):
+  ```svelte
+  <script lang="ts">
+    let filter = $state('');
+    let data = $state<Item[]>([]);
+    let loading = $state(false);
+
+    async function reload() {
+      loading = true;
+      try {
+        const res = await fetch(`/api/items?q=${encodeURIComponent(filter)}`);
+        data = await res.json();
+      } finally {
+        loading = false;
+      }
+    }
+
+    $effect(() => { void reload(); });
+  </script>
+  ```
+
+  ---
+
+  ## TypeScript Conventions
+
+  - `strict: true` in `tsconfig.json` — no exceptions
+  - Never use `as any`; use `unknown` + type guards instead
+  - Keep component props interfaces in the `<script>` block, not in separate `.d.ts`
+  - Prefer `interface` over `type` for object shapes; use `type` for unions/aliases
+
+  ---
+
+  ## Performance
+
+  - Avoid reactive statements that recalculate large arrays every tick — use `$derived`
+    with memoization-friendly patterns (pure functions, stable references)
+  - Lazy-load heavy components: `const Chart = await import('./Chart.svelte')`
+  - For lists >100 items, add `key` and consider virtualization
+  - Bundle images: use `<img loading="lazy">` for below-fold content
+
+  ---
+
+  ## Checklist Before Done
+
+  - [ ] No hardcoded colors — all via CSS custom properties
+  - [ ] Every interactive element is a `<button>` or `<a>`, never a `<div>`
+  - [ ] Every SVG has `role="img"` + `aria-label` + `<title>`
+  - [ ] Loading and error states are shown to the user
+  - [ ] Component props have TypeScript interfaces (no `any`)
+  - [ ] Responsive: tested at 320px, 768px, 1280px breakpoints
