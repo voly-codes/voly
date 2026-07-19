@@ -74,6 +74,12 @@ CF_WORKER_A2A_URL=https://a2a.voly.codes
 > The value in `.env` must match. Never reuse `CLOUDFLARE_API_TOKEN` for worker auth —
 > that is the account-level token with broad permissions.
 
+### GitHub (reuse pipeline)
+
+```env
+GITHUB_TOKEN=ghp_...   # or GH_TOKEN — voly reuse search / pack (GitHub REST)
+```
+
 ### VOLY control
 
 ```env
@@ -237,6 +243,20 @@ plan:
   allow_skip: false
   executor_default: claude-code
   step_timeout_seconds: 300
+
+# Code reuse: GitHub search → clone → pack → pick → apply (see docs/backend/reuse.md)
+reuse:
+  enabled: true
+  cache_dir: ".voly/reuse/cache"
+  reports_dir: ".voly/reuse/reports"
+  max_repos: 5
+  min_stars: 20
+  allowed_licenses: [mit, apache-2.0, bsd-2-clause, bsd-3-clause, isc, 0bsd, unlicense]
+  deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
+  pack_max_chars: 80000
+  apply_dest: "vendor/reuse"
+  # Requires GITHUB_TOKEN or GH_TOKEN for search rate limits.
+  # CLI: voly reuse search|pack|pick|apply|run
   max_turns: 30
   a2a_attach: true                 # wire gates into multi-agent when enabled
   chat_require_output: true        # chat roles: output_nonempty acceptance

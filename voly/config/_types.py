@@ -173,6 +173,25 @@ class ScannerConfig:
 
 
 @dataclass
+class ReuseConfig:
+    """Find similar GitHub repos → clone → pack → pick modules → copy."""
+
+    enabled: bool = True
+    cache_dir: str = ".voly/reuse/cache"
+    reports_dir: str = ".voly/reuse/reports"
+    max_repos: int = 5
+    min_stars: int = 20
+    allowed_licenses: list[str] = field(default_factory=lambda: [
+        "mit", "apache-2.0", "bsd-2-clause", "bsd-3-clause", "isc", "0bsd", "unlicense",
+    ])
+    deny_licenses: list[str] = field(default_factory=lambda: [
+        "gpl-2.0", "gpl-3.0", "agpl-3.0",
+    ])
+    pack_max_chars: int = 80_000
+    apply_dest: str = "vendor/reuse"
+
+
+@dataclass
 class AIGatewayConfig:
     enabled: bool = True
     provider: str = "cloudflare"
@@ -370,6 +389,7 @@ class VOLYConfig:
     spend: SpendConfig = field(default_factory=SpendConfig)
     registry: RegistryConfig = field(default_factory=RegistryConfig)
     scanner: ScannerConfig = field(default_factory=ScannerConfig)
+    reuse: ReuseConfig = field(default_factory=ReuseConfig)
     ai_gateway: AIGatewayConfig = field(default_factory=AIGatewayConfig)
     mcp: MCPConfig = field(default_factory=MCPConfig)
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)

@@ -22,6 +22,7 @@ from voly.config._types import (
     PxpipeConfig,
     RTKConfig,
     RegistryConfig,
+    ReuseConfig,
     ScannerConfig,
     SpendConfig,
     TelemetryConfig,
@@ -251,6 +252,28 @@ def _parse_config(raw: dict) -> VOLYConfig:
             enabled=s.get("enabled", True),
             auto_scan=s.get("auto_scan", True),
             scan_depth=s.get("scan_depth", 3),
+        )
+
+    if "reuse" in raw:
+        r = raw["reuse"]
+        config.reuse = ReuseConfig(
+            enabled=_parse_bool(r.get("enabled"), True),
+            cache_dir=r.get("cache_dir", ".voly/reuse/cache"),
+            reports_dir=r.get("reports_dir", ".voly/reuse/reports"),
+            max_repos=int(r.get("max_repos", 5) or 5),
+            min_stars=int(r.get("min_stars", 20) or 20),
+            allowed_licenses=list(
+                r.get("allowed_licenses")
+                or [
+                    "mit", "apache-2.0", "bsd-2-clause", "bsd-3-clause",
+                    "isc", "0bsd", "unlicense",
+                ]
+            ),
+            deny_licenses=list(
+                r.get("deny_licenses") or ["gpl-2.0", "gpl-3.0", "agpl-3.0"]
+            ),
+            pack_max_chars=int(r.get("pack_max_chars", 80_000) or 80_000),
+            apply_dest=r.get("apply_dest", "vendor/reuse"),
         )
 
     if "ai_gateway" in raw:

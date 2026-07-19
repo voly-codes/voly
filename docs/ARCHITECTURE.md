@@ -50,6 +50,11 @@ Developer / UI / CI
 the executor path (default `claude-code` + cwd). With `--cwd`, multi-agent
 **hybrid** runs implement roles via `AgentRunner` and architect/reviewer via chat.
 
+**Code reuse** (`voly reuse`, Layer B): optional CLI/library cycle
+search → shallow clone → pack → LLM/heuristic module pick → license-gated copy
+into `--cwd` (`vendor/reuse/…`). Reports under `.voly/reuse/reports/`; a fresh
+report may be injected into local context. Details: `docs/backend/reuse.md`.
+
 ---
 
 ## Design principles
@@ -421,6 +426,7 @@ docs/backend/
   ai-gateway.md             ← AIGateway middleware, CF route schema, providers
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
   plan.md                   ← plan gates (shadow/active, acceptance, CLI)
+  reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
   config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events
 docs/frontend/

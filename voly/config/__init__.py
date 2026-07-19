@@ -6,7 +6,7 @@ Public API — all names importable as `from voly.config import <name>`:
   Dataclasses:
     ModelConfig, AgentConfig, VOLYConfig,
     RTKConfig, HeadroomConfig, PxpipeConfig, MemoryConfig, A2AConfig, AGUIConfig,
-    SpendConfig, RegistryConfig, ScannerConfig,
+    SpendConfig, RegistryConfig, ScannerConfig, ReuseConfig,
     AIGatewayConfig, MCPConfig, TelemetryConfig, CloudConfig, DSPyConfig, PlanConfig,
     CostPolicyConfig, ExecutorSafetyConfig
 
@@ -40,6 +40,7 @@ from voly.config._types import (
     PxpipeConfig,
     RTKConfig,
     RegistryConfig,
+    ReuseConfig,
     ScannerConfig,
     SpendConfig,
     TelemetryConfig,
@@ -61,6 +62,7 @@ __all__ = [
     "AGUIConfig",
     "SpendConfig",
     "RegistryConfig",
+    "ReuseConfig",
     "ScannerConfig",
     "AIGatewayConfig",
     "MCPConfig",

@@ -43,3 +43,5 @@ docs.zip
 .voly/runs/
 .voly/catalog/
 .voly/plans/
+.voly/reuse/cache/
+.voly/reuse/reports/

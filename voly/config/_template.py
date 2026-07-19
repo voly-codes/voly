@@ -120,6 +120,19 @@ scanner:
   auto_scan: true
   scan_depth: 3
 
+# Code reuse pipeline: GitHub search → clone → pack → pick → copy
+# See docs/backend/reuse.md. Requires GITHUB_TOKEN (or GH_TOKEN) for search.
+reuse:
+  enabled: true
+  cache_dir: ".voly/reuse/cache"
+  reports_dir: ".voly/reuse/reports"
+  max_repos: 5
+  min_stars: 20
+  allowed_licenses: [mit, apache-2.0, bsd-2-clause, bsd-3-clause, isc, 0bsd, unlicense]
+  deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
+  pack_max_chars: 80000
+  apply_dest: "vendor/reuse"
+
 ai_gateway:
   enabled: true
   provider: cloudflare

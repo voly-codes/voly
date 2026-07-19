@@ -413,6 +413,7 @@ voly spend status                      # current daily spend
 voly dspy status                       # DSPy programs + mode
 voly cloud login --url https://cloud.voly.codes   # browser confirm; shared run history
 voly cloud sync                                 # upload past local runs after link
+voly reuse run "<task>" --cwd /path/to/project  # GitHub reuse pipeline (dry-run apply)
 ```
 
 ## CI and tests

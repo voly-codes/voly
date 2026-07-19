@@ -19,6 +19,7 @@ from .cloud_cmd import cloud
 from .dspy_cmd import dspy_cmd
 from .ui_cmd import ui
 from .plan_cmd import plan_cmd
+from .reuse_cmd import reuse_cmd
 
 __all__ = [
     "a2a",
@@ -53,4 +54,5 @@ __all__ = [
     "dspy_cmd",
     "ui",
     "plan_cmd",
+    "reuse_cmd",
 ]
