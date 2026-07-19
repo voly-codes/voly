@@ -82,14 +82,6 @@ voly ui                                     # web-дашборд на :7788
 architect/reviewer остаются на chat — в отчёте видно роль / mode / cost /
 файлы / verify.
 
-### Отчёт по запуску (Web UI)
-
-Один экран для демо: задача → путь executor → затронутые файлы → cost и токены.
-
-<p align="center">
-  <img src="docs/assets/dashboard_task.png" alt="VOLY Web UI — отчёт по задаче: cost, токены, файлы" width="900">
-</p>
-
 ### Демо: 3D танчики, собрано цепочкой агентов
 
 Одна задача («сделать 3D танчики») ушла через VOLY в цепочку

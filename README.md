@@ -82,15 +82,6 @@ automatically (`lead_mode=auto` skips a premium lead chat on standard role
 sets). With `--cwd`, hybrid implement roles write files; architect/reviewer
 stay on chat — the report shows role / mode / cost / files / verify.
 
-### Run report (Web UI)
-
-One screen for the story Product Hunt / demos need: task → executor path →
-files touched → cost and tokens.
-
-<p align="center">
-  <img src="docs/assets/dashboard_task.png" alt="VOLY Web UI — task run report with cost, tokens, and files touched" width="900">
-</p>
-
 ### Demo: 3D voxel tanks, built by a multi-agent chain
 
 A single task ("build a 3D voxel tank game") dispatched through VOLY to a
