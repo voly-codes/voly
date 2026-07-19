@@ -49,7 +49,7 @@ Check whether the agent's daily limit is exceeded. Response:
 ```
 
 `ok=false` → the caller stops the task with status
-`spend_limited` (see `pipeline/stages.py:_stage_spend_check`).
+`spend_limited` (see `pipeline/stages_route.py:_stage_spend_check`).
 
 ### `GET /spend/summary?days=<n>`
 

@@ -228,20 +228,22 @@ PR5: `compile_success_criteria()` drafts acceptance from free text (always
 
 ### `voly/pipeline/` — central orchestrator (text path)
 
-`Pipeline.run()` → stage methods + mixins. Does not contain product logic.
+`Pipeline.run()` → stage methods via `_PipelineStageMixin` (`stages.py`), composed from:
 
-| Method | Responsibility |
-|---|---|
-| `_stage_agui_start` | AG-UI session init |
-| `_stage_a2a` | A2A delegation |
-| `_stage_route` | routing + cost policy |
-| `_stage_spend_check` | pre-call spend limit |
-| `_stage_memory_retrieve` | memory search |
-| `_stage_rtk` | RTK stats |
-| `_stage_skill_inject` | match+inject skills |
-| `_stage_memory_store` | persist result |
-| `_stage_agui_done` | stream to AG-UI |
-| `_emit_task_event` | telemetry |
+`stages_a2a` · `stages_route` · `stages_context` · `stages_emit`
+
+Does not contain product logic.
+
+| Method | Module | Responsibility |
+|---|---|---|
+| `_stage_agui_start` / `_stage_agui_done` | `stages_a2a` | AG-UI session |
+| `_stage_a2a` / `_stage_a2a_auto` | `stages_a2a` | A2A delegation / multi-agent |
+| `_stage_route` | `stages_route` | routing + cost policy |
+| `_stage_spend_check` | `stages_route` | pre-call spend limit |
+| `_stage_memory_retrieve` / `_stage_memory_store` | `stages_context` | memory search / persist |
+| `_stage_rtk` | `stages_context` | RTK stats |
+| `_stage_skill_inject` / `_stage_skill_suggest` | `stages_context` | skills |
+| `_emit_task_event` | `stages_emit` | telemetry |
 
 ### `voly/runner/agent_runner.py` — executor path
 

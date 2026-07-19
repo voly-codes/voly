@@ -281,9 +281,9 @@ This is used in `web/routes/run.py` for smart dispatch.
 
 ## Lazy skill suggestion (SKILL_SUGGEST stage)
 
-`voly/pipeline/stages.py::_stage_skill_suggest()` — runs between `RTK_FILTER`
+`voly/pipeline/stages_context.py::_stage_skill_suggest()` — runs between `RTK_FILTER`
 and `SKILL_INJECT` on the single-model path, and at the start of local multi-agent
-(`_run_multiagent_local`) so A2A runs also return `skill_suggestions`.
+(`_run_multiagent_local` in `stages_a2a.py`) so A2A runs also return `skill_suggestions`.
 
 Queries the CF marketplace for skills relevant to the task that are not installed
 locally, then emits a `SKILL_SUGGEST` stage event. The UI receives the suggestions
@@ -325,11 +325,28 @@ the top-2 candidate fallback applies only when the lead call itself failed.
 
 ---
 
+## Stage module layout
+
+`Pipeline` composes `_PipelineStageMixin` (`stages.py`) from focused mixins
+(behaviour split for maintainability only — public API unchanged):
+
+| Module | Contents |
+|---|---|
+| `stages_a2a.py` | AG-UI + A2A federation / `_run_multiagent_local` |
+| `stages_route.py` | `_stage_route`, `_stage_spend_check` |
+| `stages_context.py` | memory, Headroom, RTK, skill suggest/inject |
+| `stages_emit.py` | builders, gateway error checks, TaskEvent emit |
+| `stages.py` | composes mixins into `_PipelineStageMixin` |
+
+Import path `from voly.pipeline.stages import _PipelineStageMixin` remains stable.
+
+---
+
 ## Changing the Pipeline
 
 Rules:
 - Preserve the `PipelineResult` structure
-- Each stage is a named `_stage_*` method
+- Each stage is a named `_stage_*` method (see module layout above)
 - Always `emit TaskEvent` to telemetry
 - No product-specific logic in `voly/`
 - When changing — update `docs/ARCHITECTURE.md` and this file
