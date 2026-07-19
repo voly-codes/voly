@@ -197,7 +197,7 @@ Enforced multi-step plans with verification gates. Design:
 | PR | Status | Module |
 |---|---|---|
 | PR1 | **landed** — types, store, FSM engine | `voly/plan/` |
-| PR2 | **landed** — acceptance verifiers | `voly/plan/verify.py` |
+| PR2 | **landed** — acceptance verifiers | `voly/plan/verify*.py` (`verify` + `verify_types` / `verify_git` / `verify_checks`) |
 | PR3 | **landed** — CLI + PlanRunner | `voly plan …`, `voly/plan/runner.py` |
 | PR4 | **landed** — multi-agent bridge | `voly/plan/bridge.py` + `run_local` gates |
 | PR5 | **landed** — criteria + scanner DX | `criteria.py`, `suggest.py`, `docs/backend/plan.md` |

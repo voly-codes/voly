@@ -108,6 +108,15 @@ voly plan show auth-refactor
 
 Unknown types **fail closed**.
 
+Verifier modules (`voly/plan/`; public import remains `voly.plan.verify`):
+
+| Module | Contents |
+|---|---|
+| `verify_types.py` | `VerifyResult` / `VerifyContext`, check-type constants |
+| `verify_git.py` | `safe_join`, `ensure_git_repo`, porcelain helpers |
+| `verify_checks.py` | built-in handlers, `run_check` / `run_acceptance` |
+| `verify.py` | `verify_step` / `complete_verification` + re-exports |
+
 ### Executor file-size policy
 
 Attached A2A plans add `file_line_limit` to every executor role by default.
