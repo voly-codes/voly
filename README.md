@@ -98,9 +98,7 @@ developer → tester → reviewer chain. Full game, tested and reviewed, in
 **5 min 58 s** for **$0.0130** (zero retries).
 
 <p align="center">
-
-https://github.com/voly-codes/voly/releases/download/demo-voxel-tanks/export-1784466924338-compact.mp4
-
+  <a href="https://github.com/voly-codes/voly/releases/download/demo-voxel-tanks/export-1784466924338-compact.mp4"><img src="docs/assets/video-preview.webp" alt="Watch the demo" width="900"></a>
 </p>
 
 ## Open core vs Cloud
