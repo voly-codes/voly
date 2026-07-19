@@ -96,6 +96,10 @@ export const suggestSkills = (task, limit = 5) =>
 export const detectTech = (task, cwd = '') =>
   post('/api/tech/detect', { task, cwd }).then(r => r.json())
 
+/** Check which tech runtimes are available as system binaries (python3, node, docker). */
+export const techPreflight = (tech) =>
+  post('/api/tech/preflight', { tech }).then(r => r.json())
+
 export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 0) =>
   get(`/api/marketplace/plugins?${new URLSearchParams({ status, limit, offset })}`)
 

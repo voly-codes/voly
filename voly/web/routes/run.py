@@ -67,6 +67,19 @@ class TechDetectRequest(BaseModel):
     cwd: str = ""
 
 
+class PreflightRequest(BaseModel):
+    tech: list[str]  # registry names to check
+
+
+# Only language/infra runtimes have system-level binaries worth checking.
+# Framework packages (fastapi, react, etc.) are installed via package managers.
+_RUNTIME_BINS: dict[str, str] = {
+    "python": "python3",
+    "node": "node",
+    "docker": "docker",
+}
+
+
 def _sse(event_type: str, data: dict[str, Any]) -> str:
     return f"data: {json.dumps({'type': event_type, **data})}\n\n"
 
@@ -79,12 +92,26 @@ def _gather_local_context(task: str, cwd: str, max_chars: int = 6000) -> str:
     if not os.path.isdir(cwd):
         return ""
 
+    parts: list[str] = []
+    total = 0
+
+    # Optional: inject latest voly reuse report (thin PR3 hook — not a full search stage).
+    try:
+        from voly.reuse.context import format_reuse_context
+
+        reuse_block = format_reuse_context(cwd, max_chars=min(1500, max_chars // 3))
+        if reuse_block:
+            parts.append(reuse_block + "\n")
+            total += len(reuse_block)
+    except Exception:
+        pass
+
     # Extract identifiers: camelCase, snake_case, PascalCase — min 4 chars
     tokens = re.findall(r'\b[a-zA-Z_][a-zA-Z0-9_]{3,}\b', task)
     keywords = [t for t in dict.fromkeys(tokens) if t.lower() not in _STOP_WORDS][:8]
 
     if not keywords:
-        return ""
+        return "".join(parts)
 
     _EXCLUDE_DIRS = ("node_modules", ".venv", "venv", "__pycache__", ".git",
                      "dist", "build", ".next", "target", ".pytest_cache")
@@ -108,10 +135,9 @@ def _gather_local_context(task: str, cwd: str, max_chars: int = 6000) -> str:
     # Top-5 most relevant files
     top_files = sorted(file_scores, key=lambda p: -file_scores[p])[:5]
     if not top_files:
-        return ""
+        return "".join(parts)
 
-    parts: list[str] = ["## Relevant local files\n"]
-    total = 0
+    parts.append("## Relevant local files\n")
     for rel_path in top_files:
         full_path = os.path.join(cwd, rel_path)
         try:
@@ -126,7 +152,7 @@ def _gather_local_context(task: str, cwd: str, max_chars: int = 6000) -> str:
         except Exception:
             pass
 
-    return "".join(parts) if len(parts) > 1 else ""
+    return "".join(parts)
 
 
 def _extract_relevant_lines(content: str, keywords: list[str], max_lines: int = 60) -> str:
@@ -466,3 +492,20 @@ async def get_tech_registry() -> dict:
     """Return the full tech registry with all frameworks and current versions."""
     from voly.catalog.tech_registry import get_registry
     return {"registry": get_registry()}
+
+
+@router.post("/api/tech/preflight")
+async def tech_preflight(req: PreflightRequest) -> dict:
+    """Check which requested runtimes are available as system binaries.
+
+    Returns {available: {name: bool}} — only for names that map to a binary.
+    Framework-level packages (fastapi, react, pytest) are not checked here;
+    they're managed by package managers, not system PATH.
+    """
+    import shutil
+    available = {
+        name: shutil.which(_RUNTIME_BINS[name]) is not None
+        for name in req.tech
+        if name in _RUNTIME_BINS
+    }
+    return {"available": available}

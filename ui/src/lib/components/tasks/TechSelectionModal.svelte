@@ -1,5 +1,6 @@
 <script>
-  import { LayersIcon } from '../../icons.js'
+  import { AlertCircleIcon, LayersIcon } from '../../icons.js'
+  import { techPreflight } from '../../api/client.js'
 
   let {
     open = $bindable(false),
@@ -10,10 +11,17 @@
 
   // Local editable copy — user can change version per entry
   let selections = $state([])
+  // Preflight: name → true/false (only runtimes with system binaries)
+  let availability = $state({})
 
   $effect(() => {
     if (open && detected.length) {
       selections = detected.map(e => ({ ...e }))
+      availability = {}
+      const names = detected.map(e => e.name)
+      techPreflight(names)
+        .then(r => { availability = r.available ?? {} })
+        .catch(() => {})
     }
   })
 
@@ -77,9 +85,17 @@
           <div class="group">
             <div class="group-label">{categoryLabel[cat] ?? cat}</div>
             {#each items as entry}
-              <div class="tech-row">
+              <div class="tech-row" class:missing={availability[entry.name] === false}>
                 <div class="tech-meta">
-                  <span class="tech-name">{entry.label}</span>
+                  <div class="tech-name-row">
+                    <span class="tech-name">{entry.label}</span>
+                    {#if availability[entry.name] === false}
+                      <span class="not-installed-badge" title="Runtime not found in PATH — install it or the agent will fail at the test/run step">
+                        <AlertCircleIcon size="11" strokeWidth="2" />
+                        not installed
+                      </span>
+                    {/if}
+                  </div>
                   {#if entry.notes}
                     <span class="tech-notes">{entry.notes}</span>
                   {/if}
@@ -187,6 +203,11 @@
     background: var(--bg-inset);
   }
 
+  .tech-row.missing {
+    border-color: color-mix(in srgb, var(--accent-amber) 40%, transparent);
+    background: color-mix(in srgb, var(--accent-amber) 5%, var(--bg-inset));
+  }
+
   .tech-meta {
     display: flex;
     flex-direction: column;
@@ -195,10 +216,31 @@
     flex: 1;
   }
 
+  .tech-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
   .tech-name {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
+  }
+
+  .not-installed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--accent-amber);
+    background: color-mix(in srgb, var(--accent-amber) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 35%, transparent);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
   }
 
   .tech-notes {
