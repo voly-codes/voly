@@ -57,7 +57,7 @@ ui/
           TaskHeader.svelte
           TaskSidebar.svelte
           PipelineStages.svelte         # pipeline stage visualization
-          PipelineInspector.svelte
+          PipelineInspector.svelte      # shell (+ Agents / BillingChain / Meta + pipelineStageModel)
           PipelineEmptyState.svelte
           CostPanel.svelte
           StatsOverview.svelte

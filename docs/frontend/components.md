@@ -100,6 +100,19 @@ skills, content, error.
 
 ---
 
+## PipelineInspector.svelte
+
+Selected-task card (from `tasksStore.selected`). Shell layout + composition:
+
+| Piece | Role |
+|---|---|
+| `pipelineStageModel.js` | `buildPipelineStages` / `buildTokenBar` from TaskEvent |
+| `InspectorAgentsList.svelte` | multi-agent role rows (duration, plan status, errors) |
+| `InspectorBillingChain.svelte` | vertical billing-chain timeline |
+| `InspectorMetaSections.svelte` | gateway / billing / DSPy / metadata extras |
+
+Also uses existing `TaskHeader`, `PipelineStages`, `StatsOverview`, `WorkReport`.
+
 ## PipelineStages.svelte
 
 Pipeline stage visualization for text-only tasks:
