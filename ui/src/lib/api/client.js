@@ -92,6 +92,10 @@ export const installSkill = skill_id =>
 export const suggestSkills = (task, limit = 5) =>
   get(`/api/marketplace/skills/suggest?${new URLSearchParams({ task, limit: String(limit) })}`)
 
+/** Detect tech stack (frameworks + versions) implied by a task description. */
+export const detectTech = (task, cwd = '') =>
+  post('/api/tech/detect', { task, cwd }).then(r => r.json())
+
 export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 0) =>
   get(`/api/marketplace/plugins?${new URLSearchParams({ status, limit, offset })}`)
 

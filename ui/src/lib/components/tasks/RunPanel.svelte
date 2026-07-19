@@ -1,12 +1,13 @@
 <script>
   import { onMount } from 'svelte'
   import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
-  import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills } from '../../api/client.js'
+  import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills, detectTech } from '../../api/client.js'
   import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunResult from './RunResult.svelte'
   import EnvironmentBanner from './EnvironmentBanner.svelte'
   import SkillSuggestModal from './SkillSuggestModal.svelte'
+  import TechSelectionModal from './TechSelectionModal.svelte'
 
   let { onTaskComplete } = $props()
 
@@ -26,6 +27,11 @@
   let skillGateOpen = $state(false)
   let skillSuggestions = $state([])
   let skillInstalling = $state(false)
+
+  let techGateOpen = $state(false)
+  let techDetected = $state([])
+  let confirmedTechStack = $state([])
+  let checkingTech = $state(false)
 
   const HYBRID_WARNING_LABELS = {
     hybrid_skipped_no_cwd: 'Hybrid code generation skipped (no cwd set) — running chat-only.',
@@ -100,9 +106,9 @@
     loadModels()
   })
 
-  /** Pre-run gate: suggest marketplace skills, then open modal or start immediately. */
+  /** Gate 1: suggest marketplace skills → Gate 2: tech detection → run. */
   async function submit() {
-    if (!task.trim() || running || checkingSkills || skillGateOpen) return
+    if (!task.trim() || running || checkingSkills || skillGateOpen || checkingTech || techGateOpen) return
     checkingSkills = true
     error = null
     try {
@@ -110,7 +116,7 @@
       const suggestions = data?.suggestions ?? []
       if (suggestions.length > 0) {
         skillSuggestions = suggestions
-        skillGateOpen = true
+        skillGateOpen = true  // SkillSuggestModal calls checkTechGate on close
         return
       }
     } catch {
@@ -118,10 +124,42 @@
     } finally {
       checkingSkills = false
     }
-    await startRun()
+    await checkTechGate()
   }
 
-  async function startRun() {
+  /** Gate 2: detect tech stack, show modal if anything found. */
+  async function checkTechGate() {
+    // Only run tech detection for pipeline/executor runs, not pure chat
+    if (executor === 'pipeline' || executor === 'claude-code' || executor === 'cursor') {
+      checkingTech = true
+      try {
+        const data = await detectTech(task.trim(), cwd)
+        const detected = data?.detected ?? []
+        if (detected.length > 0) {
+          techDetected = detected
+          techGateOpen = true
+          return
+        }
+      } catch {
+        // Detection endpoint down — don't block the run.
+      } finally {
+        checkingTech = false
+      }
+    }
+    await startRun([])
+  }
+
+  function onTechConfirm(selected) {
+    confirmedTechStack = selected
+    startRun(selected)
+  }
+
+  function onTechSkip() {
+    confirmedTechStack = []
+    startRun([])
+  }
+
+  async function startRun(techStack = []) {
     if (!task.trim() || running) return
     running = true
     result = null
@@ -133,7 +171,7 @@
     ui.pushRun({ id: runId, task: task.slice(0, 80), executor, agent: agent || 'auto', model: model || '—', startedAt: Date.now() })
 
     try {
-      for await (const event of runTask({ task, executor, agent, model, cwd, max_turns: 30 })) {
+      for await (const event of runTask({ task, executor, agent, model, cwd, max_turns: 30, tech_stack: techStack })) {
         if (event.type === 'start') {
           if (event.hybrid_warning) {
             warning = HYBRID_WARNING_LABELS[event.hybrid_warning] ?? event.hybrid_warning
@@ -169,7 +207,7 @@
     return () => clearInterval(iv)
   })
 
-  const busy = $derived(running || checkingSkills || skillInstalling)
+  const busy = $derived(running || checkingSkills || skillInstalling || checkingTech)
 </script>
 
 <div class="run-panel">
@@ -194,10 +232,24 @@
       </div>
     {/if}
 
+    {#if checkingTech}
+      <div class="run-status">
+        <ZapIcon size="13" strokeWidth="2" />
+        Detecting tech stack…
+      </div>
+    {/if}
+
     {#if running}
       <div class="run-status running-pulse">
         <ZapIcon size="13" strokeWidth="2" />
         Running via <strong>{executor}</strong>… {elapsedDisplay}
+        {#if confirmedTechStack.length}
+          <span class="tech-chips">
+            {#each confirmedTechStack as item}
+              <span class="tech-chip">{item.label} {item.version}</span>
+            {/each}
+          </span>
+        {/if}
       </div>
     {/if}
 
@@ -247,8 +299,15 @@
   bind:open={skillGateOpen}
   bind:installing={skillInstalling}
   suggestions={skillSuggestions}
-  onRun={startRun}
-  onSkip={startRun}
+  onRun={checkTechGate}
+  onSkip={checkTechGate}
+/>
+
+<TechSelectionModal
+  bind:open={techGateOpen}
+  detected={techDetected}
+  onConfirm={onTechConfirm}
+  onSkip={onTechSkip}
 />
 
 <style>
@@ -282,6 +341,24 @@
 
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.6} }
   .running-pulse { animation: pulse 1.6s ease-in-out infinite; }
+
+  .tech-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: 4px;
+  }
+
+  .tech-chip {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent-blue) 15%, transparent);
+    color: var(--accent-blue);
+    border: 1px solid color-mix(in srgb, var(--accent-blue) 30%, transparent);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
 
   .run-error {
     font-size: 12px;

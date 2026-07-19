@@ -5,6 +5,7 @@ import { handleInfer } from "./infer";
 import type { Env } from "./pipeline";
 import { callPipelineRunner, completeA2ATask, getA2ATaskState } from "./pipeline";
 import { VOLYMcpAgent } from "./mcp-agent";
+import { handleTechRegistry } from "./tech-registry";
 
 function authorize(c: { req: { header: (name: string) => string | undefined }; env: Env }): boolean {
   const required = c.env.API_TOKEN;
@@ -29,6 +30,9 @@ app.get("/health", (c) =>
     mcp: "/mcp",
   }),
 );
+
+// Tech version registry — static data so agents use confirmed current versions.
+app.get("/tech-registry", (c) => handleTechRegistry(c.req.raw));
 
 // Workers AI inference — accepts task + optional local context, returns code blocks.
 // The Python WranglerExecutor calls this and passes the response to LocalPatchApplier.

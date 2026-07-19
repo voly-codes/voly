@@ -1,0 +1,304 @@
+"""Tech version registry.
+
+Single source of truth for framework/library versions injected into agent prompts
+so agents don't guess or search the web for current version numbers.
+
+Versions are pinned at release time and updated manually on major releases.
+Last updated: 2025-07.
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any
+
+# ── Registry data ─────────────────────────────────────────────────────────────
+
+# Each entry:
+#   name        canonical ID
+#   label       display name
+#   versions    [latest, N-1, N-2] — first is the default
+#   category    frontend | backend | language | infra | database | testing
+#   keywords    task-description tokens that trigger detection (lowercase)
+#   companions  other registry IDs to suggest alongside this one
+#   notes       short "what changed in latest" for agent context
+
+_REGISTRY: list[dict[str, Any]] = [
+    # ── Frontend frameworks ────────────────────────────────────────────────
+    {
+        "name": "svelte",
+        "label": "Svelte",
+        "versions": ["5.33.0", "5.20.0", "4.2.19"],
+        "category": "frontend",
+        "keywords": ["svelte", "sveltekit", "runes"],
+        "companions": ["sveltekit", "typescript", "vite", "vitest"],
+        "notes": "v5: runes API ($state, $derived, $props, $effect) replaces reactive stores and Options API entirely.",
+    },
+    {
+        "name": "sveltekit",
+        "label": "SvelteKit",
+        "versions": ["2.21.0", "2.15.0", "1.30.4"],
+        "category": "frontend",
+        "keywords": ["sveltekit", "svelte kit"],
+        "companions": ["svelte", "typescript", "vite"],
+        "notes": "v2: file-based routing, server load functions, +page.server.ts pattern.",
+    },
+    {
+        "name": "react",
+        "label": "React",
+        "versions": ["19.1.0", "18.3.1"],
+        "category": "frontend",
+        "keywords": ["react", "jsx", "tsx"],
+        "companions": ["typescript", "vite"],
+        "notes": "v19: Server Components stable, use() hook, form actions, React Compiler (opt-in).",
+    },
+    {
+        "name": "nextjs",
+        "label": "Next.js",
+        "versions": ["15.3.1", "14.2.29"],
+        "category": "frontend",
+        "keywords": ["next.js", "nextjs", "next js"],
+        "companions": ["react", "typescript"],
+        "notes": "v15: Turbopack stable, React 19 first-class, partial prerendering.",
+    },
+    {
+        "name": "vue",
+        "label": "Vue",
+        "versions": ["3.5.13", "3.4.21"],
+        "category": "frontend",
+        "keywords": ["vue", "vuejs", "vue.js"],
+        "companions": ["typescript", "vite"],
+        "notes": "v3.5: useTemplateRef(), improved reactivity, deferred hydration.",
+    },
+    {
+        "name": "nuxt",
+        "label": "Nuxt",
+        "versions": ["3.16.2", "3.15.4"],
+        "category": "frontend",
+        "keywords": ["nuxt", "nuxtjs", "nuxt.js"],
+        "companions": ["vue", "typescript"],
+        "notes": "v3.16: Nitro 2.10, improved dev server, Vite 6 support.",
+    },
+    # ── Languages ─────────────────────────────────────────────────────────
+    {
+        "name": "typescript",
+        "label": "TypeScript",
+        "versions": ["5.8.3", "5.7.3", "5.4.5"],
+        "category": "language",
+        "keywords": ["typescript", "ts", ".ts", ".tsx"],
+        "companions": [],
+        "notes": "v5.8: strict optional chaining, improved narrowing, --erasableSyntaxOnly flag.",
+    },
+    {
+        "name": "python",
+        "label": "Python",
+        "versions": ["3.13.2", "3.12.8", "3.11.12"],
+        "category": "language",
+        "keywords": ["python", "py", "fastapi", "django", "flask", "pytest", "pydantic"],
+        "companions": [],
+        "notes": "3.13: JIT compiler (opt-in), free-threaded mode, improved REPL. 3.12 is LTS production default.",
+    },
+    {
+        "name": "node",
+        "label": "Node.js",
+        "versions": ["22.15.0", "20.19.0"],
+        "category": "language",
+        "keywords": ["node", "nodejs", "node.js", "npm", "npx"],
+        "companions": [],
+        "notes": "v22 is LTS (Active). v20 is LTS (Maintenance).",
+    },
+    # ── Backend frameworks ─────────────────────────────────────────────────
+    {
+        "name": "fastapi",
+        "label": "FastAPI",
+        "versions": ["0.115.12", "0.110.3"],
+        "category": "backend",
+        "keywords": ["fastapi", "fast api", "fastapi backend"],
+        "companions": ["python", "pydantic", "uvicorn", "pytest", "httpx"],
+        "notes": "0.115: Pydantic v2 native, lifespan context managers, annotated dependencies.",
+    },
+    {
+        "name": "django",
+        "label": "Django",
+        "versions": ["5.2.1", "4.2.20"],
+        "category": "backend",
+        "keywords": ["django", "django rest", "drf"],
+        "companions": ["python", "pytest"],
+        "notes": "v5.2: async ORM, LoginRequiredMiddleware, composite PKs.",
+    },
+    {
+        "name": "flask",
+        "label": "Flask",
+        "versions": ["3.1.0", "3.0.3"],
+        "category": "backend",
+        "keywords": ["flask"],
+        "companions": ["python", "pytest"],
+        "notes": "v3.1: sync/async unified, improved type hints.",
+    },
+    {
+        "name": "pydantic",
+        "label": "Pydantic",
+        "versions": ["2.11.5", "2.10.6", "1.10.21"],
+        "category": "backend",
+        "keywords": ["pydantic"],
+        "companions": ["python"],
+        "notes": "v2: 5–50× faster validation, model_validator, field_validator decorators.",
+    },
+    {
+        "name": "uvicorn",
+        "label": "Uvicorn",
+        "versions": ["0.34.2", "0.32.1"],
+        "category": "backend",
+        "keywords": ["uvicorn"],
+        "companions": ["fastapi", "python"],
+        "notes": "v0.34: HTTP/2 via h2, improved worker lifecycle.",
+    },
+    {
+        "name": "sqlalchemy",
+        "label": "SQLAlchemy",
+        "versions": ["2.0.40", "1.4.54"],
+        "category": "backend",
+        "keywords": ["sqlalchemy", "sqla", "orm"],
+        "companions": ["python", "alembic"],
+        "notes": "v2: fully typed ORM, async-first, select() style replaces Query.",
+    },
+    # ── Build / Testing ───────────────────────────────────────────────────
+    {
+        "name": "vite",
+        "label": "Vite",
+        "versions": ["6.3.5", "5.4.19"],
+        "category": "build",
+        "keywords": ["vite"],
+        "companions": [],
+        "notes": "v6: Rolldown bundler (Rust), environment API, improved HMR.",
+    },
+    {
+        "name": "vitest",
+        "label": "Vitest",
+        "versions": ["3.2.4", "2.1.9"],
+        "category": "testing",
+        "keywords": ["vitest"],
+        "companions": [],
+        "notes": "v3: browser mode stable, workspace projects, improved coverage.",
+    },
+    {
+        "name": "pytest",
+        "label": "pytest",
+        "versions": ["8.4.0", "7.4.4"],
+        "category": "testing",
+        "keywords": ["pytest"],
+        "companions": ["python"],
+        "notes": "v8.4: improved fixture resolution, assert rewriting, asyncio-mode=auto default.",
+    },
+    # ── Database ──────────────────────────────────────────────────────────
+    {
+        "name": "postgresql",
+        "label": "PostgreSQL",
+        "versions": ["17.4", "16.8"],
+        "category": "database",
+        "keywords": ["postgresql", "postgres", "psql", "pg"],
+        "companions": ["sqlalchemy"],
+        "notes": "v17: incremental sort, logical replication improvements.",
+    },
+    {
+        "name": "redis",
+        "label": "Redis",
+        "versions": ["7.4.2", "7.2.7"],
+        "category": "database",
+        "keywords": ["redis", "cache", "queue"],
+        "companions": [],
+        "notes": "v7.4: LPOS improvements, TLS 1.3, modules API v7.",
+    },
+    # ── Infra ─────────────────────────────────────────────────────────────
+    {
+        "name": "docker",
+        "label": "Docker",
+        "versions": ["28.0.1", "27.5.1"],
+        "category": "infra",
+        "keywords": ["docker", "dockerfile", "docker-compose", "compose"],
+        "companions": [],
+        "notes": "v28: BuildKit default, compose v2 (docker compose), improved networking.",
+    },
+]
+
+# Build lookup index by name
+_BY_NAME: dict[str, dict[str, Any]] = {e["name"]: e for e in _REGISTRY}
+
+
+# ── Detection logic ───────────────────────────────────────────────────────────
+
+def detect_tech_from_task(task: str) -> list[dict[str, Any]]:
+    """Deterministic keyword-based detection of tech stack from task description.
+
+    Returns a list of registry entries (with defaults set) for the detected stack,
+    companions included and deduplicated, ordered by relevance.
+    """
+    task_lower = task.lower()
+    # Tokenise: split on non-word chars, keep tokens ≥ 2 chars
+    tokens = set(re.split(r"[^\w.]+", task_lower))
+
+    matched: dict[str, int] = {}  # name → hit count
+
+    for entry in _REGISTRY:
+        hits = 0
+        for kw in entry["keywords"]:
+            kw_tok = kw.replace(".", "").replace(" ", "")
+            # Short tokens (≤ 3 chars) must be whole words to avoid substring false-positives
+            # (e.g. "ts" in "tests", "py" in "copy").
+            if len(kw_tok) <= 3:
+                if kw_tok in tokens:
+                    hits += 1
+            else:
+                if kw in task_lower:
+                    hits += 1
+        if hits:
+            matched[entry["name"]] = hits
+
+    if not matched:
+        return []
+
+    # Expand companions one level
+    expanded: dict[str, int] = dict(matched)
+    for name, score in list(matched.items()):
+        for companion in (_BY_NAME.get(name) or {}).get("companions", []):
+            if companion not in expanded:
+                expanded[companion] = max(score - 1, 1)
+
+    # Sort: direct matches first, companions second; within each by hit count desc
+    def _sort_key(name: str) -> tuple[int, int]:
+        is_companion = name not in matched
+        return (int(is_companion), -expanded[name])
+
+    ordered = sorted(expanded.keys(), key=_sort_key)
+    return [_entry_with_defaults(_BY_NAME[n]) for n in ordered if n in _BY_NAME]
+
+
+def _entry_with_defaults(entry: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": entry["name"],
+        "label": entry["label"],
+        "version": entry["versions"][0],
+        "versions": list(entry["versions"]),
+        "category": entry["category"],
+        "notes": entry.get("notes", ""),
+    }
+
+
+def get_registry() -> list[dict[str, Any]]:
+    """Return the full tech registry for CF/API exposure."""
+    return [_entry_with_defaults(e) for e in _REGISTRY]
+
+
+def tech_stack_context(selected: list[dict[str, Any]]) -> str:
+    """Format a confirmed tech stack as a constraint block for agent prompts."""
+    if not selected:
+        return ""
+    lines = ["**Approved tech stack — use these exact versions:**"]
+    for item in selected:
+        note = f" ({item['notes']})" if item.get("notes") else ""
+        lines.append(f"- {item['label']}: {item['version']}{note}")
+    lines.append(
+        "Do not install or suggest newer versions. "
+        "Do not upgrade pinned versions during implementation."
+    )
+    return "\n".join(lines)

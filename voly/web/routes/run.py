@@ -57,6 +57,14 @@ class RunRequest(BaseModel):
     # Run the executor but roll back all file changes afterwards; the diff
     # preview lands in result metadata (executor safety policy).
     dry_run: bool = False
+    # User-confirmed tech stack from TechSelectionModal.
+    # Each entry: {name, label, version, category, notes?}
+    tech_stack: list[dict] = []
+
+
+class TechDetectRequest(BaseModel):
+    task: str
+    cwd: str = ""
 
 
 def _sse(event_type: str, data: dict[str, Any]) -> str:
@@ -152,6 +160,7 @@ def _extract_relevant_lines(content: str, keywords: list[str], max_lines: int = 
 
 def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
     from voly.pipeline import Pipeline
+    from voly.catalog.tech_registry import tech_stack_context
 
     cfg = config
     if cfg is None:
@@ -164,9 +173,16 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
     context: dict[str, Any] = {}
     if run_cwd:
         context["cwd"] = run_cwd
+
+    task = req.task
+    if req.tech_stack:
+        ctx_block = tech_stack_context(req.tech_stack)
+        task = f"{ctx_block}\n\n{task}"
+        context["tech_stack"] = req.tech_stack
+
     try:
         result = pipeline.run(
-            req.task,
+            task,
             context=context or None,
             force_model=req.model or None,
             force_agent=req.agent or None,
@@ -186,6 +202,7 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "tokens_saved_by_headroom": result.tokens_saved_by_headroom,
         "dspy_used": result.dspy_used,
         "dspy_mode": result.dspy_mode,
+        "tech_stack": req.tech_stack or [],
     }
     if result.route:
         out["agent"] = result.route.agent
@@ -232,10 +249,16 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         from voly.config import load_config
         cfg = load_config()
 
+    from voly.catalog.tech_registry import tech_stack_context
+
     work_dir = os.path.expanduser(req.cwd) if req.cwd else os.getcwd()
 
     # Enrich task with local context for code tasks
     task = req.task
+    if req.tech_stack:
+        ctx_block = tech_stack_context(req.tech_stack)
+        task = f"{ctx_block}\n\n{task}"
+
     if req.cwd and req.executor not in ("pipeline",):
         ctx = _gather_local_context(req.task, work_dir)
         if ctx:
@@ -265,6 +288,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         "chain_timelog": meta.get("chain_timelog"),
         "artifacts": meta.get("artifacts") or [],
     }
+    out["tech_stack"] = req.tech_stack or []
     if not result.success:
         out.update(executor_failure_details(result.result, executor_name=result.executor))
     # Executor safety policy artifacts (dry-run preview / rollback details).
@@ -423,3 +447,22 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/api/tech/detect")
+async def detect_tech(req: TechDetectRequest) -> dict:
+    """Detect the tech stack implied by a task description.
+
+    Returns a list of framework/library entries with version choices the user
+    can confirm or override in the UI before the run starts.
+    """
+    from voly.catalog.tech_registry import detect_tech_from_task
+    detected = detect_tech_from_task(req.task)
+    return {"detected": detected}
+
+
+@router.get("/api/tech/registry")
+async def get_tech_registry() -> dict:
+    """Return the full tech registry with all frameworks and current versions."""
+    from voly.catalog.tech_registry import get_registry
+    return {"registry": get_registry()}

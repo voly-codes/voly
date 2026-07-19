@@ -1,5 +1,5 @@
 <script>
-  import { BookOpenIcon } from '../../icons.js'
+  import { BookOpenIcon, LayersIcon } from '../../icons.js'
   import BillingChainTimelog from './BillingChainTimelog.svelte'
   import MultiAgentPanel from './MultiAgentPanel.svelte'
   import PxpipeArtifacts from './PxpipeArtifacts.svelte'
@@ -34,6 +34,16 @@
       <summary>Diff preview (dry-run — changes were rolled back)</summary>
       <pre class="diff-content">{result.dry_run_diff}</pre>
     </details>
+  {/if}
+
+  {#if result.tech_stack?.length}
+    <div class="injected-skills">
+      <LayersIcon size="11" strokeWidth="2" />
+      <span class="injected-label">Tech stack:</span>
+      {#each result.tech_stack as item}
+        <span class="skill-chip">{item.label} {item.version}</span>
+      {/each}
+    </div>
   {/if}
 
   {#if result.injected_skills?.length}
