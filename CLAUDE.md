@@ -14,6 +14,8 @@ VOLY routes a developer's tasks to the right AI agent, manages the billing fallb
 - **DSPy TaskPlanner:** refines the task before the executor, collects (task, result) examples for optimization
 - **CF AI Gateway route schema:** `/infer` endpoint in the CF Worker routes via the CF Dashboard route schema
 - **Local context:** before the executor, gathers relevant project files via grep
+- **Tech stack gate:** pre-run framework version selection (registry + runtime preflight); empty cwd → category picker + greenfield scaffolding
+- **Code reuse:** `voly reuse` — GitHub search → pack → pick → apply; optional auto-search before each executor call (`reuse.auto`)
 
 VOLY is project-agnostic — no product-specific logic in `voly/`.
 
@@ -57,6 +59,7 @@ docs/
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter
     config.md        ← voly.yaml, env vars, VOLYConfig fields
     api.md           ← FastAPI endpoints, SSE events, CF Worker /infer
+    spend-protocol.md ← Spend/limits contract between CLI, worker, and Cloud
   frontend/
     overview.md      ← Svelte 5 stack, ui/ structure, dev/build
     components.md    ← All components, their props/events
@@ -156,7 +159,9 @@ voly/
   ai_gateway/       executor/       catalog/       registry/
   memory/           rtk/            headroom/      telemetry.py
   a2a/              agui/           web/           reuse/
-  runner/           router.py
+  runner/           plan/           pxpipe/        spend/
+  config/           scanner/        workflow/      cloudflare/
+  models/           runtime/        tools/         router.py
 ui/                 cf-workers/     docs/          tests/
 CLAUDE.md           voly.yaml    README.md
 ```
