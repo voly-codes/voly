@@ -91,6 +91,16 @@ files touched → cost and tokens.
   <img src="docs/assets/dashboard_task.png" alt="VOLY Web UI — task run report with cost, tokens, and files touched" width="900">
 </p>
 
+### Demo: 3D voxel tanks, built by a multi-agent chain
+
+A single task ("build a 3D voxel tank game") dispatched through VOLY to a
+developer → tester → reviewer chain. Full game, tested and reviewed, in
+**5 min 58 s** for **$0.0130** (zero retries).
+
+<p align="center">
+  <video src="docs/assets/export-1784466924338-compact.mp4" controls muted width="900"></video>
+</p>
+
 ## Open core vs Cloud
 
 | | **voly** (this repo, Apache-2.0) | **voly-cloud** (commercial) |
