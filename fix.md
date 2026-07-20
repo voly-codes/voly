@@ -40,3 +40,5 @@ commit hash and an English description.
 - `370a909` — Wire repository intelligence into Pipeline and forward `voly runner --repo` to AgentRunner.
 
 - `b4dbf05` — Detect untracked-file edits via fingerprints for files_touched; non-zero exit on `voly run --json` failure; gate frontend skills off Python backend tasks; skip unhealthy providers in AIGateway after billing; isolate memory tests to local backend.
+
+- `1b95903` — Tighten frontend A2A role signals so backend prompts with architecture design no longer pull visual_reviewer.
