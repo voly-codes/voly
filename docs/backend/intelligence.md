@@ -7,6 +7,8 @@
 Pre-run analysis of external repositories before agent planning. Provides
 license gate, architecture map, reuse candidates, and security risk summary.
 
+**Cross-link:** `task_features` from intelligence output (e.g. detected languages, frameworks, dependencies) feed into `voly/capability/matcher.py` for stack-aware executor scoring. See [capability.md](capability.md) for how `project_stack_match` uses these features in the routing score formula.
+
 ## CLI
 
 ```bash
@@ -64,3 +66,8 @@ voly repo license <url>    # license analysis only (Phase 2)
 Reports cached under `.voly/intelligence/reports/<owner>__<repo>@<sha>.json`
 
 Clone cache under `.voly/intelligence/cache/` (separate from `voly/reuse/cache/`)
+
+## See also
+
+- [reuse.md](reuse.md) — both modules deal with external code analysis (reuse for pick-and-apply, intelligence for admission/risk)
+- [capability.md](capability.md) — intelligence `task_features` feed the capability matcher for stack-aware routing

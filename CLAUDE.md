@@ -16,6 +16,8 @@ VOLY routes a developer's tasks to the right AI agent, manages the billing fallb
 - **Local context:** before the executor, gathers relevant project files via grep
 - **Tech stack gate:** pre-run framework version selection (registry + runtime preflight); empty cwd → category picker + greenfield scaffolding
 - **Code reuse:** `voly reuse` — GitHub search → pack → pick → apply; optional auto-search before each executor call (`reuse.auto`)
+- **Repo intelligence:** `voly repo inspect|analyze|map|license` — pre-run external repo analysis (admission, license, architecture, security)
+- **Capability Registry:** evidence-based executor routing via `ExecutorMatcher`; replaces static billing fallback chain with scored selection
 
 VOLY is project-agnostic — no product-specific logic in `voly/`.
 
@@ -54,6 +56,8 @@ docs/
     a2a.md           ← A2A modules, auto-dispatch, federation, context handoff
     plan.md          ← Plan gates, verify, tester_command scoping
     reuse.md         ← voly reuse: GitHub search → pack → pick → apply
+    intelligence.md  ← Repository Intelligence: admission, license, architecture map
+    capability.md    ← Capability Registry: evidence-based executor routing, matcher
     executors.md     ← All executors, billing fallback chain, WranglerExecutor
     ai-gateway.md    ← AIGateway, CF route schema, providers, env vars
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter
@@ -83,6 +87,8 @@ docs/
 | DSPy program / config | `docs/backend/dspy.md` |
 | Config / env var | `docs/backend/config.md` |
 | Code reuse (`voly reuse`) | `docs/backend/reuse.md` + `docs/backend/config.md` |
+| Repo intelligence | `docs/backend/intelligence.md` |
+| Capability registry | `docs/backend/capability.md` |
 | API endpoint | `docs/backend/api.md` |
 | Svelte component | `docs/frontend/components.md` |
 | API call from UI | `docs/frontend/api-client.md` |
@@ -162,6 +168,7 @@ voly/
   runner/           plan/           pxpipe/        spend/
   config/           scanner/        workflow/      cloudflare/
   models/           runtime/        tools/         router.py
+  intelligence/     capability/
 ui/                 cf-workers/     docs/          tests/
 CLAUDE.md           voly.yaml    README.md
 ```
@@ -184,6 +191,8 @@ voly setup                  voly config               voly tunnel
 voly spend status           voly cloud login          voly pxpipe
 voly plan list|show
 voly reuse search|pack|pick|apply|run
+voly repo inspect|analyze|map|license
+voly capability list|show|match|reset
 ```
 
 When removing a command: remove it from `cli/main.py`, `cli/commands/__init__.py`, tests, README, docs.

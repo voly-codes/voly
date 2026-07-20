@@ -7,6 +7,8 @@
 Evidence-based executor routing. Each executor has a measured capability
 profile; routing score replaces static tier resolution.
 
+**Cross-link:** The `REPO_INTELLIGENCE` pipeline stage (see [pipeline.md](pipeline.md)) produces `task_features` that feed into `project_stack_match` scoring. LeadOrchestrator in [a2a.md](a2a.md) uses `ExecutorMatcher` for A2A role assignment.
+
 ## Two profile kinds
 
 - **executor**: for developer/tester/devops roles → `AgentRunner.run(executor=X)`
@@ -147,6 +149,8 @@ D1 tables for remote sync: `cf-workers/capability/schema.sql` (`roles`, `executo
 ## Evaluation suites
 
 Phase 9 integration tests exercise the full capability + intelligence pipeline offline (no network; `httpx` patched where needed).
+
+**Cross-link:** See [pipeline.md](pipeline.md) for `REPO_INTELLIGENCE` stage ordering and [a2a.md](a2a.md) for LeadOrchestrator matcher integration.
 
 ### `tests/test_capability_integration.py` (7 tests)
 

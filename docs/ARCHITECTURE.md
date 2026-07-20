@@ -116,6 +116,7 @@ Changing a contract = version bump + docs update + snapshot update in the contra
 | Stage | Method | What it does |
 |---|---|---|
 | `INIT` | — | setup |
+| `REPO_INTELLIGENCE` | `_stage_repo_intelligence` | Pre-run repo analysis: admission, license, architecture map; feeds `task_features` to capability matcher |
 | `AGUI_START` | `_stage_agui_start` | AG-UI SSE session |
 | `A2A_DISCOVER` | `_stage_a2a` / `_stage_a2a_auto` | A2A federation + auto-decompose |
 | `A2A_DELEGATE` | `_stage_a2a_auto` → `_run_multiagent_local` | lead assigns tier+skills; hybrid: implement roles → AgentRunner, architect/reviewer → AIGateway (`a2a.execution_mode=local`) |
@@ -262,6 +263,8 @@ Does not contain product logic.
 
 `AgentRunner.run()` orchestrates: DSPy plan → executor → billing fallback → git diff → telemetry.
 
+Capability-aware fallback (`voly/capability/fallback.py`) replaces the static `BILLING_FALLBACK_CHAIN` when capability profiles are loaded: `ExecutorMatcher` scores available executors against the task dimension and project features, reordering or excluding executors via `hard_exclude()` before the billing chain runs.
+
 | Module | Role |
 |---|---|
 | `agent_runner.py` | `AgentRunner` / `RunnerResult` (+ stable re-exports) |
@@ -293,6 +296,35 @@ BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "open
 | `ClassicRuntime` | direct call via `AIGateway.chat()` |
 | `DSPyRuntime` | optional DSPy program → `DSPyRunner` → `AIGateway.chat()` |
 | `InferenceManager` | selects runtime, falls back to classic |
+
+### `voly/intelligence/` — repository intelligence
+
+Pre-run analysis of external repositories. Provides license gate, architecture map, reuse candidates, and security risk summary. `task_features` output feeds into the capability matcher for stack-aware scoring.
+
+| Module | Role |
+|---|---|
+| `schema.py` | `RepositoryIntelligence` and sub-dataclasses |
+| `admission.py` | Pre-clone GitHub API checks |
+| `license_analyzer.py` | SPDX risk matrix and policy gate |
+| `architecture_mapper.py` | Language/framework detection, entrypoints |
+| `dependency_analyzer.py` | Manifest parsing (package.json, requirements, go.mod, …) |
+| `security_scanner.py` | Pure-Python regex risk patterns (no external tools) |
+| `repo_analyzer.py` | Main orchestrator, cache by SHA |
+
+### `voly/capability/` — capability registry
+
+Evidence-based executor routing. Each executor has a measured capability profile; routing score replaces static tier resolution. `ExecutorMatcher` is used by LeadOrchestrator for A2A role assignment.
+
+| Module | Role |
+|---|---|
+| `schema.py` | `ExecutorCapabilityProfile`, `CapabilityDomain`, `CapabilityMatchResult` |
+| `calibration.py` | Benchmark → VOLY dimension mapping |
+| `registry.py` | Load/save profiles from `.voly/capability/profiles/` |
+| `scorer.py` | Pure routing score + hard-gate functions |
+| `matcher.py` | `ExecutorMatcher` — CF Worker `/match` with local fallback |
+| `evidence.py` | Fire-and-forget run evidence → local EMA + CF Worker `/profiles/evidence` |
+| `fallback.py` | Capability-aware executor fallback (replaces static chain) |
+| `seeds/` | Bundled seed profiles for known executors |
 
 ### `voly/dspy/` — DSPy optimizer layer
 
@@ -443,6 +475,8 @@ docs/backend/
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
   plan.md                   ← plan gates (shadow/active, acceptance, CLI)
   reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
+  intelligence.md           ← Repository Intelligence: admission, license, architecture map
+  capability.md             ← Capability Registry: evidence-based executor routing, matcher, scorer
   config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events, tech gate, CF Worker endpoints
   spend-protocol.md         ← spend protocol contract (/spend/record, /spend/check)
