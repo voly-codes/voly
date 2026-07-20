@@ -42,6 +42,8 @@ voly/web/static/
 docs.zip
 .voly/runs/
 .voly/catalog/
+.voly/capability/
 .voly/plans/
 .voly/reuse/cache/
 .voly/reuse/reports/
+launcher*.log
