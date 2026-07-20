@@ -15,6 +15,7 @@ Helpers live in focused modules (stable re-exports kept for tests/monkeypatch):
 from __future__ import annotations
 
 import logging
+import os
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -205,7 +206,25 @@ class AgentRunner:
         # Triggers on billing_error (no credits) OR not_available (service not running).
         _should_fallback = (result.billing_error or result.not_available) and executor_name in BILLING_FALLBACK_CHAIN
         if _should_fallback:
-            chain = BILLING_FALLBACK_CHAIN
+            from voly.capability.evidence import resolve_run_dimension
+            from voly.capability.fallback import build_fallback_chain_or_static
+
+            cap_cfg = getattr(self.config, "capability", None)
+            if cap_cfg is not None and hasattr(cap_cfg, "enabled"):
+                cap_enabled = bool(getattr(cap_cfg, "enabled", False))
+            else:
+                cap_enabled = os.getenv("VOLY_CAPABILITY_ENABLED", "").lower() in ("1", "true")
+            profiles_dir = str(
+                getattr(self.config, "capability_profiles_dir", None)
+                or ".voly/capability/profiles"
+            )
+            chain, _capability_used = build_fallback_chain_or_static(
+                resolve_run_dimension(task, agent_role),
+                BILLING_FALLBACK_CHAIN,
+                enabled=cap_enabled,
+                static_chain=BILLING_FALLBACK_CHAIN,
+                profiles_dir=profiles_dir,
+            )
             start_idx = chain.index(executor_name) + 1
             first_fallback_from = executor_name
             for fallback_name in chain[start_idx:]:

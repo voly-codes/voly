@@ -39,6 +39,31 @@ passing mention of the word "billing" does not trigger a false positive.
 
 Only file-writing executors are in the chain.
 
+### Capability-aware fallback
+
+When capability routing is enabled (`capability.enabled: true` in `voly.yaml`, or
+`VOLY_CAPABILITY_ENABLED=1`), `AgentRunner` replaces the static
+`BILLING_FALLBACK_CHAIN` order with a capability-scored chain from
+`voly/capability/fallback.py` (`build_fallback_chain()`).
+
+Scoring uses the same weighted formula as executor matching — see
+[capability.md](./capability.md) (`routing_score()` weights table).
+
+**Degraded mode:** if no executor passes hard gates, or the top routing score is
+below **0.30**, the static chain is used unchanged and a warning is logged
+(`capability fallback degraded`). This also applies when capability is enabled
+but no materialized profiles exist under `.voly/capability/profiles/` yet.
+
+**Verify locally:**
+
+```bash
+voly capability match backend --executors claude-code --executors cursor --executors zen
+```
+
+Materialize seed profiles first (`voly capability show claude-code` writes the
+seed copy), then enable `VOLY_CAPABILITY_ENABLED=1` and trigger a billing fallback
+run — `[CHAIN:BILLING_FALLBACK]` should follow capability rank, not static order.
+
 ---
 
 ## Executor table
