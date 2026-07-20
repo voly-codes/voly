@@ -56,6 +56,7 @@ _COST_RATES: dict[str, tuple[float, float]] = {
     # OpenCode Go (subscription; approximate per-token equivalents)
     "kimi-k2.6": (0.0005, 0.002),
     "kimi-k2.7-code": (0.0007, 0.003),
+    "kimi-k3": (0.001, 0.004),
     "qwen3.7-plus": (0.0003, 0.0012),
     "qwen3.7-max": (0.0008, 0.0032),
     "minimax-m3": (0.0006, 0.0024),

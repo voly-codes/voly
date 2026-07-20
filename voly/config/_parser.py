@@ -224,8 +224,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
                 config.agui.remote_url = env_url.rstrip("/")
                 break
 
-    config.default_model = raw.get("default_model", "claude-sonnet")
-    config.default_agent = raw.get("default_agent", "claude")
+    config.default_model = raw.get("default_model", "kimi-k3")
+    config.default_agent = raw.get("default_agent", "kimi")
     config.default_cwd = os.path.expanduser(
         raw.get("default_cwd", "") or os.environ.get("VOLY_PROJECT_CWD", "")
     )

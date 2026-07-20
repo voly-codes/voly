@@ -25,6 +25,7 @@ _DEFAULT_MODELS: dict[str, ModelConfig] = {
     "deepseek-v4-pro":   ModelConfig(provider="opencode", model="deepseek-v4-pro"),
     "kimi-k2.6":         ModelConfig(provider="opencode", model="kimi-k2.6"),
     "kimi-k2.7-code":    ModelConfig(provider="opencode", model="kimi-k2.7-code"),
+    "kimi-k3":           ModelConfig(provider="opencode", model="kimi-k3"),
     "qwen3.7-plus":      ModelConfig(provider="opencode", model="qwen3.7-plus"),
     "qwen3.7-max":       ModelConfig(provider="opencode", model="qwen3.7-max"),
     "minimax-m3":        ModelConfig(provider="opencode", model="minimax-m3"),

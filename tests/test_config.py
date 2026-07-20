@@ -21,8 +21,8 @@ from voly.config import (
 
 def test_default_config() -> None:
     cfg = VOLYConfig()
-    assert cfg.default_model == "claude-sonnet"
-    assert cfg.default_agent == "claude"
+    assert cfg.default_model == "kimi-k3"
+    assert cfg.default_agent == "kimi"
     assert cfg.rtk.enabled is True
     assert cfg.headroom.enabled is True
     assert cfg.pxpipe.enabled is False
@@ -36,8 +36,8 @@ def test_create_default_config() -> None:
         create_default_config(path)
         assert path.exists()
         content = path.read_text()
-        assert "default_model: claude-sonnet" in content
-        assert "default_agent: claude" in content
+        assert "default_model: kimi-k3" in content
+        assert "default_agent: kimi" in content
         assert "rtk:" in content
         assert "headroom:" in content
         assert "pxpipe:" in content

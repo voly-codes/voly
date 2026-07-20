@@ -148,6 +148,17 @@ DEFAULT_MODELS: dict[str, ModelInfo] = {
         strengths=[TaskCategory.ARCHITECTURE, TaskCategory.ANALYSIS, TaskCategory.SECURITY],
     ),
     # ── OpenCode Go ───────────────────────────────────────────────────────────
+    "kimi-k3": ModelInfo(
+        name="kimi-k3",
+        provider="opencode",
+        input_cost_per_1m=0.0,
+        output_cost_per_1m=0.0,
+        avg_latency_ms=2000,
+        context_window=256_000,
+        max_output_tokens=32768,
+        capabilities=["architecture", "complex-reasoning", "analysis", "coding"],
+        strengths=[TaskCategory.ARCHITECTURE, TaskCategory.ANALYSIS, TaskCategory.CODING],
+    ),
     "opencode-go": ModelInfo(
         name="opencode-go",
         provider="opencode",

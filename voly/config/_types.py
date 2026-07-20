@@ -410,8 +410,8 @@ class VOLYConfig:
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)
     capability: CapabilityConfig = field(default_factory=CapabilityConfig)
-    default_model: str = "claude-sonnet"
-    default_agent: str = "claude"
+    default_model: str = "kimi-k3"
+    default_agent: str = "kimi"
     default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd
 
     def get_model_config(self, name: str | None = None) -> ModelConfig:

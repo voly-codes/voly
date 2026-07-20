@@ -9,6 +9,7 @@ Routing strategy:
 from __future__ import annotations
 
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Any
@@ -69,11 +70,34 @@ _WORKERS_AI_MODELS: dict[str, str] = {
     "default":      "@cf/meta/llama-3.3-70b-instruct-fp8-fast",  # fastest
 }
 
+# OpenCode Go models by task type (subscription — opencode.ai/zen/go/v1).
+# Overrides the provider-level default in _PROVIDER_MODELS for these task types.
+# Defaults only — model ids rotate fast, so each is env-overridable (see below).
+_OPENCODE_MODELS: dict[str, str] = {
+    "architecture": "kimi-k3",   # main architect
+}
+
+# Env overrides for _OPENCODE_MODELS entries (task_type → env var name).
+_OPENCODE_MODEL_ENVS: dict[str, str] = {
+    "architecture": "VOLY_ARCHITECT_MODEL",
+}
+
+
+def _opencode_task_model(task_type: str) -> str:
+    """OpenCode Go model for a task type; env var wins over the built-in default."""
+    env_var = _OPENCODE_MODEL_ENVS.get(task_type, "")
+    if env_var:
+        override = os.environ.get(env_var, "").strip()
+        if override:
+            return override
+    return _OPENCODE_MODELS[task_type]
+
 # ── Task-type → ordered list of preferred providers (best fit first) ────────────
 
 _TASK_PROVIDERS: dict[str, list[str]] = {
     # cloudflare-dynamic uses the ai_route schema (anthropic primary → workers-ai fallback)
-    "architecture": ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
+    # architecture: OpenCode Go kimi-k3 is the main architect; anthropic is fallback.
+    "architecture": ["opencode", "anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
     "review":       ["anthropic", "cloudflare-dynamic", "workers-ai", "deepseek", "opencode-zen", "google"],
     "bug":          ["anthropic", "cloudflare-dynamic", "workers-ai", "opencode-zen", "deepseek"],
     "test":         ["anthropic", "cloudflare-dynamic", "workers-ai", "deepseek", "opencode-zen"],
@@ -148,10 +172,22 @@ class AgentRouter:
                     # Use task-specific Workers AI model
                     model = _WORKERS_AI_MODELS.get(task_type, _WORKERS_AI_MODELS["default"])
                     return "workers-ai", model
+                if prov == "opencode" and task_type in _OPENCODE_MODELS:
+                    # Task-specific OpenCode Go model, env-overridable
+                    # (e.g. VOLY_ARCHITECT_MODEL=kimi-k3 for architecture).
+                    return "opencode", _opencode_task_model(task_type)
                 model, actual_prov = _PROVIDER_MODELS.get(prov, (prov, prov))
                 return actual_prov, model
         # All unhealthy — use first anyway and let it fail / trigger fallback chain
         fallback_prov = prefs[0]
+        if fallback_prov == "workers-ai":
+            model = _WORKERS_AI_MODELS.get(task_type, _WORKERS_AI_MODELS["default"])
+            _log.warning("All providers unhealthy for %s, using workers-ai as last resort", task_type)
+            return "workers-ai", model
+        if fallback_prov == "opencode" and task_type in _OPENCODE_MODELS:
+            model = _opencode_task_model(task_type)
+            _log.warning("All providers unhealthy for %s, using opencode/%s as last resort", task_type, model)
+            return "opencode", model
         model, actual_prov = _PROVIDER_MODELS.get(fallback_prov, (fallback_prov, fallback_prov))
         _log.warning("All providers unhealthy for %s, using %s as last resort", task_type, actual_prov)
         return actual_prov, model

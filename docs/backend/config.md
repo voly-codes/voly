@@ -106,6 +106,10 @@ VOLY_A2A_EXECUTOR_TESTER=cursor
 VOLY_A2A_EXECUTOR_DEVOPS=cursor
 # Per-role executor override for hybrid mode=executor (see voly/a2a/hybrid.py).
 
+VOLY_ARCHITECT_MODEL=kimi-k3
+# OpenCode Go model selected for architecture routing. This overrides the
+# built-in architecture model when the provider's roster changes.
+
 VOLY_PLAN_ENABLED=true
 VOLY_PLAN_MODE=active
 # Plan gates (Rung B). CLI: voly plan run plan.yaml
@@ -203,7 +207,8 @@ in the org dashboard; `sync` backfills runs that finished before linking.
 ## voly.yaml — key fields
 
 ```yaml
-default_agent: cursor
+default_model: kimi-k3
+default_agent: kimi
 default_cwd: ""          # default path for executor (overrides VOLY_PROJECT_CWD)
 
 ai_gateway:

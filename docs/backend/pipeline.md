@@ -302,6 +302,10 @@ route = router.route(analysis)
 # route.provider — "anthropic" | "openai" | ...
 ```
 
+Architecture tasks prefer OpenCode Go with `kimi-k3`; Anthropic and the other
+provider routes remain fallbacks. `VOLY_ARCHITECT_MODEL` overrides the OpenCode
+architecture model without requiring a source change when the roster rotates.
+
 `requires_code_gen = True` when the task contains keywords: implement, create, build,
 add, write, fix, refactor, migrate, напиши, создай, добавь, реализуй, исправь, ...
 

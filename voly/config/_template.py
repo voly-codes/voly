@@ -6,10 +6,14 @@ _DEFAULT_YAML = """\
 # VOLY Configuration
 # =====================
 
-default_model: claude-sonnet
-default_agent: claude
+default_model: kimi-k3
+default_agent: kimi
 
 models:
+  kimi-k3:
+    provider: opencode
+    model: kimi-k3
+    api_key: "${OPENCODE_API_KEY}"
   claude-sonnet:
     provider: anthropic
     model: claude-sonnet-4-5-20250929
@@ -28,12 +32,15 @@ models:
     api_key: "${GOOGLE_API_KEY}"
 
 agents:
+  kimi:
+    description: "Kimi K3 (OpenCode Go) — основной агент разработки"
+    model: kimi-k3
   claude:
-    description: "Claude Code — основной агент разработки"
+    description: "Claude Code — резервный агент разработки"
     model: claude-sonnet
   architect:
     description: "Агент архитектурного планирования"
-    model: claude-opus
+    model: kimi-k3
     tools: [github, gitlab, wiki]
   reviewer:
     description: "Агент код-ревью"

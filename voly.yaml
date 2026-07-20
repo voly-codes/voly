@@ -1,8 +1,8 @@
 # VOLY Configuration
 # =====================
 
-default_model: claude-sonnet
-default_agent: claude
+default_model: kimi-k3
+default_agent: kimi
 
 models:
   claude-sonnet:
@@ -13,6 +13,10 @@ models:
     provider: anthropic
     model: claude-opus-4-8
     api_key: "${ANTHROPIC_API_KEY}"
+  kimi-k3:
+    provider: opencode
+    model: kimi-k3
+    api_key: "${OPENCODE_API_KEY}"
   gpt-4o:
     provider: openai
     model: gpt-4o
@@ -24,11 +28,14 @@ models:
 
 agents:
   claude:
-    description: "Claude Code — основной агент разработки"
+    description: "Claude Code — резервный агент разработки"
     model: claude-sonnet
+  kimi:
+    description: "Kimi K3 (OpenCode Go) — основной агент разработки"
+    model: kimi-k3
   architect:
-    description: "Агент архитектурного планирования"
-    model: claude-opus
+    description: "Агент архитектурного планирования (модель роутера переопределяется VOLY_ARCHITECT_MODEL)"
+    model: kimi-k3
     tools: [github, gitlab, wiki]
   reviewer:
     description: "Агент код-ревью"

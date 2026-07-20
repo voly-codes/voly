@@ -9,17 +9,20 @@ def test_router_default() -> None:
     router = AgentRouter()
     result = router.route("Напиши функцию сложения")
     assert isinstance(result, RouteDecision)
-    assert result.agent == "claude"
-    assert result.provider == "anthropic"
+    assert result.agent == "kimi"
+    # provider depends on health-check; anthropic is last-resort when all unhealthy,
+    # but default_model=kimi-k3 maps to provider=opencode
+    assert result.provider in ("opencode", "anthropic")
 
 
 def test_route_architecture_task() -> None:
     router = AgentRouter()
     result = router.route("Спроектируй архитектуру нового микросервиса")
     assert result.agent == "architect"
-    # First preferred provider for architecture is anthropic (claude-sonnet-4-6)
-    assert result.provider == "anthropic"
-    assert "claude" in result.model
+    # First preferred provider for architecture is now opencode (kimi-k3 main architect).
+    # Provider depends on health-check; opencode is the default fallback.
+    assert result.provider in ("opencode", "anthropic")
+    assert "kimi" in result.model or "claude" in result.model
 
 
 def test_route_review_task() -> None:

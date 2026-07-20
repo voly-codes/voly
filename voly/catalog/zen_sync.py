@@ -181,7 +181,7 @@ def _builtin_fallback_catalog() -> list[CatalogModel]:
     ids = [
         "claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5",
         "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-free",
-        "kimi-k2.6", "kimi-k2.5", "gpt-5.3-codex", "gpt-5.4-mini",
+        "kimi-k2.6", "kimi-k2.5", "kimi-k3", "gpt-5.3-codex", "gpt-5.4-mini",
         "qwen3.5-plus", "qwen3.6-plus-free", "mimo-v2.5-free",
         "nemotron-3-ultra-free", "glm-5.2", "minimax-m2.7",
         "gemini-3.1-pro", "gemini-3.5-flash",
