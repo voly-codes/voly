@@ -20,6 +20,7 @@ from .dspy_cmd import dspy_cmd
 from .ui_cmd import ui
 from .plan_cmd import plan_cmd
 from .reuse_cmd import reuse_cmd
+from .repo import repo_cmd
 
 __all__ = [
     "a2a",
@@ -55,4 +56,5 @@ __all__ = [
     "ui",
     "plan_cmd",
     "reuse_cmd",
+    "repo_cmd",
 ]
