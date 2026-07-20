@@ -37,3 +37,4 @@ commit hash and an English description.
 - `5d58716` — Split multiagent helpers (context/waves/chat_fallback); pre-mark VOLY_A2A_EXCLUDE_PROVIDERS; CLI A2A role files/verify summary.
 
 - `7c40c0b` — Include voly.pxpipe in setuptools packages so pip-installed CI environments can import ClaudeCodeExecutor.
+- `370a909` — Wire repository intelligence into Pipeline and forward `voly runner --repo` to AgentRunner.
