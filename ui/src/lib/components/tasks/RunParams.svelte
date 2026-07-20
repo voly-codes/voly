@@ -2,10 +2,12 @@
   import {
     ChevronDownIcon, SquareTerminalIcon, FolderIcon,
   } from '../../icons.js'
+  import CapabilityPreview from './CapabilityPreview.svelte'
 
   const API_BASE = import.meta.env.VITE_VOLY_API_BASE_URL ?? ''
 
   let {
+    task = '',
     executor = $bindable('pipeline'),
     cwd = $bindable(''),
     executors = [],
@@ -94,6 +96,7 @@
           <span class="exec-missing"> · CLI/key not detected — see Environment tips</span>
         {/if}
       </span>
+      <CapabilityPreview {task} {executor} onUse={(id) => { executor = id }} />
     </div>
 
     <div class="param param-cwd">

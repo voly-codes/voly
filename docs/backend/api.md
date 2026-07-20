@@ -102,10 +102,12 @@ stack-aware `.gitignore` (Python / Node / Unity / Godot sections based on
 `WorkReport` work after the executor's first write. The `done` event then carries
 `greenfield: true` and `project_dir` (the created path). Logs: `[GREENFIELD]`.
 
-**Auto reuse pre-stage:** when `reuse.auto: true`, `_run_auto_reuse` calls
-`auto_reuse()` (GitHub search → pack → pick → saved report) before each
-pipeline/executor run; the report is then injected by the local-context gatherer.
-Best-effort — any error is swallowed. See `docs/backend/reuse.md`.
+**Auto reuse pre-stage:** when `reuse.auto: true` (loaded from `voly.yaml` into
+`ReuseConfig.auto`), `_run_auto_reuse` calls `auto_reuse()` (GitHub search → pack
+→ pick → saved report) before each pipeline/executor run; the report is then
+injected by the local-context gatherer. Skips only when a fresh report already
+has usable (license-allowed) candidates. Best-effort — any error is swallowed.
+See `docs/backend/reuse.md`.
 
 ---
 
@@ -364,6 +366,52 @@ filtered together with VOLY events. Clients may send `X-Correlation-ID` or
 `X-Request-ID`; otherwise the API generates a UUID.
 
 Related contract: spend protocol — `docs/backend/spend-protocol.md`.
+
+---
+
+## POST /api/capability/match
+
+Match executors to a task dimension using the CF capability worker when
+`VOLY_CAPABILITY_WORKER_URL` is set, otherwise the local Python matcher
+(`.voly/capability/profiles` + package seeds).
+
+```typescript
+// Request
+{
+  dimension?: string,           // default "backend"
+  available_executors?: string[],
+  project_stack?: string[],
+}
+
+// Response
+{
+  recommended: { executor_id: string, score: number, routing_score: number } | null,
+  fallbacks: [{ executor_id, score, routing_score }, ...],
+  excluded: [{ executor_id, reason }, ...],
+}
+```
+
+## GET /api/capability/profiles
+
+List executor IDs with capability profiles in the local registry (cached YAML +
+package seeds).
+
+```typescript
+// Response
+{ executor_ids: string[] }
+```
+
+## POST /api/repo/analyze
+
+Analyze an external repository before reuse or admission.
+
+```typescript
+// Request
+{ url: string, refresh?: boolean }
+
+// Response — RepositoryIntelligence fields (license, stack, quality, risks, …)
+// or { error: string }
+```
 
 ---
 

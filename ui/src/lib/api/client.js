@@ -103,6 +103,20 @@ export const techPreflight = (tech) =>
 /** Return project-type categories with pre-resolved tech entries (fallback picker). */
 export const fetchTechCategories = () => get('/api/tech/categories')
 
+/** Match executors to task dimension via capability registry (CF Worker or local). */
+export async function matchCapability(dimension, availableExecutors, projectStack) {
+  return post('/api/capability/match', {
+    dimension,
+    available_executors: availableExecutors,
+    project_stack: projectStack,
+  }).then(r => r.json())
+}
+
+/** Analyze an external repository for stack, license, security, and quality signals. */
+export async function analyzeRepo(url, refresh = false) {
+  return post('/api/repo/analyze', { url, refresh }).then(r => r.json())
+}
+
 export const fetchMarketplacePlugins = (status = 'active', limit = 50, offset = 0) =>
   get(`/api/marketplace/plugins?${new URLSearchParams({ status, limit, offset })}`)
 

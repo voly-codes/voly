@@ -252,6 +252,7 @@
   <RunParams
     bind:executor
     bind:cwd
+    {task}
     {executors}
     running={busy}
     {executorAvailability}

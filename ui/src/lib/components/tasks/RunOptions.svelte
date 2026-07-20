@@ -2,6 +2,7 @@
   import {
     ChevronDownIcon, UsersRoundIcon, BrainCircuitIcon,
   } from '../../icons.js'
+  import RepoAnalyzeCard from './RepoAnalyzeCard.svelte'
 
   const STORAGE_KEY = 'voly_run_options_open'
 
@@ -92,6 +93,7 @@
           bind:value={repo_url}
           disabled={running}
         />
+        <RepoAnalyzeCard bind:repo_url {running} />
       </div>
     </div>
   {/if}

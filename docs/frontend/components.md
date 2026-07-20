@@ -111,6 +111,7 @@ Tier-1 run parameters. Passes `$bindable` values to the parent.
 let {
   executor = $bindable('pipeline'),
   cwd = $bindable(''),
+  task = '',
   executors = [],
   running = false,
   executorAvailability = {},  // from GET /api/environment
@@ -134,6 +135,43 @@ executor (all ids covered: `pipeline`, `claude-code`, `wrangler`,
 **Working dir:** always visible (not hidden for pipeline) — smart dispatch needs cwd even for pipeline.
 Hint: `cwd ? 'executor writes here' : 'leave empty for text-only'`
 
+**Capability routing:** `<CapabilityPreview>` renders below the executor hint when the
+local capability registry has profiles. Debounces task text (600ms) and calls
+`POST /api/capability/match`. Shows best match score, optional **[Use]** to swap
+executor, and up to two fallback chips.
+
+Props include `task = ''` (from `RunPanel`).
+
+---
+
+## CapabilityPreview.svelte
+
+Compact inline capability match bar under the executor select.
+
+**Props:** `task`, `executor`, `dimension` (default `'backend'`), `onUse` callback.
+
+**Behavior:** On mount, checks `GET /api/capability/profiles` — hidden when the
+registry is empty. When `task` changes (600ms debounce), calls
+`matchCapability(dimension, executor ? [executor] : undefined)`. Hidden while
+loading or when the API returns no `recommended`. Shows best match with ⚡ icon,
+**[Use]** when the recommendation differs from the current executor, and up to
+two fallback score chips.
+
+**Events:** `onUse(executor_id)` — parent sets the executor binding.
+
+---
+
+## RepoAnalyzeCard.svelte
+
+Repository intelligence card for the Run options repo URL field.
+
+**Props:** `repo_url` (bindable), `running` (disables controls when true).
+
+**Behavior:** **[Analyze]** calls `analyzeRepo(repo_url)` (`POST /api/repo/analyze`).
+Shows a spinner while loading. On success, displays languages, frameworks, license
+(`spdx` + risk), security issue count, and maintainability score. On error, shows
+a muted red message.
+
 ---
 
 ## RunOptions.svelte
@@ -156,8 +194,8 @@ let {
 
 Toggle label: `Options ▸` / `Options ▾`. When expanded, a 3-column grid shows
 agent selector (empty = auto), model selector (empty = auto), max turns
-(1–100), dry-run checkbox, and repo URL input. All controls disabled when
-`running=true`.
+(1–100), dry-run checkbox, repo URL input, and `<RepoAnalyzeCard>` below the
+repo URL field. All controls disabled when `running=true`.
 
 ---
 

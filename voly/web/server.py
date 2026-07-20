@@ -102,6 +102,7 @@ def create_app(
     from voly.web.deps import AppState
     from voly.web.routes import (
         browse,
+        capability_api,
         cf,
         dspy,
         environment,
@@ -143,6 +144,7 @@ def create_app(
 
     app.include_router(tasks.router)
     app.include_router(browse.router)
+    app.include_router(capability_api.router)
     app.include_router(environment.router)
     app.include_router(run.router)
     app.include_router(registry.router)
