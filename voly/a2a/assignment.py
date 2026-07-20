@@ -32,28 +32,15 @@ _TIER_PROVIDERS: dict[str, list[str]] = {
     "free": _WEAK,
 }
 
+from voly.a2a.roles import ROLE_REGISTRY
+
 # Role → default tier (fallback when the lead orchestrator is unavailable) + persona.
-_ROLE_TIER: dict[str, str] = {
-    "architect": "standard",  # plan-only; premium is overkill and ties to a single provider
-    "developer": "standard",
-    "tester": "standard",
-    "reviewer": "premium",
-    "devops": "cheap",
-    "security": "premium",
-}
+_ROLE_TIER: dict[str, str] = {r.id: r.tier for r in ROLE_REGISTRY.values()}
 
 _VALID_TIERS = ("premium", "standard", "cheap")
 
 # Spread roles across healthy providers in the same tier (modulo pool length).
-_ROLE_PROVIDER_OFFSET: dict[str, int] = {
-    "architect": 0,
-    "developer": 1,
-    "tester": 2,
-    "reviewer": 1,
-    "devops": 0,
-    "security": 0,
-    "bugfixer": 2,
-}
+_ROLE_PROVIDER_OFFSET: dict[str, int] = {r.id: r.provider_offset for r in ROLE_REGISTRY.values()}
 
 # Roles that must succeed for a code-gen multi-agent run to count as completed.
 _IMPLEMENT_ROLES = frozenset({"developer", "bugfixer"})

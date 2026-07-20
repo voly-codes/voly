@@ -7,40 +7,28 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from voly.a2a.roles import ROLE_REGISTRY
+
 _log = logging.getLogger("voly.a2a.multiagent")
 
-_PROJECT_CONTEXT_FILES = ("CLAUDE.md", "README.md", "ARCHITECTURE.md", "docs/ARCHITECTURE.md")
-_PROJECT_CONTEXT_MAX_CHARS = 2500
-
-_FILE_LINE_POLICY = (
-    "File size policy: every created/modified file must stay within 300 lines of code. "
-    "Up to 500 lines is allowed only when the architect explicitly approved it in the plan "
-    "with two separate lines: `FILE_LINE_LIMIT: 500` and `FILE_LINE_LIMIT_REASON: <rationale>`."
+_PROJECT_CONTEXT_FILES = (
+    "AGENT_TASK_2.txt",
+    "AGENT_TASK.txt",
+    "CLAUDE.md",
+    "README.md",
+    "ARCHITECTURE.md",
+    "docs/ARCHITECTURE.md",
 )
+# Extra brief sources for greenfield / GDD-driven tasks (read heads only).
+_PROJECT_CONTEXT_DOCS = (
+    "docs/task2/Техническое_дополнение_Экономика_Персонал_Магазин_Карта.md",
+    "docs/РУЧНОЙ_РЕЖИМ_техдокумент.md",
+    "docs/Технический_документ_Ручной_режим_Lean_Arcade.md",
+)
+_PROJECT_CONTEXT_MAX_CHARS = 14_000
+_DOC_HEAD_CHARS = 3_500
 
-ROLE_PROMPT: dict[str, str] = {
-    "architect": (
-        "You are a senior software architect. Design the architecture: modules, interfaces, "
-        "data flow, key decisions, and risks. Plan only — NO full code "
-        "(no ``` blocks and no file content listings). "
-        f"{_FILE_LINE_POLICY}"
-    ),
-    "developer": (
-        "You are a senior developer. Implement the solution in the project files following "
-        "the architecture plan. Do not paste the full code into your reply — give a brief "
-        f"summary of the changes. {_FILE_LINE_POLICY}"
-    ),
-    "tester": (
-        "You are a QA engineer. Write tests (pytest if Python) covering happy-path, "
-        f"boundary, and negative cases. {_FILE_LINE_POLICY}"
-    ),
-    "reviewer": "You are a code reviewer. Assess the code and tests: bugs, security, "
-                "readability, performance. Give concrete remarks and a verdict.",
-    "devops": "You are a DevOps engineer. Prepare the deployment: Dockerfile/compose, "
-              "CI steps, environment variables, release checklist.",
-    "security": "You are an application security engineer. Find vulnerabilities in the code "
-                "and propose fixes.",
-}
+ROLE_PROMPT: dict[str, str] = {r.id: r.system_prompt for r in ROLE_REGISTRY.values()}
 DEFAULT_PERSONA = (
     "You are a specialist engineer. Complete the assigned sub-task with quality and brevity."
 )
@@ -133,7 +121,21 @@ def project_context_block(cwd: str) -> str:
         return ""
     parts: list[str] = []
     remaining = _PROJECT_CONTEXT_MAX_CHARS
+
+    # Latest voly reuse report (candidates / picked modules) — search runs before A2A.
+    try:
+        from voly.reuse.context import format_reuse_context
+
+        reuse_block = format_reuse_context(cwd, max_chars=min(2000, remaining))
+        if reuse_block:
+            parts.append(reuse_block.strip())
+            remaining -= len(reuse_block)
+    except Exception:
+        pass
+
     for name in _PROJECT_CONTEXT_FILES:
+        if remaining <= 0:
+            break
         path = os.path.join(cwd, name)
         if not os.path.isfile(path):
             continue
@@ -144,10 +146,34 @@ def project_context_block(cwd: str) -> str:
             if snippet:
                 parts.append(f"## {name}\n{snippet}")
                 remaining -= len(snippet)
-                if remaining <= 0:
-                    break
         except OSError:
             continue
+
+    for name in _PROJECT_CONTEXT_DOCS:
+        if remaining <= 0:
+            break
+        path = os.path.join(cwd, name)
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                content = fh.read(min(_DOC_HEAD_CHARS, remaining))
+            snippet = content.strip()
+            if snippet:
+                parts.append(f"## {name} (excerpt)\n{snippet}")
+                remaining -= len(snippet)
+        except OSError:
+            continue
+
+    proto = os.path.join(cwd, "docs", "act1-prototype.html")
+    if remaining > 400 and os.path.isfile(proto):
+        parts.append(
+            "## docs/act1-prototype.html\n"
+            "Playable HTML prototype is on disk at docs/act1-prototype.html "
+            "(~68KB single-file Canvas game). Treat AGENT_TASK.txt timings/FSM "
+            "and the as-built excerpt above as the behavioral contract; open the "
+            "HTML in a browser for feel parity when implementing."
+        )
     return "\n\n".join(parts)
 
 

@@ -8,9 +8,9 @@ PR2: ``make_agent_runner_executor`` wires AgentRunner + billing fallback.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Any
 
-RoleMode = Literal["chat", "executor"]
+from voly.a2a.roles import ROLE_REGISTRY, RoleMode
 
 # Default implement set when a2a.executor_roles is empty.
 # tester writes pytest files on code-gen tasks (chat-only left empty trees).
@@ -22,22 +22,16 @@ DEFAULT_EXECUTOR_ROLES: frozenset[str] = frozenset({
 })
 
 # Roles that may use hybrid executor mode (lead cannot promote others).
-EXECUTOR_CAPABLE_ROLES: frozenset[str] = frozenset({
-    "developer",
-    "bugfixer",
-    "tester",
-    "devops",
-})
+EXECUTOR_CAPABLE_ROLES: frozenset[str] = frozenset(
+    r.id for r in ROLE_REGISTRY.values() if r.mode == "executor"
+)
 
 # Per-role executor when hybrid mode=executor.
 # Env overrides (also listed for scripts/check_env_doc_sync.py):
 # VOLY_A2A_EXECUTOR_DEVELOPER, VOLY_A2A_EXECUTOR_BUGFIXER,
 # VOLY_A2A_EXECUTOR_TESTER, VOLY_A2A_EXECUTOR_DEVOPS.
 _ROLE_EXECUTOR: dict[str, str] = {
-    "developer": "cursor",
-    "bugfixer": "deepseek",
-    "tester": "cursor",
-    "devops": "cursor",
+    r.id: r.default_executor for r in ROLE_REGISTRY.values() if r.default_executor
 }
 
 # Roles that never default to executor (lead cannot promote to executor).
