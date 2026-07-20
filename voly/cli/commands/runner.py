@@ -18,6 +18,7 @@ from voly.runner.agent_runner import AgentRunner, EXECUTOR_NAMES, resolve_execut
 @click.option("--max-turns", default=30, show_default=True, help="Max agent turns")
 @click.option("--timeout", default=300, show_default=True, help="Timeout in seconds")
 @click.option("--model", "-m", default=None, help="Force specific model (opencode, zen, cursor)")
+@click.option("--repo", default=None, help="External repo URL for pre-run intelligence")
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def runner(
@@ -28,6 +29,7 @@ def runner(
     max_turns: int,
     timeout: int,
     model: str | None,
+    repo: str | None,
     output_json: bool,
 ) -> None:
     """Run an IDE agent with budget control, RTK, and telemetry.
@@ -69,6 +71,7 @@ def runner(
             max_turns=max_turns,
             timeout=timeout,
             model=model or "",
+            repo_url=repo or "",
         )
     except ValueError as exc:
         valid_exec = ", ".join(sorted(EXECUTOR_NAMES))
