@@ -1,0 +1,25 @@
+id: wrangler
+kind: executor
+provider: cloudflare
+model: ""
+capabilities:
+  backend:
+    score: 0.60
+    confidence: 0.15
+    strengths: [cloudflare_workers, serverless]
+    weaknesses: [complex_state, large_codebase]
+  devops:
+    score: 0.70
+    confidence: 0.20
+    strengths: [cloudflare, wrangler_deploy]
+constraints:
+  context_window: 32000
+  file_tools: true
+  browser_tools: false
+  image_input: false
+  max_output_tokens: 4000
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 30000
+  completion_rate: 0.80

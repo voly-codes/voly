@@ -1,0 +1,45 @@
+id: kimi-cli
+kind: executor
+provider: moonshot
+model: kimi-k2
+capabilities:
+  frontend:
+    score: 0.91
+    confidence: 0.25
+    sub_scores:
+      component_architecture: 0.94
+      large_refactor: 0.93
+      screenshot_replication: 0.62
+    strengths:
+      - complex_component_hierarchy
+      - multi_file_refactoring
+      - react
+      - typescript
+    weaknesses:
+      - pixel_perfect_from_screenshot
+      - browser_visual_validation
+  backend:
+    score: 0.74
+    confidence: 0.20
+  architecture:
+    score: 0.79
+    confidence: 0.20
+  testing:
+    score: 0.68
+    confidence: 0.15
+constraints:
+  context_window: 131072
+  file_tools: true
+  browser_tools: false
+  image_input: false
+  max_output_tokens: 32768
+evidence:
+  internal_runs: 0
+  benchmark_sources:
+    - name: swe_bench
+      raw_score: 0.788
+      date: "2025-07-01"
+operational:
+  avg_latency_ms: 42000
+  completion_rate: 0.89
+  cost_per_task_usd: 0.018

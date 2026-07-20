@@ -46,6 +46,7 @@ from voly.cli.commands import (
     plan_cmd,
     reuse_cmd,
     repo_cmd,
+    capability_cmd,
 )
 
 
@@ -99,6 +100,7 @@ main.add_command(dspy_cmd, name="dspy")
 main.add_command(plan_cmd)
 main.add_command(reuse_cmd)
 main.add_command(repo_cmd)
+main.add_command(capability_cmd)
 
 # Core commands
 main.add_command(init)

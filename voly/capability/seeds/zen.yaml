@@ -1,0 +1,37 @@
+id: zen
+kind: executor
+provider: opencode
+model: zen
+capabilities:
+  backend:
+    score: 0.65
+    confidence: 0.20
+    strengths: [simple_tasks, documentation]
+    weaknesses: [complex_refactoring]
+  frontend:
+    score: 0.60
+    confidence: 0.15
+    strengths: []
+    weaknesses: [complex_state, large_codebase]
+  architecture:
+    score: 0.55
+    confidence: 0.15
+    strengths: []
+    weaknesses: []
+  testing:
+    score: 0.60
+    confidence: 0.15
+    strengths: [simple_unit_tests]
+    weaknesses: []
+constraints:
+  context_window: 32000
+  file_tools: true
+  browser_tools: false
+  image_input: false
+  max_output_tokens: 8000
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 8000
+  completion_rate: 0.85
+  cost_per_task_usd: 0.0

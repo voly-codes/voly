@@ -1,0 +1,46 @@
+id: claude-code
+kind: executor
+provider: anthropic
+model: claude-sonnet-4-6
+capabilities:
+  backend:
+    score: 0.88
+    confidence: 0.30
+    strengths: [python, typescript, refactoring, api_design]
+    weaknesses: []
+  frontend:
+    score: 0.82
+    confidence: 0.25
+    strengths: [react, typescript]
+    weaknesses: [pixel_perfect]
+  architecture:
+    score: 0.85
+    confidence: 0.30
+    strengths: [system_design, refactoring]
+    weaknesses: []
+  testing:
+    score: 0.80
+    confidence: 0.25
+    strengths: [pytest, unit_tests]
+    weaknesses: []
+  devops:
+    score: 0.70
+    confidence: 0.20
+    strengths: [docker, ci]
+    weaknesses: []
+constraints:
+  context_window: 200000
+  file_tools: true
+  browser_tools: false
+  image_input: true
+  max_output_tokens: 64000
+evidence:
+  internal_runs: 0
+  benchmark_sources:
+    - name: swe_bench
+      raw_score: 0.72
+      date: "2025-06-01"
+operational:
+  avg_latency_ms: 60000
+  completion_rate: 0.92
+  retry_rate: 0.08

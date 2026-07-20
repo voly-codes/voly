@@ -1,0 +1,26 @@
+id: opencode
+kind: executor
+provider: opencode
+model: ""
+capabilities:
+  backend:
+    score: 0.72
+    confidence: 0.20
+    strengths: [python, typescript]
+    weaknesses: []
+  frontend:
+    score: 0.70
+    confidence: 0.20
+  testing:
+    score: 0.70
+    confidence: 0.20
+constraints:
+  context_window: 128000
+  file_tools: true
+  browser_tools: false
+  image_input: false
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 35000
+  completion_rate: 0.86
