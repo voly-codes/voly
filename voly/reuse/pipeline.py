@@ -12,6 +12,7 @@ from voly.reuse.clone import CloneError, clone_repo, resolve_head_sha
 from voly.reuse.github_search import (
     GitHubSearchError,
     get_repo,
+    infer_language,
     search_repositories,
     task_to_query,
 )
@@ -54,12 +55,13 @@ def search_and_pack(
     cfg = _reuse_cfg(config)
     report = ReuseReport(task=task)
 
+    lang = language or infer_language(task)
     if gateway is not None:
         query = plan_search_query(task, gateway)
     else:
-        query = task_to_query(task, language=language)
-    if language and f"language:{language}" not in query:
-        query = f"{query} language:{language}"
+        query = task_to_query(task, language=lang)
+    if lang and f"language:{lang}" not in query:
+        query = f"{query} language:{lang}"
     report.query = query
 
     max_repos = limit if limit is not None else cfg.max_repos
@@ -194,13 +196,31 @@ def auto_reuse(
         reports_dir = Path(cwd).expanduser() / reports_dir
 
     try:
-        from voly.reuse.report import latest_report_path
+        from voly.reuse.report import latest_report_path, load_report
+
         path = latest_report_path(reports_dir)
         if path is not None:
             age = time.time() - path.stat().st_mtime
             if age < cfg.auto_max_age_seconds:
-                _log.debug("auto_reuse: fresh report exists (%ds old), skipping", int(age))
-                return None
+                # Only skip when the fresh report actually has usable candidates.
+                # Empty / all-denied reports must not poison auto-search for 7 days.
+                usable = False
+                try:
+                    prev = load_report(path)
+                    usable = any(
+                        c.license_allowed and not c.error for c in prev.candidates
+                    )
+                except Exception:
+                    usable = False
+                if usable:
+                    _log.debug(
+                        "auto_reuse: fresh usable report exists (%ds old), skipping",
+                        int(age),
+                    )
+                    return None
+                _log.info(
+                    "auto_reuse: fresh report has no usable candidates — re-searching"
+                )
     except Exception:
         pass
 

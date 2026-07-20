@@ -54,7 +54,9 @@ def plan_search_query(task: str, gateway: Any, *, model: str = "", provider: str
                 "role": "user",
                 "content": (
                     "Turn this coding task into a short GitHub repository search query "
-                    f"(keywords only, max 12 words). Task:\n{task}\n\n"
+                    "(English keywords only, max 10 words). Prefer domain terms first "
+                    "(e.g. tank game), then stack (threejs). Add language:TypeScript "
+                    f"or language:Python when obvious. Task:\n{task}\n\n"
                     "Reply with the query string only."
                 ),
             }],
@@ -62,7 +64,10 @@ def plan_search_query(task: str, gateway: Any, *, model: str = "", provider: str
             provider_name=provider or "anthropic",
             max_tokens=64,
             temperature=0.0,
-            system="You produce GitHub search queries. No explanation.",
+            system=(
+                "You produce GitHub search queries in English. "
+                "No explanation. No Cyrillic."
+            ),
             agent="reuse-query",
             cache_scope="reuse-query",
         )

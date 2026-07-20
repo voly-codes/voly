@@ -50,6 +50,9 @@ def format_reuse_context(
         f"report_id: {report.report_id}\n",
         f"task: {report.task[:200]}\n",
     ]
+    if report.query:
+        lines.append(f"query: {report.query[:160]}\n")
+    usable = [c for c in report.candidates if c.license_allowed and not c.error]
     if report.candidates:
         lines.append("candidates:\n")
         for c in report.candidates[:5]:
@@ -57,19 +60,35 @@ def format_reuse_context(
             lines.append(
                 f"- {c.full_name} ★{c.stars} license={c.license_spdx or '?'}[{flag}]\n"
             )
+    else:
+        lines.append(
+            "candidates: none — GitHub search returned no repos "
+            "(try `voly reuse search` with --lang and a shorter English query).\n"
+        )
     if report.picked:
         lines.append("picked modules:\n")
         for p in report.picked[:8]:
             lines.append(f"- {p.repo}:{p.path} ({p.confidence:.2f})\n")
+    elif report.candidates and not usable:
+        lines.append(
+            "picked: none — all candidates blocked by license policy; "
+            "do not copy GPL/unknown without review.\n"
+        )
     if report.apply_actions:
         planned = [a for a in report.apply_actions if a.status in ("planned", "copied")]
         if planned:
             lines.append("apply:\n")
             for a in planned[:8]:
                 lines.append(f"- [{a.status}] {a.src} → {a.dest}\n")
-    lines.append(
-        "Prefer adapting these modules over rewriting from scratch. "
-        "Run `voly reuse apply <report> --cwd . --write` only after review.\n"
-    )
+    if usable or report.picked:
+        lines.append(
+            "Prefer adapting these modules over rewriting from scratch. "
+            "Run `voly reuse apply <report> --cwd . --write` only after review.\n"
+        )
+    else:
+        lines.append(
+            "No reusable MIT/Apache/BSD modules found automatically; "
+            "implement normally or refine the search query.\n"
+        )
     text = "".join(lines)
     return text[:max_chars]

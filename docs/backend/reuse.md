@@ -116,10 +116,19 @@ executor/pipeline local files.
 
 When `reuse.auto: true`, the pipeline runs `auto_reuse()` before each executor call:
 
-1. Checks if a report younger than `auto_max_age_seconds` exists — skips if yes.
+1. Checks if a report younger than `auto_max_age_seconds` exists **and has at least
+   one license-allowed candidate** — skips only then. Empty / all-denied reports
+   do not block a re-search (avoids a 7-day poison cache after a bad query).
 2. Calls `search_and_pack` (up to `auto_max_repos` repos) + `pick_modules`.
 3. Saves the report to `.voly/reuse/reports/` — immediately picked up by the passive inject.
 4. Never raises: network errors, rate limits, missing GitHub token → silent skip.
+
+**Query planner:** with AIGateway available, `plan_search_query` refines the task into
+an English GitHub query. Deterministic fallback (`task_to_query`) extracts Latin
+keywords, normalizes `three.js`→`threejs`, maps common Cyrillic tech stems
+(танк→tank, браузер→browser, …), and uses a short `in:name,description` AND.
+If the API returns zero hits, `search_repositories` retries without `in:` and
+then with the first two keywords only.
 
 Enable per-project in `voly.yaml`:
 ```yaml

@@ -100,7 +100,24 @@ def test_report_serialize_roundtrip(tmp_path: Path):
 def test_task_to_query():
     q = task_to_query("Implement JWT authentication middleware for FastAPI")
     assert "jwt" in q.lower() or "authentication" in q.lower() or "fastapi" in q.lower()
-    assert "in:name,description,readme" in q
+    assert "in:name,description" in q
+    assert "readme" not in q
+
+
+def test_task_to_query_cyrillic_and_tech_normalize():
+    from voly.reuse.github_search import infer_language
+
+    q = task_to_query("Создай 3D игру танчики в браузере на Three.js с физикой и HUD")
+    low = q.lower()
+    assert "tank" in low
+    assert "game" in low or "browser" in low
+    assert "threejs" in low
+    assert "language:typescript" in low
+    assert "library utility" not in low
+    assert infer_language("Three.js tank game") == "TypeScript"
+    ru_only = task_to_query("Нужен симулятор завода с датчиками")
+    assert "factory" in ru_only or "sensor" in ru_only or "simulation" in ru_only
+    assert "library utility" not in ru_only
 
 
 def test_github_search_mocked():
@@ -217,8 +234,55 @@ def test_reuse_config_parsed():
             "min_stars": 50,
             "allowed_licenses": ["mit"],
             "deny_licenses": ["gpl-3.0"],
+            "auto": True,
+            "auto_max_repos": 2,
+            "auto_max_age_seconds": 3600,
         }
     })
     assert cfg.reuse.max_repos == 3
     assert cfg.reuse.min_stars == 50
     assert "mit" in cfg.reuse.allowed_licenses
+    assert cfg.reuse.auto is True
+    assert cfg.reuse.auto_max_repos == 2
+    assert cfg.reuse.auto_max_age_seconds == 3600
+
+
+def test_auto_reuse_skips_only_usable_fresh_report(tmp_path: Path):
+    """Empty / all-denied fresh reports must not block a new search."""
+    from voly.config import VOLYConfig
+    from voly.reuse.pipeline import auto_reuse
+
+    reports = tmp_path / ".voly" / "reuse" / "reports"
+    empty = ReuseReport(task="old", query="x", candidates=[])
+    save_report(empty, reports)
+
+    cfg = VOLYConfig()
+    cfg.reuse.auto = True
+    cfg.reuse.auto_max_age_seconds = 604800
+    cfg.reuse.reports_dir = ".voly/reuse/reports"
+
+    with patch("voly.reuse.pipeline.search_and_pack") as sp, patch(
+        "voly.reuse.pipeline.pick_modules", return_value=[]
+    ):
+        sp.return_value = ReuseReport(
+            task="new",
+            query="browser tank game",
+            candidates=[
+                CandidatePack(
+                    full_name="acme/tanks",
+                    stars=40,
+                    license_spdx="mit",
+                    license_allowed=True,
+                )
+            ],
+        )
+        out = auto_reuse("browser tank game", cwd=tmp_path, config=cfg, gateway=None)
+        assert out is not None
+        assert sp.called
+        assert any(c.full_name == "acme/tanks" for c in out.candidates)
+
+    # Usable fresh report → skip
+    with patch("voly.reuse.pipeline.search_and_pack") as sp2:
+        skipped = auto_reuse("again", cwd=tmp_path, config=cfg, gateway=None)
+        assert skipped is None
+        assert not sp2.called
