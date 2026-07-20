@@ -10,7 +10,14 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-CAPABILITY_WORKER_URL = os.getenv("VOLY_CAPABILITY_WORKER_URL", "")
+def _capability_worker_url() -> str:
+    try:
+        from voly.config import load_config
+        return load_config().capability.worker_url
+    except Exception:
+        return os.getenv("VOLY_CAPABILITY_WORKER_URL", "")
+
+
 _PROFILES_DIR = os.path.join(".voly", "capability", "profiles")
 _SEEDS_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "..", "capability", "seeds"
@@ -26,10 +33,11 @@ def _registry():
 @router.post("/api/capability/match")
 async def capability_match(body: dict) -> dict:
     """Proxy POST to CF Worker /match; fall back to local Python matcher."""
-    if CAPABILITY_WORKER_URL:
+    worker_url = _capability_worker_url()
+    if worker_url:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.post(f"{CAPABILITY_WORKER_URL}/match", json=body)
+                resp = await client.post(f"{worker_url}/match", json=body)
                 resp.raise_for_status()
                 return resp.json()
         except Exception:

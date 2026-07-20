@@ -380,6 +380,14 @@ class DSPyConfig:
 
 
 @dataclass
+class CapabilityConfig:
+    enabled: bool = False
+    worker_url: str = ""
+    profiles_dir: str = ".voly/capability/profiles"
+    worker_timeout_s: float = 5.0
+
+
+@dataclass
 class VOLYConfig:
     models: dict[str, ModelConfig] = field(default_factory=dict)
     agents: dict[str, AgentConfig] = field(default_factory=dict)
@@ -401,6 +409,7 @@ class VOLYConfig:
     cloud: CloudConfig = field(default_factory=CloudConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)
+    capability: CapabilityConfig = field(default_factory=CapabilityConfig)
     default_model: str = "claude-sonnet"
     default_agent: str = "claude"
     default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd

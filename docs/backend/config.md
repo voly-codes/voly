@@ -256,6 +256,13 @@ plan:
   # built-in exclusions (package-lock.json, poetry.lock, node_modules/, …).
   file_line_limit_exclude_patterns: []
 
+# Capability Registry (executor routing + EMA scores; see docs/backend/capability.md)
+capability:
+  enabled: false                  # false → static BILLING_FALLBACK_CHAIN; true → score-based
+  worker_url: "${VOLY_CAPABILITY_WORKER_URL}"  # CF Worker at capability.voly.codes
+  profiles_dir: ".voly/capability/profiles"   # local profile cache
+  worker_timeout_s: 5.0           # HTTP timeout for /match and evidence POSTs
+
 # Code reuse: GitHub search → clone → pack → pick → apply (see docs/backend/reuse.md)
 reuse:
   enabled: true
@@ -267,9 +274,9 @@ reuse:
   deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
   pack_max_chars: 80000
   apply_dest: "vendor/reuse"
-  auto: false                  # code default; repo voly.yaml enables auto-search before each run
+  auto: false                  # must be parsed (ReuseConfig.auto); repo voly.yaml sets true
   auto_max_repos: 3            # smaller limit in auto mode to keep latency low
-  auto_max_age_seconds: 604800 # skip auto-search if a report younger than 7 days exists
+  auto_max_age_seconds: 604800 # skip only if a fresh report has ≥1 license-allowed candidate
   # Requires GITHUB_TOKEN or GH_TOKEN for search rate limits.
   # CLI: voly reuse search|pack|pick|apply|run
 
@@ -334,15 +341,19 @@ agents:
 ## VOLYConfig — important fields
 
 ```python
-config.default_cwd           # from voly.yaml default_cwd or VOLY_PROJECT_CWD
-config.dspy.enabled          # bool
-config.dspy.mode             # "off" | "shadow" | "active"
-config.dspy.datasets_dir     # path for saving (task, result) examples
-config.plan.enabled          # bool — plan gates subsystem
-config.plan.mode             # "off" | "shadow" | "active"
-config.plan.store_dir        # .voly/plans
+config.default_cwd               # from voly.yaml default_cwd or VOLY_PROJECT_CWD
+config.dspy.enabled              # bool
+config.dspy.mode                 # "off" | "shadow" | "active"
+config.dspy.datasets_dir         # path for saving (task, result) examples
+config.plan.enabled              # bool — plan gates subsystem
+config.plan.mode                 # "off" | "shadow" | "active"
+config.plan.store_dir            # .voly/plans
 config.cost_policy.max_task_cost_usd
 config.ai_gateway.spend_limit_usd_per_day
+config.capability.enabled        # bool — capability-aware fallback chain
+config.capability.worker_url     # CF Worker URL (VOLY_CAPABILITY_WORKER_URL)
+config.capability.profiles_dir   # local profile cache path
+config.capability.worker_timeout_s  # HTTP timeout for capability Worker calls
 ```
 
 > **No auth config in open-core.** Web UI authentication (JWT/SSO), team

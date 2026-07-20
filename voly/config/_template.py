@@ -132,6 +132,9 @@ reuse:
   deny_licenses: [gpl-2.0, gpl-3.0, agpl-3.0]
   pack_max_chars: 80000
   apply_dest: "vendor/reuse"
+  auto: false                  # set true to search GitHub before each executor call
+  auto_max_repos: 3
+  auto_max_age_seconds: 604800 # skip only when a fresh *usable* report exists
 
 ai_gateway:
   enabled: true
@@ -239,6 +242,15 @@ plan:
 # Web UI is open on localhost only. Authentication (JWT / SSO), team dashboards,
 # and org spend governance are commercial Team-tier features — they live in the
 # closed voly-cloud distribution, not in this open-core repo.
+
+# Capability Registry: evidence-based executor routing (EMA scores, CF Worker).
+# Set enabled: true to replace the static BILLING_FALLBACK_CHAIN.
+# Deploy cf-workers/capability and set VOLY_CAPABILITY_WORKER_URL to activate.
+capability:
+  enabled: false
+  worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
+  profiles_dir: ".voly/capability/profiles"
+  worker_timeout_s: 5.0
 
 # DSPy optimizer layer (optional, requires: pip install voly[dspy])
 # mode: off | shadow | active

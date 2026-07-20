@@ -9,6 +9,7 @@ from voly.config._types import (
     AGUIConfig,
     AIGatewayConfig,
     AgentConfig,
+    CapabilityConfig,
     CloudConfig,
     VOLYConfig,
     CostPolicyConfig,
@@ -274,6 +275,11 @@ def _parse_config(raw: dict) -> VOLYConfig:
             ),
             pack_max_chars=int(r.get("pack_max_chars", 80_000) or 80_000),
             apply_dest=r.get("apply_dest", "vendor/reuse"),
+            auto=_parse_bool(r.get("auto"), False),
+            auto_max_age_seconds=int(
+                r.get("auto_max_age_seconds", 7 * 24 * 3600) or (7 * 24 * 3600)
+            ),
+            auto_max_repos=int(r.get("auto_max_repos", 3) or 3),
         )
 
     if "ai_gateway" in raw:
@@ -444,5 +450,24 @@ def _parse_config(raw: dict) -> VOLYConfig:
         m = os.environ["VOLY_PLAN_MODE"].strip().lower()
         if m in PlanConfig.VALID_MODES:
             config.plan.mode = m
+
+    if "capability" in raw:
+        c = raw["capability"]
+        raw_url = os.path.expandvars(c.get("worker_url", "") or "")
+        # Treat unexpanded ${VAR} as empty (env var not set)
+        if raw_url.startswith("${") or raw_url.startswith("$"):
+            raw_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "")
+        config.capability = CapabilityConfig(
+            enabled=_parse_bool(c.get("enabled"), False),
+            worker_url=raw_url.strip(),
+            profiles_dir=c.get("profiles_dir", ".voly/capability/profiles"),
+            worker_timeout_s=float(c.get("worker_timeout_s", 5.0)),
+        )
+    else:
+        env_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "").strip()
+        if env_url:
+            config.capability.worker_url = env_url
+        if os.getenv("VOLY_CAPABILITY_ENABLED", "").lower() in ("1", "true", "yes"):
+            config.capability.enabled = True
 
     return config

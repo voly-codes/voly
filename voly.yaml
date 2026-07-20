@@ -202,6 +202,10 @@ telemetry:
 # mode: off | shadow | active
 # shadow — runs in parallel, logs diff to telemetry, does NOT affect responses
 # active — replaces AIGateway.chat() for agents listed in `agents`
+capability:
+  enabled: false
+  worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
+
 dspy:
   enabled: false
   mode: shadow

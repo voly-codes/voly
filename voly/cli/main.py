@@ -51,10 +51,6 @@ from voly.cli.commands import (
 )
 from voly.capability.sync import startup_sync
 
-_capability_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "")
-if _capability_url:
-    startup_sync(_capability_url)
-
 
 @click.group()
 @click.version_option(version="0.1.0", prog_name="VOLY")
@@ -75,7 +71,10 @@ def main(ctx: click.Context, config: str | None, verbose: bool) -> None:
         logging.getLogger("voly").setLevel(logging.DEBUG)
     ctx.ensure_object(dict)
     ctx.obj["config_path"] = config
-    ctx.obj["config"] = load_config(config)
+    cfg = load_config(config)
+    ctx.obj["config"] = cfg
+    if cfg.capability.worker_url:
+        startup_sync(cfg.capability.worker_url)
 
 
 # Platform & infra groups
