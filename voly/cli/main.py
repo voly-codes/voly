@@ -7,6 +7,7 @@ Subcommands live in voly.cli.commands.*
 from __future__ import annotations
 
 import logging
+import os
 
 import click
 
@@ -48,6 +49,11 @@ from voly.cli.commands import (
     repo_cmd,
     capability_cmd,
 )
+from voly.capability.sync import startup_sync
+
+_capability_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "")
+if _capability_url:
+    startup_sync(_capability_url)
 
 
 @click.group()

@@ -129,6 +129,17 @@ voly capability reset claude-code
 voly capability reset --all
 ```
 
+## Startup Sync
+
+On CLI startup, when `VOLY_CAPABILITY_WORKER_URL` is set, `startup_sync()` runs in a non-blocking daemon thread:
+
+1. `sync_roles_to_worker()` — POST `ROLE_REGISTRY` to `{worker_url}/roles/sync`
+2. `sync_seeds_to_worker()` — POST bundled seed profiles from `voly/capability/seeds/` to `{worker_url}/profiles/seed`
+
+Each HTTP call uses a 5s timeout. Failures are logged at DEBUG only; a summary line is logged at INFO (`startup_sync: roles=… seeds=… worker=…`).
+
+The worker skips seed upserts for executors that already have learned evidence (`internal_runs > 0` in D1).
+
 ## Cloud schema
 
 D1 tables for remote sync: `cf-workers/capability/schema.sql` (`roles`, `executor_capability`, `executor_constraints`, `executor_operational`).

@@ -8,6 +8,7 @@ from voly.capability.schema import (
     ExecutorCapabilityProfile,
 )
 from voly.capability.scorer import hard_exclude, routing_score
+from voly.capability.sync import startup_sync
 
 __all__ = [
     "CapabilityDomain",
@@ -18,4 +19,5 @@ __all__ = [
     "MatchRequest",
     "hard_exclude",
     "routing_score",
+    "startup_sync",
 ]
