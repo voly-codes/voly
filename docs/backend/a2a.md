@@ -31,6 +31,50 @@ Local hybrid details (default executor roles, cascade, plan gates): see
 
 ---
 
+## Frontend roles
+
+Four frontend-focused roles extend `ROLE_REGISTRY` (`voly/a2a/roles.py`). Each defines
+`decomposer_signals` (keyword substrings) and `capability_requirements` for
+capability-aware assignment.
+
+| Role | Tier | Mode | Signals (sample) | Capability requirements |
+|---|---|---|---|---|
+| `ui_architect` | standard | chat | `ui`, `component`, `react`, `frontend`, `layout` | `frontend >= 0.70` |
+| `visual_reviewer` | premium | chat | `screenshot`, `visual`, `figma`, `accessibility` | `frontend >= 0.75`, `image_input: true` |
+| `browser_tester` | standard | executor | `e2e`, `playwright`, `cypress`, `browser test` | `frontend >= 0.70`, `browser_tools: true` |
+| `ux_reviewer` | cheap | chat | `ux`, `usability`, `user flow`, `onboarding` | `frontend >= 0.55` |
+
+**`ui_architect`** — plans component structure, state, routing, and visual hierarchy
+(chat-only; no full implementations).
+
+**`visual_reviewer`** — reviews pixel accuracy, WCAG 2.1 AA accessibility, responsive
+behavior, and design-system consistency. Requires `image_input` capability on the
+assigned provider. `inject_prior_context=True` so prior subtask summaries are appended
+before the review prompt.
+
+**`browser_tester`** — executor role (default executor: `cursor`); writes Playwright or
+Cypress end-to-end tests for user flows, visual regressions, and cross-browser checks.
+Requires `browser_tools: true` on the matched executor.
+
+**`ux_reviewer`** — cheap-tier chat role for usability, information architecture, and
+interaction patterns. `inject_prior_context=True` for context from earlier waves.
+
+### Signal-driven decomposition
+
+`TaskDecomposer._signal_driven_roles(task)` scans the task string against every role's
+`decomposer_signals` in `ROLE_REGISTRY` (case-insensitive substring match). Roles with
+empty signals are skipped.
+
+- When flag-based decomposition already produced subtasks, `_with_signal_roles()` appends
+  any matched roles not already in the list (with `depends_on` set to prior indices).
+- When flag-based decomposition returns nothing but signals match, `_signal_subtasks()`
+  builds a subtask list from the matched roles alone (e.g. screenshot review tasks).
+
+Vision-capable model providers for `visual_reviewer` are seeded in
+`voly/capability/seeds/kimi-cli-vision.yaml` and `claude-vision.yaml`.
+
+---
+
 ## Capability-aware role assignment
 
 `LeadOrchestrator` accepts optional `matcher` (`ExecutorMatcher`) and

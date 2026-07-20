@@ -1,0 +1,30 @@
+id: kimi-cli-vision
+kind: model_provider
+provider: moonshot
+model: kimi-k2-vision
+capabilities:
+  frontend:
+    score: 0.93
+    confidence: 0.20
+    sub_scores:
+      screenshot_replication: 0.91
+      component_from_image: 0.89
+    strengths:
+      - image_to_component
+      - visual_review
+      - figma_to_code
+    weaknesses: []
+  architecture:
+    score: 0.70
+    confidence: 0.15
+constraints:
+  context_window: 131072
+  file_tools: false
+  browser_tools: false
+  image_input: true
+  max_output_tokens: 16384
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 35000
+  completion_rate: 0.88

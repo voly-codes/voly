@@ -1,0 +1,31 @@
+id: claude-vision
+kind: model_provider
+provider: anthropic
+model: claude-opus-4-8
+capabilities:
+  frontend:
+    score: 0.88
+    confidence: 0.25
+    sub_scores:
+      screenshot_replication: 0.85
+    strengths:
+      - image_to_component
+      - visual_review
+    weaknesses: []
+  architecture:
+    score: 0.86
+    confidence: 0.30
+  backend:
+    score: 0.90
+    confidence: 0.30
+constraints:
+  context_window: 200000
+  file_tools: false
+  browser_tools: false
+  image_input: true
+  max_output_tokens: 32768
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 50000
+  completion_rate: 0.92

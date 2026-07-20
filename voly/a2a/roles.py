@@ -104,4 +104,67 @@ ROLE_REGISTRY: dict[str, RoleDefinition] = {
         default_executor="deepseek",
         provider_offset=2,
     ),
+    "ui_architect": RoleDefinition(
+        id="ui_architect",
+        tier="standard",
+        mode="chat",
+        system_prompt=(
+            "You are a senior UI architect. Design component structure, state management, "
+            "routing, and visual hierarchy. Plan only — no full code implementations. "
+            + _FILE_LINE_POLICY
+        ),
+        provider_offset=0,
+        decomposer_signals=[
+            "ui", "component", "svelte", "react", "frontend", "design system", "layout",
+        ],
+        capability_requirements={"frontend": ">= 0.70"},
+    ),
+    "visual_reviewer": RoleDefinition(
+        id="visual_reviewer",
+        tier="premium",
+        mode="chat",
+        system_prompt=(
+            "You are a visual design reviewer. Review UI components for: pixel accuracy, "
+            "accessibility (WCAG 2.1 AA), responsive behavior, and design system consistency. "
+            "Provide concrete, actionable feedback."
+        ),
+        provider_offset=1,
+        inject_prior_context=True,
+        decomposer_signals=[
+            "screenshot", "visual", "design", "figma", "ui review",
+            "accessibility", "pixel",
+        ],
+        capability_requirements={"frontend": ">= 0.75", "image_input": "true"},
+    ),
+    "browser_tester": RoleDefinition(
+        id="browser_tester",
+        tier="standard",
+        mode="executor",
+        system_prompt=(
+            "You are a browser testing engineer. Write end-to-end tests using Playwright "
+            "or Cypress. Test user flows, visual regressions, and cross-browser compatibility. "
+            + _FILE_LINE_POLICY
+        ),
+        default_executor="cursor",
+        provider_offset=2,
+        decomposer_signals=[
+            "e2e", "playwright", "cypress", "browser test", "visual regression", "ui test",
+        ],
+        capability_requirements={"frontend": ">= 0.70", "browser_tools": "true"},
+    ),
+    "ux_reviewer": RoleDefinition(
+        id="ux_reviewer",
+        tier="cheap",
+        mode="chat",
+        system_prompt=(
+            "You are a UX reviewer. Evaluate user flows, information architecture, "
+            "and interaction patterns. Focus on usability, learnability, and friction points."
+        ),
+        provider_offset=0,
+        inject_prior_context=True,
+        decomposer_signals=[
+            "ux", "user experience", "usability", "user flow", "interaction", "onboarding",
+        ],
+        capability_requirements={"frontend": ">= 0.55"},
+    ),
 }
