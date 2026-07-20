@@ -5,6 +5,9 @@
   import CategoryPickerModal from './CategoryPickerModal.svelte'
   import { ui } from '../../stores/uiStore.svelte'
   import RunParams from './RunParams.svelte'
+  import RunOptions from './RunOptions.svelte'
+  import RunAdvanced from './RunAdvanced.svelte'
+  import DiffPreview from './DiffPreview.svelte'
   import RunResult from './RunResult.svelte'
   import EnvironmentBanner from './EnvironmentBanner.svelte'
   import SkillSuggestModal from './SkillSuggestModal.svelte'
@@ -17,6 +20,12 @@
   let agent = $state('')
   let model = $state('')
   let cwd = $state('')
+  let max_turns = $state(40)
+  let dry_run = $state(false)
+  let repo_url = $state('')
+  let a2a_mode = $state('')
+  let timeout_s = $state(120)
+  let correlation_id = $state('')
 
   let running = $state(false)
   let checkingSkills = $state(false)
@@ -169,6 +178,24 @@
     startRun([])
   }
 
+  function buildRunRequest(techStack) {
+    const req = {
+      task: task.trim(),
+      executor,
+      agent,
+      model,
+      cwd,
+      tech_stack: techStack,
+    }
+    if (max_turns !== 40) req.max_turns = max_turns
+    if (dry_run) req.dry_run = dry_run
+    if (repo_url.trim()) req.repo_url = repo_url.trim()
+    if (a2a_mode.trim()) req.a2a_mode = a2a_mode.trim()
+    if (timeout_s !== 120) req.timeout = timeout_s
+    if (correlation_id.trim()) req.correlation_id = correlation_id.trim()
+    return req
+  }
+
   async function startRun(techStack = []) {
     if (!task.trim() || running) return
     running = true
@@ -181,7 +208,7 @@
     ui.pushRun({ id: runId, task: task.slice(0, 80), executor, agent: agent || 'auto', model: model || '—', startedAt: Date.now() })
 
     try {
-      for await (const event of runTask({ task, executor, agent, model, cwd, max_turns: 30, tech_stack: techStack })) {
+      for await (const event of runTask(buildRunRequest(techStack))) {
         if (event.type === 'start') {
           if (event.hybrid_warning) {
             warning = HYBRID_WARNING_LABELS[event.hybrid_warning] ?? event.hybrid_warning
@@ -224,12 +251,8 @@
   <EnvironmentBanner report={envReport} loading={envLoading} onRefresh={loadEnvironment} />
   <RunParams
     bind:executor
-    bind:agent
-    bind:model
     bind:cwd
     {executors}
-    {agents}
-    {models}
     running={busy}
     {executorAvailability}
   />
@@ -280,29 +303,56 @@
     {/if}
   </div>
 
-  <div class="input-area">
-    <textarea
-      class="task-input"
-      placeholder="Describe your task…"
-      bind:value={task}
-      onkeydown={keydown}
-      rows="2"
-      disabled={busy}
-    ></textarea>
-    <button
-      class="run-btn"
-      class:running={busy}
-      onclick={submit}
-      disabled={!task.trim() || busy}
-    >
-      {#if busy}
-        <StopCircleIcon size="16" strokeWidth="2" />
-      {:else}
-        <PlayIcon size="16" strokeWidth="2" />
-      {/if}
-    </button>
+  <div class="input-section">
+    <div class="input-area">
+      <textarea
+        class="task-input"
+        placeholder="Describe your task…"
+        bind:value={task}
+        onkeydown={keydown}
+        rows="2"
+        disabled={busy}
+      ></textarea>
+    </div>
+
+    <RunOptions
+      bind:agent
+      bind:model
+      bind:max_turns
+      bind:dry_run
+      bind:repo_url
+      {agents}
+      {models}
+      running={busy}
+    />
+
+    <RunAdvanced
+      bind:a2a_mode
+      bind:timeout_s
+      bind:correlation_id
+      running={busy}
+    />
+
+    {#if result?.dry_run_diff}
+      <DiffPreview diff={result.dry_run_diff} />
+    {/if}
+
+    <div class="run-row">
+      <button
+        class="run-btn"
+        class:running={busy}
+        onclick={submit}
+        disabled={!task.trim() || busy}
+      >
+        {#if busy}
+          <StopCircleIcon size="16" strokeWidth="2" />
+        {:else}
+          <PlayIcon size="16" strokeWidth="2" />
+        {/if}
+      </button>
+      <div class="input-hint">Ctrl+Enter to run</div>
+    </div>
   </div>
-  <div class="input-hint">Ctrl+Enter to run</div>
 </div>
 
 <SkillSuggestModal
@@ -394,14 +444,22 @@
     border-radius: var(--radius-sm);
   }
 
-  .input-area {
+  .input-section {
     flex-shrink: 0;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 8px 14px;
     border-top: 1px solid var(--border-default);
     background: var(--bg-surface);
+  }
+
+  .input-area {
+    display: flex;
+    padding: 8px 14px 0;
+  }
+
+  .run-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 8px;
   }
 
   .task-input {
@@ -439,11 +497,8 @@
   .run-btn.running { background: var(--accent-rose); }
 
   .input-hint {
-    flex-shrink: 0;
     font-size: 9px;
     color: var(--text-muted);
-    text-align: center;
-    padding: 0 14px 8px;
     opacity: 0.7;
   }
 </style>

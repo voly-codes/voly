@@ -1,20 +1,21 @@
 <script>
   import {
-    ChevronDownIcon, SquareTerminalIcon, UsersRoundIcon,
-    BrainCircuitIcon, FolderIcon,
+    ChevronDownIcon, SquareTerminalIcon, FolderIcon,
   } from '../../icons.js'
+
+  const API_BASE = import.meta.env.VITE_VOLY_API_BASE_URL ?? ''
 
   let {
     executor = $bindable('pipeline'),
-    agent = $bindable(''),
-    model = $bindable(''),
     cwd = $bindable(''),
     executors = [],
-    agents = [],
-    models = [],
     running = false,
     executorAvailability = {},
   } = $props()
+
+  let browseOpen = $state(false)
+  let browseEntries = $state([])
+  let browseLoading = $state(false)
 
   function execBadge(id) {
     if (id === 'pipeline') return null
@@ -34,6 +35,37 @@
     deepseek:           'DeepSeek API — text/code generation only',
     'workers-ai':       'CF Workers AI REST — text only, no file writes',
     'cloudflare-dynamic': 'CF AI Gateway dynamic routing — text only',
+  }
+
+  async function toggleBrowse() {
+    if (running) return
+    if (browseOpen) {
+      browseOpen = false
+      return
+    }
+    browseLoading = true
+    browseEntries = []
+    try {
+      const q = cwd ? `?path=${encodeURIComponent(cwd)}` : ''
+      const res = await fetch(`${API_BASE}/api/browse${q}`)
+      const data = await res.json()
+      if (data.error || !data.entries?.length) {
+        browseOpen = false
+        return
+      }
+      browseEntries = data.entries
+      browseOpen = true
+    } catch {
+      browseOpen = false
+    } finally {
+      browseLoading = false
+    }
+  }
+
+  /** @param {{ path: string }} entry */
+  function selectDir(entry) {
+    cwd = entry.path
+    browseOpen = false
   }
 </script>
 
@@ -64,51 +96,39 @@
       </span>
     </div>
 
-    <div class="param">
-      <label class="param-label" for="run-agent">
-        <UsersRoundIcon size="12" strokeWidth="2" />
-        Agent
-      </label>
-      <div class="select-wrap">
-        <select id="run-agent" bind:value={agent} disabled={running}>
-          <option value="">auto</option>
-          {#each agents as a}
-            <option value={a}>{a}</option>
-          {/each}
-        </select>
-        <ChevronDownIcon size="10" strokeWidth="2" class="select-arrow" />
-      </div>
-      <span class="param-hint">{agent || 'auto — router picks'}</span>
-    </div>
-
-    <div class="param">
-      <label class="param-label" for="run-model">
-        <BrainCircuitIcon size="12" strokeWidth="2" />
-        Model
-      </label>
-      <div class="select-wrap">
-        <select id="run-model" bind:value={model} disabled={running}>
-          <option value="">auto</option>
-          {#each models as m}
-            <option value={m}>{m}</option>
-          {/each}
-        </select>
-        <ChevronDownIcon size="10" strokeWidth="2" class="select-arrow" />
-      </div>
-      <span class="param-hint">{model || 'auto — router picks'}</span>
-    </div>
-
-    <div class="param">
+    <div class="param param-cwd">
       <label class="param-label" for="run-cwd">
         <FolderIcon size="12" strokeWidth="2" />
         Working dir
       </label>
-      <input
-        id="run-cwd"
-        placeholder="/path/to/project"
-        bind:value={cwd}
-        disabled={running}
-      />
+      <div class="cwd-row">
+        <input
+          id="run-cwd"
+          placeholder="/path/to/project"
+          bind:value={cwd}
+          disabled={running}
+        />
+        <button
+          type="button"
+          class="browse-btn"
+          onclick={toggleBrowse}
+          disabled={running || browseLoading}
+          title="Browse directories"
+        >
+          {browseLoading ? '…' : 'Browse'}
+        </button>
+      </div>
+      {#if browseOpen && browseEntries.length}
+        <ul class="browse-menu">
+          {#each browseEntries as entry}
+            <li>
+              <button type="button" class="browse-item" onclick={() => selectDir(entry)}>
+                {entry.name}/
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
       <span class="param-hint">{cwd ? 'executor writes here' : 'leave empty for text-only'}</span>
     </div>
   </div>
@@ -135,9 +155,7 @@
     min-width: 0;
   }
 
-  .param.disabled {
-    opacity: 0.4;
-  }
+  .param-cwd { position: relative; }
 
   .param-label {
     font-size: 10px;
@@ -161,15 +179,6 @@
     color: var(--accent-amber, #c4922a);
   }
 
-  .param-disabled-text {
-    height: 28px;
-    display: flex;
-    align-items: center;
-    font-size: 11px;
-    color: var(--text-muted);
-    padding: 0 8px;
-  }
-
   .select-wrap {
     position: relative;
     display: flex;
@@ -182,6 +191,57 @@
     color: var(--text-muted);
     pointer-events: none;
   }
+
+  .cwd-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .cwd-row input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .browse-btn {
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 8px;
+    font-size: 11px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+  }
+  .browse-btn:hover:not(:disabled) { border-color: var(--accent-blue); color: var(--text-primary); }
+  .browse-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .browse-menu {
+    list-style: none;
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    top: calc(100% - 14px);
+    max-height: 180px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+
+  .browse-item {
+    width: 100%;
+    text-align: left;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+  }
+  .browse-item:hover { background: var(--bg-surface-hover); }
 
   .param select, .param input {
     width: 100%;
@@ -201,9 +261,7 @@
     cursor: pointer;
   }
 
-  .param input {
-    padding-right: 8px;
-  }
+  .param input { padding-right: 8px; }
 
   .param select:focus, .param input:focus { border-color: var(--accent-blue); }
   .param select:disabled, .param input:disabled { opacity: 0.5; cursor: not-allowed; }

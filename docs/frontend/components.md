@@ -6,8 +6,11 @@
 
 Main task run panel. Contains:
 - `<EnvironmentBanner>` — readiness (keys / CLIs / cwd / cloud)
+- `<RunParams>` — executor / cwd selection (with directory browse)
+- `<RunOptions>` — tier-2 collapsible agent / model / max turns / dry run / repo URL
+- `<RunAdvanced>` — tier-3 collapsible a2a mode / timeout / correlation ID
 - textarea for task
-- `<RunParams>` — executor / agent / model / cwd selection
+- `<DiffPreview>` — dry-run unified diff (when `result.dry_run_diff` is set)
 - Run button
 - `<RunResult>` for output
 - `<SkillSuggestModal>` — pre-run marketplace skill gate (Gate 1)
@@ -33,7 +36,11 @@ pipeline → claude-code → wrangler → cf-containers → zen → cursor → o
 
 **Props:** `onTaskComplete` (callback fired on the `done` SSE event).
 Agents / models are fetched by the panel itself (`fetchAgents` / `fetchModels`)
-and passed down to `RunParams`.
+and passed down to `RunOptions`.
+
+**Run options state:** `max_turns` (default 40), `dry_run`, `repo_url`,
+`a2a_mode`, `timeout_s` (default 120), `correlation_id`. Non-default values
+are included in `POST /api/run` (`timeout_s` is sent as `timeout`).
 
 **Events:** SSE stream from `POST /api/run` — types: `start`, `done`, `error`.
 A `start` event carrying `hybrid_warning` is rendered as a visible amber
@@ -98,23 +105,23 @@ Does not block Run. Expandable tips for `warn`/`error` checks; Recheck / Dismiss
 
 ## RunParams.svelte
 
-Run parameters. Passes `$bindable` values to the parent.
+Tier-1 run parameters. Passes `$bindable` values to the parent.
 
 ```svelte
 let {
   executor = $bindable('pipeline'),
-  agent = $bindable(''),
-  model = $bindable(''),
   cwd = $bindable(''),
   executors = [],
-  agents = [],
-  models = [],
   running = false,
   executorAvailability = {},  // from GET /api/environment
 } = $props()
 ```
 
 Executor `<option>` labels append `✓` or `— not installed` from `executorAvailability`.
+
+**Working dir browse:** **Browse** calls `GET /api/browse?path=<cwd>` (empty cwd
+lists server cwd). Shows a dropdown of returned directories; selecting one sets
+`cwd`. Errors hide the dropdown silently.
 
 **Executor hints** — `executorHints` map shows a hint under the selected
 executor (all ids covered: `pipeline`, `claude-code`, `wrangler`,
@@ -126,6 +133,75 @@ executor (all ids covered: `pipeline`, `claude-code`, `wrangler`,
 
 **Working dir:** always visible (not hidden for pipeline) — smart dispatch needs cwd even for pipeline.
 Hint: `cwd ? 'executor writes here' : 'leave empty for text-only'`
+
+---
+
+## RunOptions.svelte
+
+Tier-2 collapsible panel (collapsed by default). Persists expand state in
+`localStorage` key `voly_run_options_open`.
+
+```svelte
+let {
+  agent = $bindable(''),
+  model = $bindable(''),
+  max_turns = $bindable(40),
+  dry_run = $bindable(false),
+  repo_url = $bindable(''),
+  agents = [],
+  models = [],
+  running = false,
+} = $props()
+```
+
+Toggle label: `Options ▸` / `Options ▾`. When expanded, a 3-column grid shows
+agent selector (empty = auto), model selector (empty = auto), max turns
+(1–100), dry-run checkbox, and repo URL input. All controls disabled when
+`running=true`.
+
+---
+
+## RunAdvanced.svelte
+
+Tier-3 collapsible panel (strictly collapsed by default). Persists expand state
+in `localStorage` key `voly_run_advanced_open`.
+
+```svelte
+let {
+  a2a_mode = $bindable(''),
+  timeout_s = $bindable(120),
+  correlation_id = $bindable(''),
+  running = false,
+} = $props()
+```
+
+Toggle label: `Advanced ▸` / `Advanced ▾` (small, muted). When expanded:
+`a2a_mode` text input (placeholder `auto`), `timeout_s` number input (60–600),
+`correlation_id` text input (placeholder `leave blank = auto`). Disabled when
+`running=true`.
+
+---
+
+## DiffPreview.svelte
+
+Renders a dry-run unified diff from the `done` SSE payload.
+
+**Props:** `diff` — unified diff string or `null` (renders nothing when empty).
+
+**Parsing:** splits on `---` file headers; filename from `+++ b/…` (fallback
+`--- a/…`). One collapsible section per file with a file-count badge in the
+header.
+
+**Colors (monospace):**
+
+| Line prefix | Style |
+|---|---|
+| `+` (not `++`) | background `#1a3320`, text `#4ade80` |
+| `-` (not `--`) | background `#3a1a1a`, text `#f87171` |
+| `@@` | text `#9ca3af` |
+| context | default text color |
+
+Each file body scrolls independently (`max-height: 400px`).
 
 ---
 
