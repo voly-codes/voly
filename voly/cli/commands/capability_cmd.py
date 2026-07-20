@@ -70,6 +70,12 @@ def capability_show(ctx: click.Context, executor_id: str) -> None:
     show_default=True,
     help="Profile kind: executor or model_provider",
 )
+@click.option(
+    "--policy",
+    "routing_policy",
+    default=None,
+    help="Routing policy: balanced | quality_first | budget_first (default: config)",
+)
 @click.option("--features", multiple=True, help="Project features (e.g. react fastapi)")
 @click.option("--executors", multiple=True, help="Limit to specific executors")
 @click.pass_context
@@ -78,6 +84,7 @@ def capability_match(
     task: str,
     dimension: str,
     kind: str,
+    routing_policy: str | None,
     features: tuple[str, ...],
     executors: tuple[str, ...],
 ) -> None:
@@ -86,11 +93,15 @@ def capability_match(
 
     reg = _registry(ctx)
     matcher = ExecutorMatcher(reg, worker_url=_worker_url(ctx))
+    cap = getattr(ctx.obj.get("config"), "capability", None)
+    policy = (routing_policy or getattr(cap, "routing_policy", None) or "balanced")
     req = MatchRequest(
         dimension=dimension,
         kind=kind,
         available_executors=list(executors) if executors else None,
         project_features=list(features) if features else None,
+        requires_file_tools=(kind == "executor"),
+        routing_policy=str(policy),
     )
     result = matcher.find_executors(req)
     if result.recommended:

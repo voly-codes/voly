@@ -147,6 +147,25 @@ app.post("/models/sync", async (c) => {
 });
 
 app.post("/match", async (c) => {
+  // Deprecated: hardcoded catalog match. Prefer capability.voly.codes/match.
+  // When CAPABILITY_PROXY_URL is bound, forward dimension-style requests there.
+  const proxy = (c.env as { CAPABILITY_PROXY_URL?: string }).CAPABILITY_PROXY_URL;
+  if (proxy) {
+    try {
+      const incoming = await c.req.json();
+      const resp = await fetch(`${proxy.replace(/\/$/, "")}/match`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(incoming),
+      });
+      const data = await resp.json();
+      return c.json({ ...data, deprecated: true, proxied_to: "capability" }, resp.status);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return c.json({ ok: false, error: message, deprecated: true }, 502);
+    }
+  }
+
   const body = await c.req.json<{ task?: string; budget_usd?: number }>();
   const task = (body.task ?? "").toLowerCase();
   const rows = await c.env.DB.prepare(
@@ -167,7 +186,14 @@ app.post("/match", async (c) => {
     model = "composer-2.5";
   }
 
-  return c.json({ task: body.task, executor, model, budget_usd: body.budget_usd ?? 1 });
+  return c.json({
+    task: body.task,
+    executor,
+    model,
+    budget_usd: body.budget_usd ?? 1,
+    deprecated: true,
+    migrate_to: "https://capability.voly.codes/match",
+  });
 });
 
 export default app;

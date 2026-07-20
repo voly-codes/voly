@@ -212,6 +212,13 @@ telemetry:
 capability:
   enabled: true
   worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
+  routing_policy: balanced
+
+intelligence:
+  auto: false
+  max_cache_age_days: 7
+  max_cache_size_mb: 500
+  max_repo_size_mb: 500
 
 dspy:
   enabled: false

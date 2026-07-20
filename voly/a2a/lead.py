@@ -108,11 +108,19 @@ class LeadOrchestrator:
         try:
             kind = "executor" if role_key in EXECUTOR_CAPABLE_ROLES else "model_provider"
             features = (self.project_context or {}).get("task_features") or []
+            policy = str(
+                (self.project_context or {}).get("routing_policy") or "balanced"
+            )
+            available = self._available_profile_ids(kind)
             result = self.matcher.find_executors(MatchRequest(
                 dimension=role_to_dimension(role_key),
                 kind=kind,
-                available_executors=None,
+                available_executors=available,
                 project_features=features,
+                # Chat model_provider profiles have file_tools=false — do not gate them out.
+                requires_file_tools=(kind == "executor"),
+                requires_browser_tools=(role_key == "browser_tester"),
+                routing_policy=policy,
             ))
             if result.recommended is None:
                 return None
@@ -127,6 +135,30 @@ class LeadOrchestrator:
         except Exception as exc:  # noqa: BLE001 — fall back to tier resolution
             _log.warning("capability matcher failed for role %s: %s", role, exc)
             return None
+
+    def _available_profile_ids(self, kind: str) -> list[str] | None:
+        """Profile IDs of ``kind`` whose provider is healthy (None = no filter)."""
+        if self.matcher is None:
+            return None
+        try:
+            registry = self.matcher._registry  # noqa: SLF001 — intentional
+            ids = registry.list_ids()
+        except Exception:  # noqa: BLE001
+            return None
+        kind = (kind or "").strip()
+        out: list[str] = []
+        for eid in ids:
+            try:
+                prof = registry.load(eid)
+            except Exception:  # noqa: BLE001
+                continue
+            if kind and (prof.kind or "executor") != kind:
+                continue
+            provider = (prof.provider or "").strip()
+            if provider and not self.checker.check(provider).healthy:
+                continue
+            out.append(eid)
+        return out or None
 
     def assign(self, task: str, subtasks: list[Any]) -> list[Assignment]:
         """Produce an Assignment per sub-task. LLM-lead first, deterministic fallback."""

@@ -385,6 +385,19 @@ class CapabilityConfig:
     worker_url: str = ""
     profiles_dir: str = ".voly/capability/profiles"
     worker_timeout_s: float = 5.0
+    # balanced | quality_first | budget_first
+    routing_policy: str = "balanced"
+
+
+@dataclass
+class IntelligenceConfig:
+    """Repository intelligence (external GitHub URL analysis)."""
+
+    # When true, extract github.com URL from the task text if --repo is unset.
+    auto: bool = False
+    max_cache_age_days: int = 7
+    max_cache_size_mb: int = 500
+    max_repo_size_mb: int = 500
 
 
 @dataclass
@@ -410,6 +423,7 @@ class VOLYConfig:
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)
     capability: CapabilityConfig = field(default_factory=CapabilityConfig)
+    intelligence: IntelligenceConfig = field(default_factory=IntelligenceConfig)
     default_model: str = "kimi-k3"
     default_agent: str = "kimi"
     default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd

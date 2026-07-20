@@ -23,6 +23,11 @@ from voly.executor.base import format_executor_failure, executor_failure_details
     help="Executor type: cursor, claude-code, mimo, opencode, deepseek, zen, wrangler, cf-containers",
 )
 @click.option("--cwd", default=None, help="Working directory for executor")
+@click.option(
+    "--repo",
+    default=None,
+    help="External GitHub repo URL for pre-run repository intelligence",
+)
 @click.option("--max-turns", default=30, help="Max agent turns (claude-code executor)")
 @click.option(
     "--timeout", default=300, show_default=True,
@@ -42,6 +47,7 @@ def run(
     model: str | None,
     executor: str | None,
     cwd: str | None,
+    repo: str | None,
     max_turns: int,
     timeout: int,
     a2a_delegate: bool,
@@ -67,13 +73,19 @@ def run(
     if not task:
         task = click.prompt("Task description")
 
+    context: dict[str, Any] = {}
+    if cwd:
+        context["cwd"] = cwd
+    if repo:
+        context["repo_url"] = repo
+
     result = pipeline.run(
         task,
-        # Same as the web route: --cwd reaches hybrid multi-agent via context.
-        context={"cwd": cwd} if cwd else None,
+        context=context or None,
         delegate_to_a2a=a2a_delegate,
         force_model=model,
         force_agent=agent,
+        repo_url=repo,
     )
 
     pipeline.shutdown()

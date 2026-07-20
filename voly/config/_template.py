@@ -258,6 +258,14 @@ capability:
   worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
   profiles_dir: ".voly/capability/profiles"
   worker_timeout_s: 5.0
+  routing_policy: balanced   # balanced | quality_first | budget_first
+
+# Repository intelligence (GitHub URL analyze before run)
+intelligence:
+  auto: false                # true → extract github.com URL from task when --repo unset
+  max_cache_age_days: 7
+  max_cache_size_mb: 500
+  max_repo_size_mb: 500
 
 # DSPy optimizer layer (optional, requires: pip install voly[dspy])
 # mode: off | shadow | active

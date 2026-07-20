@@ -16,6 +16,7 @@ from voly.config._types import (
     DSPyConfig,
     ExecutorSafetyConfig,
     HeadroomConfig,
+    IntelligenceConfig,
     MCPConfig,
     MemoryConfig,
     ModelConfig,
@@ -462,6 +463,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
             worker_url=raw_url.strip(),
             profiles_dir=c.get("profiles_dir", ".voly/capability/profiles"),
             worker_timeout_s=float(c.get("worker_timeout_s", 5.0)),
+            routing_policy=str(c.get("routing_policy") or "balanced").strip().lower()
+            or "balanced",
         )
     env_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "").strip()
     if env_url:
@@ -471,5 +474,19 @@ def _parse_config(raw: dict) -> VOLYConfig:
         config.capability.enabled = True
     elif env_cap in ("0", "false", "no"):
         config.capability.enabled = False
+    env_policy = os.getenv("VOLY_CAPABILITY_ROUTING_POLICY", "").strip().lower()
+    if env_policy:
+        config.capability.routing_policy = env_policy
+
+    if "intelligence" in raw:
+        intel = raw["intelligence"]
+        config.intelligence = IntelligenceConfig(
+            auto=_parse_bool(intel.get("auto"), False),
+            max_cache_age_days=int(intel.get("max_cache_age_days", 7) or 7),
+            max_cache_size_mb=int(intel.get("max_cache_size_mb", 500) or 500),
+            max_repo_size_mb=int(intel.get("max_repo_size_mb", 500) or 500),
+        )
+    if os.getenv("VOLY_INTELLIGENCE_AUTO", "").strip().lower() in ("1", "true", "yes"):
+        config.intelligence.auto = True
 
     return config

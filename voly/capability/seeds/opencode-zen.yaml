@@ -1,0 +1,34 @@
+id: opencode-zen
+kind: model_provider
+provider: opencode-zen
+model: big-pickle
+capabilities:
+  architecture:
+    score: 0.62
+    confidence: 0.20
+  backend:
+    score: 0.68
+    confidence: 0.20
+    strengths: [python]
+    weaknesses: [complex_refactors]
+  frontend:
+    score: 0.60
+    confidence: 0.15
+  testing:
+    score: 0.65
+    confidence: 0.20
+  devops:
+    score: 0.55
+    confidence: 0.15
+constraints:
+  context_window: 128000
+  file_tools: false
+  browser_tools: false
+  image_input: false
+  max_output_tokens: 8000
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 35000
+  completion_rate: 0.85
+  cost_per_task_usd: 0.0

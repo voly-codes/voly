@@ -1,0 +1,36 @@
+id: anthropic-sonnet
+kind: model_provider
+provider: anthropic
+model: claude-sonnet-4-6
+capabilities:
+  architecture:
+    score: 0.90
+    confidence: 0.35
+    strengths: [system_design, api_design, refactoring]
+    weaknesses: []
+  backend:
+    score: 0.88
+    confidence: 0.30
+    strengths: [python, typescript, code_review]
+    weaknesses: []
+  frontend:
+    score: 0.80
+    confidence: 0.25
+  testing:
+    score: 0.78
+    confidence: 0.25
+  devops:
+    score: 0.65
+    confidence: 0.20
+constraints:
+  context_window: 200000
+  file_tools: false
+  browser_tools: false
+  image_input: true
+  max_output_tokens: 64000
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 45000
+  completion_rate: 0.93
+  cost_per_task_usd: 0.25

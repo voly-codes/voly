@@ -16,7 +16,30 @@ voly repo inspect <url>    # pre-clone admission only
 voly repo analyze <url>    # full analysis (Phase 2)
 voly repo map <url>        # architecture map only (Phase 2)
 voly repo license <url>    # license analysis only (Phase 2)
+
+# Pipeline integration
+voly run "port UI from https://github.com/owner/repo" --repo https://github.com/owner/repo --cwd ./proj
+# or with intelligence.auto: true — github.com URL is extracted from the task text
 ```
+
+## Config
+
+```yaml
+intelligence:
+  auto: false           # extract github.com URL from task when --repo unset
+  max_cache_age_days: 7
+  max_cache_size_mb: 500
+  max_repo_size_mb: 500
+```
+
+Env: `VOLY_INTELLIGENCE_AUTO=1`.
+
+## Pipeline stage
+
+`REPO_INTELLIGENCE` runs after `INIT`. When `repo_url` (or auto-detected URL) is set,
+`analyze()` fills `context["repo_intelligence"]` and `context["task_features"]`.
+Without a remote URL, the stage still fills `task_features` from a local
+`ProjectScanner` on `cwd` so capability stack-match is not stuck at neutral 0.5.
 
 ## Modules
 

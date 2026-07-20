@@ -48,8 +48,13 @@ async def capability_match(body: dict) -> dict:
     matcher = ExecutorMatcher(_registry())
     req = MatchRequest(
         dimension=body.get("dimension", "backend"),
+        kind=str(body.get("kind") or "executor"),
         available_executors=body.get("available_executors"),
-        project_features=body.get("project_stack"),
+        project_features=body.get("project_stack") or body.get("project_features"),
+        requires_file_tools=bool(
+            body.get("requires_file_tools", str(body.get("kind") or "executor") == "executor")
+        ),
+        routing_policy=str(body.get("routing_policy") or "balanced"),
     )
     result = matcher.find_executors(req)
     return {

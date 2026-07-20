@@ -22,6 +22,7 @@ class MatchRequest:
     requires_browser_tools: bool = False
     worker_url: str = ""
     worker_timeout_s: float = 5.0
+    routing_policy: str = "balanced"
 
 
 class ExecutorMatcher:
@@ -37,7 +38,11 @@ class ExecutorMatcher:
         2. Local fallback: load profiles, hard_exclude, routing_score, rank.
         """
         worker_url = (req.worker_url or self._worker_url).rstrip("/")
-        if worker_url:
+        # Hosted /match does not yet apply routing_policy weights — use local
+        # scorer when the caller asks for quality_first / budget_first.
+        policy = (req.routing_policy or "balanced").strip().lower()
+        use_remote = bool(worker_url) and policy in ("", "balanced")
+        if use_remote:
             remote = self._remote_match(req, worker_url)
             if remote is not None:
                 remote = self._filter_result_by_kind(remote, req.kind)
@@ -157,7 +162,12 @@ class ExecutorMatcher:
             if reason:
                 excluded.append((executor_id, reason))
                 continue
-            score = routing_score(profile, req.dimension, req.project_features)
+            score = routing_score(
+                profile,
+                req.dimension,
+                req.project_features,
+                routing_policy=req.routing_policy,
+            )
             included.append((profile, score))
 
         included.sort(key=lambda x: -x[1])

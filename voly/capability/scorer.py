@@ -14,6 +14,31 @@ ROUTING_SCORE_WEIGHTS = {
     "latency": 0.05,
 }
 
+# routing_policy → weight overrides (must still sum to ~1.0)
+ROUTING_POLICY_WEIGHTS: dict[str, dict[str, float]] = {
+    "balanced": dict(ROUTING_SCORE_WEIGHTS),
+    "quality_first": {
+        "capability_match": 0.50,
+        "historical_success": 0.25,
+        "tool_compatibility": 0.10,
+        "project_stack_match": 0.10,
+        "availability": 0.03,
+        "cost_efficiency": 0.01,
+        "latency": 0.01,
+    },
+    "budget_first": {
+        "capability_match": 0.20,
+        "historical_success": 0.10,
+        "tool_compatibility": 0.10,
+        "project_stack_match": 0.10,
+        "availability": 0.05,
+        "cost_efficiency": 0.35,
+        "latency": 0.10,
+    },
+}
+
+VALID_ROUTING_POLICIES = frozenset(ROUTING_POLICY_WEIGHTS)
+
 _FEATURE_MAP: dict[str, str] = {
     "react": "frontend",
     "svelte": "frontend",
@@ -45,6 +70,8 @@ def routing_score(
     profile: ExecutorCapabilityProfile,
     dimension: str,
     project_features: list[str] | None = None,
+    *,
+    routing_policy: str = "balanced",
 ) -> float:
     """
     Compute weighted routing score.
@@ -56,6 +83,8 @@ def routing_score(
     - availability: 1.0 (always available, Phase 5 will update)
     - cost_efficiency: max(0, 1 - cost_per_task_usd) clamped 0..1; 1.0 if free
     - latency: max(0, 1 - avg_latency_ms / 120000) clamped 0..1
+
+    ``routing_policy`` selects weight sets: balanced | quality_first | budget_first.
 
     Return score clamped to [0.0, 1.0].
     """
@@ -89,7 +118,8 @@ def routing_score(
     latency_ms = profile.operational.avg_latency_ms
     latency = max(0.0, min(1.0, 1.0 - latency_ms / _LATENCY_CAP_MS))
 
-    weights = ROUTING_SCORE_WEIGHTS
+    policy = (routing_policy or "balanced").strip().lower()
+    weights = ROUTING_POLICY_WEIGHTS.get(policy) or ROUTING_SCORE_WEIGHTS
     total = (
         capability_match * weights["capability_match"]
         + historical_success * weights["historical_success"]

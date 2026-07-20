@@ -286,10 +286,19 @@ capability:
   worker_url: "${VOLY_CAPABILITY_WORKER_URL}"  # CF Worker at capability.voly.codes
   profiles_dir: ".voly/capability/profiles"   # local profile cache
   worker_timeout_s: 5.0           # HTTP timeout for /match and evidence POSTs
+  routing_policy: balanced        # balanced | quality_first | budget_first
 
 # Env overrides (always win over yaml when set):
 #   VOLY_CAPABILITY_ENABLED=1|0
 #   VOLY_CAPABILITY_WORKER_URL=https://capability.voly.codes
+#   VOLY_CAPABILITY_ROUTING_POLICY=balanced|quality_first|budget_first
+
+# Repository intelligence (see docs/backend/intelligence.md)
+intelligence:
+  auto: false                  # true → parse github.com URL from task when --repo unset
+  max_cache_age_days: 7
+  max_cache_size_mb: 500
+  max_repo_size_mb: 500
 
 # Code reuse: GitHub search → clone → pack → pick → apply (see docs/backend/reuse.md)
 reuse:

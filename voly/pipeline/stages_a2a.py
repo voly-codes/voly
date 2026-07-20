@@ -226,7 +226,12 @@ class _A2AStageMixin:
                     CapabilityRegistry(profiles_dir),
                     worker_url=worker_url,
                 )
-                project_context = {"task_features": list(task_features or [])}
+                project_context = {
+                    "task_features": list(task_features or []),
+                    "routing_policy": str(
+                        getattr(cap_cfg, "routing_policy", None) or "balanced"
+                    ),
+                }
             except Exception:  # noqa: BLE001
                 matcher = None
                 project_context = None

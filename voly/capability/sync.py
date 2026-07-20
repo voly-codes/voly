@@ -37,7 +37,7 @@ def sync_roles_to_worker(worker_url: str, timeout_s: float = 5.0) -> bool:
 
 
 def sync_seeds_to_worker(
-    worker_url: str, seeds_dir: str | None = None, timeout_s: float = 5.0
+    worker_url: str, seeds_dir: str | None = None, timeout_s: float = 30.0
 ) -> bool:
     """POST seed profiles to CF Worker POST /profiles/seed. Never raises."""
     url = _worker_base_url(worker_url)

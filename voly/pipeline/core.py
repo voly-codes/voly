@@ -339,6 +339,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         self._run_started = started
         self._run_stage_log = []
         context = context or {}
+        context["task"] = task
         task_id = new_task_id()
 
         try:

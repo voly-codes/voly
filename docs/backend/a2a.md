@@ -83,10 +83,13 @@ Vision-capable model providers for `visual_reviewer` are seeded in
 
 When `capability.enabled` is true (or `VOLY_CAPABILITY_ENABLED=1`), the pipeline
 wires `ExecutorMatcher` into `LeadOrchestrator` with `task_features` from
-`REPO_INTELLIGENCE`. Hybrid executor roles keep the matcher-chosen `executor`
+`REPO_INTELLIGENCE` (or a local cwd scan) and `routing_policy` from config.
+Hybrid executor roles keep the matcher-chosen `executor`
 (`make_agent_runner_executor` honors a non-empty assignment; static
-`resolve_role_executor` only fills when unset). Run evidence is
-POSTed to `{worker_url}/profiles/evidence` when `worker_url` is set.
+`resolve_role_executor` only fills when unset). Chat roles match
+`kind=model_provider` with `requires_file_tools=false` and provider health
+filtering. Run evidence is POSTed to `{worker_url}/profiles/evidence` when
+`worker_url` is set.
 
 `LeadOrchestrator` accepts optional `matcher` (`ExecutorMatcher`) and
 `project_context` (dict with `task_features` from `REPO_INTELLIGENCE` or project scan).

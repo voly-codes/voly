@@ -137,18 +137,26 @@ voly capability reset --all
 # .env
 VOLY_CAPABILITY_WORKER_URL=https://capability.voly.codes
 VOLY_CAPABILITY_ENABLED=1
+VOLY_CAPABILITY_ROUTING_POLICY=balanced   # or quality_first | budget_first
 
 # or voly.yaml
 capability:
   enabled: true
   worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
+  routing_policy: balanced
 ```
+
+Chat roles use `kind=model_provider` seeds (`anthropic-sonnet`, `deepseek-chat`,
+`opencode-zen`, `workers-ai-scout`, plus vision profiles). LeadOrchestrator filters
+candidates by provider health before `/match` and sets `requires_file_tools=false`
+for chat roles.
 
 On CLI startup with a worker URL, `startup_sync()` pushes roles + seeds. Verify:
 
 ```bash
 curl -sS https://capability.voly.codes/health
-voly capability match "implement REST API" --dimension backend --features python fastapi
+voly capability match "implement REST API" --dimension backend --features python --features fastapi
+voly capability match "design architecture" --dimension architecture --kind model_provider
 ```
 
 ## Startup Sync
