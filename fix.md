@@ -42,3 +42,5 @@ commit hash and an English description.
 - `b4dbf05` — Detect untracked-file edits via fingerprints for files_touched; non-zero exit on `voly run --json` failure; gate frontend skills off Python backend tasks; skip unhealthy providers in AIGateway after billing; isolate memory tests to local backend.
 
 - `1b95903` — Tighten frontend A2A role signals so backend prompts with architecture design no longer pull visual_reviewer.
+
+- `8884211` — Enable capability worker routing in A2A, filter match by kind, and honor matcher-chosen executors in hybrid runs.
