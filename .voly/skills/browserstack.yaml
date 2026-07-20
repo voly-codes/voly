@@ -1,0 +1,75 @@
+id: browserstack
+name: browserstack
+description: Run tests on BrowserStack. Use when user mentions "browserstack", "cross-browser",
+  "cloud testing", "browser matrix", "test on safari", "test on firefox", or "browser
+  compatibility".
+source: marketplace
+status: active
+version: 1.0.0
+content: "# BrowserStack Integration\n\nRun Playwright tests on BrowserStack's cloud\
+  \ grid for cross-browser and cross-device testing.\n\n## Prerequisites\n\nEnvironment\
+  \ variables must be set:\n- `BROWSERSTACK_USERNAME` — your BrowserStack username\n\
+  - `BROWSERSTACK_ACCESS_KEY` — your access key\n\nIf not set, inform the user how\
+  \ to get them from [browserstack.com/accounts/settings](https://www.browserstack.com/accounts/settings)\
+  \ and stop.\n\n## Capabilities\n\n### 1. Configure for BrowserStack\n\n```\n/pw:browserstack\
+  \ setup\n```\n\nSteps:\n1. Check current `playwright.config.ts`\n2. Add BrowserStack\
+  \ connect options:\n\n```typescript\n// Add to playwright.config.ts\nimport { defineConfig\
+  \ } from '@playwright/test';\n\nconst isBS = !!process.env.BROWSERSTACK_USERNAME;\n\
+  \nexport default defineConfig({\n  // ... existing config\n  projects: isBS ? [\n\
+  \    {\n      name: \"chromelatestwindows-11\",\n      use: {\n        connectOptions:\
+  \ {\n          wsEndpoint: `wss://cdp.browserstack.com/playwright?caps=${encodeURIComponent(JSON.stringify({\n\
+  \            'browser': 'chrome',\n            'browser_version': 'latest',\n  \
+  \          'os': 'Windows',\n            'os_version': '11',\n            'browserstack.username':\
+  \ process.env.BROWSERSTACK_USERNAME,\n            'browserstack.accessKey': process.env.BROWSERSTACK_ACCESS_KEY,\n\
+  \          }))}`,\n        },\n      },\n    },\n    {\n      name: \"firefoxlatestwindows-11\"\
+  ,\n      use: {\n        connectOptions: {\n          wsEndpoint: `wss://cdp.browserstack.com/playwright?caps=${encodeURIComponent(JSON.stringify({\n\
+  \            'browser': 'playwright-firefox',\n            'browser_version': 'latest',\n\
+  \            'os': 'Windows',\n            'os_version': '11',\n            'browserstack.username':\
+  \ process.env.BROWSERSTACK_USERNAME,\n            'browserstack.accessKey': process.env.BROWSERSTACK_ACCESS_KEY,\n\
+  \          }))}`,\n        },\n      },\n    },\n    {\n      name: \"webkitlatestos-x-ventura\"\
+  ,\n      use: {\n        connectOptions: {\n          wsEndpoint: `wss://cdp.browserstack.com/playwright?caps=${encodeURIComponent(JSON.stringify({\n\
+  \            'browser': 'playwright-webkit',\n            'browser_version': 'latest',\n\
+  \            'os': 'OS X',\n            'os_version': 'Ventura',\n            'browserstack.username':\
+  \ process.env.BROWSERSTACK_USERNAME,\n            'browserstack.accessKey': process.env.BROWSERSTACK_ACCESS_KEY,\n\
+  \          }))}`,\n        },\n      },\n    },\n  ] : [\n    // ... local projects\
+  \ fallback\n  ],\n});\n```\n\n3. Add npm script: `\"test:e2e:cloud\": \"npx playwright\
+  \ test --project='chrome@*' --project='firefox@*' --project='webkit@*'\"`\n\n###\
+  \ 2. Run Tests on BrowserStack\n\n```\n/pw:browserstack run\n```\n\nSteps:\n1. Verify\
+  \ credentials are set\n2. Run tests with BrowserStack projects:\n   ```bash\n  \
+  \ BROWSERSTACK_USERNAME=$BROWSERSTACK_USERNAME \\\n   BROWSERSTACK_ACCESS_KEY=$BROWSERSTACK_ACCESS_KEY\
+  \ \\\n   npx playwright test --project='chrome@*' --project='firefox@*'\n   ```\n\
+  3. Monitor execution\n4. Report results per browser\n\n### 3. Get Build Results\n\
+  \n```\n/pw:browserstack results\n```\n\nSteps:\n1. Call `browserstack_get_builds`\
+  \ MCP tool\n2. Get latest build's sessions\n3. For each session:\n   - Status (pass/fail)\n\
+  \   - Browser and OS\n   - Duration\n   - Video URL\n   - Log URLs\n4. Format as\
+  \ summary table\n\n### 4. Check Available Browsers\n\n```\n/pw:browserstack browsers\n\
+  ```\n\nSteps:\n1. Call `browserstack_get_browsers` MCP tool\n2. Filter for Playwright-compatible\
+  \ browsers\n3. Display available browser/OS combinations\n\n### 5. Local Testing\n\
+  \n```\n/pw:browserstack local\n```\n\nFor testing localhost or staging behind firewall:\n\
+  1. Install BrowserStack Local: `npm install -D browserstack-local`\n2. Add local\
+  \ tunnel to config\n3. Provide setup instructions\n\n## MCP Tools Used\n\n| Tool\
+  \ | When |\n|---|---|\n| `browserstack_get_plan` | Check account limits |\n| `browserstack_get_browsers`\
+  \ | List available browsers |\n| `browserstack_get_builds` | List recent builds\
+  \ |\n| `browserstack_get_sessions` | Get sessions in a build |\n| `browserstack_get_session`\
+  \ | Get session details (video, logs) |\n| `browserstack_update_session` | Mark\
+  \ pass/fail |\n| `browserstack_get_logs` | Get text/network logs |\n\n## Output\n\
+  \n- Cross-browser test results table\n- Per-browser pass/fail status\n- Links to\
+  \ BrowserStack dashboard for video/screenshots\n- Any browser-specific failures\
+  \ highlighted"
+tags:
+- engineering-team
+- playwright-pro
+- browserstack
+capabilities:
+- engineering-team
+- playwright-pro
+- browserstack
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

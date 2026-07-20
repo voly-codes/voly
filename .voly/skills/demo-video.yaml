@@ -1,0 +1,87 @@
+id: demo-video
+name: demo-video
+description: Use when the user asks to create a demo video, product walkthrough, feature
+  showcase, animated presentation, marketing video, or GIF from screenshots or scene
+  descriptions. Orchestrates playwright, ffmpeg, and edge-tts MCPs to produce polished
+  video content.
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Demo Video\n\nYou are a video producer. Not a slideshow maker. Every frame\
+  \ has a job. Every second earns the next.\n\n## Overview\n\nCreate polished demo\
+  \ videos by orchestrating browser rendering, text-to-speech, and video compositing.\
+  \ Think like a video producer — story arc, pacing, emotion, visual hierarchy. Turns\
+  \ screenshots and scene descriptions into shareable product demos.\n\n## When to\
+  \ Use This Skill\n\n- User asks to create a demo video, product walkthrough, or\
+  \ feature showcase\n- User wants an animated presentation, marketing video, or product\
+  \ teaser\n- User wants to turn screenshots or UI captures into a polished video\
+  \ or GIF\n- User says \"make a video\", \"create a demo\", \"record a demo\", \"\
+  promo video\"\n\n## Core Workflow\n\n### 1. Choose a rendering mode\n\nBefore starting,\
+  \ verify available tools:\n- **playwright MCP available?** — needed for automated\
+  \ screenshots. Fallback: ask user to screenshot the HTML files manually.\n- **edge-tts\
+  \ available?** — needed for narration audio. Fallback: output narration text files\
+  \ for user to record or use any TTS tool.\n- **ffmpeg available?** — needed for\
+  \ compositing. Fallback: output individual scene images + audio files with manual\
+  \ ffmpeg commands the user can run.\n\nIf none are available, produce HTML scene\
+  \ files + `scenes.json` manifest + narration scripts. The user can composite manually\
+  \ or use any video editor.\n\n| Mode | How | When |\n|------|-----|------|\n| **MCP\
+  \ Orchestration** | HTML → playwright screenshots → edge-tts audio → ffmpeg composite\
+  \ | Use when playwright + edge-tts + ffmpeg MCPs are all connected |\n| **Manual**\
+  \ | Write HTML scene files, provide ffmpeg commands for user to run | Use when MCPs\
+  \ are not available |\n\n### 2. Pick a story structure\n\n**The Classic Demo (30-60s):**\n\
+  Hook (3s) -> Problem (5s) -> Magic Moment (5s) -> Proof (15s) -> Social Proof (4s)\
+  \ -> Invite (4s)\n\n**The Problem-Solution (20-40s):**\nBefore (6s) -> After (6s)\
+  \ -> How (10s) -> CTA (4s)\n\n**The 15-Second Teaser:**\nHook (2s) -> Demo (8s)\
+  \ -> Logo (3s) -> Tagline (2s)\n\n### 3. Design scenes\n\n**If no screenshots are\
+  \ provided:**\n- For CLI/terminal tools: generate HTML scenes with terminal-style\
+  \ dark background, monospace font, and animated typing effect\n- For conceptual\
+  \ demos: use text-heavy scenes with the color language and typography system\n-\
+  \ Ask the user for screenshots only if the product is visual and descriptions are\
+  \ insufficient\n\nEvery scene has exactly ONE primary focus:\n- Title scenes: product\
+  \ name\n- Problem scenes: the pain (red, chaotic)\n- Solution scenes: the result\
+  \ (green, spacious)\n- Feature scenes: the highlighted screenshot region\n- End\
+  \ scenes: URL / CTA button\n\n### 4. Write narration\n\n- One idea per scene. If\
+  \ you need \"and\" you need two scenes.\n- Lead with the verb. \"Organize your tabs\"\
+  \ not \"Tab organization is provided.\"\n- No jargon. \"Your tabs organize themselves\"\
+  \ not \"AI-powered tab categorization.\"\n- Use contrast. \"24 tabs. One click.\
+  \ 5 groups.\"\n\n## Output Artifacts\n\nFor each video, produce these files in a\
+  \ `demo-output/` directory:\n\n1. `scenes/` — one HTML file per scene (1920x1080\
+  \ viewport)\n2. `narration/` — one `.txt` file per scene (for edge-tts input)\n\
+  3. `scenes.json` — manifest listing scenes in order with durations and narration\
+  \ text\n4. `build.sh` — shell script that runs the full pipeline:\n   - `playwright\
+  \ screenshot` each HTML scene → `frames/`\n   - `edge-tts` each narration file →\
+  \ `audio/`\n   - `ffmpeg` concat with crossfade transitions → `output.mp4`\n\nIf\
+  \ MCPs are unavailable, still produce items 1-3. Include the ffmpeg commands in\
+  \ `build.sh` for the user to run manually.\n\n## Scene Design System\n\nSee [references/scene-design-system.md](references/scene-design-system.md)\
+  \ for the full design system: color language, animation timing, typography, HTML\
+  \ layout, voice options, and pacing guide.\n\n## Quality Checklist\n\n- [ ] Video\
+  \ has audio stream\n- [ ] Resolution is 1920x1080\n- [ ] No black frames between\
+  \ scenes\n- [ ] First 3 seconds grab attention\n- [ ] Every scene has one focus\
+  \ point\n- [ ] End card has URL and CTA\n\n## Anti-Patterns\n\n| Anti-pattern |\
+  \ Fix |\n|---|---|\n| **Slideshow pacing** — every scene same duration, no rhythm\
+  \ | Vary durations: hooks 3s, proof 8s, CTA 4s |\n| **Wall of text on screen** |\
+  \ Move info to narration, simplify visuals |\n| **Generic narration** — \"This feature\
+  \ lets you...\" | Use specific numbers and concrete verbs |\n| **No story arc**\
+  \ — just listing features | Use problem -> solution -> proof structure |\n| **Raw\
+  \ screenshots** | Always add rounded corners, shadows, dark background |\n| **Using\
+  \ `ease` or `linear` animations** | Use spring curve: `cubic-bezier(0.16, 1, 0.3,\
+  \ 1)` |\n\n## Cross-References\n\n- Related: `engineering/browser-automation` —\
+  \ for playwright-based browser workflows\n- See also: [framecraft](https://github.com/vaddisrinivas/framecraft)\
+  \ — open-source scene rendering pipeline"
+tags:
+- engineering
+- demo-video
+- demo-video
+capabilities:
+- engineering
+- demo-video
+- demo-video
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

@@ -1,0 +1,199 @@
+id: senior-fullstack
+name: senior-fullstack
+description: Fullstack development toolkit with project scaffolding for Next.js, FastAPI,
+  MERN, and Django stacks, code quality analysis with security and complexity scoring,
+  and stack selection guidance. Use when the user asks to "scaffold a new project",
+  "create a Next.js app", "set up FastAPI with React", "analyze code quality", "audit
+  my codebase", "what stack should I use", "generate project boilerplate", or mentions
+  fullstack development, project setup, or tech stack comparison.
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Senior Fullstack\n\nFullstack development skill with project scaffolding\
+  \ and code quality analysis tools.\n\n---\n\n## Table of Contents\n\n- [Trigger\
+  \ Phrases](#trigger-phrases)\n- [Tools](#tools)\n- [Workflows](#workflows)\n- [Reference\
+  \ Guides](#reference-guides)\n\n---\n\n## Trigger Phrases\n\nUse this skill when\
+  \ you hear:\n- \"scaffold a new project\"\n- \"create a Next.js app\"\n- \"set up\
+  \ FastAPI with React\"\n- \"analyze code quality\"\n- \"check for security issues\
+  \ in codebase\"\n- \"what stack should I use\"\n- \"set up a fullstack project\"\
+  \n- \"generate project boilerplate\"\n\n---\n\n## Tools\n\n### Decision Engine\n\
+  \nDeterministic profile picker. Given four assumptions (team-size, cadence, user-facing,\
+  \ budget) plus optional traffic/sensitivity inputs, ranks the four built-in profiles\
+  \ and returns the matched profile with SLO floor and named approver chain. Refuses\
+  \ to recommend a profile without the four required inputs.\n\n**Usage:**\n\n```bash\n\
+  # See all options\npython scripts/fullstack_decision_engine.py --help\n\n# Run against\
+  \ a sample input\npython scripts/fullstack_decision_engine.py --sample\n\n# Pick\
+  \ a profile from real inputs\npython scripts/fullstack_decision_engine.py \\\n \
+  \   --team-size-12mo 8 --cadence daily --user-facing true --budget 5000 \\\n   \
+  \ --traffic-p99-rps 50 --data-sensitivity pii-only\n\n# JSON output for downstream\
+  \ tools\npython scripts/fullstack_decision_engine.py --sample --output json\n```\n\
+  \nReturns: matched profile name, score, matched/violated constraints, stack recommendation,\
+  \ anti-recommendations, SLO floor, named-approver chain, and canon references.\n\
+  \nThe engine encodes the same matrix the conversational grill walks through — use\
+  \ it directly when inputs are already known, or via the `cs-fullstack-engineer`\
+  \ agent for the question-by-question grill.\n\n---\n\n### Project Scaffolder\n\n\
+  Generates fullstack project structures with boilerplate code.\n\n**Supported Templates:**\n\
+  - `nextjs` - Next.js 14+ with App Router, TypeScript, Tailwind CSS\n- `fastapi-react`\
+  \ - FastAPI backend + React frontend + PostgreSQL\n- `mern` - MongoDB, Express,\
+  \ React, Node.js with TypeScript\n- `django-react` - Django REST Framework + React\
+  \ frontend\n\n**Usage:**\n\n```bash\n# List available templates\npython scripts/project_scaffolder.py\
+  \ --list-templates\n\n# Create Next.js project\npython scripts/project_scaffolder.py\
+  \ nextjs my-app\n\n# Create FastAPI + React project\npython scripts/project_scaffolder.py\
+  \ fastapi-react my-api\n\n# Create MERN stack project\npython scripts/project_scaffolder.py\
+  \ mern my-project\n\n# Create Django + React project\npython scripts/project_scaffolder.py\
+  \ django-react my-app\n\n# Specify output directory\npython scripts/project_scaffolder.py\
+  \ nextjs my-app --output ./projects\n\n# JSON output\npython scripts/project_scaffolder.py\
+  \ nextjs my-app --json\n```\n\n**Parameters:**\n\n| Parameter | Description |\n\
+  |-----------|-------------|\n| `template` | Template name (nextjs, fastapi-react,\
+  \ mern, django-react) |\n| `project_name` | Name for the new project directory |\n\
+  | `--output, -o` | Output directory (default: current directory) |\n| `--list-templates,\
+  \ -l` | List all available templates |\n| `--json` | Output in JSON format |\n\n\
+  **Output includes:**\n- Project structure with all necessary files\n- Package configurations\
+  \ (package.json, requirements.txt)\n- TypeScript configuration\n- Docker and docker-compose\
+  \ setup\n- Environment file templates\n- Next steps for running the project\n\n\
+  ---\n\n### Code Quality Analyzer\n\nAnalyzes fullstack codebases for quality issues.\n\
+  \n**Analysis Categories:**\n- Security vulnerabilities (hardcoded secrets, injection\
+  \ risks)\n- Code complexity metrics (cyclomatic complexity, nesting depth)\n- Dependency\
+  \ health (outdated packages, known CVEs)\n- Test coverage estimation\n- Documentation\
+  \ quality\n\n**Usage:**\n\n```bash\n# Analyze current directory\npython scripts/code_quality_analyzer.py\
+  \ .\n\n# Analyze specific project\npython scripts/code_quality_analyzer.py /path/to/project\n\
+  \n# Verbose output with detailed findings\npython scripts/code_quality_analyzer.py\
+  \ . --verbose\n\n# JSON output\npython scripts/code_quality_analyzer.py . --json\n\
+  \n# Save report to file\npython scripts/code_quality_analyzer.py . --output report.json\n\
+  ```\n\n**Parameters:**\n\n| Parameter | Description |\n|-----------|-------------|\n\
+  | `project_path` | Path to project directory (default: current directory) |\n| `--verbose,\
+  \ -v` | Show detailed findings |\n| `--json` | Output in JSON format |\n| `--output,\
+  \ -o` | Write report to file |\n\n**Output includes:**\n- Overall score (0-100)\
+  \ with letter grade\n- Security issues by severity (critical, high, medium, low)\n\
+  - High complexity files\n- Vulnerable dependencies with CVE references\n- Test coverage\
+  \ estimate\n- Documentation completeness\n- Prioritized recommendations\n\n**Sample\
+  \ Output:**\n\n```\n============================================================\n\
+  CODE QUALITY ANALYSIS REPORT\n============================================================\n\
+  \nOverall Score: 75/100 (Grade: C)\nFiles Analyzed: 45\nTotal Lines: 12,500\n\n\
+  --- SECURITY ---\n  Critical: 1\n  High: 2\n  Medium: 5\n\n--- COMPLEXITY ---\n\
+  \  Average Complexity: 8.5\n  High Complexity Files: 3\n\n--- RECOMMENDATIONS ---\n\
+  1. [P0] SECURITY\n   Issue: Potential hardcoded secret detected\n   Action: Remove\
+  \ or secure sensitive data at line 42\n```\n\n---\n\n## Workflows\n\n### Workflow\
+  \ 1: Start New Project\n\n1. Choose appropriate stack based on requirements (see\
+  \ Stack Decision Matrix)\n2. Scaffold project structure\n3. Verify scaffold: confirm\
+  \ `package.json` (or `requirements.txt`) exists\n4. Run initial quality check —\
+  \ address any P0 issues before proceeding\n5. Set up development environment\n\n\
+  ```bash\n# 1. Scaffold project\npython scripts/project_scaffolder.py nextjs my-saas-app\n\
+  \n# 2. Verify scaffold succeeded\nls my-saas-app/package.json\n\n# 3. Navigate and\
+  \ install\ncd my-saas-app\nnpm install\n\n# 4. Configure environment\ncp .env.example\
+  \ .env.local\n\n# 5. Run quality check\npython scripts/code_quality_analyzer.py\
+  \ .\n\n# 6. Start development\nnpm run dev\n```\n\n### Workflow 2: Audit Existing\
+  \ Codebase\n\n1. Run code quality analysis\n2. Review security findings — fix all\
+  \ P0 (critical) issues immediately\n3. Re-run analyzer to confirm P0 issues are\
+  \ resolved\n4. Create tickets for P1/P2 issues\n\n```bash\n# 1. Full analysis\n\
+  python scripts/code_quality_analyzer.py /path/to/project --verbose\n\n# 2. Generate\
+  \ detailed report\npython scripts/code_quality_analyzer.py /path/to/project --json\
+  \ --output audit.json\n\n# 3. After fixing P0 issues, re-run to verify\npython scripts/code_quality_analyzer.py\
+  \ /path/to/project --verbose\n```\n\n### Workflow 3: Stack Selection\n\nUse the\
+  \ tech stack guide to evaluate options:\n\n1. **SEO Required?** → Next.js with SSR\n\
+  2. **API-heavy backend?** → Separate FastAPI or NestJS\n3. **Real-time features?**\
+  \ → Add WebSocket layer\n4. **Team expertise** → Match stack to team skills\n\n\
+  See `references/tech_stack_guide.md` for detailed comparison.\n\n---\n\n## Reference\
+  \ Guides\n\n### Architecture Patterns (`references/architecture_patterns.md`)\n\n\
+  - Frontend component architecture (Atomic Design, Container/Presentational)\n- Backend\
+  \ patterns (Clean Architecture, Repository Pattern)\n- API design (REST conventions,\
+  \ GraphQL schema design)\n- Database patterns (connection pooling, transactions,\
+  \ read replicas)\n- Caching strategies (cache-aside, HTTP cache headers)\n- Authentication\
+  \ architecture (JWT + refresh tokens, sessions)\n\n### Development Workflows (`references/development_workflows.md`)\n\
+  \n- Local development setup (Docker Compose, environment config)\n- Git workflows\
+  \ (trunk-based, conventional commits)\n- CI/CD pipelines (GitHub Actions examples)\n\
+  - Testing strategies (unit, integration, E2E)\n- Code review process (PR templates,\
+  \ checklists)\n- Deployment strategies (blue-green, canary, feature flags)\n- Monitoring\
+  \ and observability (logging, metrics, health checks)\n\n### Tech Stack Guide (`references/tech_stack_guide.md`)\n\
+  \n- Frontend frameworks comparison (Next.js, React+Vite, Vue)\n- Backend frameworks\
+  \ (Express, Fastify, NestJS, FastAPI, Django)\n- Database selection (PostgreSQL,\
+  \ MongoDB, Redis)\n- ORMs (Prisma, Drizzle, SQLAlchemy)\n- Authentication solutions\
+  \ (Auth.js, Clerk, custom JWT)\n- Deployment platforms (Vercel, Railway, AWS)\n\
+  - Stack recommendations by use case (MVP, SaaS, Enterprise)\n\n---\n\n## Quick Reference\n\
+  \n### Stack Decision Matrix\n\n| Requirement | Recommendation |\n|-------------|---------------|\n\
+  | SEO-critical site | Next.js with SSR |\n| Internal dashboard | React + Vite |\n\
+  | API-first backend | FastAPI or Fastify |\n| Enterprise scale | NestJS + PostgreSQL\
+  \ |\n| Rapid prototype | Next.js API routes |\n| Document-heavy data | MongoDB |\n\
+  | Complex queries | PostgreSQL |\n\n### Common Issues\n\n| Issue | Solution |\n\
+  |-------|----------|\n| N+1 queries | Use DataLoader or eager loading |\n| Slow\
+  \ builds | Check bundle size, lazy load |\n| Auth complexity | Use Auth.js or Clerk\
+  \ |\n| Type errors | Enable strict mode in tsconfig |\n| CORS issues | Configure\
+  \ middleware properly |\n\n---\n\n## Assumptions and Verifiable Success Criteria\
+  \ (Karpathy discipline)\n\nBefore this skill scaffolds, recommends, or modifies\
+  \ any code, the following four assumptions MUST be surfaced. If any are unknown,\
+  \ the skill stops and walks the [Forcing-question library](#forcing-question-library-matt-pocock-grill)\
+  \ instead.\n\n1. **Team size today + 12-month headcount** — drives architecture\
+  \ (monolith / modular / services). Sam Newman: \"MonolithFirst.\"\n2. **Deployment\
+  \ cadence target** — drives CI/CD spend and feature-flag investment. *Accelerate*\
+  \ (Forsgren et al. 2018).\n3. **User-facing vs. internal vs. marketing-site** —\
+  \ drives stack pick and a11y/perf budget.\n4. **Monthly cloud + SaaS budget ceiling**\
+  \ — drives the build-vs-managed-service split.\n\n**Verifiable success criteria**\
+  \ (Karpathy #4) — every recommendation this skill emits must include three machine-checkable\
+  \ numbers:\n\n- An API latency target (p50, p95, p99 in ms)\n- A frontend perf target\
+  \ (LCP, INP, CLS on mobile-4G)\n- An uptime / SLO target\n\nIf any of those three\
+  \ is not stated, the recommendation is incomplete — go back to Q7 of the forcing-question\
+  \ library.\n\nThe `scripts/fullstack_decision_engine.py` tool encodes these checks:\
+  \ it refuses to recommend a profile without all four assumption inputs and prints\
+  \ the verifiable thresholds for the matched profile.\n\n---\n\n## Customization\
+  \ profiles\n\nFour built-in profiles in `profiles/` calibrate every recommendation:\n\
+  \n| Profile | When to pick | Cloud ceiling | Pattern |\n|---|---|---|---|\n| `saas-startup`\
+  \ | < 10 eng, customer-facing, daily+ cadence | $8K/mo | Modular monolith on Next.js\
+  \ + Postgres |\n| `enterprise-scale` | 50+ eng, regulated, per-PR with gates | $250K/mo\
+  \ | Domain-bounded services + platform team |\n| `internal-tool` | ≤ 5 eng, auth-walled,\
+  \ < 100 DAU | $500/mo | Retool-first; thin custom stack if forced |\n| `marketing-site`\
+  \ | SEO-dependent, near-zero write | $200/mo | Static-first (Astro / 11ty / Next-static)\
+  \ |\n\nPick a profile via:\n\n```bash\npython scripts/fullstack_decision_engine.py\
+  \ \\\n  --team-size 6 --team-size-12mo 12 \\\n  --cadence daily --user-facing true\
+  \ --budget 5000 \\\n  --traffic-p99-rps 45 --data-sensitivity pii-only\n```\n\n\
+  The tool returns the best-fit profile, the tradeoff against the runner-up (if within\
+  \ 15%), the stack recommendation, the anti-patterns to avoid on that profile, and\
+  \ the named-approver chain. **This tool never auto-approves.**\n\nTo add a custom\
+  \ profile: copy `profiles/saas-startup.json` to `profiles/<your-org>.json`, adjust\
+  \ the `constraints` and `stack_recommendations` blocks, and rerun. The JSON is the\
+  \ customization surface — no code changes needed.\n\n---\n\n## Composition map\n\
+  \nThis skill does NOT reimplement scope owned by the POWERFUL-tier specialists.\
+  \ It forks into them. See `references/composition_map.md` for the full routing table.\
+  \ Key forks:\n\n| Concern | Fork into |\n|---|---|\n| API contract review | `engineering/skills/api-design-reviewer/`\
+  \ |\n| Database schema design | `engineering/skills/database-designer/` |\n| Reliability\
+  \ / SLO design | `engineering/slo-architect/` |\n| CI/CD pipeline | `engineering/skills/ci-cd-pipeline-builder/`\
+  \ |\n| Performance profiling | `engineering/skills/performance-profiler/` |\n| Pre-commit\
+  \ Karpathy review | `engineering/karpathy-coder/` |\n| Pre-flight architecture grill\
+  \ | `engineering/grill-me/` |\n\nThe `cs-fullstack-engineer` agent (in `agents/engineering/cs-fullstack-engineer.md`)\
+  \ orchestrates these forks via `context: fork`. Invoke it from another agent with\
+  \ `Agent({subagent_type: \"cs-fullstack-engineer\", prompt: \"...\"})` or via the\
+  \ slash command `/cs:fullstack-review <your problem>`.\n\n---\n\n## Forcing-question\
+  \ library (Matt Pocock grill)\n\nBefore locking any architecture or stack decision,\
+  \ walk the seven forcing questions in `references/forcing_questions.md`. Each has\
+  \ a recommended answer, canon citation, and kill criterion. The discipline:\n\n\
+  1. One question per turn. No bundling.\n2. Always recommend the answer with cited\
+  \ canon.\n3. Track answers in a working file (e.g., `/tmp/fullstack-grill-<date>.md`).\n\
+  4. If a kill criterion trips, stop. Do not scaffold around an unresolved gap.\n\
+  5. After Q7, run `fullstack_decision_engine.py` with the seven answers as inputs.\n\
+  \nSummary of the seven questions (full content in the reference):\n\n1. Team size\
+  \ today + 12-month headcount?\n2. Deployment cadence — per-PR, daily, weekly, quarterly?\n\
+  3. Customer-facing, internal tool, or marketing site?\n4. One-year p50 / p99 traffic\
+  \ forecast?\n5. Hiring against the stack or training the team?\n6. Year-one monthly\
+  \ cloud + SaaS ceiling?\n7. Three verifiable success criteria with numeric targets?\n\
+  \n---\n\n## Invocation from other agents and skills\n\nThis skill is invokable by\
+  \ any other agent or skill via three surfaces:\n\n1. **Slash command:** `/cs:fullstack-review\
+  \ <prompt>` — runs the full grill + decision engine + composition routing.\n2. **Agent\
+  \ subagent:** `Agent({subagent_type: \"cs-fullstack-engineer\", prompt: \"...\"\
+  })` — forks context, returns ≤ 200-word digest.\n3. **Direct tool call:** `python\
+  \ scripts/fullstack_decision_engine.py ...` — deterministic profile match without\
+  \ the conversational grill (use when inputs are already known).\n\nSee `agents/engineering/cs-fullstack-engineer.md`\
+  \ for the full invocation contract."
+tags:
+- engineering-team
+- senior-fullstack
+capabilities:
+- engineering-team
+- senior-fullstack
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

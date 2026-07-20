@@ -1,0 +1,54 @@
+id: code-reuse
+name: code-reuse
+description: >-
+  Prefer reusing modules from similar open-source GitHub repositories via the
+  VOLY reuse CLI instead of rewriting from scratch. Use when the task involves
+  scaffolding, integrating a known pattern (auth, CRUD, CLI, worker, scanner),
+  vendoring a small utility, or the user mentions reuse / similar repos /
+  open-source reference. Directs the agent to `voly reuse` artifacts — does not
+  clone or copy itself.
+source: local
+status: active
+version: 1.0.0
+tags: [reuse, github, vendor, license]
+content: |
+  # Code reuse — VOLY playbook
+
+  When implementing a feature that likely exists in mature open-source projects,
+  **search and adapt** before writing greenfield code.
+
+  ## Steps (do in order)
+
+  1. **Run or read reuse pipeline**
+     ```bash
+     voly reuse run "<task summary>" --cwd <project> --lang <language>
+     # default apply is dry-run; review the report under .voly/reuse/reports/
+     ```
+     Or read the latest report: `.voly/reuse/reports/latest.json`.
+
+  2. **Review license + candidates**
+     - Only proceed with `license_allowed: true` (MIT, Apache-2.0, BSD-*, ISC, 0BSD, Unlicense).
+     - Do **not** copy GPL/AGPL into the project via the default path.
+     - Prefer small modules (files/dirs) over whole repositories.
+
+  3. **Apply after review**
+     ```bash
+     voly reuse apply .voly/reuse/reports/latest.json --cwd <project> --write
+     ```
+     Files land under `vendor/reuse/<owner>__<repo>/…` with `NOTICE` + LICENSE.
+
+  4. **Adapt, don't rewrite**
+     - Wire vendored modules into the project APIs/imports.
+     - Keep attribution (`NOTICE`, LICENSE headers) intact.
+     - Trim unused files; do not paste GPL code "with a warning".
+
+  5. **If reuse finds nothing useful**
+     - Fall back to normal implementation.
+     - Still cite any reference repos you read from in the work summary.
+
+  ## Constraints
+
+  - Side effects (clone/copy) go through `voly reuse *` only — do not ad-hoc
+    `git clone` into the project without the license gate.
+  - Model calls for picking modules go through VOLY (`AIGateway`); do not bypass.
+  - Target project is always `--cwd` (VOLY stays project-agnostic).

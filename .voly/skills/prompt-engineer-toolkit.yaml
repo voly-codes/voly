@@ -1,0 +1,91 @@
+id: prompt-engineer-toolkit
+name: prompt-engineer-toolkit
+description: 'Turns marketing prompts into tested, versioned production assets: A/B
+  prompt evaluation against structured test cases, immutable prompt version history
+  with diffs, ready-to-use marketing prompt templates (ad copy, email campaigns, social
+  posts, landing pages, SEO meta), and an LLM-governance playbook for marketing teams
+  (claim discipline, disclosure rules, human-review gates). Use when a marketing team
+  relies on AI-generated content and needs prompt quality to be measurable and safe
+  — or when the user mentions ''prompt engineering,'' ''improve my prompts,'' ''prompt
+  templates,'' ''prompt versioning,'' ''AI content workflow,'' or ''AI governance
+  for marketing.'''
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Prompt Engineer Toolkit\n\n## Overview\n\nUse this skill to move prompts\
+  \ from ad-hoc drafts to production assets with repeatable testing, versioning, and\
+  \ regression safety. It emphasizes measurable quality over intuition. Apply it when\
+  \ launching a new LLM feature that needs reliable outputs, when prompt quality degrades\
+  \ after model or instruction changes, when multiple team members edit prompts and\
+  \ need history/diffs, when you need evidence-based prompt choice for production\
+  \ rollout, or when you want consistent prompt governance across environments.\n\n\
+  ## Core Capabilities\n\n- A/B prompt evaluation against structured test cases\n\
+  - Quantitative scoring for adherence, relevance, and safety checks\n- Prompt version\
+  \ tracking with immutable history and changelog\n- Prompt diffs to review behavior-impacting\
+  \ edits\n- Reusable prompt templates and selection guidance\n- Regression-friendly\
+  \ workflows for model/prompt updates\n\n## Key Workflows\n\n### 1. Run Prompt A/B\
+  \ Test\n\nPrepare JSON test cases and run:\n\n```bash\npython3 scripts/prompt_tester.py\
+  \ \\\n  --prompt-a-file prompts/a.txt \\\n  --prompt-b-file prompts/b.txt \\\n \
+  \ --cases-file testcases.json \\\n  --runner-cmd 'my-llm-cli --prompt {prompt} --input\
+  \ {input}' \\\n  --format text\n```\n\nInput can also come from stdin/`--input`\
+  \ JSON payload.\n\n### 2. Choose Winner With Evidence\n\nThe tester scores outputs\
+  \ per case and aggregates:\n\n- expected content coverage\n- forbidden content violations\n\
+  - regex/format compliance\n- output length sanity\n\nUse the higher-scoring prompt\
+  \ as candidate baseline, then run regression suite.\n\n### 3. Version Prompts\n\n\
+  ```bash\n# Add version\npython3 scripts/prompt_versioner.py add \\\n  --name support_classifier\
+  \ \\\n  --prompt-file prompts/support_v3.txt \\\n  --author alice\n\n# Diff versions\n\
+  python3 scripts/prompt_versioner.py diff --name support_classifier --from-version\
+  \ 2 --to-version 3\n\n# Changelog\npython3 scripts/prompt_versioner.py changelog\
+  \ --name support_classifier\n```\n\n### 4. Regression Loop\n\n1. Store baseline\
+  \ version.\n2. Propose prompt edits.\n3. Re-run A/B test.\n4. Promote only if score\
+  \ and safety constraints improve.\n\n## Script Interfaces\n\n- `python3 scripts/prompt_tester.py\
+  \ --help`\n  - Reads prompts/cases from stdin or `--input`\n  - Optional external\
+  \ runner command\n  - Emits text or JSON metrics\n- `python3 scripts/prompt_versioner.py\
+  \ --help`\n  - Manages prompt history (`add`, `list`, `diff`, `changelog`)\n  -\
+  \ Stores metadata and content snapshots locally\n\n## Pitfalls, Best Practices &\
+  \ Review Checklist\n\n**Avoid these mistakes:**\n1. Picking prompts from single-case\
+  \ outputs — use a realistic, edge-case-rich test suite.\n2. Changing prompt and\
+  \ model simultaneously — always isolate variables.\n3. Missing `must_not_contain`\
+  \ (forbidden-content) checks in evaluation criteria.\n4. Editing prompts without\
+  \ version metadata, author, or change rationale.\n5. Skipping semantic diffs before\
+  \ deploying a new prompt version.\n6. Optimizing one benchmark while harming edge\
+  \ cases — track the full suite.\n7. Model swap without rerunning the baseline A/B\
+  \ suite.\n\n**Before promoting any prompt, confirm:**\n- [ ] Task intent is explicit\
+  \ and unambiguous.\n- [ ] Output schema/format is explicit.\n- [ ] Safety and exclusion\
+  \ constraints are explicit.\n- [ ] No contradictory instructions.\n- [ ] No unnecessary\
+  \ verbosity tokens.\n- [ ] A/B score improves and violation count stays at zero.\n\
+  \n## References\n\n- [references/prompt-templates.md](references/prompt-templates.md)\
+  \ — 6 production marketing templates (ad copy, email sequence, social repurposing,\
+  \ landing sections, SEO meta, brand-voice rewrite) plus generic building blocks;\
+  \ each written to be graded by `prompt_tester.py`\n- [references/technique-guide.md](references/technique-guide.md)\
+  \ — technique-selection table for marketing tasks + the LLM-governance stack for\
+  \ marketing teams (claim discipline, disclosure rules, data boundaries, human-review\
+  \ gates)\n- [references/evaluation-rubric.md](references/evaluation-rubric.md) —\
+  \ mechanical scoring weights, acceptance gates, marketing quality dimensions, test-suite\
+  \ design, and eval anti-patterns\n- [README.md](README.md)\n\n## Evaluation Design\n\
+  \nEach test case should define:\n\n- `input`: realistic production-like input\n\
+  - `expected_contains`: required markers/content\n- `forbidden_contains`: disallowed\
+  \ phrases or unsafe content\n- `expected_regex`: required structural patterns\n\n\
+  This enables deterministic grading across prompt variants.\n\n## Versioning Policy\n\
+  \n- Use semantic prompt identifiers per feature (`support_classifier`, `ad_copy_shortform`).\n\
+  - Record author + change note for every revision.\n- Never overwrite historical\
+  \ versions.\n- Diff before promoting a new prompt to production.\n\n## Rollout Strategy\n\
+  \n1. Create baseline prompt version.\n2. Propose candidate prompt.\n3. Run A/B suite\
+  \ against same cases.\n4. Promote only if winner improves average and keeps violation\
+  \ count at zero.\n5. Track post-release feedback and feed new failure cases back\
+  \ into test suite."
+tags:
+- marketing-skill
+- prompt-engineer-toolkit
+capabilities:
+- marketing-skill
+- prompt-engineer-toolkit
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

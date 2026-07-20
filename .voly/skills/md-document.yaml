@@ -1,0 +1,112 @@
+id: md-document
+name: md-document
+description: Converts long-form markdown (specs, RFCs, reports, plans, explainers)
+  into a single-file, lightly-interactive HTML document with sticky TOC, scrollspy,
+  search filter, code-copy buttons, and design-system-driven brand tokens. Triggers
+  when the markdown-html-orchestrator classifies an input as DOCUMENT, or when invoked
+  directly via /cs:md-document. Reads the design-system config via config_loader.py
+  and inlines the user's 12 derived CSS custom properties; refuses to render if onboarding
+  hasn't run. Single-file output — Google Fonts + Prism.js CDN are the only externals;
+  no framework runtime, no build step. Use after orchestrator routing or after design-system
+  onboarding is confirmed.
+source: marketplace
+status: active
+version: 2.10.1
+content: "# md-document — Long-form Markdown to HTML\n\nThe general-purpose converter\
+  \ — handles the 90% case Shihipar describes (specs, plans, RFCs, reports, explainers).\
+  \ Three stdlib tools pipeline together:\n\n```\nmarkdown_parser.py  →  html_renderer.py\
+  \  →  interactivity_injector.py\n   (md → JSON AST)    (AST + tokens → HTML)   \
+  \ (HTML + JS behavior)\n```\n\nOutput is one `.html` file with sticky TOC, search\
+  \ filter, scrollspy, code-copy buttons, and the user's 12 derived brand tokens.\
+  \ Externals limited to Google Fonts CSS + Prism.js CDN.\n\n## When to invoke\n\n\
+  | Symptom | Action |\n|---|---|\n| `markdown-html-orchestrator` routes input as\
+  \ DOCUMENT | Invoke this skill |\n| User runs `/cs:md-document <path>.md` directly\
+  \ | Invoke this skill |\n| User says \"convert this spec/report/RFC/plan to HTML\"\
+  \ | Invoke this skill |\n| Input is a code review (has ` ```diff ` blocks) | Route\
+  \ to `md-review` instead |\n| Input is a slide deck (clear `---` boundaries) | Route\
+  \ to `md-slides` instead |\n| Input is < 100 lines | Refuse (Shihipar threshold\
+  \ — markdown still wins) |\n| Design-system not onboarded | Refuse, surface `/cs:design-system`\
+  \ |\n\n## Pipeline\n\n```bash\n# 1. Parse markdown → JSON AST\npython3 markdown-html/skills/md-document/scripts/markdown_parser.py\
+  \ \\\n    --input <path>.md --output sections.json\n\n# 2. Render AST + design-system\
+  \ config → single-file HTML\npython3 markdown-html/skills/md-document/scripts/html_renderer.py\
+  \ \\\n    --sections sections.json --output document.html\n\n# 3. Inject lightweight\
+  \ JS (search, copycode, smoothscroll, scrollspy)\npython3 markdown-html/skills/md-document/scripts/interactivity_injector.py\
+  \ \\\n    --file document.html \\\n    --features search,copycode,smoothscroll,scrollspy\n\
+  ```\n\nOr all-in-one (sample render):\n\n```bash\npython3 markdown-html/skills/md-document/scripts/html_renderer.py\
+  \ --sample \\\n  | python3 markdown-html/skills/md-document/scripts/interactivity_injector.py\
+  \ \\\n      --file /dev/stdin --output document.html\n```\n\n## What gets rendered\n\
+  \nCommonMark subset sufficient for agent-generated artifacts:\n- Headings H1-H6\
+  \ (every H2+ gets an anchor id and TOC entry)\n- Paragraphs with inline **bold**\
+  \ / *italic* / `code` / [links](url) / ![images](url)\n- Fenced code blocks (` ```python\
+  \ `) with Prism.js highlighting on demand\n- GFM tables with per-column alignment\n\
+  - GFM callouts (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`)\n\
+  - Blockquotes, ordered + unordered lists (single-level), horizontal rules\n\nOut\
+  \ of scope: nested lists, HTML inlines, footnotes, definition lists, task list checkboxes\
+  \ (rendered as plain text), reference-style links.\n\n## Hard rules\n\n1. **Refuses\
+  \ input < 100 lines.** Markdown wins below the threshold (Shihipar).\n2. **Refuses\
+  \ without onboarding.** `config_loader.setup_completed()` must return `True`. Otherwise\
+  \ surface `/cs:design-system`.\n3. **Single-file output.** All CSS + JS inline.\
+  \ Only externals are `fonts.googleapis.com` and `cdn.jsdelivr.net` (Prism). Anything\
+  \ else is a regression.\n4. **Customization must change behavior.** `design_style=editorial`\
+  \ produces 720px-wide layout with 1.75 line-height; `playful` rounds the callouts\
+  \ and adds shadow; `technical` is dense with 0.875rem code. Smoke-tested.\n5. **WCAG-compliant\
+  \ tokens.** Inherits the design-system's WCAG AA palette — body text ≥ 4.5:1 contrast,\
+  \ links iteratively walked to 4.5:1.\n6. **Idempotent injection.** Re-injecting\
+  \ interactivity is a no-op (marker check). Re-rendering with a different design_style\
+  \ works cleanly.\n\n## Forcing-question library (Matt Pocock grill discipline)\n\
+  \n1. **What's the document for — skim, decide, or deep-read?** Recommended: name\
+  \ it; density follows. Canon: Shihipar; Tufte *Envisioning Information*.\n2. **Sticky-sidebar\
+  \ TOC or collapsible-top?** Recommended: sticky-sidebar for > 800 words / 4+ H2s;\
+  \ collapsible-top for shorter mobile-first docs. Canon: NN/g *TOC Best Practices*\
+  \ (2023).\n3. **All four interactive features, or a subset?** Recommended: all four\
+  \ — none of them cost more than ~1 KB. Canon: Wattenberger *Why React isn't great\
+  \ for actually building websites*.\n4. **Code theme — light, dark, or auto?** Recommended:\
+  \ auto (follows OS `prefers-color-scheme`). Canon: WCAG 2.2 §1.4.3.\n5. **Does the\
+  \ document have a clear H1 title?** Recommended: yes — H1 becomes the page `<title>`\
+  \ and is excluded from the TOC.\n\n## Distinct from\n\n- **`md-review`** — that\
+  \ converter renders diff blocks + severity-tagged margin annotations. This one renders\
+  \ prose + tables + code + callouts.\n- **`md-slides`** — that converter splits on\
+  \ `---` boundaries into slides. This one renders one continuous document.\n- **`marketing/landing/`**\
+  \ — that generates landing pages from scratch (no markdown input). This converts\
+  \ existing markdown.\n\n## Output artifact\n\n`{default_output_dir}/doc-{slug}.html`\
+  \ (path resolved by orchestrator's `output_path_resolver.py`; collision suffix `-2`,\
+  \ `-3`, … by default).\n\n## References\n\n- Shihipar — *Claude Code HTML output*\
+  \ (Medium, 2026)\n- Tufte — *Envisioning Information* (1990), ch. 2 \"Micro/Macro\
+  \ Readings\"\n- NN/g — *Table of Contents Best Practices* (2023)\n- WCAG 2.2 — §1.4.3\
+  \ contrast, §2.4.5 multiple ways\n- Wattenberger — *Why React isn't great for actually\
+  \ building websites*\n- See `references/` for full citations"
+tags:
+- markdown
+- html
+- documentation
+- single-file
+- toc
+- scrollspy
+- search
+- code-copy
+- design-system
+capabilities:
+- markdown
+- html
+- documentation
+- single-file
+- toc
+- scrollspy
+- search
+- code-copy
+- design-system
+required_tools: []
+compatible_agents:
+- claude-code
+- codex-cli
+- cursor
+- antigravity
+- opencode
+- gemini-cli
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: Alireza Rezvani
+usage_count: 0
+success_rate: 1.0
+metadata: {}

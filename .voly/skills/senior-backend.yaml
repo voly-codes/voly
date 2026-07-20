@@ -1,0 +1,207 @@
+id: senior-backend
+name: senior-backend
+description: Designs and implements backend systems including REST APIs, microservices,
+  database architectures, authentication flows, and security hardening. Use when the
+  user asks to "design REST APIs", "optimize database queries", "implement authentication",
+  "build microservices", "review backend code", "set up GraphQL", "handle database
+  migrations", or "load test APIs". Covers Node.js/Express/Fastify development, PostgreSQL
+  optimization, API security, and backend architecture patterns.
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Senior Backend Engineer\n\nBackend development patterns, API design, database\
+  \ optimization, and security practices.\n\n---\n\n## Quick Start\n\n```bash\n# Generate\
+  \ API routes from OpenAPI spec\npython scripts/api_scaffolder.py openapi.yaml --framework\
+  \ express --output src/routes/\n\n# Analyze database schema and generate migrations\n\
+  python scripts/database_migration_tool.py --connection postgres://localhost/mydb\
+  \ --analyze\n\n# Load test an API endpoint\npython scripts/api_load_tester.py https://api.example.com/users\
+  \ --concurrency 50 --duration 30\n```\n\n---\n\n## Tools Overview\n\n### 1. API\
+  \ Scaffolder\n\nGenerates API route handlers, middleware, and OpenAPI specifications\
+  \ from schema definitions.\n\n**Input:** OpenAPI spec (YAML/JSON) or database schema\n\
+  **Output:** Route handlers, validation middleware, TypeScript types\n\n**Usage:**\n\
+  ```bash\n# Generate Express routes from OpenAPI spec\npython scripts/api_scaffolder.py\
+  \ openapi.yaml --framework express --output src/routes/\n# Output: Generated 12\
+  \ route handlers, validation middleware, and TypeScript types\n\n# Generate from\
+  \ database schema\npython scripts/api_scaffolder.py --from-db postgres://localhost/mydb\
+  \ --output src/routes/\n\n# Generate OpenAPI spec from existing routes\npython scripts/api_scaffolder.py\
+  \ src/routes/ --generate-spec --output openapi.yaml\n```\n\n**Supported Frameworks:**\n\
+  - Express.js (`--framework express`)\n- Fastify (`--framework fastify`)\n- Koa (`--framework\
+  \ koa`)\n\n---\n\n### 2. Database Migration Tool\n\nAnalyzes database schemas, detects\
+  \ changes, and generates migration files with rollback support.\n\n**Input:** Database\
+  \ connection string or schema files\n**Output:** Migration files, schema diff report,\
+  \ optimization suggestions\n\n**Usage:**\n```bash\n# Analyze current schema and\
+  \ suggest optimizations\npython scripts/database_migration_tool.py --connection\
+  \ postgres://localhost/mydb --analyze\n# Output: Missing indexes, N+1 query risks,\
+  \ and suggested migration files\n\n# Generate migration from schema diff\npython\
+  \ scripts/database_migration_tool.py --connection postgres://localhost/mydb \\\n\
+  \  --compare schema/v2.sql --output migrations/\n\n# Dry-run a migration\npython\
+  \ scripts/database_migration_tool.py --connection postgres://localhost/mydb \\\n\
+  \  --migrate migrations/20240115_add_user_indexes.sql --dry-run\n```\n\n---\n\n\
+  ### 3. API Load Tester\n\nPerforms HTTP load testing with configurable concurrency,\
+  \ measuring latency percentiles and throughput.\n\n**Input:** API endpoint URL and\
+  \ test configuration\n**Output:** Performance report with latency distribution,\
+  \ error rates, throughput metrics\n\n**Usage:**\n```bash\n# Basic load test\npython\
+  \ scripts/api_load_tester.py https://api.example.com/users --concurrency 50 --duration\
+  \ 30\n# Output: Throughput (req/sec), latency percentiles (P50/P95/P99), error counts,\
+  \ and scaling recommendations\n\n# Test with custom headers and body\npython scripts/api_load_tester.py\
+  \ https://api.example.com/orders \\\n  --method POST \\\n  --header \"Authorization:\
+  \ Bearer token123\" \\\n  --body '{\"product_id\": 1, \"quantity\": 2}' \\\n  --concurrency\
+  \ 100 \\\n  --duration 60\n\n# Compare two endpoints\npython scripts/api_load_tester.py\
+  \ https://api.example.com/v1/users https://api.example.com/v2/users \\\n  --compare\
+  \ --concurrency 50 --duration 30\n```\n\n---\n\n## Backend Development Workflows\n\
+  \n### API Design Workflow\n\nUse when designing a new API or refactoring existing\
+  \ endpoints.\n\n**Step 1: Define resources and operations**\n```yaml\n# openapi.yaml\n\
+  openapi: 3.0.3\ninfo:\n  title: User Service API\n  version: 1.0.0\npaths:\n  /users:\n\
+  \    get:\n      summary: List users\n      parameters:\n        - name: \"limit\"\
+  \n          in: query\n          schema:\n            type: integer\n          \
+  \  default: 20\n    post:\n      summary: Create user\n      requestBody:\n    \
+  \    required: true\n        content:\n          application/json:\n           \
+  \ schema:\n              $ref: '#/components/schemas/CreateUser'\n```\n\n**Step\
+  \ 2: Generate route scaffolding**\n```bash\npython scripts/api_scaffolder.py openapi.yaml\
+  \ --framework express --output src/routes/\n```\n\n**Step 3: Implement business\
+  \ logic**\n```typescript\n// src/routes/users.ts (generated, then customized)\n\
+  export const createUser = async (req: Request, res: Response) => {\n  const { email,\
+  \ name } = req.body;\n\n  // Add business logic\n  const user = await userService.create({\
+  \ email, name });\n\n  res.status(201).json(user);\n};\n```\n\n**Step 4: Add validation\
+  \ middleware**\n```bash\n# Validation is auto-generated from OpenAPI schema\n# src/middleware/validators.ts\
+  \ includes:\n# - Request body validation\n# - Query parameter validation\n# - Path\
+  \ parameter validation\n```\n\n**Step 5: Generate updated OpenAPI spec**\n```bash\n\
+  python scripts/api_scaffolder.py src/routes/ --generate-spec --output openapi.yaml\n\
+  ```\n\n---\n\n### Database Optimization Workflow\n\nUse when queries are slow or\
+  \ database performance needs improvement.\n\n**Step 1: Analyze current performance**\n\
+  ```bash\npython scripts/database_migration_tool.py --connection $DATABASE_URL --analyze\n\
+  ```\n\n**Step 2: Identify slow queries**\n```sql\n-- Check query execution plans\n\
+  EXPLAIN ANALYZE SELECT * FROM orders\nWHERE user_id = 123\nORDER BY created_at DESC\n\
+  LIMIT 10;\n\n-- Look for: Seq Scan (bad), Index Scan (good)\n```\n\n**Step 3: Generate\
+  \ index migrations**\n```bash\npython scripts/database_migration_tool.py --connection\
+  \ $DATABASE_URL \\\n  --suggest-indexes --output migrations/\n```\n\n**Step 4: Test\
+  \ migration (dry-run)**\n```bash\npython scripts/database_migration_tool.py --connection\
+  \ $DATABASE_URL \\\n  --migrate migrations/add_indexes.sql --dry-run\n```\n\n**Step\
+  \ 5: Apply and verify**\n```bash\n# Apply migration\npython scripts/database_migration_tool.py\
+  \ --connection $DATABASE_URL \\\n  --migrate migrations/add_indexes.sql\n\n# Verify\
+  \ improvement\npython scripts/database_migration_tool.py --connection $DATABASE_URL\
+  \ --analyze\n```\n\n---\n\n### Security Hardening Workflow\n\nUse when preparing\
+  \ an API for production or after a security review.\n\n**Step 1: Review authentication\
+  \ setup**\n```typescript\n// Verify JWT configuration\nconst jwtConfig = {\n  secret:\
+  \ process.env.JWT_SECRET,  // Must be from env, never hardcoded\n  expiresIn: '1h',\
+  \                 // Short-lived tokens\n  algorithm: 'RS256'               // Prefer\
+  \ asymmetric\n};\n```\n\n**Step 2: Add rate limiting**\n```typescript\nimport rateLimit\
+  \ from 'express-rate-limit';\n\nconst apiLimiter = rateLimit({\n  windowMs: 15 *\
+  \ 60 * 1000,  // 15 minutes\n  max: 100,                   // 100 requests per window\n\
+  \  standardHeaders: true,\n  legacyHeaders: false,\n});\n\napp.use('/api/', apiLimiter);\n\
+  ```\n\n**Step 3: Validate all inputs**\n```typescript\nimport { z } from 'zod';\n\
+  \nconst CreateUserSchema = z.object({\n  email: z.string().email().max(255),\n \
+  \ name: z.string().min(1).max(100),\n  age: z.number().int().positive().optional()\n\
+  });\n\n// Use in route handler\nconst data = CreateUserSchema.parse(req.body);\n\
+  ```\n\n**Step 4: Load test with attack patterns**\n```bash\n# Test rate limiting\n\
+  python scripts/api_load_tester.py https://api.example.com/login \\\n  --concurrency\
+  \ 200 --duration 10 --expect-rate-limit\n\n# Test input validation\npython scripts/api_load_tester.py\
+  \ https://api.example.com/users \\\n  --method POST \\\n  --body '{\"email\": \"\
+  not-an-email\"}' \\\n  --expect-status 400\n```\n\n**Step 5: Review security headers**\n\
+  ```typescript\nimport helmet from 'helmet';\n\napp.use(helmet({\n  contentSecurityPolicy:\
+  \ true,\n  crossOriginEmbedderPolicy: true,\n  crossOriginOpenerPolicy: true,\n\
+  \  crossOriginResourcePolicy: true,\n  hsts: { maxAge: 31536000, includeSubDomains:\
+  \ true },\n}));\n```\n\n---\n\n## Reference Documentation\n\n| File | Contains |\
+  \ Use When |\n|------|----------|----------|\n| `references/api_design_patterns.md`\
+  \ | REST vs GraphQL, versioning, error handling, pagination | Designing new APIs\
+  \ |\n| `references/database_optimization_guide.md` | Indexing strategies, query\
+  \ optimization, N+1 solutions | Fixing slow queries |\n| `references/backend_security_practices.md`\
+  \ | OWASP Top 10, auth patterns, input validation | Security hardening |\n\n---\n\
+  \n## Common Patterns Quick Reference\n\n### REST API Response Format\n```json\n\
+  {\n  \"data\": { \"id\": 1, \"name\": \"John\" },\n  \"meta\": { \"requestId\":\
+  \ \"abc-123\" }\n}\n```\n\n### Error Response Format\n```json\n{\n  \"error\": {\n\
+  \    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid email format\"\
+  ,\n    \"details\": [{ \"field\": \"email\", \"message\": \"must be valid email\"\
+  \ }]\n  },\n  \"meta\": { \"requestId\": \"abc-123\" }\n}\n```\n\n### HTTP Status\
+  \ Codes\n| Code | Use Case |\n|------|----------|\n| 200 | Success (GET, PUT, PATCH)\
+  \ |\n| 201 | Created (POST) |\n| 204 | No Content (DELETE) |\n| 400 | Validation\
+  \ error |\n| 401 | Authentication required |\n| 403 | Permission denied |\n| 404\
+  \ | Resource not found |\n| 429 | Rate limit exceeded |\n| 500 | Internal server\
+  \ error |\n\n### Database Index Strategy\n```sql\n-- Single column (equality lookups)\n\
+  CREATE INDEX idx_users_email ON users(email);\n\n-- Composite (multi-column queries)\n\
+  CREATE INDEX idx_orders_user_status ON orders(user_id, status);\n\n-- Partial (filtered\
+  \ queries)\nCREATE INDEX idx_orders_active ON orders(created_at) WHERE status =\
+  \ 'active';\n\n-- Covering (avoid table lookup)\nCREATE INDEX idx_users_email_name\
+  \ ON users(email) INCLUDE (name);\n```\n\n---\n\n## Common Commands\n\n```bash\n\
+  # API Development\npython scripts/api_scaffolder.py openapi.yaml --framework express\n\
+  python scripts/api_scaffolder.py src/routes/ --generate-spec\n\n# Database Operations\n\
+  python scripts/database_migration_tool.py --connection $DATABASE_URL --analyze\n\
+  python scripts/database_migration_tool.py --connection $DATABASE_URL --migrate file.sql\n\
+  \n# Performance Testing\npython scripts/api_load_tester.py https://api.example.com/endpoint\
+  \ --concurrency 50\npython scripts/api_load_tester.py https://api.example.com/endpoint\
+  \ --compare baseline.json\n```\n\n---\n\n## Assumptions and Verifiable Success Criteria\
+  \ (Karpathy discipline)\n\nBefore this skill scaffolds, recommends a pattern, or\
+  \ modifies a schema, the following four assumptions MUST be surfaced. If any are\
+  \ unknown, the skill stops and walks the [Forcing-question library](#forcing-question-library-matt-pocock-grill)\
+  \ instead.\n\n1. **Read/write ratio + one-year p99 QPS** — drives DB, cache, queue,\
+  \ and partitioning choices. Kleppmann, *DDIA* (2017).\n2. **Tenancy model** — single-tenant,\
+  \ shared multi-tenant, isolated multi-tenant. Drives data-access pattern.\n3. **Data\
+  \ sensitivity tier** — public / internal / PII / PHI / PCI. Drives compliance floor.\n\
+  4. **SLO + named error-budget consumer** — Google SRE Workbook canon. No SLO = no\
+  \ reliability work prioritization.\n\n**Verifiable success criteria** (Karpathy\
+  \ #4) — every recommendation this skill emits must include:\n\n- Latency targets\
+  \ (p50, p95, p99 in ms)\n- Uptime / SLO target\n- RPO + RTO\n\nIf any of those three\
+  \ is not stated, the recommendation is incomplete — return to Q7 of the forcing-question\
+  \ library.\n\nThe `scripts/backend_decision_engine.py` tool encodes these checks:\
+  \ it refuses to recommend a profile without read/write ratio + QPS + tenancy + data\
+  \ sensitivity + pattern preference.\n\n---\n\n## Customization profiles\n\nFour\
+  \ built-in profiles in `profiles/` calibrate every recommendation:\n\n| Profile\
+  \ | When to pick | Pattern | Latency floor (p99) |\n|---|---|---|---|\n| `node-express`\
+  \ | TS team, < 15 eng, customer-facing SaaS | Modular monolith on Postgres | 600ms\
+  \ |\n| `fastapi-python` | Python team, < 20 eng, ML-adjacent | Modular monolith\
+  \ on Postgres (async) | 500ms |\n| `django-monolith` | Content-heavy CRUD + admin,\
+  \ < 25 eng | Modular monolith on Postgres | 800ms |\n| `go-or-rust-microservice`\
+  \ | Extracted service, ≥ 30 eng, platform team, QPS ≥ 1000 | Extracted service |\
+  \ 200ms |\n\nPick a profile via:\n\n```bash\npython scripts/backend_decision_engine.py\
+  \ \\\n  --team-size 8 --qps-p99 50 --read-write-ratio 20 \\\n  --tenancy shared-multi-tenant\
+  \ --data-sensitivity pii \\\n  --pattern modular-monolith --language-preference\
+  \ typescript\n```\n\nThe tool returns the best-fit profile, runner-up tradeoff (if\
+  \ within 15%), stack picks, anti-patterns, named approvers, and SLO floor. **This\
+  \ tool never auto-approves.**\n\nTo add a custom profile: copy `profiles/node-express.json`\
+  \ to `profiles/<your-org>.json` and adjust `constraints` + `success_thresholds`\
+  \ + `named_approver_chain`.\n\n---\n\n## Composition map\n\nThis skill does NOT\
+  \ reimplement scope owned by the POWERFUL-tier specialists. It forks into them.\
+  \ See `references/composition_map.md` for the full routing table. Key forks:\n\n\
+  | Concern | Fork into |\n|---|---|\n| API contract / breaking-change risk | `engineering/skills/api-design-reviewer/`\
+  \ |\n| Schema design + ERD + indexing | `engineering/skills/database-designer/`\
+  \ |\n| Zero-downtime schema migration | `engineering/skills/migration-architect/`\
+  \ |\n| SLO + SLI + error-budget | `engineering/slo-architect/` |\n| Observability\
+  \ / golden signals | `engineering/skills/observability-designer/` |\n| CI/CD pipeline\
+  \ | `engineering/skills/ci-cd-pipeline-builder/` |\n| Security / threat model |\
+  \ `engineering-team/skills/senior-security/`, `adversarial-reviewer` |\n| Compliance\
+  \ evidence (HIPAA / ISO 27001) | `ra-qm-team/` |\n| Pre-commit Karpathy review |\
+  \ `engineering/karpathy-coder/` |\n| Pre-flight architecture grill | `engineering/grill-me/`\
+  \ |\n\nThe `cs-backend-engineer` agent orchestrates these forks via `context: fork`.\
+  \ Invoke it from another agent with `Agent({subagent_type: \"cs-backend-engineer\"\
+  , prompt: \"...\"})` or via `/cs:backend-review <your problem>`.\n\n---\n\n## Forcing-question\
+  \ library (Matt Pocock grill)\n\nBefore locking any backend decision, walk the seven\
+  \ forcing questions in `references/forcing_questions.md`. Discipline:\n\n1. One\
+  \ question per turn. No bundling.\n2. Always recommend the answer with cited canon.\n\
+  3. Track answers in `/tmp/backend-grill-<date>.md`.\n4. If a kill criterion trips,\
+  \ stop. Don't scaffold around an unresolved gap.\n5. After Q7, run `backend_decision_engine.py`\
+  \ with the seven answers.\n\nSummary:\n\n1. Read/write ratio + p99 QPS forecast?\n\
+  2. Tenancy model — single / shared / isolated?\n3. Sync / async / event-driven —\
+  \ default + exceptions?\n4. Data sensitivity tier — PII / PHI / PCI?\n5. Monolith\
+  \ / modular monolith / microservices — team-size justification?\n6. RPO + RTO?\n\
+  7. SLO + named error-budget consumer?\n\n---\n\n## Invocation from other agents\
+  \ and skills\n\nThree surfaces:\n\n1. **Slash command:** `/cs:backend-review <prompt>`\
+  \ — full grill + decision engine + composition routing.\n2. **Agent subagent:**\
+  \ `Agent({subagent_type: \"cs-backend-engineer\", prompt: \"...\"})` — forks context,\
+  \ returns ≤ 200-word digest.\n3. **Direct tool call:** `python scripts/backend_decision_engine.py\
+  \ ...` — deterministic profile match when inputs are known.\n\nSee `agents/engineering/cs-backend-engineer.md`\
+  \ for the full invocation contract."
+tags:
+- engineering-team
+- senior-backend
+capabilities:
+- engineering-team
+- senior-backend
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

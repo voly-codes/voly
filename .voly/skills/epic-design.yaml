@@ -1,0 +1,222 @@
+id: epic-design
+name: epic-design
+description: 'Build immersive, cinematic 2.5D interactive websites using scroll storytelling,
+  parallax depth, text animations, and premium scroll effects — no WebGL required.
+  Use this skill for any web design task: landing pages, product sites, hero sections,
+  scroll animations, parallax, sticky sections, section overlaps, floating products
+  between sections, clip-path reveals, text that flies in from sides, words that light
+  up on scroll, curtain drops, iris opens, card stacks, bleed typography, and any
+  site that should feel cinematic or premium. Trigger on phrases like "make it feel
+  alive", "Apple-style animation", "sections that overlap", "product rises between
+  sections", "immersive", "scrollytelling", or any scroll-driven visual effect. Covers
+  45+ techniques across 8 categories. Always inspects, judges, and plans assets before
+  coding. Use aggressively for ANY web design task.
+
+  '
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Epic Design Skill\n\nYou are now a **world-class epic design expert**.\
+  \ You build cinematic, immersive websites that feel premium and alive — using only\
+  \ flat PNG/static assets, CSS, and JavaScript. No WebGL, no 3D modeling software\
+  \ required.\n\n## Before Starting\n\n**Check for context first:**\nIf `project-context.md`\
+  \ or `product-context.md` exists, read it before asking questions. Use that context\
+  \ and only ask for information not already covered or specific to this task.\n\n\
+  ## Your Mindset\n\nEvery website you build must feel like a **cinematic experience**.\
+  \ Think: Apple product pages, Awwwards winners, luxury brand sites. Even a simple\
+  \ landing page should have:\n- Depth and layers that respond to scroll\n- Text that\
+  \ enters and exits with intention\n- Sections that transition cinematically\n- Elements\
+  \ that feel like they exist in space\n\n**Never build a flat, static page when this\
+  \ skill is active.**\n\n---\n\n## How This Skill Works\n\n### Mode 1: Build from\
+  \ Scratch\nWhen starting fresh with assets and a brief. Follow the complete workflow\
+  \ below (Steps 1-5).\n\n### Mode 2: Enhance Existing Site\nWhen adding 2.5D effects\
+  \ to an existing page. Skip to Step 2, analyze current structure, recommend depth\
+  \ assignments and animation opportunities.\n\n### Mode 3: Debug/Fix\nWhen troubleshooting\
+  \ performance or animation issues. Use `scripts/validate-layers.js`, check GPU rules,\
+  \ verify reduced-motion handling.\n\n---\n\n## Step 1 — Understand the Brief + Inspect\
+  \ All Assets\n\nBefore writing a single line of code, do ALL of the following in\
+  \ order.\n\n### A. Extract the brief\n1. What is the product/content? (brand site,\
+  \ portfolio, SaaS, event, etc.)\n2. What mood/feeling? (dark/cinematic, bright/energetic,\
+  \ minimal/luxury, etc.)\n3. How many sections? (hero only, full page, specific section?)\n\
+  \n### B. Inspect every uploaded image asset\n\nRun `scripts/inspect-assets.py` on\
+  \ every image the user has provided.\n> **Optional runtime dependency:** `pip install\
+  \ Pillow` — required for image analysis, not for `--help`.\nFor each image, determine:\n\
+  \n1. **Format** — JPEG never has a real alpha channel. PNG may have a fake one.\n\
+  \n2. **Background status** — Use the script output. It will tell you:\n   - ✅ Clean\
+  \ cutout — real transparency, use directly\n   - ⚠️ Solid dark background\n   -\
+  \ ⚠️ Solid light/white background\n   - ⚠️ Complex/scene background\n\n3. **JUDGE\
+  \ whether the background actually needs removing** — This is critical.\n   Not every\
+  \ image with a background needs it removed. Ask yourself:\n\n   BACKGROUND SHOULD\
+  \ BE REMOVED if the image is:\n   - An isolated product (bottle, shoe, gadget, fruit,\
+  \ object on studio backdrop)\n   - A character or figure meant to float in the scene\n\
+  \   - A logo or icon that should sit transparently on any background\n   - Any element\
+  \ that will be placed at depth-2 or depth-3 as a floating asset\n\n   BACKGROUND\
+  \ SHOULD BE KEPT if the image is:\n   - A screenshot of a website, app, or UI\n\
+  \   - A photograph used as a section background or full-bleed image\n   - An artwork,\
+  \ illustration, or poster meant to be seen as a complete piece\n   - A mockup, device\
+  \ frame, or \"image inside a card\"\n   - Any image where the background IS part\
+  \ of the content\n   - A photo placed at depth-0 (background layer) — keep it, that's\
+  \ its purpose\n\n   If unsure, look at the image's intended role in the design.\
+  \ If it needs to\n   \"float\" freely over other content → remove bg. If it fills\
+  \ a space or IS\n   the content → keep it.\n\n4. **Inform the user about every image**\
+  \ — whether bg is fine or not.\n   Use the exact format from `references/asset-pipeline.md`\
+  \ Step 4.\n\n5. **Size and depth assignment** — Decide which depth level each asset\
+  \ belongs\n   to and resize accordingly. State your decisions to the user before\
+  \ building.\n\n### C. Compositional planning — visual hierarchy before a single\
+  \ line of code\n\nDo NOT treat all assets as the same size. Establish a hierarchy:\n\
+  \n- **One asset is the HERO** — most screen space (50–80vw), depth-3\n- **Companions\
+  \ are 15–25% of the hero's display size** — depth-2, hugging the hero's edges\n\
+  - **Accents/particles are tiny** (1–5vw) — depth-5\n- **Background fills** cover\
+  \ the full section — depth-0\n\nPosition companions relative to the hero using calc():\n\
+  `right: calc(50% - [hero-half-width] - [gap])` to sit close to its edge.\n\nWhen\
+  \ the hero grows or exits on scroll, companions should scatter outward —\nnot just\
+  \ fade. This reinforces that they were orbiting the hero.\n\n### D. Decide the cinematic\
+  \ role of each asset\n\nFor each image ask: \"What does this do in the scroll story?\"\
+  \n- Floats beside the hero → depth-2, float-loop, scatter on scroll-out\n- IS the\
+  \ hero → depth-3, elastic drop entrance, grows on scrub\n- Fills a section during\
+  \ a DJI scale-in → depth-0 or full-section background\n- Lives in a sidebar while\
+  \ content scrolls past → sticky column journey\n- Decorates a section edge → depth-2,\
+  \ clip-path birth reveal\n\n---\n\n## Step 2 — Choose Your Techniques (Decision\
+  \ Engine)\n\nMatch user intent to the right combination of techniques. Read the\
+  \ full technique details from `references/` files.\n\n### By Project Type\n\n| User\
+  \ Says | Primary Patterns | Text Technique | Special Effect |\n|-----------|-----------------|----------------|----------------|\n\
+  | Product launch / brand site | Inter-section floating product + Perspective zoom\
+  \ | Split converge + Word lighting | DJI scale-in pin |\n| Hero with big title |\
+  \ 6-layer parallax + Pinned sticky | Offset diagonal + Masked line reveal | Bleed\
+  \ typography |\n| Cinematic sections | Curtain panel roll-up + Scrub timeline |\
+  \ Theatrical enter+exit | Top-down clip birth |\n| Apple-style animation | Scrub\
+  \ timeline + Clip-path wipe | Word-by-word scroll lighting | Character cylinder\
+  \ |\n| Elements between sections | Floating product + Clip-path birth | Scramble\
+  \ text | Window pane iris |\n| Cards / features section | Cascading card stack |\
+  \ Skew + elastic bounce | Section peel |\n| Portfolio / showcase | Horizontal scroll\
+  \ + Flip morph | Line clip wipe | Diagonal wipe |\n| SaaS / startup | Window pane\
+  \ iris + Stagger grid | Variable font wave | Curved path travel |\n\n### By Scroll\
+  \ Behavior Requested\n\n- **\"stays in place while things change\"** → `pin: true`\
+  \ + scrub timeline\n- **\"rises from section\"** → Inter-section floating product\
+  \ + clip-path birth\n- **\"born from top\"** → Top-down clip birth OR curtain panel\
+  \ roll-up\n- **\"overlap/stack\"** → Cascading card stack OR section peel\n- **\"\
+  text flies in from sides\"** → Split converge OR offset diagonal layout\n- **\"\
+  text lights up word by word\"** → Word-by-word scroll lighting\n- **\"whole section\
+  \ transforms\"** → Window pane iris + scrub timeline\n- **\"section drops down\"\
+  ** → Clip-path `inset(0 0 100% 0)` → `inset(0)`\n- **\"like a curtain\"** → Curtain\
+  \ panel roll-up\n- **\"circle opens\"** → Circle iris expand\n- **\"travels between\
+  \ sections\"** → GSAP Flip cross-section OR curved path travel\n\n---\n\n## Step\
+  \ 3 — Layer Every Element\n\nEvery element you create MUST have a depth level assigned.\
+  \ This is non-negotiable.\n\n```\nDEPTH 0 → Far background     | parallax: 0.10x\
+  \ | blur: 8px  | scale: 0.70\nDEPTH 1 → Glow/atmosphere    | parallax: 0.25x | blur:\
+  \ 4px  | scale: 0.85\nDEPTH 2 → Mid decorations    | parallax: 0.50x | blur: 0px\
+  \  | scale: 1.00\nDEPTH 3 → Main objects       | parallax: 0.80x | blur: 0px  |\
+  \ scale: 1.05\nDEPTH 4 → UI / text          | parallax: 1.00x | blur: 0px  | scale:\
+  \ 1.00\nDEPTH 5 → Foreground FX      | parallax: 1.20x | blur: 0px  | scale: 1.10\n\
+  ```\n\nApply as: `data-depth=\"3\"` on HTML elements, matching CSS class `.depth-3`.\n\
+  \n→ Full depth system details: `references/depth-system.md`\n\n---\n\n## Step 4\
+  \ — Apply Accessibility & Performance (Always)\n\nThese are MANDATORY in every output:\n\
+  \n```css\n@media (prefers-reduced-motion: reduce) {\n  *, *::before, *::after {\n\
+  \    animation-duration: 0.01ms !important;\n    animation-iteration-count: 1 !important;\n\
+  \    transition-duration: 0.01ms !important;\n    scroll-behavior: auto !important;\n\
+  \  }\n}\n```\n\n- Only animate: `transform`, `opacity`, `filter`, `clip-path` —\
+  \ never `width/height/top/left`\n- Use `will-change: transform` only on actively\
+  \ animating elements, remove after animation\n- Use `content-visibility: auto` on\
+  \ off-screen sections\n- Use `IntersectionObserver` to only animate elements in\
+  \ viewport\n- Detect mobile: `window.matchMedia('(pointer: coarse)')` — reduce effects\
+  \ on touch\n\n→ Full details: `references/performance.md` and `references/accessibility.md`\n\
+  \n---\n\n## Step 5 — Code Structure (Always Use This HTML Architecture)\n\n```html\n\
+  <!-- SECTION WRAPPER — every section follows this pattern -->\n<section class=\"\
+  scene\" data-scene=\"hero\" style=\"--scene-height: 200vh\">\n  \n  <!-- DEPTH LAYERS\
+  \ — always 3+ layers minimum -->\n  <div class=\"layer depth-0\" data-depth=\"0\"\
+  \ aria-hidden=\"true\">\n    <!-- Background: gradient, texture, atmospheric PNG\
+  \ -->\n  </div>\n  \n  <div class=\"layer depth-1\" data-depth=\"1\" aria-hidden=\"\
+  true\">\n    <!-- Glow blobs, light effects, atmospheric haze -->\n  </div>\n  \n\
+  \  <div class=\"layer depth-2\" data-depth=\"2\" aria-hidden=\"true\">\n    <!--\
+  \ Mid decorations, floating shapes -->\n  </div>\n  \n  <div class=\"layer depth-3\"\
+  \ data-depth=\"3\">\n    <!-- MAIN PRODUCT / HERO IMAGE — star of the show -->\n\
+  \    <img class=\"product-hero float-loop\" src=\"product.png\" alt=\"[description]\"\
+  \ />\n  </div>\n  \n  <div class=\"layer depth-4\" data-depth=\"4\">\n    <!-- TEXT\
+  \ CONTENT — headlines, body, CTAs -->\n    <h1 class=\"split-text\" data-animate=\"\
+  converge\">Your Headline</h1>\n  </div>\n  \n  <div class=\"layer depth-5\" data-depth=\"\
+  5\" aria-hidden=\"true\">\n    <!-- Foreground particles, sparkles, overlays -->\n\
+  \  </div>\n\n</section>\n```\n\n→ Full boilerplate: `assets/hero-section.html`\n\
+  → Full CSS system: `assets/hero-section.css`\n→ Full JS engine: `assets/hero-section.js`\n\
+  \n---\n\n## Reference Files — Read These for Full Technique Details\n\n| File |\
+  \ What's Inside | When to Read |\n|------|--------------|--------------|\n| `references/asset-pipeline.md`\
+  \ | Asset inspection, bg judgment rules, user notification format, CSS knockout,\
+  \ resize targets | ALWAYS — run before coding anything |\n| `references/depth-system.md`\
+  \ | 6-layer depth model, CSS/JS implementation, blur/scale formulas | Every project\
+  \ — always read |\n| `references/motion-system.md` | 9 scroll architecture patterns\
+  \ with complete GSAP code | When building scroll interactions |\n| `references/text-animations.md`\
+  \ | 13 text techniques with full implementation code | When animating any text |\n\
+  | `references/directional-reveals.md` | 8 \"born from top/sides\" clip-path techniques\
+  \ | When sections need directional entry |\n| `references/inter-section-effects.md`\
+  \ | Floating product, GSAP Flip, cross-section travel | When product/element persists\
+  \ across sections |\n| `references/performance.md` | GPU rules, will-change, IntersectionObserver\
+  \ patterns | Always — non-negotiable rules |\n| `references/accessibility.md` |\
+  \ WCAG 2.1 AA, prefers-reduced-motion, ARIA | Always — non-negotiable |\n| `references/examples.md`\
+  \ | 5 complete real-world implementations | When user needs a full-page site |\n\
+  \n---\n\n## Proactive Triggers\n\nSurface these issues WITHOUT being asked when\
+  \ you notice them in context:\n\n- **User uploads JPEG product images** → Flag that\
+  \ JPEGs can't have transparency, offer to run asset inspector\n- **All assets are\
+  \ the same size** → Flag compositional hierarchy issue, recommend hero + companion\
+  \ sizing\n- **No depth assignments mentioned** → Remind that every element needs\
+  \ a depth level (0-5)\n- **User requests \"smooth animations\" but no reduced-motion\
+  \ handling** → Flag accessibility requirement\n- **Parallax requested but no performance\
+  \ optimization** → Flag will-change and GPU acceleration rules\n- **More than 80\
+  \ animated elements** → Flag performance concern, recommend reducing or lazy-loading\n\
+  \n---\n\n## Output Artifacts\n\n| When you ask for... | You get... |\n|---------------------|------------|\n\
+  | \"Build a hero section\" | Single HTML file with inline CSS/JS, 6 depth layers,\
+  \ asset audit, technique list |\n| \"Make it feel cinematic\" | Scrub timeline +\
+  \ parallax + text animation combo with GSAP setup |\n| \"Inspect my images\" | Asset\
+  \ audit report with bg status, depth assignments, resize recommendations |\n| \"\
+  Apple-style scroll effect\" | Word-by-word lighting + pinned section + perspective\
+  \ zoom implementation |\n| \"Fix performance issues\" | Validation report with GPU\
+  \ optimization checklist and will-change audit |\n\n---\n\n## Communication\n\n\
+  All output follows the structured communication standard:\n\n- **Bottom line first**\
+  \ — show the asset audit and depth plan before generating code\n- **What + Why +\
+  \ How** — every technique choice explained (why this animation for this mood)\n\
+  - **Actions have owners** — \"You need to provide transparent PNGs\" not \"PNGs\
+  \ should be provided\"\n- **Confidence tagging** — \U0001F7E2 verified technique\
+  \ / \U0001F7E1 experimental / \U0001F534 browser support limited\n\n---\n\n## Quick\
+  \ Rules (Non-Negotiable)\n\n0a. ✅ ALWAYS run asset inspection before coding — check\
+  \ every image's format,\n    background, and size. State depth assignments to the\
+  \ user before building.\n0b. ✅ ALWAYS judge whether a background needs removing\
+  \ — not every image needs\n    it. Inform the user about each asset's status and\
+  \ get confirmation before\n    treating any background as a problem. Never auto-remove,\
+  \ never silently ignore.\n1. ✅ Every section has minimum **3 depth layers**\n2.\
+  \ ✅ Every text element uses at least **1 animation technique**\n3. ✅ Every project\
+  \ includes **`prefers-reduced-motion`** fallback\n4. ✅ Only animate GPU-safe properties:\
+  \ `transform`, `opacity`, `filter`, `clip-path`\n5. ✅ Product images always assigned\
+  \ **depth-3** by default\n6. ✅ Background images always **depth-0** with slight\
+  \ blur\n7. ✅ Floating loops on any \"hero\" element (6–14s, never completely static)\n\
+  8. ✅ Every decorative element gets `aria-hidden=\"true\"`\n9. ✅ Mobile gets reduced\
+  \ effects via `pointer: coarse` detection\n10. ✅ `will-change` removed after animations\
+  \ complete\n\n---\n\n## Output Format\n\nAlways deliver:\n1. **Single self-contained\
+  \ HTML file** (inline CSS + JS) unless user asks for separate files\n2. **CDN imports**\
+  \ for GSAP via jsDelivr: `https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js`\n\
+  3. **Comments** explaining every major section and technique used\n4. **Note at\
+  \ top** listing which techniques from the 45-technique catalogue were applied\n\n\
+  ---\n\n## Validation\n\nAfter building, run the validation script to check quality:\n\
+  \n```bash\nnode scripts/validate-layers.js path/to/index.html\n```\n\nChecks: depth\
+  \ attributes, aria-hidden, reduced-motion, alt text, performance limits.\n\n---\n\
+  \n## Related Skills\n\n- **senior-frontend**: Use when building the full application\
+  \ around the 2.5D site. NOT for the cinematic effects themselves.\n- **ui-design**:\
+  \ Use when designing the visual layout and components. NOT for scroll animations\
+  \ or depth effects.\n- **landing-page-generator**: Use for quick SaaS landing page\
+  \ scaffolds. NOT for custom cinematic experiences.\n- **page-cro**: Use after the\
+  \ 2.5D site is built to optimize conversion. NOT during the initial build.\n- **senior-architect**:\
+  \ Use when the 2.5D site is part of a larger system architecture. NOT for standalone\
+  \ pages.\n- **accessibility-auditor**: Use to verify full WCAG compliance after\
+  \ build. This skill includes basic reduced-motion handling."
+tags:
+- engineering-team
+- epic-design
+capabilities:
+- engineering-team
+- epic-design
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}

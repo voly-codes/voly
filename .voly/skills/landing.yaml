@@ -1,0 +1,202 @@
+id: landing
+name: landing
+description: Generates a premium single-page HTML landing page with 3D CSS animations,
+  GSAP scroll effects, and mouse-parallax depth. Forcing intake (product + elevator
+  pitch, audience register, brand overrides, tone) locks down positioning before any
+  copy or markup is written, so the page reflects the actual product rather than generic
+  boilerplate. Use whenever the user says 'landing for X', 'create a landing page',
+  'build a landing page', 'make a landing page for X', 'I need a web page for Y',
+  or provides product/service details and wants a polished website. Also triggers
+  on 'promotional page', 'product page', 'one-pager', 'web presence', 'sales page'.
+  Outputs a single self-contained HTML file (Claude Code) or HTML artifact (Claude.ai).
+  Supports configurable brand colors via CSS custom property overrides.
+source: marketplace
+status: active
+version: 1.0.0
+content: "# Landing — Premium HTML Landing Page Generator\n\n> **Distinct from `product-team/skills/landing-page-generator/`.**\
+  \ That skill outputs Next.js TSX components optimized for conversion / lead-gen.\
+  \ THIS skill outputs a single self-contained `.html` file optimized for premium\
+  \ visual experience with GSAP animations. Pick by use case.\n\nGenerate a polished,\
+  \ self-contained `.html` landing page from a text prompt or brief. The output is\
+  \ ONE HTML file: all CSS inline in `<style>`, all JS inline in `<script>`, only\
+  \ external dependencies being Google Fonts + GSAP via CDN. The page is visually\
+  \ distinctive, animated, and production-quality.\n\n## Invocation Triggers\n\n-\
+  \ \"create a landing page\"\n- \"build a landing page\"\n- \"make a landing page\
+  \ for X\"\n- \"I need a web page for Y\"\n- \"promotional page\"\n- \"product page\"\
+  \n- \"one-pager\"\n- \"web presence\"\n- \"sales page\"\n- \"landing for X\"\n\n\
+  ## Delivery Mode\n\nIn **Claude Code CLI**, write the file to disk at the specified\
+  \ path. In **Claude.ai web**, create an HTML artifact with the same content.\n\n\
+  ## Phase 0: Grill-Me Intake (4 forcing questions, one at a time)\n\nDependency-ordered.\
+  \ Each question carries explicit \"why I'm asking\". Stop condition: max 4.\n\n\
+  ### Q1 (root) — Product / Service\n\n> **What's the product or service? Give me\
+  \ the name + a 1–2 sentence elevator pitch — what does it do, and who's it for?**\n\
+  >\n> *Why I'm asking:* The headline, subtext, and feature copy all derive from this.\
+  \ \"App for productivity\" produces generic boilerplate; \"Async standup tool for\
+  \ remote engineering teams who hate Zoom\" produces a landing page that converts.\n\
+  \n**Refuse mush.** If user gives just a name with no pitch, push back once: \"What\
+  \ does it do? Who's it for?\" If still no pitch after push-back, deliver with explicit\
+  \ \"generic positioning\" caveat.\n\n### Q2 (depends on Q1) — Audience Register\n\
+  \n> **Who's the audience? Pick one:**\n>\n> 1. **Technical buyers** (engineers,\
+  \ ops, security)\n> 2. **Business buyers** (PMs, execs, ops leaders)\n> 3. **Consumers**\
+  \ (general public, hobbyists)\n> 4. **Internal** (employees, partners — not for\
+  \ public sale)\n>\n> *Why I'm asking:* Audience dictates copy register, jargon level,\
+  \ social-proof choices, and CTA framing. Technical buyers want specifics; consumers\
+  \ want benefits; internal pages can skip persuasion.\n\nForcing choice.\n\n### Q3\
+  \ (always) — Brand Overrides\n\n> **Brand colors / fonts to override the default\
+  \ (dark navy + teal + Inter)? Provide as: primary HEX, accent HEX, optional bg HEX.\
+  \ Or say \"default\" if you want the polished default.**\n>\n> *Why I'm asking:*\
+  \ The default is intentionally beautiful, but matching your brand makes the page\
+  \ feel native to your existing site. Even just a primary color override goes a long\
+  \ way.\n\nAccept \"default\" or partial overrides (e.g., just primary). If only\
+  \ primary provided, derive accent algorithmically (lighten / darken).\n\n### Q4\
+  \ (depends on Q1) — Tone\n\n> **Tone — pick one:**\n>\n> 1. **Professional** — confident,\
+  \ restrained, B2B-friendly\n> 2. **Playful** — warm, light, occasional humor\n>\
+  \ 3. **Authoritative** — expert, data-forward, trust-building\n> 4. **Minimal**\
+  \ — terse, design-led, low copy density\n>\n> *Why I'm asking:* Tone affects every\
+  \ sentence — headlines, microcopy, button text, closing copy. Picking upfront prevents\
+  \ tonal whiplash across sections.\n\nForcing choice. **Recommended default:** professional\
+  \ if Q2 = technical/business; playful if Q2 = consumer; minimal if the product is\
+  \ design-led.\n\n**Stop condition:** After Q4, commit and generate. No follow-up\
+  \ questions during generation.\n\n## Content Extraction (with Fallback Strategy)\n\
+  \nFrom Q1's elevator pitch, derive:\n- **Hero headline** — punchy version of \"\
+  what it does\" (8–12 words)\n- **Hero subtext** — version of \"who it's for + payoff\"\
+  \ (1–2 sentences)\n- **3–6 feature bullets** — distilled from pitch + audience (Q2)\
+  \ + tone (Q4)\n- **CTA text** — action-oriented, matches tone\n- **Closing copy**\
+  \ — short, emotive, matches tone\n\n**Fallback when input is sparse:** invent compelling\
+  \ content from product-name semantics + audience register. Flag inferred content\
+  \ with a comment in the HTML source (`<!-- inferred: ... -->`). Don't stall waiting\
+  \ for more input.\n\n## Brand System Specification\n\n### Default Color Palette\
+  \ (Dark Navy + Teal)\n\n```css\n:root {\n  --navy:       #0A1628;\n  --navy-mid:\
+  \   #0D1F38;\n  --teal:       #00D4AA;\n  --teal-glow:  rgba(0, 212, 170, 0.12);\n\
+  \  --amber:      #F5A623;\n  --off-white:  #F7F7F2;\n  --text-muted: rgba(247, 247,\
+  \ 242, 0.68);\n  --card-bg:    rgba(0, 212, 170, 0.06);\n  --card-border:rgba(0,\
+  \ 212, 170, 0.15);\n}\n```\n\n### Override Pattern\n\nWhen Q3 provides custom brand\
+  \ values, the skill substitutes them into the `:root` block:\n\n```\nBrand override:\n\
+  - primary: #FF6B35    →  --navy / hero bg\n- accent:  #2EC4B6    →  --teal / CTA\
+  \ / highlights\n- bg:      #011627    →  --navy-mid / section bg\n- text:    #FDFFFC\
+  \    →  --off-white\n```\n\nIf only primary provided, derive accent algorithmically\
+  \ (lighten 15% for accent; darken 8% for navy-mid; convert to rgba at 0.12 alpha\
+  \ for glow). Use `scripts/brand_palette_validator.py` for the deterministic derivation.\n\
+  \nSee [`references/brand_system_design.md`](references/brand_system_design.md) for\
+  \ color theory + WCAG + algorithmic palette derivation canon.\n\n### Typography\n\
+  \n- **Font family:** Inter (via Google Fonts)\n- **Weight scale:** 400 (body), 500\
+  \ (eyebrow), 600 (links), 700 (subtitle), 800 (H1 + H2)\n- **Size scale:**\n  -\
+  \ Hero H1: 68–82px\n  - Section H2: 52–62px\n  - Card titles: 22px\n  - Body: 17–19px\n\
+  \  - Eyebrow: 13px (uppercase, letter-spaced)\n  - CTA button: 18px (500 weight)\n\
+  \n### Components (Must Specify CSS)\n\n- `.btn-primary` — CTA button with hover\
+  \ state (lift + brightness)\n- `.feature-card` — card with hover lift (translateY(-6px)\
+  \ + border-brighten)\n- `.eyebrow` — letter-spaced (0.2em) uppercase category label\n\
+  \n## Section 1: Hero\n\n- `min-height: 100vh`, flex-centered content\n- Optional\
+  \ eyebrow label above H1\n- H1 (68–82px, 800 weight)\n- Subtitle (17–19px, 1–2 sentences)\n\
+  - CTA button (.btn-primary)\n- Scroll-down indicator (animated chevron, CSS bounce)\n\
+  - **Depth layers** (mouse parallax):\n  - `.hero-shapes-back` — large blurred circles,\
+  \ absolute-positioned, low opacity\n  - `.hero-shapes-mid` — smaller shapes, sharper\
+  \ edges, higher opacity\n  - Content layer (H1 + subtitle) — moves subtly in same\
+  \ direction as mouse\n\n## Section 2: Features\n\n- 3 columns default (`repeat(3,\
+  \ 1fr)` grid)\n- Responsive:\n  - 2 columns at 900px breakpoint\n  - 1 column at\
+  \ 580px breakpoint\n- Each card:\n  - SVG icon (28px, stroke=var(--teal), no fill)\n\
+  \  - Title (22px, 700 weight)\n  - Description (15–16px, --text-muted)\n- Hover\
+  \ state:\n  - `transform: translateY(-6px)`\n  - `border-color: var(--teal)` (brighten\
+  \ from --card-border)\n  - `transition: 0.3s ease`\n\n## Section 3: Closing CTA\n\
+  \n- Full-width, `background: var(--navy-mid)`\n- `padding: 120px 24px`, text-align:\
+  \ center\n- Large closing headline (52–62px, 800 weight)\n- Short subtext (--text-muted,\
+  \ 1–2 sentences)\n- CTA button with ambient radial-gradient glow behind it:\n  ```css\n\
+  \  background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);\n\
+  \  ```\n\n## Animation Patterns\n\nSee [`references/gsap_animation_patterns.md`](references/gsap_animation_patterns.md)\
+  \ for the canon. Five patterns required:\n\n### 1. Hero Entrance (GSAP timeline)\n\
+  \n```js\n// MUST use gsap.set() FIRST to prevent FOUC\ngsap.set([\".eyebrow\", \"\
+  .hero h1\", \".hero .subtitle\", \".btn-primary\", \".scroll-down\"], {\n  opacity:\
+  \ 0,\n  y: 30\n});\n\nconst tl = gsap.timeline({ defaults: { ease: \"power3.out\"\
+  \ } });\ntl.to(\".eyebrow\", { opacity: 1, y: 0, duration: 0.6 })\n  .to(\".hero\
+  \ h1\", { opacity: 1, y: 0, duration: 0.8 }, \"-=0.3\")\n  .to(\".hero .subtitle\"\
+  , { opacity: 1, y: 0, duration: 0.6 }, \"-=0.5\")\n  .to(\".btn-primary\", { opacity:\
+  \ 1, y: 0, duration: 0.5 }, \"-=0.3\")\n  .to(\".scroll-down\", { opacity: 1, y:\
+  \ 0, duration: 0.4 }, \"-=0.2\");\n```\n\n### 2. Mouse Parallax\n\n```js\nconst\
+  \ hero = document.querySelector(\".hero\");\nhero.addEventListener(\"mousemove\"\
+  , (e) => {\n  const x = (e.clientX / window.innerWidth - 0.5) * 2;\n  const y =\
+  \ (e.clientY / window.innerHeight - 0.5) * 2;\n  gsap.to(\".hero-shapes-back\",\
+  \ { x: x * 45, y: y * 22, duration: 0.8 });\n  gsap.to(\".hero-shapes-mid\",  {\
+  \ x: x * 22, y: y * 11, duration: 0.8 });\n  gsap.to(\".hero .container\",  { x:\
+  \ x * 8,  y: y * 5,  duration: 0.8 });\n});\n```\n\n### 3. Scroll-Triggered Feature\
+  \ Cards\n\n```js\ngsap.set(\".feature-card\", { opacity: 0, y: 55, rotateX: 18 });\n\
+  \nScrollTrigger.batch(\".feature-card\", {\n  start: \"top 80%\",\n  onEnter: batch\
+  \ => gsap.to(batch, {\n    opacity: 1, y: 0, rotateX: 0,\n    duration: 0.8,\n \
+  \   stagger: 0.11,\n    ease: \"power2.out\"\n  })\n});\n```\n\n### 4. Floating\
+  \ Decorative Shapes (CSS keyframes — NOT GSAP)\n\nCSS handles ambient continuous\
+  \ motion (smoother, cheaper than GSAP for indefinite animations):\n\n```css\n@keyframes\
+  \ floatA {\n  0%, 100% { transform: translate(0, 0) rotate(0deg); }\n  50%     \
+  \ { transform: translate(20px, -30px) rotate(8deg); }\n}\n@keyframes floatB { /*\
+  \ different duration + rotation */ }\n@keyframes floatC { /* different duration\
+  \ + rotation */ }\n\n.hero-shapes-back .shape-a { animation: floatA 12s ease-in-out\
+  \ infinite; }\n```\n\n### 5. Scroll Indicator (CSS bounce)\n\n```css\n@keyframes\
+  \ bounce {\n  0%, 100% { transform: translateY(0); }\n  50%      { transform: translateY(8px);\
+  \ }\n}\n.scroll-down { animation: bounce 2s ease-in-out infinite; }\n```\n\n## Required\
+  \ CDN Dependencies\n\n```html\n<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap\"\
+  \ rel=\"stylesheet\">\n<script src=\"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js\"\
+  ></script>\n<script src=\"https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js\"\
+  ></script>\n```\n\nNO other external CSS or JS files. All custom CSS in `<style>`,\
+  \ all custom JS in `<script>` blocks within the same HTML file.\n\nSee [`references/single_file_html_discipline.md`](references/single_file_html_discipline.md)\
+  \ for the inline-only rationale.\n\n## Layout Rules\n\n- **Container max-width:**\
+  \ 1200px, centered\n- **Section padding:** `120px 24px` (vertical 120, horizontal\
+  \ 24, scales down on mobile)\n- **Responsive breakpoints:**\n  - 900px → features\
+  \ grid 3-col → 2-col\n  - 580px → all grids → 1-col; H1 scales down to ~52px\n-\
+  \ **Viewport meta:** `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"\
+  >`\n\n## Output Spec\n\n- **Path:** `${OUTPUT_DIR}/<product-name-kebab>.html`\n\
+  - **Default `${OUTPUT_DIR}`:** `./landing-pages/`\n- **Filename:** lowercase kebab-case\
+  \ from product name (\"Quill AI\" → `quill-ai.html`). Use `scripts/kebab_slug_generator.py`\
+  \ for deterministic slug generation + duplicate detection.\n- **Self-contained:**\
+  \ all CSS in `<style>`, all JS in `<script>`, only Google Fonts + GSAP CDN external.\n\
+  \n## Validation (Post-Generation)\n\nRun `scripts/html_validator.py --file ${OUTPUT_DIR}/<slug>.html`\
+  \ after generation. Checks:\n\n- All 3 required sections present (`.hero`, `.features`,\
+  \ `.closing-cta`)\n- CDN deps present (Inter + GSAP + ScrollTrigger)\n- `gsap.set()`\
+  \ initial states precede any `gsap.timeline` or `gsap.to` (FOUC prevention)\n- Responsive\
+  \ breakpoints at 900px + 580px\n- No external `<link rel=\"stylesheet\">` other\
+  \ than Google Fonts\n- No external `<script src=>` other than GSAP CDN\n- `<meta\
+  \ name=\"viewport\">` present\n- All animated elements have initial-state declarations\n\
+  \n## Error Handling\n\n| Situation | Behavior |\n|---|---|\n| Input is just a name\
+  \ with no context | Invent compelling content from name semantics + audience register;\
+  \ flag as `<!-- inferred -->` in HTML source |\n| Input file is large or PDF | Read\
+  \ fully before generating; don't truncate |\n| Brand colors insufficient (only 1\
+  \ HEX provided) | Use as primary; derive secondary/accent algorithmically (lighten/darken\
+  \ via brand_palette_validator.py) |\n| Features count not specified | Default to\
+  \ 4 |\n| Output dir doesn't exist | Create it |\n| Existing file at output path\
+  \ | Append timestamp suffix or ask user (kebab_slug_generator.py flags duplicates)\
+  \ |\n| html_validator returns FAIL | Regenerate ONLY the failing sections in one\
+  \ targeted pass; do NOT abandon the file |\n\n## Portability\n\n- **Claude Code\
+  \ CLI:** Native — writes HTML file directly to filesystem.\n- **Claude.ai web:**\
+  \ Native — produces HTML as an artifact instead of file.\n\n## Tooling\n\n| Script\
+  \ | Role |\n|---|---|\n| `scripts/brand_palette_validator.py` | Validates HEX format,\
+  \ checks WCAG AA contrast, generates derived palette from primary (algorithmic lighten/darken).\
+  \ |\n| `scripts/kebab_slug_generator.py` | Product name → kebab-case filename +\
+  \ duplicate detection in output dir. |\n| `scripts/html_validator.py` | Post-generation\
+  \ structural check: 3 sections, CDN deps, gsap.set() initial states, responsive\
+  \ breakpoints, no external files. |\n\n## References\n\n- [`references/brand_system_design.md`](references/brand_system_design.md)\
+  \ — color theory + WCAG + algorithmic palette derivation (7+ sources)\n- [`references/gsap_animation_patterns.md`](references/gsap_animation_patterns.md)\
+  \ — entrance timeline + ScrollTrigger reveals + mouse parallax + CSS floats + scroll\
+  \ indicator (7+ sources)\n- [`references/single_file_html_discipline.md`](references/single_file_html_discipline.md)\
+  \ — why inline + CDN-only externals + accessibility minimums + no-build rationale\
+  \ (7+ sources)\n\n## Anti-Patterns To Reject\n\n- Hardcoded absolute paths in output\
+  \ directory\n- Single brand palette without override documentation\n- Outlining\
+  \ before writing — write in one pass\n- External CSS or JS files (must be inline;\
+  \ only Google Fonts + GSAP CDN allowed)\n- Skipping `gsap.set()` initial states\
+  \ (causes FOUC)\n- More than 6 features in default grid (becomes unscannable)\n\
+  - Brand-specific content references in the skill itself\n\n---\n\n**Version:** 1.0.0\n\
+  **Source spec:** [`megaprompts/04-landing-megaprompt.md`](../../../../megaprompts/04-landing-megaprompt.md)\n\
+  **Build pattern:** Path B (direct conversion). Distinct from `product-team/skills/landing-page-generator/`."
+tags:
+- marketing
+- landing
+- landing
+capabilities:
+- marketing
+- landing
+- landing
+required_tools: []
+compatible_agents: []
+compatible_languages: []
+compatible_frameworks: []
+examples: []
+author: claude-skills
+usage_count: 0
+success_rate: 1.0
+metadata: {}
