@@ -95,3 +95,62 @@ def test_is_allowed_permissive() -> None:
 
     info = analyze(None, spdx_hint="MIT")
     assert is_allowed(info, "allow_permissive", ["mit", "apache-2.0"], ["gpl-3.0"]) is True
+
+
+def test_detect_languages_empty_dir(tmp_path):
+    from voly.intelligence.architecture_mapper import detect_languages
+
+    result = detect_languages(str(tmp_path))
+    assert isinstance(result, list)
+
+
+def test_detect_frameworks_no_manifests(tmp_path):
+    from voly.intelligence.architecture_mapper import detect_frameworks
+
+    result = detect_frameworks(str(tmp_path))
+    assert result == []
+
+
+def test_map_architecture_empty(tmp_path):
+    from voly.intelligence.architecture_mapper import map_architecture
+
+    result = map_architecture(str(tmp_path))
+    assert "style" in result
+    assert result["ai_assisted"] is False
+
+
+def test_security_scanner_no_issues(tmp_path):
+    from voly.intelligence.security_scanner import scan
+
+    (tmp_path / "clean.py").write_text("def hello(): return 42\n")
+    risks = scan(str(tmp_path))
+    assert isinstance(risks, list)
+    assert len(risks) == 0
+
+
+def test_security_scanner_detects_eval(tmp_path):
+    from voly.intelligence.security_scanner import scan
+
+    (tmp_path / "bad.py").write_text("result = eval(user_input)\n")
+    risks = scan(str(tmp_path))
+    assert any("eval" in r for r in risks)
+
+
+def test_dep_analyzer_empty(tmp_path):
+    from voly.intelligence.dependency_analyzer import analyze_dependencies
+
+    result = analyze_dependencies(str(tmp_path))
+    assert result == {}
+
+
+def test_dep_analyzer_package_json(tmp_path):
+    import json
+
+    from voly.intelligence.dependency_analyzer import analyze_dependencies
+
+    (tmp_path / "package.json").write_text(
+        json.dumps({"dependencies": {"react": "^19.0.0", "typescript": "^5.0"}})
+    )
+    result = analyze_dependencies(str(tmp_path))
+    assert "node" in result
+    assert "react" in result["node"]

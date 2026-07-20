@@ -24,6 +24,15 @@ voly repo license <url>    # license analysis only (Phase 2)
 | `admission.py` | Pre-clone GitHub API checks |
 | `license_analyzer.py` | SPDX risk matrix and policy gate |
 
+## Phase 2 Modules
+
+| Module | Role |
+|---|---|
+| `architecture_mapper.py` | Language/framework detection, entrypoints |
+| `dependency_analyzer.py` | Manifest parsing (package.json, requirements, go.mod, …) |
+| `security_scanner.py` | Pure-Python regex risk patterns (no external tools) |
+| `repo_analyzer.py` | Main orchestrator, cache by SHA |
+
 ## AdmissionResult fields
 
 | Field | Type | Description |
