@@ -51,6 +51,40 @@ def capability_show(ctx: click.Context, executor_id: str) -> None:
     click.echo(_profile_to_yaml(profile.to_dict()))
 
 
+@capability_cmd.command("match")
+@click.argument("task")
+@click.option("--dimension", default="backend", show_default=True)
+@click.option("--features", multiple=True, help="Project features (e.g. react fastapi)")
+@click.option("--executors", multiple=True, help="Limit to specific executors")
+@click.pass_context
+def capability_match(
+    ctx: click.Context,
+    task: str,
+    dimension: str,
+    features: tuple[str, ...],
+    executors: tuple[str, ...],
+) -> None:
+    """Score and rank executors for a task dimension."""
+    from voly.capability import ExecutorMatcher, MatchRequest
+
+    reg = _registry(ctx)
+    matcher = ExecutorMatcher(reg)
+    req = MatchRequest(
+        dimension=dimension,
+        available_executors=list(executors) if executors else None,
+        project_features=list(features) if features else None,
+    )
+    result = matcher.find_executors(req)
+    if result.recommended:
+        click.echo(
+            f"Recommended: {result.recommended.id}  score={result.score:.3f}"
+        )
+    for profile, score in result.fallbacks[:3]:
+        click.echo(f"  Fallback: {profile.id}  score={score:.3f}")
+    for executor_id, reason in result.excluded:
+        click.echo(f"  Excluded: {executor_id}  ({reason})")
+
+
 @capability_cmd.command("reset")
 @click.argument("executor_id", required=False)
 @click.option("--all", "reset_all", is_flag=True, help="Reset all materialized profiles.")
