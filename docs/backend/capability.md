@@ -143,3 +143,33 @@ The worker skips seed upserts for executors that already have learned evidence (
 ## Cloud schema
 
 D1 tables for remote sync: `cf-workers/capability/schema.sql` (`roles`, `executor_capability`, `executor_constraints`, `executor_operational`).
+
+## Evaluation suites
+
+Phase 9 integration tests exercise the full capability + intelligence pipeline offline (no network; `httpx` patched where needed).
+
+### `tests/test_capability_integration.py` (7 tests)
+
+| Test | Coverage |
+|------|----------|
+| `test_full_match_flow_with_seeds` | Registry → scorer → `CapabilityMatchResult` for backend + stack features |
+| `test_evidence_updates_local_ema` | `_update_local_ema()` moves dimension score and confidence after a run |
+| `test_capability_fallback_chain_ordering` | Capability-scored fallback reorders static chain (cheap tier not first) |
+| `test_evidence_skips_billing_error` | Billing errors skip EMA update and profile write |
+| `test_frontend_dimension_prefers_kimi` | Frontend match ranks `kimi-cli` first for react/typescript |
+| `test_sync_roles_payload` | `sync_roles_to_worker()` POST body includes full `roles` list |
+| `test_intelligence_features_for_matcher` | `RepositoryIntelligence` stack → `feature_to_dimension()` for matcher input |
+
+### `tests/test_pipeline_integration_smoke.py` (5 tests)
+
+| Test | Coverage |
+|------|----------|
+| `test_pipeline_stage_order` | `init` → `repo_intelligence` → `a2a_discover` stage ordering |
+| `test_role_registry_completeness` | All 11 A2A roles present in `ROLE_REGISTRY` |
+| `test_capability_registry_all_seeds_loadable` | Every bundled seed profile loads with matching ID |
+| `test_decomposer_signals_no_hardcode` | Frontend roles expose non-empty `decomposer_signals` |
+| `test_scoring_weights_sum_to_one` | `ROUTING_SCORE_WEIGHTS` components sum to 1.0 |
+
+```bash
+python -m pytest tests/test_capability_integration.py tests/test_pipeline_integration_smoke.py -q
+```

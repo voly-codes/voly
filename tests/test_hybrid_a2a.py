@@ -379,7 +379,7 @@ def test_make_agent_runner_executor_maps_result(monkeypatch) -> None:
         def __init__(self, config):
             pass
 
-        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True):
+        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True, **kwargs):
             calls.append({
                 "task": task, "agent": agent, "cwd": cwd, "emit_event": emit_event,
             })
@@ -437,7 +437,7 @@ def test_run_local_with_agent_runner_factory(monkeypatch) -> None:
         def __init__(self, config):
             pass
 
-        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True):
+        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True, **kwargs):
             return RunnerResult(
                 success=True,
                 executor=agent,
@@ -485,7 +485,7 @@ def test_hybrid_demo_writes_file_under_cwd(monkeypatch, tmp_path) -> None:
         def __init__(self, config):
             pass
 
-        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True):
+        def run(self, task, agent, *, cwd, max_turns=30, timeout=300, model="", emit_event=True, **kwargs):
             path = __import__("pathlib").Path(cwd) / "hello_endpoint.py"
             path.write_text("# demo endpoint\ndef ping():\n    return 'ok'\n", encoding="utf-8")
             return RunnerResult(
