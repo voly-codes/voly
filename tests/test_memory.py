@@ -3,12 +3,30 @@
 import tempfile
 from pathlib import Path
 
-from voly.memory.store import MemoryStore, MemoryEntry
+import pytest
+
+from voly.memory.store import MemoryStore
+
+
+@pytest.fixture(autouse=True)
+def _memory_tests_local_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Isolate from hybrid/remote memory env left by other tests or .env."""
+    for key in (
+        "CF_WORKER_MEMORY_URL",
+        "MEMORY_URL",
+        "VOLY_MEMORY_URL",
+        "VOLY_MEMORY_BACKEND",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+
+def _store(tmp: str) -> MemoryStore:
+    return MemoryStore(Path(tmp) / "test.db", backend="local")
 
 
 def test_add_and_get() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db")
+        store = _store(tmp)
         entry_id = store.add(
             title="Test memory",
             content="This is a test memory entry",
@@ -31,7 +49,7 @@ def test_add_and_get() -> None:
 
 def test_search() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db")
+        store = _store(tmp)
         store.add(title="Architecture decision", content="Use PostgreSQL for storage", category="decision")
         store.add(title="Code convention", content="Use snake_case for Python", category="convention")
         store.add(title="Bug fix", content="Fixed auth token refresh", category="history")
@@ -49,7 +67,7 @@ def test_search() -> None:
 
 def test_list_by_category() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db")
+        store = _store(tmp)
         store.add(title="Decision 1", content="Content", category="decision")
         store.add(title="Decision 2", content="Content", category="decision")
         store.add(title="Convention 1", content="Content", category="convention")
@@ -65,7 +83,7 @@ def test_list_by_category() -> None:
 
 def test_update_and_delete() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db")
+        store = _store(tmp)
         entry_id = store.add(title="Original", content="Original content", category="context")
 
         updated = store.update(entry_id, title="Updated", importance=0.9)
@@ -86,7 +104,7 @@ def test_update_and_delete() -> None:
 def test_search_semantic_fallback() -> None:
     """search_semantic falls back to FTS5 when sentence-transformers is not installed."""
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db")
+        store = _store(tmp)
         store.add(title="PostgreSQL indexing", content="Use BRIN indexes for time-series", category="decision")
         store.add(title="Docker compose", content="Multi-container setup for local dev", category="context")
 
@@ -100,14 +118,18 @@ def test_search_semantic_fallback() -> None:
 
 def test_search_semantic_custom_model() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db", embedding_model="paraphrase-MiniLM-L3-v2")
+        store = MemoryStore(
+            Path(tmp) / "test.db",
+            embedding_model="paraphrase-MiniLM-L3-v2",
+            backend="local",
+        )
         assert store.embedding_model == "paraphrase-MiniLM-L3-v2"
         store.close()
 
 
 def test_count_and_clear() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        store = MemoryStore(Path(tmp) / "test.db")
+        store = _store(tmp)
         assert store.count() == 0
 
         store.add(title="A", content="a", category="context")

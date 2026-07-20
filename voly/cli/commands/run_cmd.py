@@ -114,7 +114,9 @@ def run(
                 click.echo(f"\n{result.response.content}")
             _echo_a2a_role_summary(result)
             click.echo(f"Error: {result.error or 'pipeline failed (partial result)'}", err=True)
-            sys.exit(1)
+
+    if not result.success:
+        sys.exit(1)
 
 
 def _a2a_assignments(result: Any) -> list[dict[str, Any]]:

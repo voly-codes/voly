@@ -174,6 +174,12 @@ opencode → zen`). Sub-role
 runs use `emit_event=False` so the parent multi-agent `TaskEvent` stays primary;
 per-role cost/files land on `Assignment` (`files_touched`, `executor`, `cost_usd`).
 On executor failure/timeout, `files_touched` falls back to a git porcelain diff
+plus **content fingerprints** for paths that were already untracked (`??`) before
+the role: status alone does not change when an existing untracked file is edited,
+so VOLY compares size/mtime/hash snapshots taken at role start vs end. Without
+that, a successful tester that only edited pre-existing `tests/*.py` could be
+marked failed (`executor reported success but changed no files`) and block
+reviewer.
 when the runner did not report files. Empty greenfield `cwd` gets `git init`
 before hybrid so tracking works on the first pass.
 
@@ -341,9 +347,13 @@ against the task keywords, agent, and project stack; skills below the
 threshold are not injected. Installed marketplace/org skills are **no longer
 unconditionally included** — they need a task-keyword or language/framework
 match. PROJECT-source skills (generated from this repo's docs) are always
-kept; curated builtins may qualify on agent compatibility alone. The lead
-orchestrator respects an explicit empty `skills` choice from the lead model —
-the top-2 candidate fallback applies only when the lead call itself failed.
+kept. Frontend-specific skills (`nextjs`/`react`/`svelte`/…) do **not** receive
+monorepo `ui/` TypeScript stack bonuses unless the **task text** mentions a
+frontend signal (so Python/FastAPI agents no longer get `skill-nextjs` /
+`svelte-frontend` by accident). Stack-specific builtins need more than
+agent-name match alone. The lead orchestrator respects an explicit empty
+`skills` choice from the lead model — the top-2 candidate fallback applies
+only when the lead call itself failed.
 
 **Index skills are never injected.** A skill flagged `is_index: true` in its
 YAML (a table-of-contents skill that lists other skills but carries no

@@ -190,12 +190,14 @@ class _RoleExecMixin:
 
     def run_executor(self, a: Assignment, user: str, system: str, git_before: dict) -> None:
         """Executor role: run serially in the caller thread and finalize."""
-        from voly.plan.verify import git_porcelain
+        from voly.plan.verify import fingerprint_untracked, git_porcelain
 
         # Re-snapshot right before running — a same-wave executor may have
         # already changed the tree, and chat calls happened since prepare.
+        fp_before: dict[str, str] = {}
         if self.cwd:
             git_before = git_porcelain(self.cwd)
+            fp_before = fingerprint_untracked(self.cwd, git_before)
         _log.info(
             "multiagent[%d] %s → EXECUTOR %s (cwd=%s, reason=%s)",
             a.idx, a.role, a.executor, self.cwd or "(none)", a.mode_reason,
@@ -219,7 +221,9 @@ class _RoleExecMixin:
             # Even a crashed/timed-out executor may have written files;
             # capture the git delta so files_touched reflects reality.
             if self.cwd:
-                delta = delta_for_role(self.cwd, git_before, since=_wall0)
+                delta = delta_for_role(
+                    self.cwd, git_before, since=_wall0, fingerprints_before=fp_before,
+                )
                 if delta:
                     a.files_touched = delta
             self.finish_step_plan(a, exec_ok=False, git_before=git_before)
@@ -246,7 +250,9 @@ class _RoleExecMixin:
             a.content = str(result or "")
             a.ok = bool(a.content.strip())
         if self.cwd and not a.files_touched:
-            delta = delta_for_role(self.cwd, git_before, since=_wall0)
+            delta = delta_for_role(
+                self.cwd, git_before, since=_wall0, fingerprints_before=fp_before,
+            )
             if delta:
                 a.files_touched = delta
         # Executor honesty: on a code-gen task a role that "succeeded" without

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import subprocess
 from pathlib import Path
@@ -118,14 +119,81 @@ def git_porcelain(cwd: str, *, timeout: float = 5.0) -> dict[str, str]:
     return result
 
 
+def path_fingerprint(cwd: str, rel: str) -> str:
+    """Cheap content fingerprint: size + mtime_ns + sha256 of file bytes.
+
+    Used to detect edits to paths that stay ``??`` / ``A`` across a role run
+    (porcelain status alone is unchanged for already-untracked files).
+    """
+    if not cwd or not rel:
+        return ""
+    path = os.path.join(cwd, rel)
+    try:
+        st = os.stat(path)
+        if not os.path.isfile(path):
+            return f"d:{st.st_size}:{st.st_mtime_ns}"
+        h = hashlib.sha256()
+        h.update(f"{st.st_size}:{st.st_mtime_ns}".encode())
+        with open(path, "rb") as fh:
+            # Cap read — large assets still change size/mtime in the prefix.
+            while True:
+                chunk = fh.read(65536)
+                if not chunk:
+                    break
+                h.update(chunk)
+                if h.digest_size and fh.tell() > 2_000_000:
+                    h.update(b"#truncated")
+                    break
+        return h.hexdigest()
+    except OSError:
+        return ""
+
+
+def fingerprint_untracked(cwd: str, porcelain: dict[str, str]) -> dict[str, str]:
+    """Fingerprints for untracked / newly-added paths in a porcelain snapshot."""
+    out: dict[str, str] = {}
+    for rel, status in (porcelain or {}).items():
+        st = status or ""
+        if "?" not in st and "A" not in st:
+            continue
+        fp = path_fingerprint(cwd, rel)
+        if fp:
+            out[rel] = fp
+    return out
+
+
 def changed_paths(
     git_before: dict[str, str],
     git_after: dict[str, str],
+    *,
+    fingerprints_before: dict[str, str] | None = None,
+    fingerprints_after: dict[str, str] | None = None,
 ) -> set[str]:
-    """Paths whose porcelain entry appeared, disappeared, or changed."""
+    """Paths whose porcelain entry appeared, disappeared, or changed.
+
+    When fingerprint maps are provided, also include already-untracked / added
+    paths whose content fingerprint changed even if the status code stayed
+    the same (``??`` → ``??`` after an in-place edit).
+    """
     keys = set(git_before) | set(git_after)
     out: set[str] = set()
     for p in keys:
         if git_before.get(p) != git_after.get(p):
             out.add(p)
+    if fingerprints_before is not None and fingerprints_after is not None:
+        for p in set(fingerprints_before) | set(fingerprints_after):
+            if p in out:
+                continue
+            before_st = git_before.get(p, "")
+            after_st = git_after.get(p, "")
+            # Only apply fingerprint compare when the path stayed untracked/new.
+            if before_st and after_st and before_st == after_st:
+                if "?" in after_st or "A" in after_st:
+                    if fingerprints_before.get(p) != fingerprints_after.get(p):
+                        out.add(p)
+            elif p in fingerprints_after and p not in fingerprints_before:
+                # New untracked file created during the run (also caught by
+                # porcelain when it appears, but keep for empty-before edge).
+                if "?" in after_st or "A" in after_st:
+                    out.add(p)
     return out

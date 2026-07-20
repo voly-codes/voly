@@ -157,6 +157,8 @@ class AgentRunner:
                 logging.getLogger("voly.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
 
         git_before = _git_porcelain(cwd)
+        from voly.plan.verify_git import fingerprint_untracked
+        fp_before = fingerprint_untracked(cwd, git_before) if cwd else {}
         # Pre-run snapshot for the safety policy: lets rollback restore the
         # exact pre-run content even of files that were already dirty.
         from voly.executor.safety import apply_safety_policy, git_snapshot
@@ -301,7 +303,14 @@ class AgentRunner:
                 logging.getLogger("voly.chain").debug("[CHAIN:DSPY_STORE] error=%s", exc)
 
         git_after = _git_porcelain(cwd)
-        work_report = _build_work_report(result.output or "", git_before, git_after)
+        fp_after = fingerprint_untracked(cwd, git_after) if cwd else {}
+        work_report = _build_work_report(
+            result.output or "",
+            git_before,
+            git_after,
+            fingerprints_before=fp_before,
+            fingerprints_after=fp_after,
+        )
         result.report = work_report
 
         # Safety policy: dry-run rollback / protected paths / max files touched.

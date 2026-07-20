@@ -105,6 +105,22 @@ class AIGateway(_GatewayProvidersMixin):
             self.metrics.record_dlp_block()
             return {"error": f"DLP blocked: {violations}", "content": "", "dlp_blocked": True}
 
+        # Skip providers already marked unhealthy (billing/auth) within this process —
+        # otherwise every role in a multi-agent wave re-burns Anthropic credits.
+        from voly.ai_gateway.health import get_checker
+
+        checker = get_checker()
+        if provider_name and not checker.check(provider_name).healthy:
+            alt, is_fb = checker.best_provider(provider_name)
+            if is_fb and alt != provider_name:
+                _log.warning(
+                    "provider %s unhealthy — routing chat to %s",
+                    provider_name, alt,
+                )
+                provider_name = alt
+                from voly.router import _PROVIDER_MODELS
+                model = _PROVIDER_MODELS.get(provider_name, (model, provider_name))[0]
+
         # Per-call scope overrides the instance default; folded into the cache key
         # so a repo change / different project does not serve a stale hit (R1).
         scope = cache_scope or self.cache_scope
@@ -131,6 +147,9 @@ class AIGateway(_GatewayProvidersMixin):
             result = self._gateway_call(messages, model, provider_name, max_tokens, temperature, system, tools=tools, **kwargs)
         else:
             result = self._delegated_or_direct(messages, model, provider_name, max_tokens, temperature, system, tools, **kwargs)
+
+        if result.get("error") and not result.get("spend_limited") and not result.get("dlp_blocked"):
+            self._mark_provider_from_error(provider_name, str(result.get("error") or ""))
 
         # Charge spend only on success — failed calls must not inflate daily budget
         # or trip false spend_limited blocks. Prefer usage-based cost when tokens
@@ -248,6 +267,26 @@ class AIGateway(_GatewayProvidersMixin):
 
     # ── Gateway call with fallback chain (CF-routed providers) ───────────────────
 
+    def _mark_provider_from_error(self, provider: str, error: str) -> None:
+        """Mark billing/auth failures unhealthy for the rest of this process."""
+        if not provider or not error:
+            return
+        try:
+            from voly.a2a.assignment import exclude_provider_on_gateway_error
+
+            exclude_provider_on_gateway_error(provider, error)
+        except Exception:  # noqa: BLE001
+            # Avoid circular-import / a2a-unavailable paths breaking chat.
+            from voly.ai_gateway.error_classifier import classify_provider_error
+            from voly.ai_gateway.health import get_checker
+
+            kind = classify_provider_error(None, error, provider=provider)
+            if kind in (
+                "unauthorized", "quota_exhausted", "account_deactivated",
+                "oauth_invalid_token", "forbidden",
+            ):
+                get_checker().mark_unhealthy(provider, reason=kind or "gateway error")
+
     def _gateway_call(
         self,
         messages: list[dict[str, Any]],
@@ -259,12 +298,20 @@ class AIGateway(_GatewayProvidersMixin):
         tools: list[dict[str, Any]] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        from voly.ai_gateway.health import get_checker
+
         all_models = [{"provider": provider_name, "model": model}] + self.fallback.chain
         last_error = None
+        checker = get_checker()
 
         for attempt, spec in enumerate(all_models):
             prov = spec.get("provider", provider_name)
             mdl  = spec.get("model", model)
+
+            if prov and not checker.check(prov).healthy:
+                last_error = f"provider {prov} unhealthy"
+                _log.info("Skipping unhealthy provider=%s", prov)
+                continue
 
             if attempt > 0:
                 self.metrics.record_fallback()
@@ -281,9 +328,11 @@ class AIGateway(_GatewayProvidersMixin):
                         _log.info("Fallback succeeded: provider=%s model=%s", prov, mdl)
                     return result
                 last_error = result.get("error")
+                self._mark_provider_from_error(prov, str(last_error or ""))
                 _log.warning("provider=%s model=%s returned error: %s", prov, mdl, last_error)
             except Exception as e:
                 last_error = str(e)
+                self._mark_provider_from_error(prov, last_error)
                 _log.warning("provider=%s model=%s raised exception: %s", prov, mdl, last_error)
 
             if attempt >= self.fallback.retries:
@@ -346,15 +395,21 @@ class AIGateway(_GatewayProvidersMixin):
         tools: list[dict[str, Any]] | None,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        from voly.ai_gateway.health import get_checker
+
         primary_error = primary_result.get("error", "unknown error")
         last_error    = primary_error
         _log.warning("Primary call failed (%s) — trying %d fallback(s)", last_error, len(self.fallback.chain))
+        checker = get_checker()
 
         for i, spec in enumerate(self.fallback.chain[: self.fallback.retries]):
             self.metrics.record_fallback()
             fb_prov  = spec.get("provider", "")
             fb_model = spec.get("model", "")
             if not fb_prov or not fb_model:
+                continue
+            if not checker.check(fb_prov).healthy:
+                _log.info("Skipping unhealthy fallback provider=%s", fb_prov)
                 continue
             _log.info("Fallback attempt %d: provider=%s model=%s", i + 1, fb_prov, fb_model)
             try:
@@ -371,9 +426,11 @@ class AIGateway(_GatewayProvidersMixin):
                     fb["fallback_reason"]   = primary_error
                     return fb
                 last_error = fb.get("error", last_error)
+                self._mark_provider_from_error(fb_prov, str(last_error or ""))
                 _log.warning("Fallback %d failed: %s", i + 1, last_error)
             except Exception as exc:
                 last_error = str(exc)
+                self._mark_provider_from_error(fb_prov, last_error)
                 _log.warning("Fallback %d raised exception: %s", i + 1, last_error)
 
         self.metrics.record_error()

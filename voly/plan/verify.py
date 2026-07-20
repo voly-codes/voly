@@ -31,7 +31,9 @@ from voly.plan.verify_git import (
     _git_has_commits,
     changed_paths,
     ensure_git_repo,
+    fingerprint_untracked,
     git_porcelain,
+    path_fingerprint,
     safe_join,
 )
 from voly.plan.verify_types import (
@@ -73,7 +75,9 @@ __all__ = [
     "changed_paths",
     "complete_verification",
     "ensure_git_repo",
+    "fingerprint_untracked",
     "git_porcelain",
+    "path_fingerprint",
     "run_acceptance",
     "run_check",
     "safe_join",

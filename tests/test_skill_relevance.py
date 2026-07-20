@@ -124,6 +124,75 @@ def test_builtin_agent_skill_kept_without_keywords() -> None:
     assert [s.id for s in got] == ["skill-testing"]
 
 
+def test_frontend_skills_not_injected_on_python_backend_task() -> None:
+    """Monorepo TypeScript/ui must not leak nextjs/svelte into FastAPI work."""
+
+    class _Profile:
+        languages = [type("L", (), {"name": "TypeScript"})(), type("L", (), {"name": "Python"})()]
+        frameworks = [type("F", (), {"name": "Svelte"})(), type("F", (), {"name": "FastAPI"})()]
+
+    class _ScanHarness(_Harness):
+        def __init__(self, skills):
+            super().__init__(skills)
+            self.config = type("C", (), {"scanner": type("S", (), {"enabled": True})()})()
+
+        def scan_project(self):
+            return _Profile()
+
+    nextjs = Skill(
+        id="skill-nextjs",
+        name="Next.js Development",
+        description="Next.js App Router",
+        source=SkillSource.BUILTIN,
+        tags=["nextjs", "react", "frontend"],
+        capabilities=["frontend"],
+        compatible_agents=["developer", "architect"],
+        compatible_languages=["typescript", "javascript"],
+        compatible_frameworks=["nextjs", "react"],
+        content="body",
+    )
+    svelte = Skill(
+        id="svelte-frontend",
+        name="svelte-frontend",
+        description="Svelte and React UI",
+        source=SkillSource.MARKETPLACE,
+        tags=["frontend", "svelte", "react", "typescript", "ui"],
+        compatible_agents=["developer"],
+        compatible_languages=["typescript", "javascript"],
+        compatible_frameworks=["svelte", "react"],
+        content="body",
+    )
+    fastapi = _skill(
+        "fastapi-patterns", SkillSource.MARKETPLACE,
+        tags=["fastapi", "pytest"], agents=["developer"], langs=["python"],
+    )
+    h = _ScanHarness([nextjs, svelte, fastapi])
+    got = {s.id for s in h.match_skills_for_task(TASK, agent_name="developer")}
+    assert "skill-nextjs" not in got
+    assert "svelte-frontend" not in got
+    assert "fastapi-patterns" in got
+
+
+def test_frontend_skill_kept_when_task_mentions_ui() -> None:
+    nextjs = Skill(
+        id="skill-nextjs",
+        name="Next.js Development",
+        description="Next.js App Router react frontend",
+        source=SkillSource.BUILTIN,
+        tags=["nextjs", "react", "frontend"],
+        capabilities=["frontend"],
+        compatible_agents=["developer"],
+        compatible_languages=["typescript"],
+        compatible_frameworks=["nextjs", "react"],
+        content="body",
+    )
+    got = _Harness([nextjs]).match_skills_for_task(
+        "Build a Next.js react frontend dashboard page",
+        agent_name="developer",
+    )
+    assert [s.id for s in got] == ["skill-nextjs"]
+
+
 def test_lead_respects_explicit_empty_skill_choice() -> None:
     from voly.a2a.decomposer import Subtask
     from voly.a2a.lead import LeadOrchestrator

@@ -92,12 +92,26 @@ def delta_for_role(
     git_before: dict,
     *,
     since: float,
+    fingerprints_before: dict[str, str] | None = None,
 ) -> list[str]:
-    """Git paths changed since ``git_before``, excluding other runs' noise."""
-    from voly.plan.verify import changed_paths, git_porcelain
+    """Git paths changed since ``git_before``, excluding other runs' noise.
+
+    Already-untracked files that stay ``??`` are detected via content
+    fingerprints captured *before* the role (``fingerprints_before``). Without
+    that snapshot, only porcelain status deltas are available.
+    """
+    from voly.plan.verify import changed_paths, fingerprint_untracked, git_porcelain
 
     git_after = git_porcelain(cwd)
-    raw = sorted(changed_paths(git_before, git_after))
+    fp_after = fingerprint_untracked(cwd, git_after)
+    raw = sorted(
+        changed_paths(
+            git_before,
+            git_after,
+            fingerprints_before=fingerprints_before if fingerprints_before is not None else None,
+            fingerprints_after=fp_after if fingerprints_before is not None else None,
+        )
+    )
     out: list[str] = []
     floor = since - 1.5
     for rel in raw:

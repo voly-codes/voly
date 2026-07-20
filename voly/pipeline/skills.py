@@ -17,6 +17,14 @@ _GENERIC_TASK_TOKENS = frozenset({
     "that", "this", "have", "into", "your", "file", "files", "project",
 })
 
+# Frontend stack markers — monorepo `ui/` TypeScript must not inject these into
+# backend/Python tasks unless the task itself mentions a frontend signal.
+_FRONTEND_STACK = frozenset({
+    "typescript", "javascript", "tsx", "jsx", "css", "html",
+    "react", "nextjs", "next", "svelte", "sveltekit", "vue", "nuxt",
+    "angular", "frontend", "ui", "component", "components", "dashboard",
+})
+
 
 def _task_keywords(task: str) -> set[str]:
     return {
@@ -43,10 +51,9 @@ def _score_skill(
     """Relevance of one skill to (task, agent, project stack).
 
     PROJECT skills are generated from this repo's own docs — always relevant.
-    Curated builtins may qualify on agent compatibility alone; marketplace/org
-    skills self-declare compatibility, so they need a concrete task or stack
-    signal (keyword or language/framework match) — otherwise every installed
-    skill leaks into every prompt (marketing-ops on a FastAPI task).
+    Curated builtins may qualify on agent compatibility alone when they have no
+    stack constraint; marketplace/org skills and stack-specific builtins need a
+    concrete task or matching stack signal.
     """
     if getattr(skill, "is_index", False) or skill.id in _KNOWN_INDEX_SKILL_IDS:
         return 0.0
@@ -62,15 +69,34 @@ def _score_skill(
         and skill.source not in curated_sources
     ):
         return 0.0
-    score = 0.0
-    if agent_name and agent_name in agents:
-        score += 2.0 if skill.source in curated_sources else 0.5
     langs = {x.lower() for x in (skill.compatible_languages or []) if x != "*"}
     fws = {x.lower() for x in (skill.compatible_frameworks or []) if x != "*"}
-    if langs & languages:
-        score += 2.0
-    if fws & frameworks:
-        score += 2.0
+    tags = {x.lower() for x in (skill.tags or [])}
+    caps = {x.lower() for x in (skill.capabilities or [])}
+    skill_frontend = bool((langs | fws | tags | caps) & _FRONTEND_STACK)
+    task_frontend = bool(keywords & _FRONTEND_STACK)
+    has_specific_stack = bool(langs or fws)
+
+    score = 0.0
+    if agent_name and agent_name in agents:
+        if skill.source in curated_sources and has_specific_stack:
+            # skill-nextjs etc.: agent match alone must not clear the threshold
+            # on a FastAPI task just because the monorepo has a ui/ folder.
+            score += 0.5
+        elif skill.source in curated_sources:
+            score += 2.0
+        else:
+            score += 0.5
+
+    def _stack_bonus(overlap: set[str]) -> float:
+        if not overlap:
+            return 0.0
+        if skill_frontend and not task_frontend:
+            return 0.0
+        return 2.0
+
+    score += _stack_bonus(langs & languages)
+    score += _stack_bonus(fws & frameworks)
     hay_tokens = _tokens(
         " ".join([skill.name or "", *(skill.tags or []), *(skill.capabilities or [])])
     )

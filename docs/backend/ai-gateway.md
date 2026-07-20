@@ -186,13 +186,16 @@ provider-key errors as `unauthorized` (operator fix), never as a billing state
 — the billing fallback chain does not fire on gateway misconfiguration.
 `voly balance` labels such providers `via cf-byok`.
 
-Runtime exclusion (`mark_unhealthy()` after 401/quota errors) now expires after
-a TTL instead of lasting until process restart: default 900 s, override with
-`VOLY_PROVIDER_EXCLUDE_TTL` (seconds; `0` = exclude forever). After expiry the
-provider is re-checked and re-enters tier resolution. A2A chat fallback also
-skips the originally assigned provider when it is currently unhealthy, and the
-lead orchestrator marks its provider unhealthy on auth/billing errors
-(`voly/a2a/assignment.py: exclude_provider_on_gateway_error`).
+Runtime exclusion (`mark_unhealthy()` after 401/quota errors) expires after
+`VOLY_PROVIDER_EXCLUDE_TTL` seconds (default 900; `0` = forever). After expiry the
+provider is re-checked and re-enters tier resolution. **`AIGateway.chat()` consults
+the health checker before each attempt**: an unhealthy primary is swapped via
+`best_provider()`, gateway/direct fallback chains skip excluded providers, and
+terminal billing/auth errors mark the provider unhealthy inside the gateway (not
+only on the A2A chat-fallback path). That stops Anthropic from being re-tried on
+every multi-agent role after the first credit failure in the same process. A2A
+chat fallback also skips the originally assigned provider when it is currently
+unhealthy (`voly/a2a/assignment.py: exclude_provider_on_gateway_error`).
 
 ---
 

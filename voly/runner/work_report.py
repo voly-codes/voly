@@ -46,9 +46,18 @@ def _extract_summary(output: str) -> str:
     return paragraphs[-1][:800]
 
 
-def _build_work_report(output: str, before: dict[str, str], after: dict[str, str]) -> WorkReport:
+def _build_work_report(
+    output: str,
+    before: dict[str, str],
+    after: dict[str, str],
+    *,
+    fingerprints_before: dict[str, str] | None = None,
+    fingerprints_after: dict[str, str] | None = None,
+) -> WorkReport:
     changed, created, deleted, actions = [], [], [], []
     all_paths = set(before) | set(after)
+    if fingerprints_before is not None and fingerprints_after is not None:
+        all_paths |= set(fingerprints_before) | set(fingerprints_after)
     for path in sorted(all_paths):
         b, a = before.get(path), after.get(path)
         if b is None and a is not None:
@@ -65,6 +74,15 @@ def _build_work_report(output: str, before: dict[str, str], after: dict[str, str
         elif a is None and b is not None:
             deleted.append(path)
         elif a != b:
+            changed.append(path)
+        elif (
+            fingerprints_before is not None
+            and fingerprints_after is not None
+            and a
+            and ("?" in a or "A" in a)
+            and fingerprints_before.get(path) != fingerprints_after.get(path)
+        ):
+            # Already-untracked path edited in place (status stayed ??).
             changed.append(path)
 
     # Extract action lines: look for "- ", "•", numbered items in output
