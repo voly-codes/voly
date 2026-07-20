@@ -40,8 +40,48 @@ class ExecutorMatcher:
         if worker_url:
             remote = self._remote_match(req, worker_url)
             if remote is not None:
-                return remote
+                remote = self._filter_result_by_kind(remote, req.kind)
+                if remote is not None:
+                    return remote
         return self._local_match(req)
+
+    @staticmethod
+    def _filter_result_by_kind(
+        result: CapabilityMatchResult, kind: str
+    ) -> CapabilityMatchResult | None:
+        """Drop model_provider hits when the caller asked for executors (and vice versa).
+
+        The hosted /match endpoint ranks all profiles; without this filter a
+        vision model_provider can be recommended for developer/tester roles.
+        """
+        kind = (kind or "").strip()
+        if not kind:
+            return result
+
+        def _ok(profile: ExecutorCapabilityProfile | None) -> bool:
+            return profile is not None and (profile.kind or "executor") == kind
+
+        recommended = result.recommended if _ok(result.recommended) else None
+        fallbacks = [(p, s) for p, s in result.fallbacks if _ok(p)]
+        if recommended is None and fallbacks:
+            recommended, score = fallbacks[0]
+            fallbacks = fallbacks[1:]
+            return CapabilityMatchResult(
+                recommended=recommended,
+                score=score,
+                fallbacks=fallbacks,
+                excluded=result.excluded,
+                degraded=result.degraded,
+            )
+        if recommended is None:
+            return None
+        return CapabilityMatchResult(
+            recommended=recommended,
+            score=result.score,
+            fallbacks=fallbacks,
+            excluded=result.excluded,
+            degraded=result.degraded,
+        )
 
     def _remote_match(
         self, req: MatchRequest, worker_url: str
@@ -53,6 +93,7 @@ class ExecutorMatcher:
             payload = {
                 "dimension": req.dimension,
                 "available_executors": req.available_executors,
+                "kind": req.kind or None,
             }
             resp = httpx.post(
                 f"{worker_url}/match",

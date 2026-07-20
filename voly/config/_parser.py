@@ -463,11 +463,13 @@ def _parse_config(raw: dict) -> VOLYConfig:
             profiles_dir=c.get("profiles_dir", ".voly/capability/profiles"),
             worker_timeout_s=float(c.get("worker_timeout_s", 5.0)),
         )
-    else:
-        env_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "").strip()
-        if env_url:
-            config.capability.worker_url = env_url
-        if os.getenv("VOLY_CAPABILITY_ENABLED", "").lower() in ("1", "true", "yes"):
-            config.capability.enabled = True
+    env_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "").strip()
+    if env_url:
+        config.capability.worker_url = env_url
+    env_cap = os.getenv("VOLY_CAPABILITY_ENABLED", "").strip().lower()
+    if env_cap in ("1", "true", "yes"):
+        config.capability.enabled = True
+    elif env_cap in ("0", "false", "no"):
+        config.capability.enabled = False
 
     return config

@@ -394,6 +394,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                     task, analysis, agui_session_id, started, task_id,
                     nested=a2a_nested,
                     project_cwd=str(context.get("cwd") or context.get("project_cwd") or ""),
+                    task_features=list(context.get("task_features") or []),
                 )
                 if a2a_auto_result is not None:
                     return a2a_auto_result

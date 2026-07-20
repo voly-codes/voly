@@ -10,11 +10,21 @@ _DEFAULT_PROFILES_DIR = ".voly/capability/profiles"
 
 
 def _profiles_dir(ctx: click.Context) -> Path:
-    raw = getattr(ctx.obj.get("config"), "capability_profiles_dir", None)
+    cfg = ctx.obj.get("config")
+    cap = getattr(cfg, "capability", None)
+    raw = getattr(cap, "profiles_dir", None) if cap is not None else None
+    if not raw:
+        raw = getattr(cfg, "capability_profiles_dir", None)
     path = Path(raw or _DEFAULT_PROFILES_DIR)
     if not path.is_absolute():
         path = Path.cwd() / path
     return path
+
+
+def _worker_url(ctx: click.Context) -> str:
+    cfg = ctx.obj.get("config")
+    cap = getattr(cfg, "capability", None)
+    return str(getattr(cap, "worker_url", "") or "").strip() if cap is not None else ""
 
 
 def _registry(ctx: click.Context):
@@ -54,6 +64,12 @@ def capability_show(ctx: click.Context, executor_id: str) -> None:
 @capability_cmd.command("match")
 @click.argument("task")
 @click.option("--dimension", default="backend", show_default=True)
+@click.option(
+    "--kind",
+    default="executor",
+    show_default=True,
+    help="Profile kind: executor or model_provider",
+)
 @click.option("--features", multiple=True, help="Project features (e.g. react fastapi)")
 @click.option("--executors", multiple=True, help="Limit to specific executors")
 @click.pass_context
@@ -61,6 +77,7 @@ def capability_match(
     ctx: click.Context,
     task: str,
     dimension: str,
+    kind: str,
     features: tuple[str, ...],
     executors: tuple[str, ...],
 ) -> None:
@@ -68,9 +85,10 @@ def capability_match(
     from voly.capability import ExecutorMatcher, MatchRequest
 
     reg = _registry(ctx)
-    matcher = ExecutorMatcher(reg)
+    matcher = ExecutorMatcher(reg, worker_url=_worker_url(ctx))
     req = MatchRequest(
         dimension=dimension,
+        kind=kind,
         available_executors=list(executors) if executors else None,
         project_features=list(features) if features else None,
     )

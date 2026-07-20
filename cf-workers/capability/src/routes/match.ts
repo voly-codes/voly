@@ -15,9 +15,11 @@ matchRoutes.post("/", async (c) => {
       dimension?: string;
       available_executors?: string[];
       project_stack?: string[];
+      kind?: string;
     }>();
 
     const dimension = body.dimension?.trim();
+    const kindFilter = body.kind?.trim() || "";
     const availableSet = body.available_executors?.length
       ? new Set(body.available_executors.map(String))
       : null;
@@ -30,6 +32,10 @@ matchRoutes.post("/", async (c) => {
     if (dimension) {
       capSql += " AND dimension = ?";
       capParams.push(dimension);
+    }
+    if (kindFilter) {
+      capSql += " AND kind = ?";
+      capParams.push(kindFilter);
     }
 
     const capRows = await c.env.CAPABILITY_DB.prepare(capSql)

@@ -62,10 +62,54 @@ def test_local_match_returns_result(tmp_path):
         dimension="backend",
         available_executors=None,
         project_features=["python"],
+        kind="executor",
     )
     result = matcher.find_executors(req)
     assert result.recommended is not None
+    assert result.recommended.kind == "executor"
     assert result.score > 0.3
+
+
+def test_remote_match_filters_model_provider_for_executor_kind(tmp_path, monkeypatch):
+    """Hosted /match may rank vision model_providers first — client must filter."""
+    import os
+
+    from voly.capability.matcher import ExecutorMatcher, MatchRequest
+    from voly.capability.registry import CapabilityRegistry
+    from voly.capability.schema import CapabilityMatchResult, ExecutorCapabilityProfile
+
+    seeds = os.path.join(
+        os.path.dirname(__file__), "..", "voly", "capability", "seeds"
+    )
+    reg = CapabilityRegistry(str(tmp_path / "profiles"), seeds_dir=seeds)
+    matcher = ExecutorMatcher(reg, worker_url="https://capability.example")
+
+    vision = reg.load("claude-vision")
+    code = reg.load("claude-code")
+    assert vision.kind == "model_provider"
+    assert code.kind == "executor"
+
+    def fake_remote(req, worker_url):
+        return CapabilityMatchResult(
+            recommended=vision,
+            score=0.9,
+            fallbacks=[(code, 0.8)],
+            excluded=[],
+            degraded=False,
+        )
+
+    monkeypatch.setattr(matcher, "_remote_match", fake_remote)
+    result = matcher.find_executors(
+        MatchRequest(
+            dimension="backend",
+            available_executors=None,
+            project_features=None,
+            kind="executor",
+        )
+    )
+    assert result.recommended is not None
+    assert result.recommended.id == "claude-code"
+    assert result.recommended.kind == "executor"
 
 
 def test_feature_to_dimension():

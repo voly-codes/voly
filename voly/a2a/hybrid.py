@@ -161,8 +161,15 @@ def make_agent_runner_executor(
                 f"{system.strip()}\n\n---\n\n"
                 f"## Sub-task ({role})\n\n{task}"
             )
-        # Role-specific executor (developer→cursor, bugfixer→deepseek, …).
-        agent_key = resolve_role_executor(role, (executor or "claude-code").strip() or "claude-code")
+        # Honor explicit executor from LeadOrchestrator / capability matcher.
+        # Do not re-run resolve_role_executor on a concrete id — that treats
+        # "claude-code" as the config sentinel and replaces it with the role hardmap
+        # (e.g. developer→cursor), which defeats capability routing.
+        raw = (executor or "").strip()
+        if raw:
+            agent_key = raw
+        else:
+            agent_key = resolve_role_executor(role, "claude-code")
         from voly.a2a.cwd_lock import cwd_executor_lock
 
         with cwd_executor_lock(cwd or "", timeout=float(timeout or 900) + 30.0):

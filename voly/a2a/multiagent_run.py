@@ -49,6 +49,9 @@ class _LocalRun(_PlanGatesMixin, _RoleExecMixin):
     max_parallel_roles: int
     plan_config: Any
     plan_store: Any
+    capability_worker_url: str = ""
+    capability_profiles_dir: str = ".voly/capability/profiles"
+    capability_worker_timeout_s: float = 3.0
 
     role_modes: dict[int, str] = field(default_factory=dict)
     plan: Any = None
@@ -92,9 +95,11 @@ class _LocalRun(_PlanGatesMixin, _RoleExecMixin):
                 user, system, git_before = prep
                 mode = a.mode or self.role_modes.get(a.idx, "chat")
                 if mode == "executor":
-                    a.executor = resolve_role_executor(
-                        a.role, self.executor_default or "claude-code",
-                    )
+                    # Prefer LeadOrchestrator / capability matcher assignment.
+                    if not (a.executor or "").strip():
+                        a.executor = resolve_role_executor(
+                            a.role, self.executor_default or "claude-code",
+                        )
                     if self.executor_runner is None:
                         # No runner yet — fall back to chat so production stays useful.
                         _log.info(
@@ -192,6 +197,9 @@ def run_local(
     max_parallel_roles: int = 3,
     plan_config: Any = None,
     plan_store: Any = None,
+    capability_worker_url: str = "",
+    capability_profiles_dir: str = ".voly/capability/profiles",
+    capability_worker_timeout_s: float = 3.0,
 ) -> list[Assignment]:
     """Execute each sub-agent in dependency order. See ``multiagent.run_local`` docs."""
     run = _LocalRun(
@@ -218,6 +226,9 @@ def run_local(
         max_parallel_roles=max_parallel_roles,
         plan_config=plan_config,
         plan_store=plan_store,
+        capability_worker_url=capability_worker_url,
+        capability_profiles_dir=capability_profiles_dir,
+        capability_worker_timeout_s=capability_worker_timeout_s,
     )
     run.setup_plan_and_modes()
     return run.run_waves()

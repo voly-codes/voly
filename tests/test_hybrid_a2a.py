@@ -421,11 +421,24 @@ def test_make_agent_runner_executor_maps_result(monkeypatch) -> None:
     assert out["files_touched"] == ["src/a.py", "src/b.py"]
     assert out["executor"] == "claude-code"
     assert out["cost_usd"] == 0.12
-    assert calls and calls[0]["agent"] == "cursor"
+    # Explicit executor from capability/lead must be honored (not remapped via sentinel).
+    assert calls and calls[0]["agent"] == "claude-code"
     assert calls[0]["cwd"] == "/tmp/proj"
     assert calls[0]["emit_event"] is False
     assert "Sub-task (developer)" in calls[0]["task"]
     assert "You are a developer" in calls[0]["task"]
+
+    calls.clear()
+    out2 = runner(
+        role="developer",
+        task="implement endpoint",
+        cwd="/tmp/proj",
+        executor="",
+        system="",
+        assignment=None,
+    )
+    assert out2["ok"] is True
+    assert calls and calls[0]["agent"] == "cursor"
 
 
 def test_run_local_with_agent_runner_factory(monkeypatch) -> None:

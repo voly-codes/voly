@@ -76,6 +76,7 @@ class _A2AStageMixin:
         *,
         nested: bool = False,
         project_cwd: str = "",
+        task_features: list[str] | None = None,
     ) -> Any | None:
         if nested:
             return None
@@ -99,6 +100,7 @@ class _A2AStageMixin:
                 task, subtasks, agui_session_id, started, task_id,
                 analysis=analysis,
                 project_cwd=project_cwd,
+                task_features=task_features,
             )
 
         timeout = getattr(self.config.a2a, 'task_timeout_seconds', 120.0)  # type: ignore[attr-defined]
@@ -196,6 +198,7 @@ class _A2AStageMixin:
         *,
         analysis: Any = None,
         project_cwd: str = "",
+        task_features: list[str] | None = None,
     ) -> Any | None:
         """Lead orchestrator assigns model tier + skills per sub-agent; run in-process."""
         import os
@@ -207,12 +210,35 @@ class _A2AStageMixin:
         from voly.router import RouteDecision
         from voly.telemetry import GatewayMetrics, TaskEvent, TokenMetrics, emit_event_from_config
 
+        matcher = None
+        project_context = None
+        cap_cfg = getattr(self.config, "capability", None)  # type: ignore[attr-defined]
+        if cap_cfg is not None and bool(getattr(cap_cfg, "enabled", False)):
+            try:
+                from voly.capability.matcher import ExecutorMatcher
+                from voly.capability.registry import CapabilityRegistry
+
+                profiles_dir = str(
+                    getattr(cap_cfg, "profiles_dir", None) or ".voly/capability/profiles"
+                )
+                worker_url = str(getattr(cap_cfg, "worker_url", "") or "")
+                matcher = ExecutorMatcher(
+                    CapabilityRegistry(profiles_dir),
+                    worker_url=worker_url,
+                )
+                project_context = {"task_features": list(task_features or [])}
+            except Exception:  # noqa: BLE001
+                matcher = None
+                project_context = None
+
         lead = LeadOrchestrator(
             gateway=self.gateway,  # type: ignore[attr-defined]
             skill_matcher=self.match_skills_for_task,  # type: ignore[attr-defined]
             lead_model=getattr(self.config.a2a, 'lead_model', ''),  # type: ignore[attr-defined]
             lead_mode=getattr(self.config.a2a, 'lead_mode', 'auto') or 'auto',  # type: ignore[attr-defined]
             role_tiers=dict(getattr(self.config.a2a, 'role_tiers', None) or {}),  # type: ignore[attr-defined]
+            matcher=matcher,
+            project_context=project_context,
         )
         # Same as single-model path: surface marketplace skills not yet installed.
         skill_suggestions = self._stage_skill_suggest(task)  # type: ignore[attr-defined]
@@ -290,6 +316,13 @@ class _A2AStageMixin:
                 getattr(a2a_cfg, "architect_max_tokens", 4096) or 4096
             ),
             plan_config=plan_cfg,
+            capability_worker_url=str(getattr(cap_cfg, "worker_url", "") or "") if cap_cfg else "",
+            capability_profiles_dir=str(
+                getattr(cap_cfg, "profiles_dir", None) or ".voly/capability/profiles"
+            ) if cap_cfg else ".voly/capability/profiles",
+            capability_worker_timeout_s=float(
+                getattr(cap_cfg, "worker_timeout_s", 3.0) or 3.0
+            ) if cap_cfg else 3.0,
         )
 
         merged = merge_report(task, assignments)

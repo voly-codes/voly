@@ -37,8 +37,8 @@ capability_match × 0.40 + historical_success × 0.20 + tool_compatibility × 0.
 
 ### `ExecutorMatcher.find_executors()` workflow
 
-1. If a worker URL is configured (`ExecutorMatcher(worker_url=…)` or `MatchRequest.worker_url`), POST to `{worker_url}/match` with `dimension` and optional `available_executors`.
-2. On success, assemble a `CapabilityMatchResult` from the JSON response (`recommended`, `fallbacks`, `excluded`), loading full profiles from the local registry.
+1. If a worker URL is configured (`ExecutorMatcher(worker_url=…)` or `MatchRequest.worker_url`), POST to `{worker_url}/match` with `dimension`, optional `kind`, and optional `available_executors`.
+2. On success, assemble a `CapabilityMatchResult` from the JSON response (`recommended`, `fallbacks`, `excluded`), loading full profiles from the local registry. Results whose `kind` does not match the request are dropped (prevents `model_provider` vision profiles from winning executor roles); if nothing remains, fall through to local.
 3. On any HTTP error, timeout, or unreachable worker, fall through to **local fallback**: load all known profiles, apply `hard_exclude()`, score with `routing_score()`, sort descending, return top-1 as recommended plus the rest as fallbacks. Sets `degraded=True` when no executor passes the gates.
 
 ### `routing_score()` weights
@@ -129,6 +129,26 @@ voly capability match "implement REST API" --dimension backend --features python
 voly capability match "build UI" --dimension frontend --features react --executors claude-code cursor
 voly capability reset claude-code
 voly capability reset --all
+```
+
+## Enable (dogfood)
+
+```bash
+# .env
+VOLY_CAPABILITY_WORKER_URL=https://capability.voly.codes
+VOLY_CAPABILITY_ENABLED=1
+
+# or voly.yaml
+capability:
+  enabled: true
+  worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
+```
+
+On CLI startup with a worker URL, `startup_sync()` pushes roles + seeds. Verify:
+
+```bash
+curl -sS https://capability.voly.codes/health
+voly capability match "implement REST API" --dimension backend --features python fastapi
 ```
 
 ## Startup Sync

@@ -282,10 +282,14 @@ plan:
 
 # Capability Registry (executor routing + EMA scores; see docs/backend/capability.md)
 capability:
-  enabled: false                  # false → static BILLING_FALLBACK_CHAIN; true → score-based
+  enabled: true                   # false → static BILLING_FALLBACK_CHAIN; true → score-based
   worker_url: "${VOLY_CAPABILITY_WORKER_URL}"  # CF Worker at capability.voly.codes
   profiles_dir: ".voly/capability/profiles"   # local profile cache
   worker_timeout_s: 5.0           # HTTP timeout for /match and evidence POSTs
+
+# Env overrides (always win over yaml when set):
+#   VOLY_CAPABILITY_ENABLED=1|0
+#   VOLY_CAPABILITY_WORKER_URL=https://capability.voly.codes
 
 # Code reuse: GitHub search → clone → pack → pick → apply (see docs/backend/reuse.md)
 reuse:

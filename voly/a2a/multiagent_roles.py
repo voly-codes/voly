@@ -279,7 +279,15 @@ class _RoleExecMixin:
         try:
             from voly.a2a.core import emit_assignment_from_result
 
-            emit_assignment_from_result(a)
+            emit_assignment_from_result(
+                a,
+                worker_url=getattr(self, "capability_worker_url", "") or "",
+                profiles_dir=getattr(self, "capability_profiles_dir", "")
+                or ".voly/capability/profiles",
+                worker_timeout_s=float(
+                    getattr(self, "capability_worker_timeout_s", 3.0) or 3.0
+                ),
+            )
         except Exception:  # noqa: BLE001
             pass
 
