@@ -118,6 +118,9 @@ const { agents } = await fetch('/api/registry/agents').then(r => r.json())
 // agents: ["developer", "reviewer", "architect", "bugfixer", ...]
 ```
 
+The backend sources this ordered list from comma-separated `VOLY_ROLES` when
+configured, otherwise from the runtime agent registry.
+
 ---
 
 ## GET /api/registry/models
@@ -129,6 +132,10 @@ const { models } = await fetchModels('pipeline')
 // GET /api/registry/models?executor=pipeline
 // models: ["claude-sonnet-4-6", "gpt-4o", ...]  (filtered per executor)
 ```
+
+The backend first checks `VOLY_MODELS_<EXECUTOR>` (for example,
+`VOLY_MODELS_CLOUDFLARE_DYNAMIC`), then shared `VOLY_MODELS`, then its runtime
+model catalog. Values are comma-separated.
 
 ---
 

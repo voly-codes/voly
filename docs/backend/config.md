@@ -118,6 +118,25 @@ VOLY_RUN_POOL_WORKERS=16
 VOLY_JSON_LOGS=1
 # JSON-lines logs with correlation_id (web server). See docs/backend/api.md.
 
+VOLY_ROLES=architect,developer,tester,reviewer
+VOLY_MODELS=shared-model-a,shared-model-b
+VOLY_MODELS_PIPELINE=claude-sonnet-4-6,gpt-4o
+VOLY_MODELS_CLAUDE_CODE=claude-sonnet-4-6,claude-opus-4-8
+VOLY_MODELS_CURSOR=composer-2.5
+VOLY_MODELS_OPENCODE=kimi-k3,deepseek-v4-flash
+VOLY_MODELS_ZEN=mimo-v2.5-free,deepseek-v4-flash-free
+VOLY_MODELS_DEEPSEEK=deepseek-chat,deepseek-reasoner
+VOLY_MODELS_MIMO=mimo-v2.5-free
+VOLY_MODELS_WRANGLER=@cf/moonshotai/kimi-k2.7-code
+VOLY_MODELS_WORKERS_AI=@cf/meta/llama-4-scout-17b-16e-instruct
+VOLY_MODELS_CLOUDFLARE_DYNAMIC=dynamic/ai_route
+# Comma-separated Web UI dropdown values. Executor-specific model variables
+# take priority over VOLY_MODELS. Executor IDs are uppercased and non-alphanumeric
+# characters become underscores, so a custom `my-agent` executor uses the same
+# `VOLY_MODELS_<EXECUTOR>` pattern. If no env list is present, the API uses the runtime
+# agent registry / telemetry model catalog. An explicitly empty variable returns
+# an empty list.
+
 VOLY_CF_CONTAINERS_URL=http://127.0.0.1:8791
 VOLY_CF_CONTAINERS_TOKEN=
 VOLY_CF_CONTAINERS_MODE=probe

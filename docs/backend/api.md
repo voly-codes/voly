@@ -298,7 +298,24 @@ Server state, configuration, versions.
 
 ## GET /api/registry/agents
 
-List of registered agents from `voly/registry/`.
+List of roles/agents shown by the Web UI run form. `VOLY_ROLES` overrides the
+runtime `AgentRegistry`; the value is a comma-separated ordered list. An
+explicitly empty value returns an empty list.
+
+---
+
+## GET /api/registry/models
+
+List of models shown by the Web UI for the requested `executor` query
+parameter. Resolution order is:
+
+1. `VOLY_MODELS_<EXECUTOR>` (uppercase, punctuation replaced with `_`)
+2. shared comma-separated `VOLY_MODELS`
+3. the runtime telemetry model catalog
+
+For example, `executor=cloudflare-dynamic` reads
+`VOLY_MODELS_CLOUDFLARE_DYNAMIC`. An explicitly empty env value returns an
+empty list and does not fall through.
 
 ---
 
