@@ -20,6 +20,7 @@ For tasks that write files — use `AgentRunner` + executor.
 
 ```
 INIT
+  ↓ REPO_INTELLIGENCE — optional: analyze external repo when repo_url set
   ↓ AGUI_START        — notify AG-UI of task start (SSE events)
   ↓ A2A_DISCOVER      — find external agents (A2A federation)
   ↓ A2A_DELEGATE      — delegate subtasks if needed
@@ -36,6 +37,25 @@ INIT
   ↓ DONE / ERROR
   ↓ emit TaskEvent → telemetry
 ```
+
+---
+
+## REPO_INTELLIGENCE stage
+
+Runs **after** `INIT` and **before** `A2A_DISCOVER` when `repo_url` is a non-empty
+string (via `Pipeline.run(repo_url=…)` or `context["repo_url"]`).
+
+On success:
+
+| Context key | Content |
+|---|---|
+| `repo_intelligence` | `RepositoryIntelligence` from `voly.intelligence.analyze()` |
+| `task_features` | `intel.stack.languages + intel.stack.frameworks` |
+
+On failure: logs a warning, sets `repo_intelligence` to `None` and `task_features`
+to `[]`. The pipeline continues — this stage never blocks downstream work.
+
+Stage order: `INIT → REPO_INTELLIGENCE → AGUI_START → A2A_DISCOVER → …`
 
 ---
 
@@ -105,8 +125,9 @@ gate** (`POST /api/tech/detect`, fallback `GET /api/tech/categories`) before
 `POST /api/run`; a confirmed `tech_stack` is prepended to the task as a version
 constraint block (`voly/catalog/tech_registry.py:tech_stack_context`). A
 non-existent `cwd` is greenfield-scaffolded (dir + `git init` + stack-aware
-`.gitignore` + initial commit), and `reuse.auto: true` triggers a GitHub reuse
-search before the run.
+`.gitignore` + initial commit). When `reuse.auto: true`, both the web `/api/run`
+path and `Pipeline.run` (CLI `voly run --cwd …`) call `auto_reuse()` before
+routing / A2A so `.voly/reuse/reports/` exists for architect context inject.
 
 ### Hybrid multi-agent (implement roles → files) — PR1 skeleton
 

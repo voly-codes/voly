@@ -17,6 +17,7 @@ class MatchRequest:
     dimension: str
     available_executors: list[str] | None
     project_features: list[str] | None
+    kind: str = ""
     requires_file_tools: bool = True
     requires_browser_tools: bool = False
     worker_url: str = ""
@@ -99,6 +100,8 @@ class ExecutorMatcher:
         if req.available_executors is not None:
             allowed = set(req.available_executors)
             ids = [i for i in ids if i in allowed]
+        if req.kind:
+            ids = [i for i in ids if self._registry.load(i).kind == req.kind]
 
         included: list[tuple[ExecutorCapabilityProfile, float]] = []
         excluded: list[tuple[str, str]] = []

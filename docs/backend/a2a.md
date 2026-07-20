@@ -31,6 +31,24 @@ Local hybrid details (default executor roles, cascade, plan gates): see
 
 ---
 
+## Capability-aware role assignment
+
+`LeadOrchestrator` accepts optional `matcher` (`ExecutorMatcher`) and
+`project_context` (dict with `task_features` from `REPO_INTELLIGENCE` or project scan).
+
+For each subtask with a role, when `matcher` is set:
+
+1. Resolve `kind`: `executor` if the role is in `EXECUTOR_CAPABLE_ROLES`, else
+   `model_provider`.
+2. Call `matcher.find_executors(MatchRequest(dimension=role_to_dimension(role), kind=kind, …))`.
+3. When `result.recommended` is not `None`, use its id (executor) or model/provider
+   hint on the assignment.
+
+When the matcher returns `None` or raises, assignment falls back to the existing
+tier resolution (`_ROLE_TIER` + `resolve_role_model()`).
+
+---
+
 ## Auto-dispatch (pipeline)
 
 When `a2a.auto_dispatch: true` (default) and `TaskAnalysis` has 2+ capability flags

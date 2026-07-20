@@ -99,8 +99,10 @@ class AgentRunner:
         dry_run: bool = False,
         correlation_id: str = "",
         collect_evidence: bool = True,
+        repo_url: str = "",
     ) -> RunnerResult:
         from voly.correlation import ensure_correlation_id, get_correlation_id
+        from voly.runner.repo_intel import analyze_repo_for_run
 
         self.setup_rtk()
 
@@ -108,6 +110,7 @@ class AgentRunner:
         executor_name, agent_role = resolve_executor(agent, self.config)
         task_type = detect_task_type(task)
         task_id = new_task_id()
+        repo_ctx = analyze_repo_for_run(repo_url)
 
         executor = _build_executor(executor_name, model or None)
         _chain_log.info(
@@ -174,6 +177,9 @@ class AgentRunner:
             result.duration_ms = (time.monotonic() - t0) * 1000
         if pxpipe_artifacts:
             result.metadata["artifacts"] = pxpipe_artifacts
+        if repo_ctx:
+            result.metadata["repo_intelligence"] = repo_ctx.get("repo_intelligence")
+            result.metadata["task_features"] = repo_ctx.get("task_features") or []
 
         _chain_log.info(
             "[CHAIN:RESULT] executor=%s success=%s billing_error=%s duration_ms=%.0f error=%r",

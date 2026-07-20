@@ -20,9 +20,25 @@ from voly.a2a.assignment import (
 )
 from voly.a2a.hybrid import EXECUTOR_CAPABLE_ROLES
 from voly.ai_gateway.health import get_checker
+from voly.capability.matcher import ExecutorMatcher, MatchRequest
 from voly.router import _PROVIDER_MODELS
 
 _log = logging.getLogger("voly.a2a.multiagent")
+
+_ROLE_DIMENSION: dict[str, str] = {
+    "developer": "backend",
+    "tester": "testing",
+    "devops": "devops",
+    "architect": "architecture",
+    "reviewer": "backend",
+    "security": "backend",
+    "frontend": "frontend",
+    "bugfixer": "backend",
+}
+
+
+def role_to_dimension(role: str) -> str:
+    return _ROLE_DIMENSION.get((role or "").strip().lower(), "backend")
 
 
 class LeadOrchestrator:
@@ -45,6 +61,8 @@ class LeadOrchestrator:
         lead_model: str = "",
         lead_mode: str = "llm",
         role_tiers: dict[str, str] | None = None,
+        matcher: ExecutorMatcher | None = None,
+        project_context: dict | None = None,
     ):
         self.gateway = gateway
         self.skill_matcher = skill_matcher
@@ -52,6 +70,8 @@ class LeadOrchestrator:
         self.lead_model = lead_model
         self.lead_mode = (lead_mode or "llm").lower()
         self.role_tiers: dict[str, str] = role_tiers or {}
+        self.matcher = matcher
+        self.project_context = project_context
 
     def _should_ask_llm(self, subtasks: list[Any]) -> bool:
         if self.lead_mode == "deterministic":
@@ -75,6 +95,38 @@ class LeadOrchestrator:
                 seen.add(sid)
                 out.append((sid, getattr(s, "name", sid)))
         return out
+
+    def _capability_hint(
+        self, role: str,
+    ) -> tuple[str, str, str, str] | None:
+        """Return (executor_id, model, provider, execution) from matcher, or None."""
+        if self.matcher is None:
+            return None
+        role_key = (role or "").strip().lower()
+        if not role_key:
+            return None
+        try:
+            kind = "executor" if role_key in EXECUTOR_CAPABLE_ROLES else "model_provider"
+            features = (self.project_context or {}).get("task_features") or []
+            result = self.matcher.find_executors(MatchRequest(
+                dimension=role_to_dimension(role_key),
+                kind=kind,
+                available_executors=None,
+                project_features=features,
+            ))
+            if result.recommended is None:
+                return None
+            prof = result.recommended
+            if kind == "executor":
+                return (prof.id, "", "", "executor")
+            model = prof.model or ""
+            provider = prof.provider or ""
+            if model or provider:
+                return ("", model, provider, "")
+            return (prof.id, "", "", "")
+        except Exception as exc:  # noqa: BLE001 — fall back to tier resolution
+            _log.warning("capability matcher failed for role %s: %s", role, exc)
+            return None
 
     def assign(self, task: str, subtasks: list[Any]) -> list[Assignment]:
         """Produce an Assignment per sub-task. LLM-lead first, deterministic fallback."""
@@ -108,14 +160,26 @@ class LeadOrchestrator:
                 # When the lead answered and picked no skills, respect that.
                 skills = [sid for sid, _ in skill_candidates[i][:2]]
             model, provider = resolve_role_model(st.agent, tier, self.checker)
+            executor = ""
             execution = str(entry.get("execution") or "").strip().lower()
+            cap_hint = self._capability_hint(st.agent)
+            if cap_hint is not None:
+                hint_executor, hint_model, hint_provider, hint_exec = cap_hint
+                if hint_executor:
+                    executor = hint_executor
+                if hint_model:
+                    model = hint_model
+                if hint_provider:
+                    provider = hint_provider
+                if hint_exec:
+                    execution = hint_exec
             if execution == "executor" and st.agent.lower() not in EXECUTOR_CAPABLE_ROLES:
                 execution = ""
             assignments.append(Assignment(
                 idx=i, role=st.agent, description=st.description,
                 depends_on=list(getattr(st, "depends_on", [])),
                 tier=tier, model=model, provider=provider, skills=skills,
-                execution=execution,
+                execution=execution, executor=executor,
             ))
         return assignments
 

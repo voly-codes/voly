@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Pipeline(_PipelineStageMixin, _SkillsMixin):
-    """VOLY pipeline: INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE / ERROR."""
+    """VOLY pipeline: INIT → REPO_INTELLIGENCE → AGUI_START → A2A_DISCOVER → … → DONE / ERROR."""
 
     def __init__(self, config: Any = None):
         from voly.config import load_config
@@ -331,6 +331,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         delegate_to_a2a: bool = False,
         force_model: str | None = None,
         force_agent: str | None = None,
+        repo_url: str | None = None,
     ) -> PipelineResult:
         from voly.telemetry import TaskEvent, emit_event_from_config, new_task_id
 
@@ -342,6 +343,35 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
 
         try:
             self._fire(PipelineStage.INIT, task=task)
+
+            # Auto GitHub reuse search before routing / A2A (same as web /api/run).
+            # Saves .voly/reuse/reports/ under cwd; architect/developer then see it
+            # via project_context_block / format_reuse_context.
+            run_cwd = str(
+                context.get("cwd") or context.get("project_cwd") or ""
+            ).strip()
+            if run_cwd and getattr(getattr(self.config, "reuse", None), "auto", False):
+                try:
+                    from voly.reuse.pipeline import auto_reuse
+
+                    auto_reuse(
+                        task,
+                        cwd=run_cwd,
+                        config=self.config,
+                        gateway=getattr(self, "gateway", None),
+                    )
+                    self._fire(PipelineStage.INIT, reuse="auto_done", cwd=run_cwd)
+                except Exception as _reuse_exc:  # noqa: BLE001
+                    import logging as _logging
+
+                    _logging.getLogger("voly.pipeline").warning(
+                        "auto_reuse pre-stage skipped: %s", _reuse_exc
+                    )
+
+            resolved_repo = (repo_url or context.get("repo_url") or "").strip()
+            if resolved_repo:
+                context["repo_url"] = resolved_repo
+            self._stage_repo_intelligence(context, repo_url=resolved_repo)
 
             if self.config.agui.enabled and agui_session_id:
                 self._stage_agui_start(agui_session_id)

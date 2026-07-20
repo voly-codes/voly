@@ -9,6 +9,7 @@ from typing import Any
 
 class PipelineStage(Enum):
     INIT = "init"
+    REPO_INTELLIGENCE = "repo_intelligence"
     AGUI_START = "agui_start"
     A2A_DISCOVER = "a2a_discover"
     A2A_DELEGATE = "a2a_delegate"

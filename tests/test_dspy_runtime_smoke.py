@@ -43,3 +43,22 @@ def test_inference_manager_falls_back_to_classic_when_dspy_missing() -> None:
     assert outcome.runtime == "classic"
     assert outcome.used_dspy is False
     assert outcome.response["content"] == "classic response"
+
+
+def test_repo_intelligence_stage_skipped_without_url() -> None:
+    from voly.pipeline.types import PipelineStage
+
+    assert PipelineStage.REPO_INTELLIGENCE is not None
+    assert PipelineStage.REPO_INTELLIGENCE.value == "repo_intelligence"
+
+
+def test_lead_orchestrator_capability_aware() -> None:
+    from voly.a2a.lead import LeadOrchestrator
+
+    class _Gw:
+        def chat(self, **kwargs):  # type: ignore[no-untyped-def]
+            return {"content": ""}
+
+    lo = LeadOrchestrator(gateway=_Gw(), lead_mode="deterministic")
+    assert lo is not None
+    assert lo.matcher is None
