@@ -44,3 +44,5 @@ commit hash and an English description.
 - `1b95903` — Tighten frontend A2A role signals so backend prompts with architecture design no longer pull visual_reviewer.
 
 - `8884211` — Enable capability worker routing in A2A, filter match by kind, and honor matcher-chosen executors in hybrid runs.
+
+- `9c02171` — Close remaining strategy gaps: model_provider seeds, health-filtered match, routing policies, and voly run --repo / intelligence.auto.
