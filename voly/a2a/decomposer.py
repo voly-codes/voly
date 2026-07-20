@@ -148,8 +148,9 @@ class TaskDecomposer:
     def _signal_driven_roles(self, task: str) -> list[str]:
         """Check task text against each role's decomposer_signals.
 
-        Returns list of role IDs where any signal matches (case-insensitive
-        substring). Only roles with non-empty decomposer_signals are checked.
+        Returns list of role IDs where any signal matches. Multi-word signals
+        use case-insensitive substring; single-word signals use ``\\b`` word
+        boundaries. Only roles with non-empty decomposer_signals are checked.
         """
         from voly.a2a.roles import ROLE_REGISTRY
 

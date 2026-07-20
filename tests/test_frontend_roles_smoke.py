@@ -23,8 +23,10 @@ def test_signal_driven_roles_screenshot():
     from voly.a2a.decomposer import TaskDecomposer
 
     td = TaskDecomposer()
-    roles = td._signal_driven_roles("review the screenshot for accessibility")
+    roles = td._signal_driven_roles("review the screenshot for accessibility wcag")
     assert "visual_reviewer" in roles
+    roles_figma = td._signal_driven_roles("compare the figma mock to the implemented UI")
+    assert "visual_reviewer" in roles_figma
 
 
 def test_signal_driven_roles_no_match():
@@ -34,6 +36,40 @@ def test_signal_driven_roles_no_match():
     roles = td._signal_driven_roles("fix the database migration")
     assert "visual_reviewer" not in roles
     assert "browser_tester" not in roles
+    assert "ui_architect" not in roles
+    assert "ux_reviewer" not in roles
+
+
+def test_signal_driven_roles_no_false_positive_on_backend_design():
+    """Regression: bare 'design' matched 'architecture design' → visual_reviewer."""
+    from voly.a2a.decomposer import TaskDecomposer
+
+    td = TaskDecomposer()
+    prompt = (
+        "Implement and extend this Python project (architecture design, code generation, "
+        "tests, devops packaging, and code review required). FastAPI /health endpoint."
+    )
+    roles = td._signal_driven_roles(prompt)
+    assert "visual_reviewer" not in roles
+    assert "ui_architect" not in roles
+    assert "browser_tester" not in roles
+    assert "ux_reviewer" not in roles
+
+    # Full high-complexity decompose must also stay free of frontend extras.
+    from voly.router import TaskAnalysis
+
+    analysis = TaskAnalysis(
+        intent="implement",
+        complexity="high",
+        requires_code_gen=True,
+        requires_testing=True,
+        requires_review=True,
+        requires_deployment=True,
+    )
+    subs = td.decompose(prompt, analysis)
+    agents = {s.agent for s in subs}
+    assert "visual_reviewer" not in agents
+    assert "ui_architect" not in agents
 
 
 def test_seed_model_providers_exist():

@@ -114,8 +114,11 @@ ROLE_REGISTRY: dict[str, RoleDefinition] = {
             + _FILE_LINE_POLICY
         ),
         provider_offset=0,
+        # Avoid bare "ui"/"component"/"layout" — they fire on backend prompts
+        # ("architecture design", DI "components", DB "layout").
         decomposer_signals=[
-            "ui", "component", "svelte", "react", "frontend", "design system", "layout",
+            "svelte", "react", "vue", "frontend", "design system",
+            "ui architect", "component library", "tailwind", "css modules",
         ],
         capability_requirements={"frontend": ">= 0.70"},
     ),
@@ -130,9 +133,11 @@ ROLE_REGISTRY: dict[str, RoleDefinition] = {
         ),
         provider_offset=1,
         inject_prior_context=True,
+        # No bare "design"/"visual" — "architecture design" / generic "visual"
+        # falsely pulled this role into Python/API multi-agent runs.
         decomposer_signals=[
-            "screenshot", "visual", "design", "figma", "ui review",
-            "accessibility", "pixel",
+            "screenshot", "figma", "ui review", "visual review", "visual regression",
+            "pixel perfect", "wcag", "a11y", "accessibility", "design review",
         ],
         capability_requirements={"frontend": ">= 0.75", "image_input": "true"},
     ),
@@ -163,7 +168,8 @@ ROLE_REGISTRY: dict[str, RoleDefinition] = {
         provider_offset=0,
         inject_prior_context=True,
         decomposer_signals=[
-            "ux", "user experience", "usability", "user flow", "interaction", "onboarding",
+            "ux", "user experience", "usability", "user flow", "onboarding",
+            "interaction design",
         ],
         capability_requirements={"frontend": ">= 0.55"},
     ),

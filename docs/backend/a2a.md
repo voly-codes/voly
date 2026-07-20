@@ -39,10 +39,13 @@ capability-aware assignment.
 
 | Role | Tier | Mode | Signals (sample) | Capability requirements |
 |---|---|---|---|---|
-| `ui_architect` | standard | chat | `ui`, `component`, `react`, `frontend`, `layout` | `frontend >= 0.70` |
-| `visual_reviewer` | premium | chat | `screenshot`, `visual`, `figma`, `accessibility` | `frontend >= 0.75`, `image_input: true` |
+| `ui_architect` | standard | chat | `svelte`, `react`, `frontend`, `design system`, `tailwind` | `frontend >= 0.70` |
+| `visual_reviewer` | premium | chat | `screenshot`, `figma`, `ui review`, `wcag`, `accessibility` | `frontend >= 0.75`, `image_input: true` |
 | `browser_tester` | standard | executor | `e2e`, `playwright`, `cypress`, `browser test` | `frontend >= 0.70`, `browser_tools: true` |
-| `ux_reviewer` | cheap | chat | `ux`, `usability`, `user flow`, `onboarding` | `frontend >= 0.55` |
+| `ux_reviewer` | cheap | chat | `ux`, `usability`, `user flow`, `interaction design` | `frontend >= 0.55` |
+
+Bare tokens like `design`, `visual`, `ui`, `component`, and `layout` are intentionally
+omitted — they false-positive on backend prompts (e.g. “architecture design”).
 
 **`ui_architect`** — plans component structure, state, routing, and visual hierarchy
 (chat-only; no full implementations).
@@ -62,7 +65,8 @@ interaction patterns. `inject_prior_context=True` for context from earlier waves
 ### Signal-driven decomposition
 
 `TaskDecomposer._signal_driven_roles(task)` scans the task string against every role's
-`decomposer_signals` in `ROLE_REGISTRY` (case-insensitive substring match). Roles with
+`decomposer_signals` in `ROLE_REGISTRY`. Multi-word signals use case-insensitive
+substring match; single-word signals use word-boundary (`\b`) match. Roles with
 empty signals are skipped.
 
 - When flag-based decomposition already produced subtasks, `_with_signal_roles()` appends
