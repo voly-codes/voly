@@ -1,0 +1,17 @@
+{
+  "name": "voly-capability",
+  "main": "src/index.ts",
+  "account_id": "50fdb59b7724b696fd809ca810e34278",
+  "compatibility_date": "2025-01-01",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "capability.voly.codes", "custom_domain": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "CAPABILITY_DB",
+      "database_name": "voly-capability",
+      "database_id": "52103c13-d1fe-4a1e-b025-9ca687e67dbd"
+    }
+  ]
+}
