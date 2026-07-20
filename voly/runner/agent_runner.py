@@ -97,6 +97,7 @@ class AgentRunner:
         emit_event: bool = True,
         dry_run: bool = False,
         correlation_id: str = "",
+        collect_evidence: bool = True,
     ) -> RunnerResult:
         from voly.correlation import ensure_correlation_id, get_correlation_id
 
@@ -392,6 +393,28 @@ class AgentRunner:
                 chain_timelog=chain_timelog if len(chain_timelog) > 1 else [],
                 artifacts=pxpipe_artifacts,
             ), self.config)
+
+        if collect_evidence:
+            try:
+                from voly.capability.evidence import fire_executor_evidence
+
+                cap_cfg = getattr(self.config, "capability", None)
+                worker_url = str(getattr(cap_cfg, "worker_url", "") or "")
+                profiles_dir = str(
+                    getattr(self.config, "capability_profiles_dir", None)
+                    or ".voly/capability/profiles"
+                )
+                fire_executor_evidence(
+                    executor_id=executor_name,
+                    task=task,
+                    result=result,
+                    retry_count=retry_count,
+                    agent_role=agent_role,
+                    worker_url=worker_url,
+                    profiles_dir=profiles_dir,
+                )
+            except Exception:  # noqa: BLE001
+                pass
 
         return RunnerResult(
             success=result.success and not budget_exceeded,

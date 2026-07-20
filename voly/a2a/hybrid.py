@@ -173,6 +173,7 @@ def make_agent_runner_executor(
                 max_turns=max_turns,
                 timeout=timeout,
                 emit_event=emit_event,
+                collect_evidence=False,
             )
         er = rr.result
         files: list[str] = []

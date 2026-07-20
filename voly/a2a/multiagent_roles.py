@@ -225,6 +225,7 @@ class _RoleExecMixin:
             self.finish_step_plan(a, exec_ok=False, git_before=git_before)
             self.done[a.idx] = a
             self.heartbeat(a.role, len(self.done))
+            self._emit_role_evidence(a)
             return
         a.duration_ms = (time.monotonic() - _t0) * 1000
 
@@ -266,6 +267,15 @@ class _RoleExecMixin:
         self.finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
         self.done[a.idx] = a
         self.heartbeat(a.role, len(self.done))
+        self._emit_role_evidence(a)
+
+    def _emit_role_evidence(self, a: Assignment) -> None:
+        try:
+            from voly.a2a.core import emit_assignment_from_result
+
+            emit_assignment_from_result(a)
+        except Exception:  # noqa: BLE001
+            pass
 
     def chat_call(self, a: Assignment, user: str, system: str) -> dict[str, Any]:
         """Gateway call only — the sole part that may run in a worker thread."""
@@ -325,6 +335,7 @@ class _RoleExecMixin:
             self.finish_step_plan(a, exec_ok=False, git_before=git_before)
             self.done[a.idx] = a
             self.heartbeat(a.role, len(self.done))
+            self._emit_role_evidence(a)
             return False
 
         if resp.get("error"):
@@ -368,4 +379,5 @@ class _RoleExecMixin:
         )
         self.done[a.idx] = a
         self.heartbeat(a.role, len(self.done))
+        self._emit_role_evidence(a)
         return bool(resp.get("spend_limited"))

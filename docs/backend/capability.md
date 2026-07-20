@@ -28,6 +28,7 @@ capability_match × 0.40 + historical_success × 0.20 + tool_compatibility × 0.
 | `registry.py` | Load/save profiles from `.voly/capability/profiles/` YAML cache |
 | `scorer.py` | Pure routing score + hard-gate functions (`routing_score()`, `hard_exclude()`) |
 | `matcher.py` | `ExecutorMatcher` — CF Worker `/match` with local fallback |
+| `evidence.py` | Fire-and-forget run evidence → local EMA + CF Worker `/profiles/evidence` |
 | `seeds/` | Bundled seed profiles for known executors |
 
 ## Matcher + Scorer
@@ -78,6 +79,44 @@ seed (voly/capability/seeds/) → materialized copy (.voly/capability/profiles/)
 ```
 
 On first `load()`, a seed profile is copied into `.voly/capability/profiles/`. Subsequent reads use the materialized copy. `reset` removes the materialized file so the seed is re-applied on next load.
+
+## Evidence Collection
+
+After each executor run, `record_run()` collects evidence in a fire-and-forget daemon thread. The flow never blocks the caller and never raises.
+
+### `record_run()` flow
+
+1. **Skip** when `billing_error` or `not_available` is set (no score, no EMA update).
+2. **Compute** `run_score` via `_compute_run_score()`.
+3. **Thread** — spawn a daemon thread (or caller thread in `fire_executor_evidence`) that:
+   - updates the local registry EMA (`_update_local_ema()`), and
+   - POSTs to `{worker_url}/profiles/evidence` when a worker URL is configured.
+
+### `run_score` formula
+
+| Outcome | Score |
+|---------|-------|
+| `billing_error` or `not_available` | skip (`None`) |
+| `success=False` | `0.0` |
+| `success=True`, `files_changed=0` | `0.35` |
+| `success=True`, `files_changed>0` | `0.75 × 0.90^retry_count`, clamped to `[0.0, 1.0]` |
+
+Executors without file tools that succeed without changing files receive the lower `0.35` score (no file-change bonus).
+
+### Local EMA update
+
+- α = `0.15` applied to the dimension's `score`.
+- `confidence` += `0.02`, clamped to `1.0`.
+- `evidence.internal_runs` += 1; `successful_runs` += 1 when `success`.
+
+### Hook insertion points
+
+| Location | When | Dimension source |
+|----------|------|------------------|
+| `voly/runner/agent_runner.py` | After final executor result, before `RunnerResult` return | `resolve_run_dimension(task, agent_role)` — role map or task keywords, default `backend` |
+| `voly/a2a/core.py` → `multiagent_roles.py` | After each finalized multi-agent role (executor or chat) | `role_dimension(role)` — e.g. `tester` → `testing`, `devops` → `devops` |
+
+Multi-agent executor sub-runs pass `collect_evidence=False` to `AgentRunner.run()` so evidence is recorded once per role via the A2A hook (role-based dimension), not twice.
 
 ## CLI
 
