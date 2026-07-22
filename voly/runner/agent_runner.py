@@ -101,6 +101,7 @@ class AgentRunner:
         collect_evidence: bool = True,
         repo_url: str = "",
         parent_task_id: str = "",
+        task_id: str = "",
     ) -> RunnerResult:
         from voly.correlation import ensure_correlation_id, get_correlation_id
         from voly.runner.repo_intel import analyze_repo_for_run
@@ -110,7 +111,7 @@ class AgentRunner:
         cid = ensure_correlation_id(correlation_id or None)
         executor_name, agent_role = resolve_executor(agent, self.config)
         task_type = detect_task_type(task)
-        task_id = new_task_id()
+        task_id = task_id or new_task_id()
         repo_ctx = analyze_repo_for_run(repo_url)
 
         executor = _build_executor(executor_name, model or None)

@@ -163,8 +163,10 @@ const rec = await fetchRun(taskId)               // single RunRecord
 await cancelRun(taskId)                          // cooperative workflow cancel
 ```
 
-Polled by `ActiveRuns.svelte` (4s) — no SSE; records update via RunTracker
-heartbeats on disk.
+Polled centrally by `tasksStore` every 2s and merged into the normal task list;
+records update via RunTracker heartbeats on disk. `/api/run` emits the root
+`task_id` in its first `start` event so UI-launched tasks appear immediately,
+before the first poll.
 
 `GET /api/runs` returns only root records by default. Pass
 `include_children=1` for diagnostics; child executor records carry

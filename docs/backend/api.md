@@ -309,6 +309,12 @@ to `status=running`; each record carries `task`, `current_role`, `roles`,
 `age_seconds` (heartbeat freshness). Executor runs heartbeat every ~10s from
 `AgentRunner`; multi-agent runs after every role.
 
+`POST /api/run` allocates the root `task_id` before execution, writes the first
+running `RunRecord`, and includes that ID in the SSE `start` event. The same ID
+is passed through Pipeline, AgentRunner or the bounded workflow and later into
+the final TaskEvent. Clients can therefore show one row for the complete
+lifecycle instead of a temporary run card followed by a completed task.
+
 Note: the CLI writes records relative to its own cwd — runs launched from a
 different directory than the server's project keep their records in that
 project's `.voly/runs` (same rule as TaskEvents).

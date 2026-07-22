@@ -1,5 +1,5 @@
 const CARD_W = 220
-const CARD_H = 118
+const CARD_H = 132
 const GAP_X = 76
 const GAP_Y = 30
 const PAD = 24

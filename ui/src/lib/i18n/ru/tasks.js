@@ -1,6 +1,4 @@
 export default {
-  'runs.inProgress': 'В работе',
-  'runs.heartbeat': 'heartbeat',
   'sidebar.title': 'Задачи',
   'sidebar.collapse': 'Свернуть панель',
   'sidebar.expand': 'Развернуть панель',

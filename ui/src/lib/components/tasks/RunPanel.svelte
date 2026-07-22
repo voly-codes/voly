@@ -4,6 +4,7 @@
   import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills, detectTech } from '../../api/client.js'
   import CategoryPickerModal from './CategoryPickerModal.svelte'
   import { ui } from '../../stores/uiStore.svelte'
+  import { tasksStore } from '../../stores/tasksStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunOptions from './RunOptions.svelte'
   import RunAdvanced from './RunAdvanced.svelte'
@@ -217,12 +218,11 @@
     warning = null
     startedAt = Date.now()
 
-    const runId = crypto.randomUUID()
-    ui.pushRun({ id: runId, task: task.slice(0, 80), executor, agent: agent || 'auto', model: model || '—', startedAt: Date.now() })
-
     try {
       for await (const event of runTask(buildRunRequest(techStack))) {
         if (event.type === 'start') {
+          tasksStore.upsertLive(event, true)
+          ui.runOpen = false
           if (event.hybrid_warning) {
             warning = HYBRID_WARNING_LABELS[event.hybrid_warning] ?? event.hybrid_warning
           }
@@ -237,7 +237,6 @@
       error = e.message
     } finally {
       running = false
-      ui.resolveRun(runId)
     }
   }
 

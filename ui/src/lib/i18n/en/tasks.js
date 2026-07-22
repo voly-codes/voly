@@ -1,7 +1,5 @@
 // Tasks page: sidebar, run panel/params/result, pipeline inspector, cost panel.
 export default {
-  'runs.inProgress': 'In progress',
-  'runs.heartbeat': 'heartbeat',
   // Task sidebar
   'sidebar.title': 'Tasks',
   'sidebar.collapse': 'Collapse panel',

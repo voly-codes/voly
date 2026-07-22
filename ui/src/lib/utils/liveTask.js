@@ -1,7 +1,8 @@
 /** Map an in-flight RunRecord (/api/runs) to a TaskEvent-shaped object for PipelineInspector. */
 export function liveTaskFromRun(run) {
   if (!run?.task_id) return null
-  const roles = run.roles ?? []
+  const graphNodes = run.graph_nodes ?? []
+  const roles = (run.roles?.length ? run.roles : graphNodes.map(node => node.role || node.id)) ?? []
   const done = run.done_roles ?? 0
   const current = run.current_role ?? ''
   const steps = run.step_statuses ?? []
@@ -10,23 +11,24 @@ export function liveTaskFromRun(run) {
   )
 
   const assignments = roles.map((role, i) => {
+    const graphNode = graphNodes.find(node => node.role === role || node.id === role) ?? {}
     const doneRole = i < done
     const isCurrent = role === current
     return {
       role,
-      tier: '',
-      model: '',
-      provider: '',
-      skills: [],
-      input_tokens: 0,
-      output_tokens: 0,
-      cost_usd: 0,
-      ok: doneRole,
-      cache_hit: false,
-      mode: isCurrent ? 'running' : doneRole ? 'done' : 'pending',
+      tier: graphNode.tier || '',
+      model: graphNode.model || '',
+      provider: graphNode.provider || '',
+      skills: graphNode.skills || [],
+      input_tokens: graphNode.input_tokens || 0,
+      output_tokens: graphNode.output_tokens || 0,
+      cost_usd: graphNode.cost_usd || 0,
+      ok: graphNode.status === 'completed' || doneRole,
+      cache_hit: !!graphNode.cache_hit,
+      mode: graphNode.status || (isCurrent ? 'running' : doneRole ? 'done' : 'pending'),
       mode_reason: isCurrent ? 'in_progress' : doneRole ? 'completed' : 'queued',
-      executor: null,
-      files_touched: [],
+      executor: graphNode.executor || null,
+      files_touched: graphNode.files_touched || [],
       plan_status: stepByRole[role] ?? (isCurrent ? 'running' : doneRole ? 'done' : null),
       plan_verify_ok: null,
     }
@@ -47,7 +49,7 @@ export function liveTaskFromRun(run) {
     _mtime: Date.now() / 1000,
     tokens: { input: 0, output: 0, saved_rtk: 0, saved_headroom: 0 },
     gateway: { cache_hit: false, fallback_used: false, dlp_blocked: false },
-    skill_ids: [],
+    skill_ids: [...new Set(graphNodes.flatMap(node => node.skills || []))],
     a2a_dispatched: roles.length > 1,
     a2a_subtask_count: roles.length,
     a2a_agents_used: roles,
@@ -68,7 +70,8 @@ export function liveTaskFromRun(run) {
     cancel_requested: !!run.cancel_requested,
     timeline: run.timeline ?? [],
     workflow_metrics: run.workflow_metrics ?? {},
-    graph_nodes: run.graph_nodes ?? [],
+    graph_nodes: graphNodes,
     graph_edges: run.graph_edges ?? [],
+    live_steps: steps,
   }
 }

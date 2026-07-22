@@ -1,9 +1,7 @@
 <script>
   import { SearchIcon, ChevronLeftIcon, ChevronRightIcon } from '../../icons.js'
-  import ActiveRuns from './ActiveRuns.svelte'
   import StatusDot from '../shared/StatusDot.svelte'
   import { fmtDur, fmtRel } from '../../utils/format.js'
-  import { fetchRuns } from '../../api/client.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import { ui } from '../../stores/uiStore.svelte'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
@@ -54,19 +52,6 @@
   ])
   void i18n.locale
 
-  async function openLocalRun(run) {
-    try {
-      const data = await fetchRuns(true)
-      const runs = data.runs ?? []
-      const match = runs.find(r => (r.task || '').startsWith((run.task || '').slice(0, 40)))
-        ?? (runs.length === 1 ? runs[0] : null)
-      if (match) {
-        tasksStore.selectLive(match)
-        return
-      }
-    } catch {}
-    ui.runOpen = true
-  }
 </script>
 
 {#if ui.sidebarCollapsed}
@@ -83,7 +68,6 @@
       <ChevronLeftIcon size="14" strokeWidth="2" />
     </button>
   </div>
-  <ActiveRuns />
   <div class="sidebar-search">
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
     <input
@@ -119,25 +103,6 @@
   </div>
 
   <div class="task-list">
-    {#each ui.activeRuns as run (run.id)}
-      <button type="button" class="task-row task-row--running" onclick={() => openLocalRun(run)}>
-        <div class="task-row-top">
-          <StatusDot status="running" size={7} />
-          <span class="task-agent">{run.agent}</span>
-          <span class="running-badge">{t('sidebar.running')}</span>
-        </div>
-        <div class="task-row-mid">
-          <span class="task-model">{run.model}</span>
-          {#if run.executor !== run.agent}
-            <span class="task-executor">via {run.executor}</span>
-          {/if}
-        </div>
-        <div class="task-row-bot">
-          <span class="task-prompt">{run.task}</span>
-        </div>
-      </button>
-    {/each}
-
     {#each filtered as task (task.task_id)}
       {@const isSelected = selected?.task_id === task.task_id}
       {@const isNew = tasksStore.isUnseen(task.task_id)}
@@ -150,6 +115,9 @@
         <div class="task-row-top">
           <StatusDot status={task.status} size={7} />
           <span class="task-agent">{task.agent ?? t('sidebar.unknown')}</span>
+          {#if task._live || task.status === 'running'}
+            <span class="running-badge">{task._live_progress?.current_role || t('sidebar.running')}</span>
+          {/if}
           {#if isNew}
             <span class="new-badge">new</span>
           {/if}
@@ -169,7 +137,7 @@
       </button>
     {/each}
 
-    {#if filtered.length === 0 && ui.activeRuns.length === 0}
+    {#if filtered.length === 0}
       <div class="empty">{t('sidebar.noTasks')}</div>
     {/if}
   </div>
@@ -387,12 +355,6 @@
     color: var(--text-muted);
   }
 
-  .task-row--running {
-    cursor: pointer;
-    border-left: 2px solid var(--running-fg, var(--accent-blue));
-    background: color-mix(in srgb, var(--running-fg, var(--accent-blue)) 5%, transparent);
-  }
-
   .running-badge {
     margin-left: auto;
     font-size: 9px;
@@ -405,15 +367,6 @@
   }
 
   @keyframes run-pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-
-  .task-prompt {
-    font-size: 10px;
-    color: var(--text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-  }
 
   .unseen {
     border-left: 2px solid var(--accent-blue);

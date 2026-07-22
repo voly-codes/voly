@@ -332,6 +332,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         force_model: str | None = None,
         force_agent: str | None = None,
         repo_url: str | None = None,
+        task_id: str | None = None,
     ) -> PipelineResult:
         from voly.telemetry import TaskEvent, emit_event_from_config, new_task_id
 
@@ -340,7 +341,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         self._run_stage_log = []
         context = context or {}
         context["task"] = task
-        task_id = new_task_id()
+        task_id = task_id or new_task_id()
 
         try:
             self._fire(PipelineStage.INIT, task=task)

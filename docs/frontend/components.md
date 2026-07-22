@@ -303,34 +303,18 @@ Each stage is a colored badge. A failed stage is highlighted red.
 
 ---
 
-## ActiveRuns.svelte
-
-"In progress" block at the top of `TaskSidebar`: polls `/api/runs?active=1`
-every 4s and lists runs that are still executing (including CLI-launched
-ones) — task text, current role/executor, progress `done/total`, elapsed.
-Click opens the live task card in `PipelineInspector` (via `tasksStore.selectLive`)
-and expands a drill-down: task id, heartbeat age (red when >60s), role
-chips (done/current), plan `step_statuses`, error. While the card is open,
-poll patches progress in place. When the last active run finishes, the store
-refreshes and the completed TaskEvent replaces the live card.
-
-The endpoint returns root runs by default. File-capable sub-agent calls keep
-diagnostic child records linked by `parent_task_id`, but they do not create
-additional ActiveRuns cards. One parent card therefore represents one agent
-flow for its whole lifetime.
-
-For `review-until-clean` records the row also shows the current lap and latest
-verdict. Its expanded view exposes a cooperative **Cancel after current call**
-action: cancellation is recorded immediately, then observed by the workflow at
-the next safe boundary; it never interrupts an executor or provider call.
-
 ## TaskSidebar.svelte
 
-List of previous tasks. Data from `GET /api/tasks` (SSE).
-Click — loads the task into `PipelineInspector`.
-In-flight rows from the Run drawer (`ui.activeRuns`) are clickable: resolve to
-a server `/api/runs` record when possible and open the live card; otherwise
-re-open the Run drawer.
+One unified list of completed and running tasks. Completed records arrive from
+`GET /api/tasks`/SSE; root `RunRecord`s are merged into the same store every two
+seconds and inserted immediately from `/api/run`'s `start` event. A running row
+has one role/running label. Click loads the live record into
+`PipelineInspector`; there is no separate "In progress" section.
+
+The selected live task updates in place from RunTracker heartbeats. Its shared
+`LiveAgentGraph` exposes agent assignment, skills, routing, files, plan stages
+and status. When execution finishes, the TaskEvent with the same `task_id`
+replaces the live shape without creating a second row.
 
 **Collapse toggle:** header chevron button sets `ui.sidebarCollapsed = true`;
 collapsed state renders a 22px strip with a single expand button (state lives

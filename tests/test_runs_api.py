@@ -102,12 +102,16 @@ def test_review_workflow_uses_explicit_api_route(client: TestClient, monkeypatch
 
     captured = {}
 
-    def _fake(req, config, runs_dir):
-        captured.update({"workflow": req.workflow, "runs_dir": runs_dir})
+    def _fake(req, config, runs_dir, workflow_id):
+        captured.update({
+            "workflow": req.workflow,
+            "runs_dir": runs_dir,
+            "workflow_id": workflow_id,
+        })
         return {
             "success": True,
             "workflow": "review-until-clean",
-            "task_id": "wf-1",
+            "task_id": workflow_id,
             "stop_reason": "clean",
             "laps": [],
         }
@@ -124,6 +128,10 @@ def test_review_workflow_uses_explicit_api_route(client: TestClient, monkeypatch
     assert '"workflow": "review-until-clean"' in response.text
     assert '"stop_reason": "clean"' in response.text
     assert captured["workflow"] == "review-until-clean"
+    assert captured["workflow_id"]
+    assert f'"task_id": "{captured["workflow_id"]}"' in response.text
+    rec = client.get(f'/api/runs/{captured["workflow_id"]}').json()
+    assert rec["status"] == "completed"
 
 
 def test_agent_runner_writes_run_record(tmp_path: Path, monkeypatch) -> None:
@@ -152,12 +160,13 @@ def test_agent_runner_writes_run_record(tmp_path: Path, monkeypatch) -> None:
     )
     out = AgentRunner(cfg).run(
         "demo task", "claude-code", cwd=str(tmp_path), emit_event=False,
-        parent_task_id="parent-1",
+        parent_task_id="parent-1", task_id="web-run-1",
     )
     assert out.success is True
 
     recs = RunTracker(str(runs_dir)).list()
     assert len(recs) == 1
+    assert recs[0].task_id == "web-run-1"
     assert recs[0].status == "completed"
     assert recs[0].task == "demo task"
     assert recs[0].parent_task_id == "parent-1"

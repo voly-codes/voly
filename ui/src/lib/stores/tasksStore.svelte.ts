@@ -1,4 +1,4 @@
-import { fetchTasks, fetchTask, fetchSummary, fetchStatus, taskStream } from '../api/client.js'
+import { fetchTasks, fetchTask, fetchSummary, fetchStatus, fetchRuns, taskStream } from '../api/client.js'
 import { liveTaskFromRun } from '../utils/liveTask.js'
 import { router } from './routerStore.svelte'
 
@@ -12,9 +12,11 @@ let unseenIds = $state<Set<string>>(new Set())
 
 let _es: EventSource | null = null
 let _pollTimer: ReturnType<typeof setInterval> | null = null
+let _runPollTimer: ReturnType<typeof setInterval> | null = null
 let _sseFailures = 0
 const MAX_SSE_FAILURES = 3
 const POLL_INTERVAL_MS = 10_000
+const RUN_POLL_INTERVAL_MS = 2_000
 
 function _startPolling() {
   if (_pollTimer) return
@@ -56,7 +58,13 @@ function _mergeNew(incoming: any[], markUnseen = true) {
 async function refresh() {
   try {
     const [t, s, st] = await Promise.all([fetchTasks(), fetchSummary(), fetchStatus()])
-    tasks = t
+    const finalIds = new Set(t.map((item: any) => item.task_id))
+    const live = tasks.filter(item => item._live && !finalIds.has(item.task_id))
+    tasks = [...live, ...t].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
+    if (selected?._live) {
+      const final = t.find((item: any) => item.task_id === selected.task_id)
+      if (final) selected = final
+    }
     summary = s
     status = st
     error = null
@@ -71,6 +79,41 @@ async function refresh() {
   } finally {
     loading = false
   }
+}
+
+function upsertLive(run: any, selectNow = false) {
+  const live = liveTaskFromRun(run)
+  if (!live) return
+  const index = tasks.findIndex(item => item.task_id === live.task_id)
+  tasks = index < 0
+    ? [live, ...tasks]
+    : tasks.map((item, i) => i === index ? live : item)
+  tasks = [...tasks].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
+  if (selected?._live && selected.task_id === live.task_id) selected = live
+  if (selectNow) selectLive(run)
+}
+
+async function syncLiveRuns() {
+  try {
+    const data = await fetchRuns(true)
+    const runs = data.runs ?? []
+    const activeIds = new Set(runs.map((run: any) => run.task_id))
+    const hadMissingLive = tasks.some(item => item._live && !activeIds.has(item.task_id))
+    for (const run of runs) upsertLive(run)
+    tasks = tasks.filter(item => !item._live || activeIds.has(item.task_id))
+    if (hadMissingLive) await refresh()
+  } catch {}
+}
+
+function startRunPolling() {
+  if (_runPollTimer) return
+  void syncLiveRuns()
+  _runPollTimer = setInterval(syncLiveRuns, RUN_POLL_INTERVAL_MS)
+}
+
+function stopRunPolling() {
+  if (_runPollTimer) clearInterval(_runPollTimer)
+  _runPollTimer = null
 }
 
 async function loadById(taskId: string) {
@@ -96,12 +139,9 @@ function selectLive(run: any) {
   router.navigate('tasks', live.task_id.slice(0, 8))
 }
 
-/** Refresh selected live card when ActiveRuns polls the same task_id. */
+/** Refresh a selected live card from a RunRecord heartbeat. */
 function patchLive(run: any) {
-  if (!selected?._live || !run?.task_id) return
-  if (selected.task_id !== run.task_id) return
-  const live = liveTaskFromRun(run)
-  if (live) selected = live
+  upsertLive(run)
 }
 
 function isUnseen(taskId: string): boolean {
@@ -113,6 +153,7 @@ function markAllSeen() {
 }
 
 async function startStream() {
+  startRunPolling()
   try {
     const es = await taskStream()
     es.onopen = () => {
@@ -151,6 +192,7 @@ function stopStream() {
   _es?.close()
   _es = null
   _stopPolling()
+  stopRunPolling()
   window.removeEventListener('beforeunload', _stopPolling)
 }
 
@@ -168,7 +210,9 @@ export const tasksStore = {
   refresh,
   select,
   selectLive,
+  upsertLive,
   patchLive,
+  syncLiveRuns,
   startStream,
   stopStream,
 }
