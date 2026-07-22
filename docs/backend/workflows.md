@@ -65,6 +65,13 @@ causal `timeline`. `POST /api/runs/{task_id}/cancel` sets a cooperative flag. It
 does not terminate an already-running subprocess; the controller observes it
 before starting the next developer or reviewer turn.
 
+AgentRunner calls made by the workflow carry the parent's `workflow_id` as
+`parent_task_id`. Their diagnostic records remain addressable directly but are
+excluded from the default root-run list. The parent owns stable `developer` and
+`reviewer` graph nodes; route, status, duration, cost, files, verdict, and error
+are upserted after each turn so the UI updates one shared graph instead of
+creating a graph per child call.
+
 Completed records also retain internal `workflow_metrics`: laps, repair laps,
 verified completion, cooperative manual interventions, total cost, duration,
 unique files touched, and stop reason. These fields deliberately stay outside

@@ -29,10 +29,17 @@ def _to_dict(rec: Any) -> dict[str, Any]:
 
 
 @router.get("/api/runs")
-def list_runs(request: Request, active: bool = False, limit: int = 50) -> dict[str, Any]:
+def list_runs(
+    request: Request,
+    active: bool = False,
+    include_children: bool = False,
+    limit: int = 50,
+) -> dict[str, Any]:
     from voly.runtime.runs import RUNNING, RunTracker
 
     records = RunTracker(_runs_dir(request)).list()
+    if not include_children:
+        records = [r for r in records if not r.parent_task_id]
     if active:
         records = [r for r in records if r.status == RUNNING]
     return {

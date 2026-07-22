@@ -50,6 +50,8 @@ class ReviewLap:
     developer_cost_usd: float = 0.0
     reviewer_cost_usd: float = 0.0
     cost_usd: float = 0.0
+    developer_duration_ms: float = 0.0
+    reviewer_duration_ms: float = 0.0
     duration_ms: float = 0.0
     error: str = ""
 
@@ -92,6 +94,8 @@ class ReviewLoopResult:
                     "developer_cost_usd": round(lap.developer_cost_usd, 6),
                     "reviewer_cost_usd": round(lap.reviewer_cost_usd, 6),
                     "cost_usd": round(lap.cost_usd, 6),
+                    "developer_duration_ms": round(lap.developer_duration_ms, 1),
+                    "reviewer_duration_ms": round(lap.reviewer_duration_ms, 1),
                     "duration_ms": round(lap.duration_ms, 1),
                     "error": lap.error,
                 }
@@ -151,6 +155,21 @@ class ReviewUntilClean:
                 max_laps=max_rounds,
                 active_role="developer",
             )
+            tracker.graph_update(
+                workflow_id,
+                edges=[
+                    {"from": "developer", "to": "reviewer", "kind": "implementation"},
+                    {"from": "reviewer", "to": "developer", "kind": "blocking_findings"},
+                ],
+            )
+            tracker.graph_update(
+                workflow_id,
+                node={"id": "developer", "role": "developer", "status": "running"},
+            )
+            tracker.graph_update(
+                workflow_id,
+                node={"id": "reviewer", "role": "reviewer", "status": "pending"},
+            )
 
         for number in range(1, max_rounds + 1):
             if self._cancelled(tracker, workflow_id):
@@ -181,13 +200,16 @@ class ReviewUntilClean:
                 timeout=timeout,
                 emit_event=False,
                 collect_evidence=False,
+                parent_task_id=workflow_id,
             )
             lap = self._lap_from_run(number, run)
             laps.append(lap)
+            self._record_developer_node(tracker, workflow_id, lap, run.success)
 
             if not run.success:
                 lap.error = run.result.error or "developer executor failed"
                 lap.duration_ms = self._elapsed_ms(lap_started)
+                self._record_developer_node(tracker, workflow_id, lap, False)
                 reason = (
                     ReviewStopReason.SPEND_LIMIT
                     if getattr(run, "budget_exceeded", False)
@@ -214,6 +236,7 @@ class ReviewUntilClean:
                 tracker, workflow_id, number, "developer", "reviewer", "implementation_ready",
             )
 
+            review_started = self.clock()
             review = self.gateway.chat(
                 [{"role": "user", "content": self._review_prompt(task, lap, cwd)}],
                 model=model,
@@ -228,10 +251,12 @@ class ReviewUntilClean:
             lap.reviewer_output = str(review.get("content") or "")
             lap.reviewer_cost_usd = self._review_cost(review)
             lap.cost_usd += lap.reviewer_cost_usd
+            lap.reviewer_duration_ms = self._elapsed_ms(review_started)
             lap.duration_ms = self._elapsed_ms(lap_started)
 
             if review.get("error"):
                 lap.error = str(review["error"])
+                self._record_reviewer_node(tracker, workflow_id, lap, "failed")
                 reason = (
                     ReviewStopReason.SPEND_LIMIT
                     if review.get("spend_limited")
@@ -245,6 +270,7 @@ class ReviewUntilClean:
                 lap.verdict, lap.findings = parse_review_verdict(lap.reviewer_output)
             except ValueError as exc:
                 lap.error = str(exc)
+                self._record_reviewer_node(tracker, workflow_id, lap, "failed")
                 return self._finish(
                     ReviewLoopResult(
                         False, ReviewStopReason.REVIEW_FAILED, laps, lap.error,
@@ -257,6 +283,12 @@ class ReviewUntilClean:
                     workflow_id,
                     lap=number,
                     latest_verdict=lap.verdict.value,
+                )
+                self._record_reviewer_node(
+                    tracker,
+                    workflow_id,
+                    lap,
+                    "verified" if lap.verdict is ReviewVerdict.CLEAN else "blocked",
                 )
             if lap.verdict is ReviewVerdict.CLEAN:
                 return self._finish(
@@ -299,6 +331,60 @@ class ReviewUntilClean:
                 "to": target,
                 "reason": reason,
                 "at": time.time(),
+            },
+        )
+        tracker.graph_update(
+            workflow_id,
+            node={"id": target, "role": target, "status": "running"},
+        )
+
+    @staticmethod
+    def _record_developer_node(
+        tracker: Any,
+        workflow_id: str,
+        lap: ReviewLap,
+        success: bool,
+    ) -> None:
+        if tracker is None or not workflow_id:
+            return
+        tracker.graph_update(
+            workflow_id,
+            node={
+                "id": "developer",
+                "role": "developer",
+                "status": "completed" if success else "failed",
+                "executor": lap.developer_executor,
+                "duration_ms": round(lap.developer_duration_ms, 1),
+                "cost_usd": round(lap.developer_cost_usd, 6),
+                "files_touched": list(lap.files_touched),
+                "error": lap.error,
+                "lap": lap.number,
+            },
+        )
+
+    @staticmethod
+    def _record_reviewer_node(
+        tracker: Any,
+        workflow_id: str,
+        lap: ReviewLap,
+        status: str,
+    ) -> None:
+        if tracker is None or not workflow_id:
+            return
+        tracker.graph_update(
+            workflow_id,
+            node={
+                "id": "reviewer",
+                "role": "reviewer",
+                "status": status,
+                "provider": lap.reviewer_provider,
+                "model": lap.reviewer_model,
+                "duration_ms": round(lap.reviewer_duration_ms, 1),
+                "cost_usd": round(lap.reviewer_cost_usd, 6),
+                "error": lap.error,
+                "verdict": lap.verdict.value if lap.verdict else "",
+                "findings": list(lap.findings),
+                "lap": lap.number,
             },
         )
 
@@ -365,6 +451,7 @@ class ReviewUntilClean:
             files_touched=files,
             developer_cost_usd=developer_cost,
             cost_usd=developer_cost,
+            developer_duration_ms=float(result.duration_ms or 0.0),
         )
 
     def _elapsed_ms(self, started: float) -> float:

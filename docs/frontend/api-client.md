@@ -166,6 +166,11 @@ await cancelRun(taskId)                          // cooperative workflow cancel
 Polled by `ActiveRuns.svelte` (4s) — no SSE; records update via RunTracker
 heartbeats on disk.
 
+`GET /api/runs` returns only root records by default. Pass
+`include_children=1` for diagnostics; child executor records carry
+`parent_task_id`. Root records expose `graph_nodes` and `graph_edges`, which are
+updated in place and rendered as one `LiveAgentGraph` while agents work.
+
 Workflow records additionally expose `workflow`, `lap`, `max_laps`,
 `active_role`, `latest_verdict`, `stop_reason`, `cancel_requested`, and a
 causal `timeline`. Completed records also have `workflow_metrics` for rollout

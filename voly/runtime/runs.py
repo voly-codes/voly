@@ -35,6 +35,7 @@ STALE = "stale"
 @dataclass
 class RunRecord:
     task_id: str
+    parent_task_id: str = ""
     task: str = ""
     status: str = RUNNING
     started_at: float = 0.0
@@ -57,6 +58,8 @@ class RunRecord:
     cancel_requested: bool = False
     timeline: list[dict] = field(default_factory=list)
     workflow_metrics: dict = field(default_factory=dict)
+    graph_nodes: list[dict] = field(default_factory=list)
+    graph_edges: list[dict] = field(default_factory=list)
 
     @property
     def age_seconds(self) -> float:
@@ -98,10 +101,14 @@ class RunTracker:
         roles: list[str],
         *,
         plan_id: str = "",
+        parent_task_id: str = "",
+        graph_nodes: list[dict] | None = None,
+        graph_edges: list[dict] | None = None,
     ) -> RunRecord:
         now = time.time()
         rec = RunRecord(
             task_id=task_id,
+            parent_task_id=parent_task_id,
             task=task[:500],
             status=RUNNING,
             started_at=now,
@@ -111,9 +118,37 @@ class RunTracker:
             current_role=roles[0] if roles else "",
             roles=list(roles),
             plan_id=plan_id or "",
+            graph_nodes=list(graph_nodes or []),
+            graph_edges=list(graph_edges or []),
         )
         self._write(rec)
         return rec
+
+    def graph_update(
+        self,
+        task_id: str,
+        *,
+        node: dict | None = None,
+        edges: list[dict] | None = None,
+    ) -> None:
+        """Upsert one node on the parent run's shared live graph."""
+        rec = self.load(task_id)
+        if rec is None:
+            return
+        rec.heartbeat_at = time.time()
+        if node is not None:
+            item = dict(node)
+            node_id = str(item.get("id") or "")
+            if node_id:
+                by_id = {str(existing.get("id") or ""): existing for existing in rec.graph_nodes}
+                by_id[node_id] = {**by_id.get(node_id, {}), **item}
+                order = [str(existing.get("id") or "") for existing in rec.graph_nodes]
+                if node_id not in order:
+                    order.append(node_id)
+                rec.graph_nodes = [by_id[key] for key in order if key in by_id]
+        if edges is not None:
+            rec.graph_edges = [dict(edge) for edge in edges]
+        self._write(rec)
 
     def heartbeat(
         self,

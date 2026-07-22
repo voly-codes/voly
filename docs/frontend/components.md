@@ -306,6 +306,11 @@ chips (done/current), plan `step_statuses`, error. While the card is open,
 poll patches progress in place. When the last active run finishes, the store
 refreshes and the completed TaskEvent replaces the live card.
 
+The endpoint returns root runs by default. File-capable sub-agent calls keep
+diagnostic child records linked by `parent_task_id`, but they do not create
+additional ActiveRuns cards. One parent card therefore represents one agent
+flow for its whole lifetime.
+
 For `review-until-clean` records the row also shows the current lap and latest
 verdict. Its expanded view exposes a cooperative **Cancel after current call**
 action: cancellation is recorded immediately, then observed by the workflow at
@@ -420,6 +425,21 @@ view for the immediate final SSE response.
 `max_rounds` (1–20) and `deadline_seconds` (60–3600). A review workflow requires
 a working directory and ignores dry-run mode because its purpose is to perform
 and verify real repairs.
+
+## LiveAgentGraph.svelte
+
+The default inspector canvas for a live parent run with `graph_nodes`. It is a
+single, scrollable directed graph for the whole run—not one flow per agent.
+Stable node ids are updated in place on every poll; an executor child never
+becomes a second canvas.
+
+`agentGraphModel.js` lays out dependency DAGs in columns and gives a cyclic
+workflow a deterministic left-to-right fallback. Each node shows live status,
+executor/provider/model route, duration, cost, touched-file count, and error.
+The most recent causal transition (or the edge entering a running node) is
+animated. Reduced-motion preferences disable the signal animation. Live graph
+runs open directly on the Agent atlas tab; historical/single-agent tasks remain
+report-first and retain `AgentAtlas.svelte`.
 
 ---
 

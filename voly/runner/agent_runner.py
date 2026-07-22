@@ -100,6 +100,7 @@ class AgentRunner:
         correlation_id: str = "",
         collect_evidence: bool = True,
         repo_url: str = "",
+        parent_task_id: str = "",
     ) -> RunnerResult:
         from voly.correlation import ensure_correlation_id, get_correlation_id
         from voly.runner.repo_intel import analyze_repo_for_run
@@ -131,7 +132,9 @@ class AgentRunner:
                 from voly.runtime.runs import RunTracker
 
                 tracker = RunTracker(self.config.telemetry.runs_dir)
-                tracker.start(task_id, task, [executor_name])
+                tracker.start(
+                    task_id, task, [executor_name], parent_task_id=parent_task_id,
+                )
                 hb_stop = threading.Event()
 
                 def _hb_loop() -> None:

@@ -135,6 +135,7 @@ def make_agent_runner_executor(
     max_turns: int = 30,
     timeout: int = 300,
     emit_event: bool = False,
+    parent_task_id: str = "",
 ) -> Callable[..., dict[str, Any]]:
     """Build an ``executor_runner`` for ``run_local`` using AgentRunner.
 
@@ -181,6 +182,7 @@ def make_agent_runner_executor(
                 timeout=timeout,
                 emit_event=emit_event,
                 collect_evidence=False,
+                parent_task_id=parent_task_id,
             )
         er = rr.result
         files: list[str] = []

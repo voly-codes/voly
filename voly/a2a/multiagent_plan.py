@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from voly.a2a.assignment import Assignment, apply_env_provider_exclusions
 
@@ -192,4 +191,14 @@ class _PlanGatesMixin:
                 self.task,
                 [a.role for a in self.assignments],
                 plan_id=self.plan.plan_id if self.plan else "",
+                graph_nodes=[self.graph_node(a) for a in self.assignments],
+                graph_edges=[
+                    {
+                        "from": f"agent-{dependency}",
+                        "to": f"agent-{a.idx}",
+                        "status": "pending",
+                    }
+                    for a in self.assignments
+                    for dependency in a.depends_on
+                ],
             )

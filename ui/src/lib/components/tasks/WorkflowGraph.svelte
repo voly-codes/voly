@@ -28,7 +28,7 @@
       executor: role === 'developer' ? relevant.at(-1)?.developer_executor : '',
       provider: role === 'reviewer' ? relevant.at(-1)?.reviewer_provider : '',
       model: role === 'reviewer' ? relevant.at(-1)?.reviewer_model : '',
-      duration: relevant.reduce((sum, l) => sum + (l.duration_ms ?? 0), 0),
+      duration: relevant.reduce((sum, l) => sum + (role === 'developer' ? (l.developer_duration_ms ?? 0) : (l.reviewer_duration_ms ?? 0)), 0),
       cost: relevant.reduce((sum, l) => sum + (role === 'developer' ? (l.developer_cost_usd ?? 0) : (l.reviewer_cost_usd ?? 0)), 0),
       files: [...new Set(relevant.flatMap(l => l.files_touched ?? []))],
       error: relevant.findLast(l => l.error)?.error ?? '',

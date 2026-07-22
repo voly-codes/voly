@@ -195,6 +195,9 @@ def test_parent_run_record_contains_causal_timeline(tmp_path) -> None:
     assert record.stop_reason == "clean"
     assert record.active_role == ""
     assert [item["to"] for item in record.timeline] == ["developer", "reviewer"]
+    assert {node["id"] for node in record.graph_nodes} == {"developer", "reviewer"}
+    assert next(node for node in record.graph_nodes if node["id"] == "reviewer")["status"] == "verified"
+    assert {run["parent_task_id"] for run in runner.calls} == {"workflow-1"}
     assert record.workflow_metrics == {
         "laps": 1,
         "repair_laps": 0,

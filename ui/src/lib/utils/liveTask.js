@@ -68,5 +68,7 @@ export function liveTaskFromRun(run) {
     cancel_requested: !!run.cancel_requested,
     timeline: run.timeline ?? [],
     workflow_metrics: run.workflow_metrics ?? {},
+    graph_nodes: run.graph_nodes ?? [],
+    graph_edges: run.graph_edges ?? [],
   }
 }

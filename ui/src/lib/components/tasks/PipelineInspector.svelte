@@ -13,14 +13,18 @@
   import { buildPipelineStages, buildTokenBar } from './pipelineStageModel.js'
   import AgentAtlas from './AgentAtlas.svelte'
   import WorkflowGraph from './WorkflowGraph.svelte'
+  import LiveAgentGraph from './LiveAgentGraph.svelte'
 
   let outputExpanded = $state(true)
   let task = $derived(tasksStore.selected)
   let activeTab = $state('report')
 
-  // Reset to the report tab whenever a different task is selected, so the
-  // atlas of a previous task doesn't linger under a new one.
-  $effect(() => { void task?.task_id; activeTab = 'report' })
+  // Live parent runs open directly on their one shared graph. Historical and
+  // single-agent tasks keep the report-first behavior.
+  $effect(() => {
+    void task?.task_id
+    activeTab = task?._live && task?.graph_nodes?.length ? 'atlas' : 'report'
+  })
 
   let tokenBar = $derived.by(() => {
     void i18n.locale
@@ -55,7 +59,9 @@
     </div>
 
     {#if activeTab === 'atlas'}
-      {#if task.workflow === 'review-until-clean'}
+      {#if task._live && task.graph_nodes?.length}
+        <LiveAgentGraph {task} />
+      {:else if task.workflow === 'review-until-clean'}
         <WorkflowGraph {task} />
       {:else}
         <AgentAtlas {task} />

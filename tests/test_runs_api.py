@@ -59,6 +59,26 @@ def test_list_and_get_run(client: TestClient, voly_dir: Path) -> None:
     assert client.get("/api/runs/nope").status_code == 404
 
 
+def test_list_runs_groups_children_under_one_root(client: TestClient, voly_dir: Path) -> None:
+    tracker = RunTracker(str(voly_dir / "runs"))
+    tracker.start("root", "shared flow", ["developer", "reviewer"])
+    tracker.start(
+        "child", "developer call", ["claude-code"], parent_task_id="root",
+    )
+    tracker.graph_update(
+        "root",
+        node={"id": "developer", "role": "developer", "status": "running"},
+    )
+
+    roots = client.get("/api/runs?active=1").json()
+    assert [record["task_id"] for record in roots["runs"]] == ["root"]
+    assert roots["runs"][0]["graph_nodes"][0]["status"] == "running"
+
+    all_records = client.get("/api/runs?active=1&include_children=1").json()
+    assert {record["task_id"] for record in all_records["runs"]} == {"root", "child"}
+    assert client.get("/api/runs/child").json()["parent_task_id"] == "root"
+
+
 def test_cancel_active_run_is_cooperative(client: TestClient, voly_dir: Path) -> None:
     tracker = RunTracker(str(voly_dir / "runs"))
     tracker.start("workflow-1", "fix", ["developer", "reviewer"])
@@ -130,13 +150,17 @@ def test_agent_runner_writes_run_record(tmp_path: Path, monkeypatch) -> None:
         rtk=RTKConfig(enabled=False),
         telemetry=TelemetryConfig(runs_dir=str(runs_dir)),
     )
-    out = AgentRunner(cfg).run("demo task", "claude-code", cwd=str(tmp_path), emit_event=False)
+    out = AgentRunner(cfg).run(
+        "demo task", "claude-code", cwd=str(tmp_path), emit_event=False,
+        parent_task_id="parent-1",
+    )
     assert out.success is True
 
     recs = RunTracker(str(runs_dir)).list()
     assert len(recs) == 1
     assert recs[0].status == "completed"
     assert recs[0].task == "demo task"
+    assert recs[0].parent_task_id == "parent-1"
 
 
 def test_agent_runner_run_record_marks_failure(tmp_path: Path, monkeypatch) -> None:

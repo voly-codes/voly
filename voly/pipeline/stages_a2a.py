@@ -291,6 +291,7 @@ class _A2AStageMixin:
                 max_turns=30,
                 timeout=max(timeout, 30),
                 emit_event=False,
+                parent_task_id=task_id,
             )
         plan_cfg = getattr(self.config, "plan", None)  # type: ignore[attr-defined]
         # PR5: fill empty tester_command from project scan (does not enable plan gates).
