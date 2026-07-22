@@ -49,3 +49,18 @@ def get_run(request: Request, task_id: str) -> dict[str, Any]:
     if rec is None:
         raise HTTPException(status_code=404, detail=f"no run record for {task_id}")
     return _to_dict(rec)
+
+
+@router.post("/api/runs/{task_id}/cancel")
+def cancel_run(request: Request, task_id: str) -> dict[str, Any]:
+    """Request cooperative stop before the workflow's next blocking turn."""
+    from voly.runtime.runs import RunTracker
+
+    accepted = RunTracker(_runs_dir(request)).request_cancel(task_id)
+    if not accepted:
+        raise HTTPException(status_code=409, detail="run is missing or no longer active")
+    return {
+        "task_id": task_id,
+        "cancel_requested": True,
+        "interrupts_active_subprocess": False,
+    }

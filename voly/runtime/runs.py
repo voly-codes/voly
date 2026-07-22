@@ -47,6 +47,15 @@ class RunRecord:
     # Plan gates (Rung B PR4) — optional mirror of the multi-agent plan.
     plan_id: str = ""
     step_statuses: list[dict] = field(default_factory=list)
+    # Bounded workflow visibility. Kept out of the frozen TaskEvent contract.
+    workflow: str = ""
+    lap: int = 0
+    max_laps: int = 0
+    active_role: str = ""
+    stop_reason: str = ""
+    latest_verdict: str = ""
+    cancel_requested: bool = False
+    timeline: list[dict] = field(default_factory=list)
 
     @property
     def age_seconds(self) -> float:
@@ -122,6 +131,54 @@ class RunTracker:
         if step_statuses is not None:
             rec.step_statuses = list(step_statuses)
         self._write(rec)
+
+    def workflow_update(
+        self,
+        task_id: str,
+        *,
+        workflow: str | None = None,
+        lap: int | None = None,
+        max_laps: int | None = None,
+        active_role: str | None = None,
+        latest_verdict: str | None = None,
+        stop_reason: str | None = None,
+        transition: dict | None = None,
+    ) -> None:
+        """Persist bounded-workflow progress and an optional causal transition."""
+        rec = self.load(task_id)
+        if rec is None:
+            return
+        rec.heartbeat_at = time.time()
+        if workflow is not None:
+            rec.workflow = workflow
+        if lap is not None:
+            rec.lap = lap
+        if max_laps is not None:
+            rec.max_laps = max_laps
+        if active_role is not None:
+            rec.active_role = active_role
+            rec.current_role = active_role
+        if latest_verdict is not None:
+            rec.latest_verdict = latest_verdict
+        if stop_reason is not None:
+            rec.stop_reason = stop_reason
+        if transition is not None:
+            rec.timeline.append(dict(transition))
+        self._write(rec)
+
+    def request_cancel(self, task_id: str) -> bool:
+        """Request cooperative cancellation between blocking workflow turns."""
+        rec = self.load(task_id)
+        if rec is None or rec.status != RUNNING or not rec.workflow:
+            return False
+        rec.cancel_requested = True
+        rec.heartbeat_at = time.time()
+        self._write(rec)
+        return True
+
+    def cancellation_requested(self, task_id: str) -> bool:
+        rec = self.load(task_id)
+        return bool(rec and rec.cancel_requested)
 
     def finish(
         self,
@@ -200,5 +257,5 @@ def _load_path(path: str) -> RunRecord | None:
             data = json.load(fh)
     except (OSError, ValueError):
         return None
-    known = {f for f in RunRecord.__dataclass_fields__}  # tolerate extra/legacy keys
+    known = set(RunRecord.__dataclass_fields__)  # tolerate extra/legacy keys
     return RunRecord(**{k: v for k, v in data.items() if k in known})

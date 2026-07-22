@@ -195,6 +195,7 @@ voly plan list|show
 voly reuse search|pack|pick|apply|run
 voly repo inspect|analyze|map|license
 voly capability list|show|match|reset
+voly workflow review-until-clean <task> --cwd <project>
 ```
 
 When removing a command: remove it from `cli/main.py`, `cli/commands/__init__.py`, tests, README, docs.

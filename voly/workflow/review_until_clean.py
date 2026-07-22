@@ -32,6 +32,7 @@ class ReviewStopReason(str, Enum):
     EXECUTOR_FAILED = "executor_failed"
     REVIEW_FAILED = "review_failed"
     SPEND_LIMIT = "spend_limit"
+    CANCELLED = "cancelled"
 
 
 @dataclass
@@ -57,6 +58,7 @@ class ReviewLoopResult:
     stop_reason: ReviewStopReason
     laps: list[ReviewLap] = field(default_factory=list)
     error: str = ""
+    workflow_id: str = ""
 
     @property
     def total_cost_usd(self) -> float:
@@ -65,6 +67,33 @@ class ReviewLoopResult:
     @property
     def duration_ms(self) -> float:
         return round(sum(lap.duration_ms for lap in self.laps), 1)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "success": self.success,
+            "workflow": "review-until-clean",
+            "task_id": self.workflow_id,
+            "stop_reason": self.stop_reason.value,
+            "error": self.error,
+            "total_cost_usd": self.total_cost_usd,
+            "duration_ms": self.duration_ms,
+            "laps": [
+                {
+                    "number": lap.number,
+                    "developer_task_id": lap.developer_task_id,
+                    "developer_executor": lap.developer_executor,
+                    "files_touched": list(lap.files_touched),
+                    "reviewer_provider": lap.reviewer_provider,
+                    "reviewer_model": lap.reviewer_model,
+                    "verdict": lap.verdict.value if lap.verdict else None,
+                    "findings": list(lap.findings),
+                    "cost_usd": round(lap.cost_usd, 6),
+                    "duration_ms": round(lap.duration_ms, 1),
+                    "error": lap.error,
+                }
+                for lap in self.laps
+            ],
+        }
 
 
 class ReviewUntilClean:
@@ -93,6 +122,8 @@ class ReviewUntilClean:
         max_turns: int = 30,
         reviewer_model: str = "",
         reviewer_provider: str = "",
+        tracker: Any = None,
+        workflow_id: str = "",
     ) -> ReviewLoopResult:
         if not task.strip():
             raise ValueError("task must not be empty")
@@ -108,10 +139,32 @@ class ReviewUntilClean:
         laps: list[ReviewLap] = []
         findings: list[str] = []
 
+        if tracker is not None and workflow_id:
+            tracker.start(workflow_id, task, ["developer", "reviewer"])
+            tracker.workflow_update(
+                workflow_id,
+                workflow="review-until-clean",
+                max_laps=max_rounds,
+                active_role="developer",
+            )
+
         for number in range(1, max_rounds + 1):
+            if self._cancelled(tracker, workflow_id):
+                return self._finish(
+                    ReviewLoopResult(False, ReviewStopReason.CANCELLED, laps),
+                    tracker, workflow_id,
+                )
             remaining = deadline_seconds - (self.clock() - started)
             if remaining <= 0:
-                return ReviewLoopResult(False, ReviewStopReason.DEADLINE, laps)
+                return self._finish(
+                    ReviewLoopResult(False, ReviewStopReason.DEADLINE, laps),
+                    tracker, workflow_id,
+                )
+
+            self._transition(
+                tracker, workflow_id, number, "reviewer" if number > 1 else "start",
+                "developer", "initial_task" if number == 1 else "blocking_findings",
+            )
 
             lap_started = self.clock()
             developer_task = self._developer_task(task, number, findings)
@@ -136,12 +189,26 @@ class ReviewUntilClean:
                     if getattr(run, "budget_exceeded", False)
                     else ReviewStopReason.EXECUTOR_FAILED
                 )
-                return ReviewLoopResult(False, reason, laps, lap.error)
+                return self._finish(
+                    ReviewLoopResult(False, reason, laps, lap.error), tracker, workflow_id,
+                )
 
             remaining = deadline_seconds - (self.clock() - started)
             if remaining <= 0:
                 lap.duration_ms = self._elapsed_ms(lap_started)
-                return ReviewLoopResult(False, ReviewStopReason.DEADLINE, laps)
+                return self._finish(
+                    ReviewLoopResult(False, ReviewStopReason.DEADLINE, laps),
+                    tracker, workflow_id,
+                )
+
+            if self._cancelled(tracker, workflow_id):
+                return self._finish(
+                    ReviewLoopResult(False, ReviewStopReason.CANCELLED, laps),
+                    tracker, workflow_id,
+                )
+            self._transition(
+                tracker, workflow_id, number, "developer", "reviewer", "implementation_ready",
+            )
 
             review = self.gateway.chat(
                 [{"role": "user", "content": self._review_prompt(task, lap, cwd)}],
@@ -165,21 +232,90 @@ class ReviewUntilClean:
                     if review.get("spend_limited")
                     else ReviewStopReason.REVIEW_FAILED
                 )
-                return ReviewLoopResult(False, reason, laps, lap.error)
+                return self._finish(
+                    ReviewLoopResult(False, reason, laps, lap.error), tracker, workflow_id,
+                )
 
             try:
                 lap.verdict, lap.findings = parse_review_verdict(lap.reviewer_output)
             except ValueError as exc:
                 lap.error = str(exc)
-                return ReviewLoopResult(
-                    False, ReviewStopReason.REVIEW_FAILED, laps, lap.error,
+                return self._finish(
+                    ReviewLoopResult(
+                        False, ReviewStopReason.REVIEW_FAILED, laps, lap.error,
+                    ),
+                    tracker, workflow_id,
                 )
 
+            if tracker is not None and workflow_id:
+                tracker.workflow_update(
+                    workflow_id,
+                    lap=number,
+                    latest_verdict=lap.verdict.value,
+                )
             if lap.verdict is ReviewVerdict.CLEAN:
-                return ReviewLoopResult(True, ReviewStopReason.CLEAN, laps)
+                return self._finish(
+                    ReviewLoopResult(True, ReviewStopReason.CLEAN, laps),
+                    tracker, workflow_id,
+                )
             findings = lap.findings
 
-        return ReviewLoopResult(False, ReviewStopReason.MAX_ROUNDS, laps)
+        return self._finish(
+            ReviewLoopResult(False, ReviewStopReason.MAX_ROUNDS, laps),
+            tracker, workflow_id,
+        )
+
+    @staticmethod
+    def _cancelled(tracker: Any, workflow_id: str) -> bool:
+        return bool(
+            tracker is not None
+            and workflow_id
+            and tracker.cancellation_requested(workflow_id)
+        )
+
+    def _transition(
+        self,
+        tracker: Any,
+        workflow_id: str,
+        lap: int,
+        source: str,
+        target: str,
+        reason: str,
+    ) -> None:
+        if tracker is None or not workflow_id:
+            return
+        tracker.workflow_update(
+            workflow_id,
+            lap=lap,
+            active_role=target,
+            transition={
+                "lap": lap,
+                "from": source,
+                "to": target,
+                "reason": reason,
+                "at": time.time(),
+            },
+        )
+
+    @staticmethod
+    def _finish(
+        result: ReviewLoopResult,
+        tracker: Any,
+        workflow_id: str,
+    ) -> ReviewLoopResult:
+        if tracker is not None and workflow_id:
+            tracker.workflow_update(
+                workflow_id,
+                active_role="",
+                stop_reason=result.stop_reason.value,
+            )
+            tracker.finish(
+                workflow_id,
+                status="completed" if result.success else "failed",
+                error=result.error,
+            )
+        result.workflow_id = workflow_id
+        return result
 
     def _reviewer_route(self, model: str, provider: str) -> tuple[str, str]:
         if model and provider:

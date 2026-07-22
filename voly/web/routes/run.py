@@ -9,14 +9,14 @@ import os
 import re
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from voly.executor.base import executor_failure_details
 from voly.correlation import ensure_correlation_id, get_correlation_id
+from voly.executor.base import executor_failure_details
 
 router = APIRouter()
 # Executor calls are blocking (subprocess.run) but I/O-bound, not CPU-bound —
@@ -60,6 +60,10 @@ class RunRequest(BaseModel):
     # User-confirmed tech stack from TechSelectionModal.
     # Each entry: {name, label, version, category, notes?}
     tech_stack: list[dict] = []
+    # Explicit bounded workflow. Empty preserves existing dispatch behavior.
+    workflow: Literal["", "review-until-clean"] = ""
+    max_rounds: int = 3
+    deadline_seconds: float = 900.0
 
 
 class TechDetectRequest(BaseModel):
@@ -243,8 +247,8 @@ def _extract_relevant_lines(content: str, keywords: list[str], max_lines: int = 
 # ── Run helpers ───────────────────────────────────────────────────────────────
 
 def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
-    from voly.pipeline import Pipeline
     from voly.catalog.tech_registry import tech_stack_context
+    from voly.pipeline import Pipeline
 
     cfg = config
     if cfg is None:
@@ -395,6 +399,62 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
     return out
 
 
+def _review_workflow_run(
+    req: RunRequest,
+    config: Any,
+    runs_dir: str,
+) -> dict[str, Any]:
+    """Run the explicit bounded review workflow for CLI/UI parity."""
+    if req.dry_run:
+        raise ValueError("review-until-clean does not support dry_run")
+    cfg = config
+    if cfg is None:
+        from voly.config import load_config
+
+        cfg = load_config()
+
+    from voly.catalog.tech_registry import tech_stack_context
+    from voly.pipeline import Pipeline
+    from voly.runner.agent_runner import AgentRunner
+    from voly.runtime.runs import RunTracker
+    from voly.telemetry import new_task_id
+    from voly.workflow import ReviewUntilClean
+
+    work_dir = os.path.abspath(os.path.expanduser(
+        req.cwd or getattr(cfg, "default_cwd", "") or os.getcwd()
+    ))
+    task = req.task
+    if req.tech_stack:
+        task = f"{tech_stack_context(req.tech_stack)}\n\n{task}"
+    context = _gather_local_context(req.task, work_dir)
+    if context:
+        task = f"{task}\n\n{context}"
+
+    pipeline = Pipeline(cfg)
+    try:
+        result = ReviewUntilClean(
+            runner=AgentRunner(cfg),
+            gateway=pipeline.gateway,
+        ).run(
+            task,
+            cwd=work_dir,
+            executor=req.executor if req.executor != "pipeline" else "claude-code",
+            max_rounds=req.max_rounds,
+            deadline_seconds=req.deadline_seconds,
+            executor_timeout=req.timeout,
+            max_turns=req.max_turns,
+            reviewer_model=req.model,
+            tracker=RunTracker(runs_dir),
+            workflow_id=new_task_id(),
+        )
+    finally:
+        pipeline.shutdown()
+    payload = result.to_dict()
+    payload["cost_usd"] = payload["total_cost_usd"]
+    payload["cwd"] = work_dir
+    return payload
+
+
 def _needs_executor(task: str, config: Any) -> bool:
     """True when the task requires actual file operations (code gen/edit/fix)."""
     from voly.router import AgentRouter
@@ -445,7 +505,14 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             "cwd": req.cwd or "",
             "correlation_id": ensure_correlation_id(),
         }
-        if req.executor == "pipeline":
+        if req.workflow:
+            start_payload.update({
+                "workflow": req.workflow,
+                "executor": req.executor if req.executor != "pipeline" else "claude-code",
+                "max_rounds": req.max_rounds,
+                "deadline_seconds": req.deadline_seconds,
+            })
+        elif req.executor == "pipeline":
             effective_cwd = (
                 req.cwd
                 or getattr(config, "default_cwd", "")
@@ -510,8 +577,18 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
         start_payload["correlation_id"] = ensure_correlation_id()
         yield _sse("start", start_payload)
         try:
-            fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
-            future = loop.run_in_executor(_THREAD_POOL, fn, effective_req, config)
+            if effective_req.workflow == "review-until-clean":
+                runs_dir = str(request.app.state.app.ev_dir.parent / "runs")
+                future = loop.run_in_executor(
+                    _THREAD_POOL,
+                    _review_workflow_run,
+                    effective_req,
+                    config,
+                    runs_dir,
+                )
+            else:
+                fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
+                future = loop.run_in_executor(_THREAD_POOL, fn, effective_req, config)
             while True:
                 done, _pending = await asyncio.wait({future}, timeout=_RUN_HEARTBEAT_SECONDS)
                 if future in done:

@@ -6,6 +6,7 @@ import pytest
 
 from voly.executor.base import ExecutorResult, WorkReport
 from voly.runner.agent_runner import RunnerResult
+from voly.runtime.runs import RunTracker
 from voly.workflow.review_until_clean import (
     ReviewStopReason,
     ReviewUntilClean,
@@ -169,3 +170,51 @@ def test_parse_review_verdict_accepts_json_fence() -> None:
 def test_parse_review_verdict_rejects_ambiguous_payload(payload) -> None:
     with pytest.raises(ValueError):
         parse_review_verdict(payload)
+
+
+def test_parent_run_record_contains_causal_timeline(tmp_path) -> None:
+    (tmp_path / "app.py").write_text("x = 1\n", encoding="utf-8")
+    tracker = RunTracker(str(tmp_path / ".voly" / "runs"))
+    runner = _FakeRunner([_run_result()])
+    gateway = _FakeGateway([{
+        "content": '{"verdict":"clean","findings":[],"summary":"ok"}',
+    }])
+
+    result = ReviewUntilClean(runner=runner, gateway=gateway).run(
+        "fix", cwd=str(tmp_path), reviewer_model="m", reviewer_provider="p",
+        tracker=tracker, workflow_id="workflow-1",
+    )
+
+    record = tracker.load("workflow-1")
+    assert result.workflow_id == "workflow-1"
+    assert record is not None
+    assert record.workflow == "review-until-clean"
+    assert record.latest_verdict == "clean"
+    assert record.stop_reason == "clean"
+    assert record.active_role == ""
+    assert [item["to"] for item in record.timeline] == ["developer", "reviewer"]
+
+
+def test_cooperative_cancel_stops_before_next_developer_turn(tmp_path) -> None:
+    class _CancelAfterVerdictTracker(RunTracker):
+        def workflow_update(self, task_id, **kwargs):
+            super().workflow_update(task_id, **kwargs)
+            if kwargs.get("latest_verdict") == "blocking":
+                self.request_cancel(task_id)
+
+    (tmp_path / "app.py").write_text("x = 1\n", encoding="utf-8")
+    tracker = _CancelAfterVerdictTracker(str(tmp_path / ".voly" / "runs"))
+    runner = _FakeRunner([_run_result()])
+    gateway = _FakeGateway([{
+        "content": '{"verdict":"blocking","findings":["fix it"]}',
+    }])
+
+    result = ReviewUntilClean(runner=runner, gateway=gateway).run(
+        "fix", cwd=str(tmp_path), max_rounds=3,
+        reviewer_model="m", reviewer_provider="p",
+        tracker=tracker, workflow_id="workflow-cancel",
+    )
+
+    assert result.stop_reason is ReviewStopReason.CANCELLED
+    assert len(runner.calls) == 1
+    assert tracker.load("workflow-cancel").stop_reason == "cancelled"

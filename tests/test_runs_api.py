@@ -59,6 +59,53 @@ def test_list_and_get_run(client: TestClient, voly_dir: Path) -> None:
     assert client.get("/api/runs/nope").status_code == 404
 
 
+def test_cancel_active_run_is_cooperative(client: TestClient, voly_dir: Path) -> None:
+    tracker = RunTracker(str(voly_dir / "runs"))
+    tracker.start("workflow-1", "fix", ["developer", "reviewer"])
+    tracker.workflow_update(
+        "workflow-1", workflow="review-until-clean", lap=1,
+        active_role="reviewer",
+    )
+
+    response = client.post("/api/runs/workflow-1/cancel")
+
+    assert response.status_code == 200
+    assert response.json()["cancel_requested"] is True
+    assert response.json()["interrupts_active_subprocess"] is False
+    assert tracker.load("workflow-1").cancel_requested is True
+    tracker.finish("workflow-1")
+    assert client.post("/api/runs/workflow-1/cancel").status_code == 409
+
+
+def test_review_workflow_uses_explicit_api_route(client: TestClient, monkeypatch) -> None:
+    from voly.web.routes import run as run_route
+
+    captured = {}
+
+    def _fake(req, config, runs_dir):
+        captured.update({"workflow": req.workflow, "runs_dir": runs_dir})
+        return {
+            "success": True,
+            "workflow": "review-until-clean",
+            "task_id": "wf-1",
+            "stop_reason": "clean",
+            "laps": [],
+        }
+
+    monkeypatch.setattr(run_route, "_review_workflow_run", _fake)
+    response = client.post("/api/run", json={
+        "task": "fix app",
+        "cwd": ".",
+        "workflow": "review-until-clean",
+        "max_rounds": 2,
+    })
+
+    assert response.status_code == 200
+    assert '"workflow": "review-until-clean"' in response.text
+    assert '"stop_reason": "clean"' in response.text
+    assert captured["workflow"] == "review-until-clean"
+
+
 def test_agent_runner_writes_run_record(tmp_path: Path, monkeypatch) -> None:
     """Executor runs (incl. CLI-launched) leave a RunRecord: start → finish."""
     from voly.runner import agent_runner as runner_mod

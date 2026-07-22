@@ -16,6 +16,32 @@ auth/SSO or other commercial code here — see `CONTRIBUTING.md`.
 
 ## POST /api/run
 
+### Bounded review workflow
+
+The normal request also accepts these optional fields:
+
+```json
+{
+  "task": "fix the login regression",
+  "cwd": "/path/to/project",
+  "workflow": "review-until-clean",
+  "executor": "claude-code",
+  "max_rounds": 3,
+  "deadline_seconds": 900,
+  "timeout": 300
+}
+```
+
+`workflow` is either empty (existing dispatch behavior) or
+`review-until-clean`. Workflow requests bypass smart dispatch and explicitly run
+the bounded developer/reviewer controller. `dry_run` is rejected for this
+workflow because rolling back every developer lap would leave no implementation
+for the reviewer to inspect.
+
+The final SSE `done` payload includes `workflow`, parent `task_id`,
+`stop_reason`, `laps`, `total_cost_usd`, `duration_ms`, and `cwd`. This is an
+endpoint response shape, not a change to the frozen `TaskEvent` v3 contract.
+
 Start a task. Returns an SSE stream.
 
 ```typescript
@@ -264,6 +290,17 @@ The route only serves `.png` files inside the task artifact directory.
 ---
 
 ## GET /api/runs · GET /api/runs/{task_id}
+
+Workflow parent records add `workflow`, `lap`, `max_laps`, `active_role`,
+`latest_verdict`, `stop_reason`, `cancel_requested`, and a causal `timeline`.
+These are internal run-state fields and do not modify `TaskEvent` v3.
+
+### POST /api/runs/{task_id}/cancel
+
+Requests cooperative cancellation of an active run. The response explicitly
+reports `interrupts_active_subprocess: false`: Python cannot safely terminate a
+blocking executor already running in the shared thread pool, so cancellation is
+observed before the next workflow turn. Missing or finished runs return `409`.
 
 In-flight run records (`.voly/runs/`, RunTracker heartbeats) — tasks that are
 **still executing**, including ones launched from the CLI. `?active=1` filters

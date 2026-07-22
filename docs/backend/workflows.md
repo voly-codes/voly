@@ -43,6 +43,27 @@ verdict, blocking findings, duration, and visible cost. The final
 | `executor_failed` | The developer executor failed before review. |
 | `review_failed` | The reviewer call failed or returned an invalid verdict. |
 | `spend_limit` | AgentRunner or AIGateway rejected further spend. |
+| `cancelled` | A cooperative cancel request was observed between blocking turns. |
+
+## Public entrypoints
+
+CLI:
+
+```bash
+voly workflow review-until-clean "fix the login regression" \
+  --cwd /path/to/project --max-rounds 3 --deadline 900
+```
+
+Web/API: send `workflow: "review-until-clean"` to `POST /api/run`. The existing
+SSE stream emits `start`, heartbeats while a blocking executor/reviewer call is
+active, and a final `done` payload containing `task_id`, `stop_reason`, costs,
+and the structured laps.
+
+The parent workflow writes a `RunRecord` alongside normal executor records with
+`workflow`, current `lap`, `active_role`, `latest_verdict`, `stop_reason`, and a
+causal `timeline`. `POST /api/runs/{task_id}/cancel` sets a cooperative flag. It
+does not terminate an already-running subprocess; the controller observes it
+before starting the next developer or reviewer turn.
 
 ## Architecture boundary
 
