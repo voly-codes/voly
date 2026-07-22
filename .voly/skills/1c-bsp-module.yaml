@@ -1,0 +1,70 @@
+id: 1c-bsp-module
+name: 1c-bsp-module
+description: >-
+  Add BSP (Библиотека стандартных подсистем) subsystem modules to a 1C:Enterprise
+  configuration following BSP architecture standards. Covers module naming, event
+  subscriptions, role-based access, update handlers, and BSP compatibility.
+  Use when the task mentions БСП, подсистема 1С, стандартные подсистемы, BSP subsystem,
+  добавить подсистему, настроить БСП, обработчик обновления.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, bsl, bsp, бсп, подсистема, subsystem, стандарты]
+compatible_languages: [bsl, 1c]
+compatible_frameworks: [1c-enterprise, bsp]
+capabilities: [bsp-integration, module-design, 1c-architecture]
+content: |
+  # BSP Module Integration Skill
+
+  ## BSP naming conventions
+
+  | Module type | Naming pattern | Example |
+  |---|---|---|
+  | Common (public) | `<ИмяПодсистемы>` | `РаботаСФайлами` |
+  | Common (internal) | `<ИмяПодсистемы>Служебный` | `РаботаСФайламиСлужебный` |
+  | Common (client) | `<ИмяПодсистемы>КлиентСервер` | `РаботаСФайламиКлиентСервер` |
+  | Override module | `<ИмяПодсистемы>ПереопределяемыйМодуль` | - |
+
+  ## Adding a new BSP subsystem
+
+  1. **Create subsystem object** in configurator tree under `Подсистемы`
+  2. **Create common modules** following naming table above
+  3. **Register in BSP integration module** (`ИнтеграцияПодсистемБСП`):
+     ```bsl
+     // В ПриДобавленииПодсистем:
+     Подсистема = Подсистемы.Добавить();
+     Подсистема.Имя = "МояПодсистема";
+     Подсистема.ВерсияБиблиотеки = "3.1.9";
+     ```
+  4. **Add update handler** if the subsystem stores settings:
+     ```bsl
+     // In update handler module, procedure OnAddUpdateHandlers:
+     Обработчик = Обработчики.Добавить();
+     Обработчик.Процедура = "МояПодсистема.ОбновитьДанные";
+     Обработчик.Версия = "1.0.1.0";
+     ```
+
+  ## Event subscriptions
+
+  Register event subscriptions in `ПодпискиНаСобытия`:
+  ```
+  Name: МояПодсистема_ПередЗаписьюДокумента
+  Event: ПередЗаписью
+  Source: <DocumentType>
+  Handler: МояПодсистемаСлужебный.ПередЗаписьюДокумента
+  ```
+
+  ## Role-based access
+
+  - Create roles in `Роли` section; do not hardcode role checks in module code
+  - Use `ПравоДоступа("ИмяПрава", Метаданные.Документы.МойДокумент)` pattern
+  - BSP provides `ПользователиСлужебный.РольДоступна()` for soft permission checks
+
+  ## BSP compatibility check
+
+  Always verify minimum BSP version in `ПриПроверкеВерсийБиблиотекиПодсистемой`:
+  ```bsl
+  Если НЕ ОбщегоНазначения.ВерсияРавнаИлиСтарше(ВерсияБСП, "3.1.0") Тогда
+      ВызватьИсключение "Требуется БСП версии не ниже 3.1.0";
+  КонецЕсли;
+  ```

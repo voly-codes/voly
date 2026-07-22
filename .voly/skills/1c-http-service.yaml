@@ -1,0 +1,81 @@
+id: 1c-http-service
+name: 1c-http-service
+description: >-
+  Design and implement HTTP services and REST interfaces in 1C:Enterprise.
+  Covers URL template design, handler modules, JSON serialization with BSL,
+  authentication (Basic, Bearer token), error response standards, and publishing
+  via ras/rac cluster utilities. Use when the task mentions HTTP сервис 1С,
+  REST API 1С, веб-сервис, интеграция 1С, публикация на веб-сервере, 1C http service.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, bsl, http, rest, api, веб-сервис, интеграция, json]
+compatible_languages: [bsl, 1c]
+compatible_frameworks: [1c-enterprise]
+capabilities: [api-design, http-service, 1c-integration]
+content: |
+  # 1C HTTP Service Design Skill
+
+  ## URL template conventions
+
+  ```
+  /hs/<service-name>/v1/<resource>/{id}
+  ```
+  - Service name matches HTTP service object name in configurator (lowercase, hyphens)
+  - Always version the API: `/v1/`, `/v2/`
+  - Resource names in snake_case or kebab-case (consistent within service)
+
+  ## Handler module structure
+
+  Each HTTP method maps to a procedure in the HTTP service handler module:
+
+  ```bsl
+  // GET /hs/my-service/v1/orders/{id}
+  Функция ПолучитьЗаказ(Запрос) Экспорт
+      Идентификатор = Запрос.ПараметрыURL["id"];
+      // ... load data
+      Ответ = НовыйСтандартныйОтвет(200);
+      Ответ.УстановитьТелоИзСтроки(ЗаписатьJSON(ДанныеОтвета));
+      Возврат Ответ;
+  КонецФункции
+  ```
+
+  ## JSON serialization helpers
+
+  ```bsl
+  // Serialize structure to JSON string
+  Функция ЗаписатьJSON(Данные) Экспорт
+      ЗаписьJSON = Новый ЗаписьJSON;
+      НастройкиJSON = Новый НастройкиСериализацииJSON;
+      НастройкиJSON.ФорматДатыJSON = ФорматДатыJSON.ISO8601;
+      ЗаписьJSON.УстановитьСтроку(НастройкиJSON);
+      ЗаписатьJSON(ЗаписьJSON, Данные, НастройкиJSON);
+      Возврат ЗаписьJSON.Закрыть();
+  КонецФункции
+  ```
+
+  ## Standard error responses
+
+  Always return structured JSON errors:
+  ```json
+  {"error": "NOT_FOUND", "message": "Order 123 not found", "code": 404}
+  ```
+
+  HTTP status codes to use:
+  - 200 OK, 201 Created, 204 No Content
+  - 400 Bad Request (validation), 401 Unauthorized, 403 Forbidden
+  - 404 Not Found, 409 Conflict, 422 Unprocessable Entity
+  - 500 Internal Server Error
+
+  ## Authentication
+
+  - Basic Auth: check `Запрос.Заголовки["Authorization"]`
+  - Bearer token: validate against InfoBase session or external token store
+  - Use `ПравоДоступа("ИмяПрава", Метаданные)` for permission checks
+
+  ## Publishing checklist
+
+  1. Add HTTP service object to configuration
+  2. Set root URL (e.g. `my-service`)
+  3. Publish via configurator or `rac service publish`
+  4. Test with `curl -u user:pass https://server/base/hs/my-service/v1/health`

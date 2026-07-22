@@ -1,0 +1,103 @@
+id: 1c-deploy
+name: 1c-deploy
+description: >-
+  Checklist and workflow for deploying 1C:Enterprise configuration updates to production
+  server. Covers CF/DT/EDT export, ras/rac cluster management, infobase update sequence,
+  backup strategy, and rollback plan.
+  Use when the task mentions деплой 1С, обновление конфигурации, публикация 1С,
+  выкатить конфигурацию, rac, ras, кластер 1С, 1C deploy, обновление базы.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, deploy, деплой, обновление, rac, ras, кластер, публикация, cf, edt]
+compatible_languages: [bsl, 1c]
+compatible_frameworks: [1c-enterprise, edt]
+capabilities: [deployment, devops, 1c-deploy, release-management]
+content: |
+  # 1C Configuration Deployment Skill
+
+  ## Pre-deploy checklist
+
+  - [ ] Configuration passes syntax check (`Конфигуратор → Конфигурация → Проверка конфигурации`)
+  - [ ] All update handlers tested on staging infobase
+  - [ ] Backup of production infobase created (see backup step below)
+  - [ ] Deployment window agreed with business (off-peak hours)
+  - [ ] Rollback plan documented
+
+  ## Step 1: Export configuration
+
+  **From Configurator:**
+  ```
+  Конфигурация → Сохранить конфигурацию в файл → config.cf
+  ```
+
+  **From EDT (ring CLI):**
+  ```bash
+  ring edt workspace export --project ./my-config --out ./build/config.cf
+  ```
+
+  **From oscript:**
+  ```bash
+  oscript tools/export-cf.os --ib "Srvr=server;Ref=my-base;Usr=admin;Pwd=pass" --out ./build/config.cf
+  ```
+
+  ## Step 2: Backup production
+
+  ```bash
+  # Via rac (cluster admin console)
+  rac infobase --cluster=<uuid> backup create \
+    --infobase=<ib-uuid> \
+    --backup-path="//server/backups/pre-deploy-$(date +%Y%m%d).dt"
+
+  # Or 1C Configurator:
+  # Administration → Upload Infobase → *.dt
+  ```
+
+  ## Step 3: Set exclusive lock
+
+  ```bash
+  rac session --cluster=<uuid> list --infobase=<ib-uuid>
+  rac session --cluster=<uuid> terminate --session=<session-uuid>  # terminate active sessions
+
+  rac infobase --cluster=<uuid> update \
+    --infobase=<ib-uuid> \
+    --sessions-deny=on \
+    --deny-message="Технические работы до 10:00"
+  ```
+
+  ## Step 4: Load and update
+
+  ```bash
+  # Load CF into infobase
+  /opt/1cv8/x86_64/<version>/1cv8 DESIGNER \
+    /S "server\my-base" /N admin /P pass \
+    /LoadCFG ./build/config.cf \
+    /UpdateDBCfg -Dynamic+ \
+    /DisableStartupMessages /DisableStartupDialogs
+  ```
+
+  ## Step 5: Release lock and verify
+
+  ```bash
+  rac infobase --cluster=<uuid> update \
+    --infobase=<ib-uuid> \
+    --sessions-deny=off
+
+  # Smoke check: open test form, run update handler check
+  ```
+
+  ## Rollback procedure
+
+  1. Set exclusive lock again
+  2. Restore from `.dt` backup: `DESIGNER /RestoreIB ./backups/pre-deploy-*.dt`
+  3. Release lock
+  4. Notify team
+
+  ## ras/rac quick reference
+
+  ```bash
+  ras cluster --port=1545 &          # start ras agent
+  rac cluster list                   # list clusters
+  rac infobase --cluster=<uuid> list # list infobases
+  rac session --cluster=<uuid> list  # list active sessions
+  ```

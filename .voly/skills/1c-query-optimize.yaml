@@ -1,0 +1,79 @@
+id: 1c-query-optimize
+name: 1c-query-optimize
+description: >-
+  Optimize 1C query language (Язык запросов 1С) queries for performance.
+  Covers virtual table parameters, index usage, temporary tables strategy,
+  avoiding full table scans, and using query console profiling.
+  Use when the task mentions оптимизация запроса 1С, медленный запрос, запрос тормозит,
+  1C query optimization, виртуальная таблица, индекс, производительность запроса.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, bsl, query, запрос, оптимизация, производительность, индекс, виртуальная-таблица]
+compatible_languages: [bsl, 1c]
+compatible_frameworks: [1c-enterprise]
+capabilities: [query-optimization, performance, 1c-query]
+content: |
+  # 1C Query Optimization Skill
+
+  ## Virtual table parameters (critical)
+
+  Always pass period and conditions to virtual tables as parameters, not WHERE:
+
+  ```sql
+  -- WRONG: full scan then filter
+  ВЫБРАТЬ * ИЗ РегистрНакопления.Продажи.Обороты КАК Обороты
+  ГДЕ Обороты.Период МЕЖДУ &НачалоПериода И &КонецПериода
+
+  -- CORRECT: pushdown into virtual table
+  ВЫБРАТЬ * ИЗ РегистрНакопления.Продажи.Обороты(
+      &НачалоПериода, &КонецПериода, Регистратор, Номенклатура = &Номенклатура
+  ) КАК Обороты
+  ```
+
+  ## Index usage rules
+
+  - Join columns and WHERE conditions must match existing composite index order
+  - Check indexes via `Конфигуратор → Регистр → Индексы`
+  - For `СправочникСсылка` fields, joins use the reference index automatically
+  - Avoid `ПОДОБНО "%..."` — leading wildcard prevents index use
+
+  ## Temporary tables strategy
+
+  Use temp tables to break complex joins into stages:
+  ```sql
+  ВЫБРАТЬ Номенклатура, СУММА(Количество) КАК Количество
+  ПОМЕСТИТЬ ВТ_ОстаткиТоваров
+  ИЗ РегистрНакопления.ТоварыНаСкладах.Остатки(&ДатаОтчета,) КАК Остатки
+  СГРУППИРОВАТЬ ПО Номенклатура;
+
+  -- Then join against small temp table
+  ВЫБРАТЬ ... ИЗ ВТ_ОстаткиТоваров КАК ОТ
+  ВНУТРЕННЕЕ СОЕДИНЕНИЕ ... ПО ...
+  ```
+
+  ## Batch IN clauses
+
+  When filtering by a list from BSL:
+  ```bsl
+  Запрос.УстановитьПараметр("СписокТоваров", СписокНоменклатуры); // ValueList or Array
+  // In query:
+  // ГДЕ Т.Номенклатура В (&СписокТоваров)
+  ```
+
+  ## Profiling workflow
+
+  1. Open Query Console (`Консоль запросов`) from BSP tools
+  2. Enable "Замер производительности" before executing
+  3. Look for: table scans on large tables, missing index joins, temp table rebuilds
+  4. Use `ОБЪЯСНИТЬ` button if available (platform 8.3.14+)
+
+  ## Common anti-patterns
+
+  | Anti-pattern | Fix |
+  |---|---|
+  | Query in loop | Move to batch SELECT with array parameter |
+  | SELECT * | Enumerate only needed fields |
+  | No virtual table params | Pass period/dimensions as VT params |
+  | LIKE "%text" | Use full-text search or restructure |
+  | Joining huge tables without index | Add composite index via configurator |

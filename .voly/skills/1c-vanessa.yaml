@@ -1,0 +1,101 @@
+id: 1c-vanessa
+name: 1c-vanessa
+description: >-
+  Write Vanessa Automation BDD tests and acceptance scenarios for 1C:Enterprise
+  using Gherkin syntax. Covers feature file structure, step definitions in OneScript,
+  CI integration, and testing 1C forms and business processes.
+  Use when the task mentions Vanessa, BDD тесты 1С, acceptance tests 1C,
+  автотесты 1С, тестирование конфигурации, feature файл, сценарий тестирования.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, bsl, vanessa, bdd, тестирование, автотесты, gherkin, oscript]
+compatible_languages: [bsl, 1c, gherkin]
+compatible_frameworks: [1c-enterprise, vanessa-automation, onescript]
+capabilities: [testing, bdd, 1c-testing, acceptance-tests]
+content: |
+  # Vanessa Automation BDD Testing Skill
+
+  ## Feature file structure
+
+  ```gherkin
+  # language: ru
+  Функциональность: Оформление заказа покупателя
+    Как менеджер продаж
+    Я хочу создавать заказы покупателей
+    Чтобы фиксировать договорённости с клиентами
+
+    Контекст:
+      Дано Я запускаю 1С:Предприятие в режиме "1С:Бухгалтерия"
+      И Я авторизуюсь как "Менеджер"
+
+    Сценарий: Создание нового заказа
+      Дано Открыт список документов "Заказы покупателей"
+      Когда Я нажимаю кнопку "Создать"
+      И Я заполняю реквизит "Контрагент" значением "ООО Ромашка"
+      И Я добавляю строку в табличную часть "Товары"
+      Тогда Документ проведён без ошибок
+  ```
+
+  ## Step definitions (OneScript)
+
+  Step definitions live in `features/step_definitions/`:
+  ```bsl
+  // ОткрытьСписокДокументов.os
+  Перем ФреймворкВанессы;
+
+  Процедура ИнициализацияСценария(Сценарий) Экспорт
+      ФреймворкВанессы = Сценарий;
+  КонецПроцедуры
+
+  // @Дано("Открыт список документов {string}")
+  Процедура ОткрытьСписокДокументов(ИмяДокумента) Экспорт
+      ТекущийКлиент = ФреймворкВанессы.ПолучитьТекущийКлиент();
+      ТекущийКлиент.ОткрытьФорму("Документ." + ИмяДокумента + ".СписокФормы");
+  КонецПроцедуры
+  ```
+
+  ## Project structure
+
+  ```
+  features/
+    Заказы/
+      ОформлениеЗаказа.feature
+    step_definitions/
+      ОбщиеШаги.os
+      ШагиЗаказов.os
+  vanessa.json          ← Vanessa runner config
+  ```
+
+  ## vanessa.json config
+
+  ```json
+  {
+    "Вход": {
+      "ИмяПользователя": "Тест",
+      "Пароль": ""
+    },
+    "КаталогФич": "./features",
+    "ФорматОтчета": "html",
+    "ОтчетHTML": "./reports/report.html",
+    "ЗавершитьРаботуСистемы": true
+  }
+  ```
+
+  ## Running tests
+
+  ```bash
+  # Via OneScript
+  oscript vanessa-runner.os -command "RunTests" -settings vanessa.json
+
+  # CI (GitHub Actions / GitLab CI)
+  oscript ./tools/vanessa-runner.os -settings ./vanessa.json
+  ```
+
+  ## Best practices
+
+  - Keep scenarios independent: each starts from a known clean state
+  - Use `Контекст` (Background) only for universal setup (login, open app)
+  - Name scenarios in business language, not technical steps
+  - One feature file per business function/document type
+  - Store test data as JSON fixtures in `features/fixtures/`

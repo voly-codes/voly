@@ -1,0 +1,63 @@
+id: 1c-bsl-review
+name: 1c-bsl-review
+description: >-
+  Review 1C:Enterprise BSL modules for correctness, performance, and common anti-patterns.
+  Checks query loops, transactions without exception handling, incorrect use of temporary
+  tables, synchronous calls in form handlers, and BSP standard violations.
+  Use when the task mentions 1С, 1C, BSL, модуль, конфигурация, предприятие, review кода,
+  провести анализ кода 1С, найти ошибки в модуле.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, bsl, 1с-enterprise, review, code-quality, запрос, модуль]
+compatible_languages: [bsl, 1c]
+compatible_frameworks: [1c-enterprise, bsp]
+capabilities: [code-review, static-analysis, 1c-bsl]
+content: |
+  # 1C BSL Code Review Skill
+
+  Use this skill when reviewing 1C:Enterprise BSL module code.
+
+  ## Critical checks
+
+  ### 1. Query loops (N+1 problem)
+  - Never call queries inside loops over selections
+  - Use batch queries with IN/UNION or virtual tables
+  - Flag: `Пока Выборка.Следующий()` containing `Запрос.Выполнить()`
+
+  ### 2. Transactions
+  - Every `НачатьТранзакцию()` must have `ЗафиксироватьТранзакцию()` in normal path
+    and `ОтменитьТранзакцию()` in `Исключение` block
+  - Never call external procedures inside open transactions unless they are marked safe
+
+  ### 3. Locks
+  - Use `БлокировкаДанных` for managed locks, not implicit table locks
+  - Set lock mode before writing: `.УстановитьРежимУправленияБлокировкойДанных()`
+
+  ### 4. Temporary tables
+  - Always destroy temp table manager in `Попытка/Исключение`: `МенеджерВТ.Уничтожить()`
+  - Do not reuse temp table names across independent query packages
+
+  ### 5. Form handlers
+  - Synchronous HTTP calls or long DB queries are forbidden in `ПриОткрытии`, `ПриИзменении`
+  - Use `ВыполнитьОбработкуОповещения` or background jobs for heavy operations
+
+  ### 6. BSP standards
+  - Common module names must follow BSP naming conventions (e.g. `РаботаСФайламиСлужебный`)
+  - Export procedures in common modules must have XML documentation comments
+  - Interface procedures must use `ПараметрыФункции` type checking
+
+  ## Review output format
+
+  For each issue found:
+  ```
+  [КРИТИЧНО|ВАЖНО|РЕКОМЕНДАЦИЯ] <module>:<line>
+  Проблема: <description>
+  Рекомендация: <fix>
+  ```
+
+  ## Common BSL patterns to recommend
+
+  - Prefer `ОбщегоНазначения.ЗначениеРеквизитаОбъекта()` over reading full objects for single attributes
+  - Use `РаботаСКоллекциями` BSP module for collection operations
+  - Cache query results in local variables when used multiple times in same procedure

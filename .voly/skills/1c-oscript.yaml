@@ -1,0 +1,103 @@
+id: 1c-oscript
+name: 1c-oscript
+description: >-
+  Write OneScript (oscript) scripts for 1C:Enterprise CI/CD automation, build tools,
+  and DevOps workflows. Covers configuration assembly, EDT build, unit tests with
+  xUnitFor1C, and integration with GitHub Actions and GitLab CI.
+  Use when the task mentions OneScript, oscript, сборка конфигурации 1С, CI/CD для 1С,
+  автоматизация 1С, скрипт развёртывания, EDT, xUnit 1С.
+source: marketplace
+status: active
+version: 1.0.0
+tags: [1c, oscript, onescript, cicd, automation, edt, сборка, devops]
+compatible_languages: [bsl, 1c, oscript]
+compatible_frameworks: [1c-enterprise, onescript, edt, vanessa-automation]
+capabilities: [ci-cd, build-automation, 1c-devops, scripting]
+content: |
+  # OneScript CI/CD Skill for 1C
+
+  ## Script structure
+
+  ```bsl
+  // build.os
+  #Использовать "1commands"
+  #Использовать "v8runner"
+  #Использовать "colorprint"
+
+  Процедура Главная()
+      ЦветнойВывод.Информация("=== Сборка конфигурации ===");
+      СобратьКонфигурацию();
+      ЗапуститьТесты();
+  КонецПроцедуры
+
+  Процедура СобратьКонфигурацию()
+      Команда = Новый КомандаСистемы("ring");
+      Команда.ПараметрыЗапуска("--no-daemon compile ...");
+      Команда.Запустить();
+  КонецПроцедуры
+
+  Главная();
+  ```
+
+  ## Common OneScript packages
+
+  | Package | Install | Purpose |
+  |---|---|---|
+  | `1commands` | `opm install 1commands` | Shell command runner |
+  | `v8runner` | `opm install v8runner` | 1C platform runner |
+  | `colorprint` | `opm install colorprint` | Colored console output |
+  | `asserts` | `opm install asserts` | Unit test assertions |
+  | `json` | built-in | JSON read/write |
+  | `filesystem` | built-in | File/dir operations |
+
+  ## Configuration assembly (without EDT)
+
+  ```bash
+  # Export CF from working base
+  oscript tools/export-cf.os -ib "File=C:\Bases\Dev" -out ./build/config.cf
+
+  # Load CF to test base and run checks
+  oscript tools/load-and-check.os -cf ./build/config.cf -ib "File=C:\Bases\Test"
+  ```
+
+  ## xUnitFor1C integration
+
+  ```bsl
+  // Run unit tests from CI
+  #Использовать "xunit"
+
+  ЮнитТест = Новый ЮнитТест;
+  ЮнитТест.ДобавитьМодуль("МойМодульТестов");
+  Результат = ЮнитТест.Запустить();
+  Если НЕ Результат.Успех Тогда
+      КодВозврата(1);
+  КонецЕсли;
+  ```
+
+  ## GitHub Actions example
+
+  ```yaml
+  - name: Run 1C tests
+    run: |
+      oscript ./ci/run-tests.os -settings ./vanessa.json
+    env:
+      ONESCRIPT_HOME: ${{ env.ONESCRIPT_PATH }}
+  ```
+
+  ## opm package management
+
+  ```bash
+  opm install          # install from packagedef
+  opm install <pkg>    # install single package
+  opm list             # list installed packages
+  opm publish          # publish to hub.oscript.io
+  ```
+
+  ## packagedef
+
+  ```bsl
+  Имя("my-1c-tools");
+  Версия("1.0.0");
+  ЗависитОт("1commands", "2.0.0");
+  ЗависитОт("v8runner");
+  ```
