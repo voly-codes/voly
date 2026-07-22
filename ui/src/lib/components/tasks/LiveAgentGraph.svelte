@@ -1,5 +1,6 @@
 <script>
   import WorkflowTimeline from './WorkflowTimeline.svelte'
+  import PixelGoose from '../shared/PixelGoose.svelte'
   import { layoutAgentGraph } from './agentGraphModel.js'
 
   let { task } = $props()
@@ -20,7 +21,7 @@
 
 <section class="agent-flow">
   <header class="flow-head">
-    <div><span class="eyebrow"><i></i> Live agent graph</span><strong>One run · {layout.nodes.length} agents</strong></div>
+    <div class="flow-title"><span class="flow-goose"><PixelGoose size={16} /></span><div><span class="eyebrow"><i></i> Live agent graph</span><strong>One run · {layout.nodes.length} agents</strong></div></div>
     <div class="run-state">
       {#if task?.lap}<span>lap {task.lap}/{task.max_laps || '—'}</span>{/if}
       <span>{task?.latest_verdict || task?.status || 'running'}</span>
@@ -58,22 +59,24 @@
 </section>
 
 <style>
-  .agent-flow { --pixel-faint: color-mix(in srgb, var(--voly-orange) 16%, transparent); flex: 1; min-height: 0; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+  .agent-flow { --pixel-faint: color-mix(in srgb, var(--voly-orange) 27%, transparent); flex: 1; min-height: 0; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
   .flow-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
-  .flow-head div:first-child { display: flex; flex-direction: column; gap: 2px; }
+  .flow-title { display: flex; align-items: center; gap: 10px; }
+  .flow-title > div { display: flex; flex-direction: column; gap: 2px; }
+  .flow-goose { padding: 3px 5px 2px; border: 2px solid var(--voly-orange); background: var(--bg-surface); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 38%, transparent); }
   .eyebrow { display: flex; align-items: center; gap: 6px; color: var(--voly-orange); font: 600 9px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
   .eyebrow i { width: 7px; height: 7px; background: currentColor; transform: rotate(45deg); }
   .flow-head strong { color: var(--text-primary); font: 600 13px var(--font-mono); letter-spacing: -.02em; }
   .run-state { display: flex; gap: 6px; }
   .run-state span { padding: 2px 7px; border: 1px solid var(--border-default); border-radius: 2px; color: var(--text-secondary); font: 9px var(--font-mono); text-transform: uppercase; }
   .run-state span:last-child { color: var(--voly-orange); border-color: color-mix(in srgb, var(--voly-orange) 55%, var(--border-default)); }
-  .viewport { position: relative; flex: 1; min-height: 230px; overflow: auto; border: 2px solid color-mix(in srgb, var(--voly-ink) 55%, var(--border-default)); border-radius: 2px; background-color: color-mix(in srgb, var(--voly-paper) 12%, var(--bg-inset)); background-image: conic-gradient(from 90deg at 2px 2px, var(--pixel-faint) 25%, transparent 0); background-size: 18px 18px; box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-orange) 62%, transparent); }
+  .viewport { position: relative; flex: 1; min-height: 230px; overflow: auto; border: 3px solid color-mix(in srgb, var(--voly-ink) 72%, var(--border-default)); border-radius: 0; background-color: color-mix(in srgb, var(--voly-paper) 12%, var(--bg-inset)); background-image: conic-gradient(from 90deg at 3px 3px, var(--pixel-faint) 25%, transparent 0); background-size: 16px 16px; box-shadow: 6px 6px 0 color-mix(in srgb, var(--voly-orange) 78%, transparent); }
   .canvas { position: relative; min-width: 100%; min-height: 100%; }
   svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .connector { fill: none; stroke: color-mix(in srgb, var(--voly-ink) 35%, var(--border-default)); stroke-width: 1.5; marker-end: url(#flow-arrow); transition: stroke .2s, stroke-width .2s; }
   .connector.active { stroke: var(--voly-orange); stroke-width: 3; stroke-dasharray: 3 6; stroke-linecap: square; animation: signal .8s steps(6, end) infinite; }
   marker path { fill: context-stroke; }
-  .agent-node { position: absolute; width: 220px; height: 118px; padding: 10px; border: 2px solid color-mix(in srgb, var(--voly-ink) 48%, var(--border-default)); border-radius: 2px; background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface)); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 30%, transparent); display: flex; flex-direction: column; gap: 7px; transition: border-color .2s, transform .2s, box-shadow .2s; }
+  .agent-node { position: absolute; width: 220px; height: 118px; padding: 10px; border: 3px solid color-mix(in srgb, var(--voly-ink) 60%, var(--border-default)); border-radius: 0; background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface)); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 38%, transparent); display: flex; flex-direction: column; gap: 7px; transition: border-color .2s, transform .2s, box-shadow .2s; }
   .agent-node.active { border-color: var(--voly-orange); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 color-mix(in srgb, var(--voly-orange) 78%, transparent); }
   .agent-node.status-completed, .agent-node.status-verified { border-color: color-mix(in srgb, var(--accent-green) 50%, var(--border-default)); }
   .agent-node.status-failed, .agent-node.status-blocked { border-color: color-mix(in srgb, var(--accent-red) 55%, var(--border-default)); }
@@ -90,4 +93,5 @@
   .error { color: var(--accent-red); }
   @keyframes signal { to { stroke-dashoffset: -12; } }
   @media (prefers-reduced-motion: reduce) { .connector.active { animation: none; } .agent-node { transition: none; } }
+  @media (max-width: 560px) { .flow-goose { display: none; } .flow-head { align-items: flex-start; } }
 </style>

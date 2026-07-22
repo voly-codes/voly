@@ -1,5 +1,6 @@
 <script>
-  import { MoonIcon, SunIcon, ActivityIcon } from '../../icons.js'
+  import { MoonIcon, SunIcon } from '../../icons.js'
+  import PixelGoose from '../shared/PixelGoose.svelte'
   import { theme } from '../../stores/themeStore.svelte.ts'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
 
@@ -8,7 +9,7 @@
 
 <header class="app-header">
   <div class="brand">
-    <ActivityIcon size="16" strokeWidth="2" />
+    <span class="brand-goose"><PixelGoose size={18} title="VOLY" /></span>
     <span class="brand-name">VOLY</span>
   </div>
 
@@ -58,7 +59,8 @@
     gap: 12px;
     padding: 0 12px;
     background: var(--bg-surface);
-    border-bottom: 2px solid color-mix(in srgb, var(--voly-orange) 72%, var(--border-default));
+    border-bottom: 3px solid color-mix(in srgb, var(--voly-ink) 70%, var(--border-default));
+    box-shadow: 0 3px 0 var(--voly-orange);
     flex-shrink: 0;
     z-index: 10;
   }
@@ -73,7 +75,7 @@
     flex-shrink: 0;
   }
 
-  .brand::before { content: ''; width: 7px; height: 7px; background: var(--voly-orange); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 35%, transparent); }
+  .brand-goose { padding: 2px 5px 1px 3px; border: 2px solid var(--voly-orange); background: color-mix(in srgb, var(--voly-paper) 18%, var(--bg-surface)); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 42%, transparent); }
   .brand-name { color: var(--text-primary); font-family: var(--font-mono); letter-spacing: 0.08em; }
 
   .header-stats {

@@ -80,7 +80,7 @@
 </section>
 
 <style>
-  .workflow { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; background-image: conic-gradient(from 90deg at 2px 2px, color-mix(in srgb, var(--voly-orange) 10%, transparent) 25%, transparent 0); background-size: 18px 18px; }
+  .workflow { flex: 1; overflow-y: auto; margin: 6px; padding: 16px; display: flex; flex-direction: column; gap: 16px; border: 3px solid color-mix(in srgb, var(--voly-ink) 68%, var(--border-default)); background-color: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-inset)); background-image: conic-gradient(from 90deg at 3px 3px, color-mix(in srgb, var(--voly-orange) 24%, transparent) 25%, transparent 0); background-size: 16px 16px; box-shadow: 6px 6px 0 color-mix(in srgb, var(--voly-orange) 74%, transparent); }
   .workflow.compact { padding: 10px; border-bottom: 1px solid var(--border-muted); overflow: visible; }
   .summary { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
   .name { font: 600 12px var(--font-mono); text-transform: uppercase; color: var(--voly-orange); margin-right: 4px; }
@@ -89,7 +89,7 @@
   .chip.blocking, .chip.stop { color: var(--accent-amber); }
   .metric { margin-left: auto; color: var(--text-muted); font: 10px var(--font-mono); }
   .graph { display: grid; grid-template-columns: minmax(180px, 1fr) 130px minmax(180px, 1fr); gap: 12px; align-items: center; }
-  .node { min-width: 0; padding: 10px; border: 2px solid color-mix(in srgb, var(--voly-ink) 45%, var(--border-default)); border-radius: 2px; background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface)); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 25%, transparent); display: flex; flex-direction: column; gap: 6px; }
+  .node { min-width: 0; padding: 10px; border: 3px solid color-mix(in srgb, var(--voly-ink) 58%, var(--border-default)); border-radius: 0; background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface)); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 34%, transparent); display: flex; flex-direction: column; gap: 6px; }
   .node.active { border-color: var(--voly-orange); box-shadow: 5px 5px 0 color-mix(in srgb, var(--voly-orange) 70%, transparent); }
   .node.verified { border-color: var(--accent-green); }
   .node.failed { border-color: var(--accent-red); }

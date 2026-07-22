@@ -1,5 +1,6 @@
 <script>
   import StatusDot from '../shared/StatusDot.svelte'
+  import PixelGoose from '../shared/PixelGoose.svelte'
   import { t } from '../../i18n/localeStore.svelte.ts'
 
   let { task } = $props()
@@ -107,6 +108,7 @@
   <div class="atlas-graph">
     <div class="atlas-hub-wrap">
       <div class="atlas-node atlas-hub">
+        <PixelGoose size={14} />
         <span class="atlas-hub-label">{t('atlas.task')}</span>
         <span class="atlas-hub-id">{(task?.task_id ?? '').slice(0, 8)}</span>
       </div>
@@ -211,7 +213,7 @@
 
 <style>
   .atlas {
-    --pixel-faint: color-mix(in srgb, var(--voly-orange) 13%, transparent);
+    --pixel-faint: color-mix(in srgb, var(--voly-orange) 25%, transparent);
     flex: 1;
     overflow-y: auto;
     padding: 16px;
@@ -240,17 +242,17 @@
     flex-direction: column;
     align-items: center;
     padding: 20px 14px 16px;
-    border: 2px solid color-mix(in srgb, var(--voly-ink) 48%, var(--border-default));
-    border-radius: 2px;
+    border: 3px solid color-mix(in srgb, var(--voly-ink) 68%, var(--border-default));
+    border-radius: 0;
     background-color: color-mix(in srgb, var(--voly-paper) 10%, var(--bg-inset));
-    background-image: conic-gradient(from 90deg at 2px 2px, var(--pixel-faint) 25%, transparent 0);
-    background-size: 18px 18px;
-    box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-orange) 58%, transparent);
+    background-image: conic-gradient(from 90deg at 3px 3px, var(--pixel-faint) 25%, transparent 0);
+    background-size: 16px 16px;
+    box-shadow: 6px 6px 0 color-mix(in srgb, var(--voly-orange) 76%, transparent);
   }
 
   .atlas-node {
-    border: 2px solid color-mix(in srgb, var(--voly-ink) 45%, var(--border-default));
-    border-radius: 2px;
+    border: 3px solid color-mix(in srgb, var(--voly-ink) 58%, var(--border-default));
+    border-radius: 0;
     background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface));
     box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 25%, transparent);
   }

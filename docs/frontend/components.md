@@ -1,5 +1,9 @@
 # Components — Frontend Reference
 
+## VOLY pixel identity
+
+`PixelGoose.svelte` is the reusable, CSS-token-colored brand mark used by the app header and agent graphs. Graph canvases use a crisp 16 px pixel grid, 3 px square frames, and hard offset shadows derived from `--voly-orange` and `--voly-ink`; keep these surfaces square and respect reduced-motion preferences.
+
 ---
 
 ## RunPanel.svelte
