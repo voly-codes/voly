@@ -117,7 +117,7 @@
     display: flex;
     gap: 2px;
     padding: 6px 14px 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--voly-orange) 40%, var(--border-default));
+    border-bottom: 2px solid color-mix(in srgb, var(--voly-ink) 72%, var(--border-default));
     background: color-mix(in srgb, var(--voly-paper) 5%, var(--bg-surface));
     flex-shrink: 0;
   }
@@ -127,7 +127,8 @@
     font-size: 12px;
     font-weight: 500;
     color: var(--text-muted);
-    border-bottom: 2px solid transparent;
+    border: 2px solid transparent;
+    border-bottom: 0;
     margin-bottom: -1px;
     transition: color 0.12s, border-color 0.12s;
     font-family: var(--font-mono);
@@ -136,7 +137,7 @@
   }
 
   .inspector-tab:hover { color: var(--text-primary); }
-  .inspector-tab.active { color: var(--voly-orange); border-bottom-color: var(--voly-orange); }
+  .inspector-tab.active { color: var(--voly-orange); border-color: var(--voly-orange); background: var(--bg-inset); box-shadow: 3px 0 0 color-mix(in srgb, var(--voly-orange) 42%, transparent); }
 
   .inspector {
     flex: 1;
@@ -154,7 +155,7 @@
   .left-pane {
     flex: 1;
     min-width: 0;
-    border-right: 1px solid var(--border-default);
+    border-right: 2px solid var(--voly-ink);
     overflow-y: auto;
     padding: 14px 14px 14px 16px;
     display: flex;
@@ -177,7 +178,7 @@
 
   .task-prompt-field {
     padding: 10px 14px 8px;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 2px solid var(--border-default);
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -201,8 +202,8 @@
     max-height: 120px;
     overflow-y: auto;
     background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-muted);
+    border-radius: 0;
     padding: 6px 8px;
   }
 
@@ -214,9 +215,9 @@
     white-space: pre-wrap;
     word-break: break-word;
     background: var(--bg-inset);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     padding: 8px 10px;
-    border: 1px solid var(--border-muted);
+    border: 2px solid var(--border-muted);
     max-height: 200px;
     overflow-y: auto;
   }

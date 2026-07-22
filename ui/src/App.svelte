@@ -157,20 +157,22 @@
 <Toast />
 
 <style>
-  .mkt-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .mkt-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid var(--border-default); }
   .mkt-tab {
     background: none; border: none; cursor: pointer;
     padding: 8px 14px; font-size: 13px; color: var(--text-muted);
     border-bottom: 2px solid transparent; margin-bottom: -1px;
   }
   .mkt-tab:hover { color: var(--text-primary); }
-  .mkt-tab.active { color: var(--text-primary); border-bottom-color: var(--accent-amber); }
+  .mkt-tab.active { color: var(--voly-orange); border-bottom-color: var(--voly-orange); }
 
   .app {
     height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 3px solid var(--voly-ink);
+    background: var(--bg-primary);
   }
 
   .body {
@@ -183,7 +185,9 @@
     flex: 1;
     display: flex;
     overflow: hidden;
-    background: var(--bg-primary);
+    background-color: var(--bg-primary);
+    background-image: conic-gradient(from 90deg at 2px 2px, color-mix(in srgb, var(--voly-orange) 8%, transparent) 25%, transparent 0);
+    background-size: 18px 18px;
   }
 
   .loading {
@@ -221,7 +225,7 @@
     padding: 0 12px;
     height: 36px;
     background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 2px solid var(--voly-ink);
     flex-shrink: 0;
   }
 
@@ -242,7 +246,7 @@
     padding: 0 10px;
     font-size: 12px;
     font-weight: 500;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     color: var(--text-muted);
     background: transparent;
     transition: background 0.12s, color 0.12s;
@@ -254,8 +258,9 @@
   }
 
   .nav-btn.active {
-    background: var(--bg-inset);
-    color: var(--text-primary);
+    background: var(--voly-orange);
+    color: #fffaf1;
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 65%, transparent);
   }
 
   .nav-badge {
@@ -265,8 +270,8 @@
     min-width: 16px;
     height: 14px;
     padding: 0 4px;
-    border-radius: 7px;
-    background: var(--accent-blue);
+    border-radius: 0;
+    background: var(--voly-ink);
     color: var(--accent-blue-foreground, #fff);
     font-size: 9px;
     font-weight: 700;
@@ -279,13 +284,13 @@
     padding: 0 9px;
     font-size: 11px;
     font-weight: 500;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     color: var(--text-muted);
     background: transparent;
     display: flex;
     align-items: center;
     gap: 5px;
-    border: 1px solid var(--border-muted);
+    border: 2px solid var(--border-muted);
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
 

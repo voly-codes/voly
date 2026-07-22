@@ -2,9 +2,9 @@
   import {
     RouteIcon, DatabaseIcon, ZapIcon, BookOpenIcon,
     LayersIcon, MessageSquareIcon, SaveIcon, BarChart2Icon,
-    ChevronRightIcon,
   } from '../../icons.js'
   import { t } from '../../i18n/localeStore.svelte.ts'
+  import PixelGoose from '../shared/PixelGoose.svelte'
 
   const stages = $derived([
     { icon: RouteIcon,         label: t('empty.route') },
@@ -20,7 +20,7 @@
 
 <div class="empty-state">
   <div class="empty-icon">
-    <ChevronRightIcon size="28" strokeWidth="1.5" />
+    <PixelGoose size={34} />
   </div>
   <p class="empty-title">{t('empty.title')}</p>
   <p class="empty-sub">{t('empty.sub')}</p>
@@ -41,6 +41,7 @@
 
 <style>
   .empty-state {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -48,10 +49,15 @@
     padding: 48px 24px;
     text-align: center;
     gap: 8px;
-    height: 100%;
     color: var(--text-muted);
+    margin: 20px;
+    border: 3px solid color-mix(in srgb, var(--voly-ink) 68%, var(--border-default));
+    background-color: color-mix(in srgb, var(--voly-paper) 18%, var(--bg-surface));
+    background-image: conic-gradient(from 90deg at 3px 3px, color-mix(in srgb, var(--voly-orange) 20%, transparent) 25%, transparent 0);
+    background-size: 16px 16px;
+    box-shadow: 7px 7px 0 color-mix(in srgb, var(--voly-orange) 76%, transparent);
   }
-  .empty-icon { opacity: 0.35; margin-bottom: 8px; }
+  .empty-icon { margin-bottom: 8px; padding: 7px 10px 5px; border: 3px solid var(--voly-orange); background: var(--bg-surface); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 42%, transparent); }
   .empty-title {
     font-size: 14px;
     font-weight: 600;
@@ -76,12 +82,13 @@
   .ef-icon {
     width: 28px;
     height: 28px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-default);
+    border-radius: 0;
+    border: 2px solid var(--border-default);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
+    color: var(--voly-orange);
+    background: var(--bg-surface);
   }
   .ef-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
   .ef-arrow { font-size: 11px; color: var(--text-muted); opacity: 0.5; margin-bottom: 14px; }

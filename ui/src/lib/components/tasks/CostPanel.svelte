@@ -144,7 +144,7 @@
     justify-content: center;
     padding-top: 6px;
     background: var(--bg-surface);
-    border-left: 1px solid var(--border-default);
+    border-left: 2px solid var(--voly-ink);
   }
 
   .cost-topbar {
@@ -152,7 +152,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 4px 10px 4px 4px;
-    border-bottom: 1px solid var(--border-muted);
+    border-bottom: 2px solid var(--border-default);
+    background: color-mix(in srgb, var(--voly-orange) 7%, var(--bg-surface));
   }
 
   .cost-topbar-title {
@@ -161,6 +162,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-muted);
+    font-family: var(--font-mono);
   }
 
   .collapse-toggle {
@@ -170,7 +172,7 @@
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     flex-shrink: 0;
     transition: background 0.1s, color 0.1s;
   }
@@ -179,7 +181,7 @@
   .cost-panel {
     width: 240px;
     flex-shrink: 0;
-    border-left: 1px solid var(--border-default);
+    border-left: 2px solid var(--voly-ink);
     overflow-y: auto;
     background: var(--bg-surface);
   }
@@ -196,6 +198,7 @@
     letter-spacing: 0.06em;
     color: var(--text-muted);
     margin-bottom: 8px;
+    font-family: var(--font-mono);
   }
 
   .cards {
@@ -206,8 +209,8 @@
 
   .card {
     background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-muted);
+    border-radius: 0;
     padding: 6px 8px;
     display: flex;
     flex-direction: column;
@@ -220,6 +223,7 @@
     font-weight: 600;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
   }
 
   .card-label {
@@ -249,14 +253,14 @@
     flex: 1;
     height: 4px;
     background: var(--bg-inset);
-    border-radius: 2px;
+    border-radius: 0;
     overflow: hidden;
   }
 
   .bar-fill {
     height: 100%;
-    background: var(--accent-blue);
-    border-radius: 2px;
+    background: var(--voly-orange);
+    border-radius: 0;
     transition: width 0.3s;
   }
 
@@ -282,7 +286,7 @@
     align-items: center;
     gap: 4px;
     padding: 2px 6px;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     background: var(--bg-inset);
     border: 1px solid var(--border-muted);
   }

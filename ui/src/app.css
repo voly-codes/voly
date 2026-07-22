@@ -7,18 +7,18 @@
   padding: 0;
 }
 
-/* Light theme (default) — cool, high-contrast, readable */
+/* Light theme — VOLY paper, ink and orange */
 :root {
-  --bg-primary: #f5f6f8;
-  --bg-surface: #ffffff;
-  --bg-surface-hover: #f0f1f4;
-  --bg-inset: #ecedf2;
-  --border-default: #d8dae2;
-  --border-muted: #e4e6ec;
-  --text-primary: #181b24;
-  --text-secondary: #555b6e;
-  --text-muted: #878ea0;
-  --accent-blue: #2563eb;
+  --bg-primary: #e9e5dc;
+  --bg-surface: #f7f4ec;
+  --bg-surface-hover: #eee9de;
+  --bg-inset: #e3ded2;
+  --border-default: #918b7e;
+  --border-muted: #c8c1b3;
+  --text-primary: #22211c;
+  --text-secondary: #565148;
+  --text-muted: #7c7569;
+  --accent-blue: #c85f40;
   --accent-rose: #e11d48;
   --accent-purple: #7c3aed;
   --accent-amber: #d97706;
@@ -80,12 +80,12 @@
   --tool-bg: #fffbf0;
   --code-bg: #1e1e2e;
   --code-text: #cdd6f4;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --shadow-sm: 2px 2px 0 rgba(34, 33, 28, 0.18);
+  --shadow-md: 4px 4px 0 rgba(34, 33, 28, 0.24);
+  --shadow-lg: 7px 7px 0 rgba(34, 33, 28, 0.32);
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont,
     "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code",
@@ -99,16 +99,16 @@
 
 /* Dark theme */
 :root.dark {
-  --bg-primary: #0d0d12;
-  --bg-surface: #16161e;
-  --bg-surface-hover: #1f1f2a;
-  --bg-inset: #111116;
-  --border-default: #2b2b38;
-  --border-muted: #232330;
-  --text-primary: #e4e6eb;
-  --text-secondary: #9ea5b4;
-  --text-muted: #6c7385;
-  --accent-blue: #60a5fa;
+  --bg-primary: #11110e;
+  --bg-surface: #1b1a16;
+  --bg-surface-hover: #26241e;
+  --bg-inset: #14130f;
+  --border-default: #6d675b;
+  --border-muted: #39362f;
+  --text-primary: #f1efe8;
+  --text-secondary: #bbb4a7;
+  --text-muted: #817b70;
+  --accent-blue: #e58463;
   --accent-rose: #fb7185;
   --accent-purple: #a78bfa;
   --accent-amber: #fbbf24;
@@ -153,9 +153,9 @@
   --tool-bg: #1a1508;
   --code-bg: #0d0d14;
   --code-text: #cdd6f4;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 4px 4px 0 rgba(0, 0, 0, 0.58);
+  --shadow-lg: 7px 7px 0 rgba(0, 0, 0, 0.68);
   --viewport-indicator: rgba(255, 255, 255, 0.08);
   --overlay-bg: rgba(0, 0, 0, 0.6);
   --header-height: 40px;
@@ -200,6 +200,8 @@ body {
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg-primary);
+  background-image: conic-gradient(from 90deg at 2px 2px, color-mix(in srgb, var(--voly-orange) 10%, transparent) 25%, transparent 0);
+  background-size: 18px 18px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv11", "ss01";
@@ -224,7 +226,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-default);
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -239,8 +241,8 @@ body {
 
 /* Focus visible */
 :focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 1px;
+  outline: 3px solid var(--voly-orange);
+  outline-offset: 2px;
 }
 
 /* Button reset */
@@ -325,9 +327,9 @@ mark.search-highlight--current {
 
 .modal-panel {
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border: 3px solid var(--voly-ink);
+  border-radius: 0;
+  box-shadow: 7px 7px 0 var(--voly-orange);
   overflow: hidden;
 }
 
@@ -336,13 +338,17 @@ mark.search-highlight--current {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: 2px solid var(--border-default);
+  background: color-mix(in srgb, var(--voly-orange) 8%, var(--bg-surface));
 }
 
 .modal-panel .modal-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .modal-panel .modal-close {
@@ -374,7 +380,7 @@ mark.search-highlight--current {
   cursor: pointer;
   background: var(--bg-surface-hover);
   color: var(--text-secondary);
-  border: 1px solid var(--border-default);
+  border: 2px solid var(--border-default);
 }
 
 .modal-panel .modal-btn:hover {
@@ -383,9 +389,10 @@ mark.search-highlight--current {
 }
 
 .modal-panel .modal-btn-primary {
-  background: var(--accent-blue);
+  background: var(--voly-orange);
   color: var(--accent-blue-foreground);
-  border-color: var(--accent-blue);
+  border-color: var(--voly-ink);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 55%, transparent);
 }
 
 .modal-panel .modal-btn-primary:hover {

@@ -4,6 +4,8 @@
 
 `PixelGoose.svelte` is the reusable, CSS-token-colored brand mark used by the app header and agent graphs. Graph canvases use a crisp 16 px pixel grid, 3 px square frames, and hard offset shadows derived from `--voly-orange` and `--voly-ink`; keep these surfaces square and respect reduced-motion preferences.
 
+The application shell uses the same system globally: warm paper surfaces, ink structural borders, orange selection/action states, square controls, and hard shadows. Semantic success/warning/error colors remain distinct. New top-level pages should consume the shared tokens in `app.css` instead of introducing cool neutral surfaces or rounded-card styling.
+
 ---
 
 ## RunPanel.svelte
