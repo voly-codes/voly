@@ -67,6 +67,27 @@ _EXECUTOR_BINS: dict[str, list[str]] = {
     "cursor": [],  # API-key based, not a PATH binary
 }
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _command_names(binary: str, *, windows: bool | None = None) -> tuple[str, ...]:
+    """Return executable names used by native and npm CLIs on this platform."""
+    is_windows = os.name == "nt" if windows is None else windows
+    if not is_windows:
+        return (binary,)
+    # npm's executable Windows entry point is the .cmd shim. Prefer it over
+    # the extensionless POSIX shell script that npm also places in .bin.
+    return (f"{binary}.cmd", f"{binary}.exe", f"{binary}.bat", binary)
+
+
+def _local_cli_candidates(binary: str) -> list[Path]:
+    """Find repo-local npm binaries without requiring node_modules on PATH."""
+    bin_dirs = (
+        _REPO_ROOT / "node_modules" / ".bin",
+        _REPO_ROOT / "cf-workers" / "agent" / "node_modules" / ".bin",
+    )
+    return [directory / name for directory in bin_dirs for name in _command_names(binary)]
+
 
 def _env_set(names: list[str]) -> bool:
     return any(bool(os.environ.get(n, "").strip()) for n in names)
@@ -74,9 +95,13 @@ def _env_set(names: list[str]) -> bool:
 
 def _which_any(bins: list[str]) -> str | None:
     for b in bins:
-        path = shutil.which(b)
-        if path:
-            return path
+        for name in _command_names(b):
+            path = shutil.which(name)
+            if path:
+                return path
+        for candidate in _local_cli_candidates(b):
+            if candidate.is_file():
+                return str(candidate.resolve())
     return None
 
 
