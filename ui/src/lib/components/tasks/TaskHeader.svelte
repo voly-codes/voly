@@ -61,7 +61,8 @@
 <style>
   .inspector-header {
     padding: 10px 16px;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 1px solid color-mix(in srgb, var(--voly-orange) 30%, var(--border-default));
+    background: color-mix(in srgb, var(--voly-paper) 5%, var(--bg-surface));
     flex-shrink: 0;
   }
 
@@ -82,7 +83,7 @@
   .task-id {
     font-family: var(--font-mono);
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--voly-orange);
   }
 
   .task-time {
@@ -95,9 +96,9 @@
     font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
-    background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
-    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--voly-orange) 8%, var(--bg-inset));
+    border: 1px solid color-mix(in srgb, var(--voly-orange) 45%, var(--border-muted));
+    border-radius: 2px;
     padding: 1px 6px;
   }
 

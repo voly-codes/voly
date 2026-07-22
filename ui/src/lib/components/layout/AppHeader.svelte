@@ -58,7 +58,7 @@
     gap: 12px;
     padding: 0 12px;
     background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 2px solid color-mix(in srgb, var(--voly-orange) 72%, var(--border-default));
     flex-shrink: 0;
     z-index: 10;
   }
@@ -67,13 +67,14 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-primary);
+    color: var(--voly-orange);
     font-weight: 600;
     font-size: 13px;
     flex-shrink: 0;
   }
 
-  .brand-name { letter-spacing: -0.01em; }
+  .brand::before { content: ''; width: 7px; height: 7px; background: var(--voly-orange); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 35%, transparent); }
+  .brand-name { color: var(--text-primary); font-family: var(--font-mono); letter-spacing: 0.08em; }
 
   .header-stats {
     display: flex;

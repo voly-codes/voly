@@ -211,6 +211,7 @@
 
 <style>
   .atlas {
+    --pixel-faint: color-mix(in srgb, var(--voly-orange) 13%, transparent);
     flex: 1;
     overflow-y: auto;
     padding: 16px;
@@ -229,6 +230,7 @@
 
   .atlas-stat { display: flex; flex-direction: column; gap: 2px; }
   .atlas-stat-value { font-size: 15px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .atlas-stat:first-child .atlas-stat-value { color: var(--voly-orange); font-family: var(--font-mono); }
   .atlas-stat-value.ok { color: var(--accent-green); }
   .atlas-stat-value.err { color: var(--accent-red); }
   .atlas-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -237,13 +239,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 0 4px;
+    padding: 20px 14px 16px;
+    border: 2px solid color-mix(in srgb, var(--voly-ink) 48%, var(--border-default));
+    border-radius: 2px;
+    background-color: color-mix(in srgb, var(--voly-paper) 10%, var(--bg-inset));
+    background-image: conic-gradient(from 90deg at 2px 2px, var(--pixel-faint) 25%, transparent 0);
+    background-size: 18px 18px;
+    box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-orange) 58%, transparent);
   }
 
   .atlas-node {
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md, 8px);
-    background: var(--bg-inset);
+    border: 2px solid color-mix(in srgb, var(--voly-ink) 45%, var(--border-default));
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface));
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 25%, transparent);
   }
 
   .atlas-hub-wrap {
@@ -257,7 +266,7 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    border-style: dashed;
+    border-color: var(--voly-orange);
   }
 
   .atlas-hub-label {
@@ -265,7 +274,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-muted);
+    color: var(--voly-orange);
   }
 
   .atlas-hub-id {
@@ -292,7 +301,7 @@
     content: '';
     width: 1px;
     height: 14px;
-    background: var(--border-default);
+    background: var(--voly-orange);
   }
 
   .atlas-spoke {
@@ -306,11 +315,11 @@
     transition: border-color 0.12s, background 0.12s;
   }
 
-  .atlas-spoke:hover { border-color: var(--accent-blue); }
-  .atlas-spoke.selected { border-color: var(--accent-blue); background: color-mix(in srgb, var(--accent-blue) 6%, var(--bg-inset)); }
+  .atlas-spoke:hover { border-color: var(--voly-orange); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-orange) 55%, transparent); }
+  .atlas-spoke.selected { border-color: var(--voly-orange); background: color-mix(in srgb, var(--voly-orange) 8%, var(--bg-inset)); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-orange) 70%, transparent); }
 
   .spoke-head { display: flex; align-items: center; gap: 6px; }
-  .spoke-role { font-size: 12px; font-weight: 600; color: var(--text-primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .spoke-role { font: 600 12px var(--font-mono); text-transform: uppercase; color: var(--text-primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .spoke-tier {
     font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
@@ -349,7 +358,7 @@
   }
 
   .detail-head { display: flex; align-items: center; gap: 7px; }
-  .detail-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .detail-dot { width: 7px; height: 7px; border-radius: 0; }
   .detail-role { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 
   .detail-columns { display: flex; gap: 24px; flex-wrap: wrap; }

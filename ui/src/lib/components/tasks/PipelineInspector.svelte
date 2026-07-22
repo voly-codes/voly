@@ -117,7 +117,8 @@
     display: flex;
     gap: 2px;
     padding: 6px 14px 0;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 1px solid color-mix(in srgb, var(--voly-orange) 40%, var(--border-default));
+    background: color-mix(in srgb, var(--voly-paper) 5%, var(--bg-surface));
     flex-shrink: 0;
   }
 
@@ -129,10 +130,13 @@
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     transition: color 0.12s, border-color 0.12s;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .inspector-tab:hover { color: var(--text-primary); }
-  .inspector-tab.active { color: var(--text-primary); border-bottom-color: var(--accent-blue); }
+  .inspector-tab.active { color: var(--voly-orange); border-bottom-color: var(--voly-orange); }
 
   .inspector {
     flex: 1;

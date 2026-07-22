@@ -448,6 +448,12 @@ stepped orange pixel signal. Semantic success/failure colors remain unchanged,
 and dark mode remaps the paper/ink tokens instead of forcing the landing page's
 light palette onto the dashboard.
 
+The same always-visible identity anchors are applied to `AppHeader`,
+`TaskHeader`, the Report/Agent atlas tabs, `AgentAtlas`, and the final
+`WorkflowGraph`. This ensures the VOLY styling is visible before a live run
+starts; `LiveAgentGraph` is the animated extension of that shared language, not
+the only branded surface.
+
 ---
 
 ## CFPage.svelte
