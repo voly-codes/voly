@@ -181,6 +181,18 @@ task shape so `PipelineInspector` can render the directed graph. Cancellation
 uses `POST /api/runs/{task_id}/cancel` and is available only for an active
 workflow record.
 
+**Single-role `agent`/`executor` while live:** `RunRecord` (the backend
+dataclass) has no `agent`/`executor`/`model` fields of its own — those only
+exist on the final `TaskEvent`, emitted once the run completes. For a
+single-role run (not A2A, `roles.length === 1`), `liveTaskFromRun()` uses
+`roles[0]` (falling back to `current_role`) as `agent`/`executor` instead of
+a placeholder dash — that name (e.g. `claude-code`) is already known live.
+`model`/`provider` stay `'—'`/`''` until completion since the RunRecord truly
+has no live source for them. Before this, `AgentAtlas`'s single-node spoke
+(the non-A2A branch, one synthetic node from top-level task fields) showed a
+bare `—` for the assigned agent for the entire in-progress duration of any
+plain executor run.
+
 To start the bounded review loop, `RunPanel` adds these fields to `POST /api/run`:
 
 ```javascript

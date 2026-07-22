@@ -34,13 +34,19 @@ export function liveTaskFromRun(run) {
     }
   })
 
+  // RunRecord (backend) has no agent/executor/model fields of its own — that
+  // identity only exists once the final TaskEvent is emitted. For a single
+  // role, `roles[0]` (or `current_role`) IS the executor name and is already
+  // known live — use it instead of a placeholder dash, so the Atlas view
+  // isn't blank for the whole in-progress duration of a plain (non-A2A) run.
+  const singleExecutor = roles[0] || current || ''
   return {
     task_id: run.task_id,
     status: run.status || 'running',
-    agent: roles.length > 1 ? 'a2a-local' : (run.agent || '—'),
+    agent: roles.length > 1 ? 'a2a-local' : (singleExecutor || run.agent || '—'),
     model: roles.length > 1 ? 'multi-agent' : (run.model || '—'),
     provider: roles.length > 1 ? 'a2a-local' : '',
-    executor: roles.length > 1 ? 'a2a-local' : (run.executor || ''),
+    executor: roles.length > 1 ? 'a2a-local' : (singleExecutor || run.executor || ''),
     task_prompt: run.task || '',
     result: null,
     error: run.error || null,
