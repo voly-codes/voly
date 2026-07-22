@@ -56,6 +56,7 @@ class RunRecord:
     latest_verdict: str = ""
     cancel_requested: bool = False
     timeline: list[dict] = field(default_factory=list)
+    workflow_metrics: dict = field(default_factory=dict)
 
     @property
     def age_seconds(self) -> float:
@@ -143,6 +144,7 @@ class RunTracker:
         latest_verdict: str | None = None,
         stop_reason: str | None = None,
         transition: dict | None = None,
+        metrics: dict | None = None,
     ) -> None:
         """Persist bounded-workflow progress and an optional causal transition."""
         rec = self.load(task_id)
@@ -164,6 +166,8 @@ class RunTracker:
             rec.stop_reason = stop_reason
         if transition is not None:
             rec.timeline.append(dict(transition))
+        if metrics is not None:
+            rec.workflow_metrics = dict(metrics)
         self._write(rec)
 
     def request_cancel(self, task_id: str) -> bool:

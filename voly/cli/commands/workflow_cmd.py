@@ -13,6 +13,74 @@ def workflow_cmd() -> None:
     """Run bounded multi-agent workflows."""
 
 
+@workflow_cmd.command("stats")
+@click.option("--limit", default=10, show_default=True, type=click.IntRange(1, 200))
+@click.option("--json", "output_json", is_flag=True)
+@click.pass_context
+def workflow_stats(ctx: click.Context, limit: int, output_json: bool) -> None:
+    """Summarize completed review workflows for a guarded rollout."""
+    from collections import Counter
+
+    from voly.runtime.runs import RUNNING, RunTracker
+
+    config = ctx.obj["config"]
+    records = [
+        rec for rec in RunTracker(config.telemetry.runs_dir).list()
+        if (
+            rec.workflow == "review-until-clean"
+            and rec.status != RUNNING
+            and rec.workflow_metrics
+        )
+    ][:limit]
+    metrics = [rec.workflow_metrics for rec in records]
+    count = len(metrics)
+    stops = Counter(str(item.get("stop_reason") or "unknown") for item in metrics)
+    payload = {
+        "workflow": "review-until-clean",
+        "sample_size": count,
+        "verified": sum(bool(item.get("verified_completion")) for item in metrics),
+        "verified_rate": round(
+            (
+                sum(bool(item.get("verified_completion")) for item in metrics) / count
+                if count else 0.0
+            ),
+            3,
+        ),
+        "manual_interventions": sum(
+            int(item.get("manual_interventions") or 0) for item in metrics
+        ),
+        "average_laps": round(
+            (
+                sum(int(item.get("laps") or 0) for item in metrics) / count
+                if count else 0.0
+            ),
+            2,
+        ),
+        "total_cost_usd": round(
+            sum(float(item.get("cost_usd") or 0.0) for item in metrics), 6
+        ),
+        "average_duration_ms": round(
+            (
+                sum(float(item.get("duration_ms") or 0.0) for item in metrics) / count
+                if count else 0.0
+            ),
+            1,
+        ),
+        "stop_reasons": dict(sorted(stops.items())),
+    }
+    if output_json:
+        click.echo(json.dumps(payload, ensure_ascii=False, indent=2))
+        return
+    click.echo(f"workflow:             {payload['workflow']}")
+    click.echo(f"sample:               {payload['sample_size']}/{limit}")
+    click.echo(f"verified:             {payload['verified']} ({payload['verified_rate']:.1%})")
+    click.echo(f"manual interventions: {payload['manual_interventions']}")
+    click.echo(f"average laps:          {payload['average_laps']:.2f}")
+    click.echo(f"total cost:            ${payload['total_cost_usd']:.6f}")
+    click.echo(f"average duration:      {payload['average_duration_ms']:.1f}ms")
+    click.echo(f"stop reasons:          {payload['stop_reasons']}")
+
+
 @workflow_cmd.command("review-until-clean")
 @click.argument("task", required=False)
 @click.option("--cwd", required=True, type=click.Path(file_okay=False))

@@ -309,10 +309,28 @@ class ReviewUntilClean:
         workflow_id: str,
     ) -> ReviewLoopResult:
         if tracker is not None and workflow_id:
+            record = tracker.load(workflow_id)
+            files = {
+                path
+                for lap in result.laps
+                for path in lap.files_touched
+            }
             tracker.workflow_update(
                 workflow_id,
                 active_role="",
                 stop_reason=result.stop_reason.value,
+                metrics={
+                    "laps": len(result.laps),
+                    "repair_laps": sum(
+                        lap.verdict is ReviewVerdict.BLOCKING for lap in result.laps
+                    ),
+                    "verified_completion": result.stop_reason is ReviewStopReason.CLEAN,
+                    "manual_interventions": int(bool(record and record.cancel_requested)),
+                    "cost_usd": result.total_cost_usd,
+                    "duration_ms": result.duration_ms,
+                    "files_touched": len(files),
+                    "stop_reason": result.stop_reason.value,
+                },
             )
             tracker.finish(
                 workflow_id,

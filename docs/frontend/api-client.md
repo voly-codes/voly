@@ -168,7 +168,8 @@ heartbeats on disk.
 
 Workflow records additionally expose `workflow`, `lap`, `max_laps`,
 `active_role`, `latest_verdict`, `stop_reason`, `cancel_requested`, and a
-causal `timeline`. `liveTaskFromRun()` carries these fields into the selected
+causal `timeline`. Completed records also have `workflow_metrics` for rollout
+analysis. `liveTaskFromRun()` carries these fields into the selected
 task shape so `PipelineInspector` can render the directed graph. Cancellation
 uses `POST /api/runs/{task_id}/cancel` and is available only for an active
 workflow record.

@@ -195,6 +195,16 @@ def test_parent_run_record_contains_causal_timeline(tmp_path) -> None:
     assert record.stop_reason == "clean"
     assert record.active_role == ""
     assert [item["to"] for item in record.timeline] == ["developer", "reviewer"]
+    assert record.workflow_metrics == {
+        "laps": 1,
+        "repair_laps": 0,
+        "verified_completion": True,
+        "manual_interventions": 0,
+        "cost_usd": 0.1,
+        "duration_ms": result.duration_ms,
+        "files_touched": 1,
+        "stop_reason": "clean",
+    }
 
 
 def test_cooperative_cancel_stops_before_next_developer_turn(tmp_path) -> None:
@@ -220,3 +230,4 @@ def test_cooperative_cancel_stops_before_next_developer_turn(tmp_path) -> None:
     assert result.stop_reason is ReviewStopReason.CANCELLED
     assert len(runner.calls) == 1
     assert tracker.load("workflow-cancel").stop_reason == "cancelled"
+    assert tracker.load("workflow-cancel").workflow_metrics["manual_interventions"] == 1

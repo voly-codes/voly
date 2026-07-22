@@ -67,5 +67,6 @@ export function liveTaskFromRun(run) {
     latest_verdict: run.latest_verdict || '',
     cancel_requested: !!run.cancel_requested,
     timeline: run.timeline ?? [],
+    workflow_metrics: run.workflow_metrics ?? {},
   }
 }

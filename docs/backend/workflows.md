@@ -65,6 +65,18 @@ causal `timeline`. `POST /api/runs/{task_id}/cancel` sets a cooperative flag. It
 does not terminate an already-running subprocess; the controller observes it
 before starting the next developer or reviewer turn.
 
+Completed records also retain internal `workflow_metrics`: laps, repair laps,
+verified completion, cooperative manual interventions, total cost, duration,
+unique files touched, and stop reason. These fields deliberately stay outside
+the frozen public `TaskEvent` v3 contract. Summarize the newest completed sample
+with `voly workflow stats --limit 10 [--json]`; see
+[workflow-validation.md](workflow-validation.md) for the guarded rollout.
+
+The feature is default-off by selection: existing run dispatch is unchanged
+unless the request explicitly sets `workflow: "review-until-clean"` (or invokes
+the matching CLI command). Lap, deadline, and spend bounds still apply after
+opt-in.
+
 ## Architecture boundary
 
 This module must remain a concrete orchestration use case. Reusable graph
