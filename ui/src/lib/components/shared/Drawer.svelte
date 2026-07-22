@@ -40,7 +40,7 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-surface);
-    border-left: 3px solid var(--voly-ink);
+    border-left: 3px solid var(--frame-strong);
     box-shadow: -7px 0 0 color-mix(in srgb, var(--voly-orange) 82%, transparent);
     animation: slide-in 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
@@ -51,7 +51,7 @@
     justify-content: space-between;
     padding: 0 14px;
     height: 40px;
-    border-bottom: 3px solid var(--voly-ink);
+    border-bottom: 3px solid var(--frame-strong);
     background: color-mix(in srgb, var(--voly-orange) 9%, var(--bg-surface));
     flex-shrink: 0;
   }

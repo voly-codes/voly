@@ -51,7 +51,7 @@
     gap: 8px;
     color: var(--text-muted);
     margin: 20px;
-    border: 3px solid color-mix(in srgb, var(--voly-ink) 68%, var(--border-default));
+    border: 3px solid var(--frame-strong);
     background-color: color-mix(in srgb, var(--voly-paper) 18%, var(--bg-surface));
     background-image: conic-gradient(from 90deg at 3px 3px, color-mix(in srgb, var(--voly-orange) 20%, transparent) 25%, transparent 0);
     background-size: 16px 16px;

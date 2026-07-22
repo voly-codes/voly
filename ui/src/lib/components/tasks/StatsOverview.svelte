@@ -65,7 +65,7 @@
   .stats-strip {
     display: flex;
     gap: 1px;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 2px solid var(--border-default);
     flex-shrink: 0;
     background: var(--border-muted);
   }
@@ -89,6 +89,7 @@
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    font-family: var(--font-mono);
   }
 
   .stat-card.saved .stat-val { color: var(--accent-teal); }
@@ -108,7 +109,7 @@
 
   .token-bar {
     height: 6px;
-    border-radius: 3px;
+    border-radius: 0;
     overflow: hidden;
     display: flex;
     gap: 1px;
@@ -118,7 +119,7 @@
 
   .token-seg {
     height: 100%;
-    border-radius: 2px;
+    border-radius: 0;
     transition: width 0.3s;
     min-width: 2px;
   }
@@ -141,7 +142,7 @@
   .leg-dot {
     width: 7px;
     height: 7px;
-    border-radius: 50%;
+    border-radius: 0;
     flex-shrink: 0;
   }
 </style>

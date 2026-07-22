@@ -171,7 +171,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 3px solid var(--voly-ink);
+    border: 2px solid var(--frame-strong);
     background: var(--bg-primary);
   }
 
@@ -185,9 +185,7 @@
     flex: 1;
     display: flex;
     overflow: hidden;
-    background-color: var(--bg-primary);
-    background-image: conic-gradient(from 90deg at 2px 2px, color-mix(in srgb, var(--voly-orange) 8%, transparent) 25%, transparent 0);
-    background-size: 18px 18px;
+    background: var(--bg-primary);
   }
 
   .loading {
@@ -225,7 +223,7 @@
     padding: 0 12px;
     height: 36px;
     background: var(--bg-surface);
-    border-bottom: 2px solid var(--voly-ink);
+    border-bottom: 2px solid var(--frame-strong);
     flex-shrink: 0;
   }
 

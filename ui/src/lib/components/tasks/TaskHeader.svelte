@@ -61,7 +61,7 @@
 <style>
   .inspector-header {
     padding: 10px 16px;
-    border-bottom: 1px solid color-mix(in srgb, var(--voly-orange) 30%, var(--border-default));
+    border-bottom: 2px solid color-mix(in srgb, var(--voly-orange) 40%, var(--border-default));
     background: color-mix(in srgb, var(--voly-paper) 5%, var(--bg-surface));
     flex-shrink: 0;
   }
@@ -105,7 +105,7 @@
   .task-status {
     font-size: 11px;
     font-weight: 500;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     padding: 1px 6px;
   }
   .status-completed { background: color-mix(in srgb, var(--accent-green) 15%, transparent); color: var(--accent-green); }
@@ -123,7 +123,7 @@
     display: flex;
     align-items: center;
     font-size: 10px;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     overflow: hidden;
     border: 1px solid;
   }
@@ -209,7 +209,8 @@
     font-size: 11px;
     color: var(--accent-red);
     background: color-mix(in srgb, var(--accent-red) 10%, transparent);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
+    border-left: 3px solid var(--accent-red);
     padding: 4px 8px;
   }
 
@@ -219,7 +220,8 @@
     font-weight: 500;
     color: var(--running-fg, var(--accent-amber));
     background: color-mix(in srgb, var(--running-fg, var(--accent-amber)) 10%, transparent);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
+    border-left: 3px solid var(--running-fg, var(--accent-amber));
     padding: 4px 8px;
   }
 </style>

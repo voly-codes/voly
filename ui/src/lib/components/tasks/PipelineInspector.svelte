@@ -117,7 +117,7 @@
     display: flex;
     gap: 2px;
     padding: 6px 14px 0;
-    border-bottom: 2px solid color-mix(in srgb, var(--voly-ink) 72%, var(--border-default));
+    border-bottom: 2px solid var(--frame-strong);
     background: color-mix(in srgb, var(--voly-paper) 5%, var(--bg-surface));
     flex-shrink: 0;
   }
@@ -144,6 +144,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: var(--bg-surface);
   }
 
   .inspector-body {
@@ -155,11 +156,12 @@
   .left-pane {
     flex: 1;
     min-width: 0;
-    border-right: 2px solid var(--voly-ink);
+    border-right: 2px solid var(--frame-strong);
     overflow-y: auto;
     padding: 14px 14px 14px 16px;
     display: flex;
     flex-direction: column;
+    background: var(--bg-surface);
   }
 
   .right-pane {
@@ -168,6 +170,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: color-mix(in srgb, var(--bg-inset) 38%, var(--bg-surface));
   }
 
   .right-sections {

@@ -33,6 +33,7 @@
   --voly-orange: #dd7454;
   --voly-ink: #22211c;
   --voly-paper: #f1efe8;
+  --frame-strong: #3f3b32;
   --accent-sky: #0284c7;
   --accent-pink: #ec4899;
   --accent-lime: #65a30d;
@@ -106,8 +107,8 @@
   --border-default: #6d675b;
   --border-muted: #39362f;
   --text-primary: #f1efe8;
-  --text-secondary: #bbb4a7;
-  --text-muted: #817b70;
+  --text-secondary: #c5beb1;
+  --text-muted: #968f82;
   --accent-blue: #e58463;
   --accent-rose: #fb7185;
   --accent-purple: #a78bfa;
@@ -123,6 +124,7 @@
   --voly-orange: #e58463;
   --voly-ink: #f1efe8;
   --voly-paper: #171713;
+  --frame-strong: #625c50;
   --accent-sky: #38bdf8;
   --accent-pink: #f472b6;
   --accent-lime: #a3e635;
@@ -200,8 +202,6 @@ body {
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg-primary);
-  background-image: conic-gradient(from 90deg at 2px 2px, color-mix(in srgb, var(--voly-orange) 10%, transparent) 25%, transparent 0);
-  background-size: 18px 18px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv11", "ss01";
@@ -327,7 +327,7 @@ mark.search-highlight--current {
 
 .modal-panel {
   background: var(--bg-surface);
-  border: 3px solid var(--voly-ink);
+  border: 3px solid var(--frame-strong);
   border-radius: 0;
   box-shadow: 7px 7px 0 var(--voly-orange);
   overflow: hidden;

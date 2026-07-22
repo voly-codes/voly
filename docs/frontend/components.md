@@ -6,6 +6,8 @@
 
 The application shell uses the same system globally: warm paper surfaces, ink structural borders, orange selection/action states, square controls, and hard shadows. Semantic success/warning/error colors remain distinct. New top-level pages should consume the shared tokens in `app.css` instead of introducing cool neutral surfaces or rounded-card styling.
 
+Structural borders use `--frame-strong`, not `--voly-ink`: in dark mode the ink token is intentionally light for artwork and text. Repeating pixel grids are reserved for graph canvases and branded empty states so operational data stays readable on solid surfaces.
+
 ---
 
 ## RunPanel.svelte

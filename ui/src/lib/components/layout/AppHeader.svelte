@@ -59,7 +59,7 @@
     gap: 12px;
     padding: 0 12px;
     background: var(--bg-surface);
-    border-bottom: 3px solid color-mix(in srgb, var(--voly-ink) 70%, var(--border-default));
+    border-bottom: 2px solid var(--frame-strong);
     box-shadow: 0 3px 0 var(--voly-orange);
     flex-shrink: 0;
     z-index: 10;

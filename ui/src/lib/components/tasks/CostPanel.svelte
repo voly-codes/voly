@@ -144,7 +144,7 @@
     justify-content: center;
     padding-top: 6px;
     background: var(--bg-surface);
-    border-left: 2px solid var(--voly-ink);
+    border-left: 2px solid var(--frame-strong);
   }
 
   .cost-topbar {
@@ -157,7 +157,7 @@
   }
 
   .cost-topbar-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -181,7 +181,7 @@
   .cost-panel {
     width: 240px;
     flex-shrink: 0;
-    border-left: 2px solid var(--voly-ink);
+    border-left: 2px solid var(--frame-strong);
     overflow-y: auto;
     background: var(--bg-surface);
   }
@@ -192,7 +192,7 @@
   }
 
   .section-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;

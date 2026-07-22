@@ -185,7 +185,7 @@
     justify-content: center;
     padding-top: 6px;
     background: var(--bg-surface);
-    border-right: 2px solid var(--voly-ink);
+    border-right: 2px solid var(--frame-strong);
   }
 
   .sidebar-topbar {
@@ -199,7 +199,7 @@
   }
 
   .sidebar-topbar-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -226,7 +226,7 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-surface);
-    border-right: 2px solid var(--voly-ink);
+    border-right: 2px solid var(--frame-strong);
     overflow: hidden;
   }
 
