@@ -441,6 +441,13 @@ animated. Reduced-motion preferences disable the signal animation. Live graph
 runs open directly on the Agent atlas tab; historical/single-agent tasks remain
 report-first and retain `AgentAtlas.svelte`.
 
+The canvas borrows a restrained subset of the public `voly_web` identity:
+brand orange `#DD7454`, paper/ink color mixing, square pixel markers, crisp
+two-pixel borders, and offset non-blurred shadows. The active dependency uses a
+stepped orange pixel signal. Semantic success/failure colors remain unchanged,
+and dark mode remaps the paper/ink tokens instead of forcing the landing page's
+light palette onto the dashboard.
+
 ---
 
 ## CFPage.svelte
