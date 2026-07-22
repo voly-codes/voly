@@ -46,3 +46,5 @@ commit hash and an English description.
 - `8884211` — Enable capability worker routing in A2A, filter match by kind, and honor matcher-chosen executors in hybrid runs.
 
 - `9c02171` — Close remaining strategy gaps: model_provider seeds, health-filtered match, routing policies, and voly run --repo / intelligence.auto.
+
+- `dcc6a6c` — Detect Windows npm executor shims and repo-local Wrangler installations instead of requiring a POSIX-style binary on PATH.
