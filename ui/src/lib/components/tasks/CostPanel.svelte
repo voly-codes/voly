@@ -1,7 +1,8 @@
 <script>
-  import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon } from '../../icons.js'
+  import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon, ChevronLeftIcon, ChevronRightIcon } from '../../icons.js'
   import { fmtTokens, fmtDur, statusLabel } from '../../utils/format.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
+  import { ui } from '../../stores/uiStore.svelte'
   import { t } from '../../i18n/localeStore.svelte.ts'
 
   let summary = $derived(tasksStore.summary)
@@ -20,7 +21,20 @@
   )
 </script>
 
+{#if ui.costPanelCollapsed}
+  <div class="cost-collapsed">
+    <button class="collapse-toggle" onclick={() => ui.costPanelCollapsed = false} title={t('cost.expand')} aria-label={t('cost.expand')}>
+      <ChevronLeftIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
+{:else}
 <div class="cost-panel">
+  <div class="cost-topbar">
+    <span class="cost-topbar-title">{t('cost.title')}</span>
+    <button class="collapse-toggle" onclick={() => ui.costPanelCollapsed = true} title={t('cost.collapse')} aria-label={t('cost.collapse')}>
+      <ChevronRightIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
   {#if summary}
     <section class="panel-section">
       <div class="section-title">{t('cost.overview')}</div>
@@ -119,8 +133,49 @@
     </section>
   {/if}
 </div>
+{/if}
 
 <style>
+  .cost-collapsed {
+    width: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border-default);
+  }
+
+  .cost-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 10px 4px 4px;
+    border-bottom: 1px solid var(--border-muted);
+  }
+
+  .cost-topbar-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .collapse-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    transition: background 0.1s, color 0.1s;
+  }
+  .collapse-toggle:hover { background: var(--bg-inset); color: var(--text-primary); }
+
   .cost-panel {
     width: 240px;
     flex-shrink: 0;

@@ -11,9 +11,15 @@
   import InspectorAgentsList from './InspectorAgentsList.svelte'
   import InspectorMetaSections from './InspectorMetaSections.svelte'
   import { buildPipelineStages, buildTokenBar } from './pipelineStageModel.js'
+  import AgentAtlas from './AgentAtlas.svelte'
 
   let outputExpanded = $state(true)
   let task = $derived(tasksStore.selected)
+  let activeTab = $state('report')
+
+  // Reset to the report tab whenever a different task is selected, so the
+  // atlas of a previous task doesn't linger under a new one.
+  $effect(() => { void task?.task_id; activeTab = 'report' })
 
   let tokenBar = $derived.by(() => {
     void i18n.locale
@@ -32,6 +38,24 @@
   <div class="inspector">
     <TaskHeader {task} />
 
+    <div class="inspector-tabs">
+      <button
+        type="button"
+        class="inspector-tab"
+        class:active={activeTab === 'report'}
+        onclick={() => activeTab = 'report'}
+      >{t('inspector.tabReport')}</button>
+      <button
+        type="button"
+        class="inspector-tab"
+        class:active={activeTab === 'atlas'}
+        onclick={() => activeTab = 'atlas'}
+      >{t('inspector.tabAtlas')}</button>
+    </div>
+
+    {#if activeTab === 'atlas'}
+      <AgentAtlas {task} />
+    {:else}
     <div class="inspector-body">
       <div class="left-pane">
         <PipelineStages {stages} />
@@ -73,10 +97,32 @@
         </div>
       </div>
     </div>
+    {/if}
   </div>
 {/if}
 
 <style>
+  .inspector-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 6px 14px 0;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+  }
+
+  .inspector-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.12s, border-color 0.12s;
+  }
+
+  .inspector-tab:hover { color: var(--text-primary); }
+  .inspector-tab.active { color: var(--text-primary); border-bottom-color: var(--accent-blue); }
+
   .inspector {
     flex: 1;
     display: flex;

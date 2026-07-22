@@ -305,6 +305,10 @@ In-flight rows from the Run drawer (`ui.activeRuns`) are clickable: resolve to
 a server `/api/runs` record when possible and open the live card; otherwise
 re-open the Run drawer.
 
+**Collapse toggle:** header chevron button sets `ui.sidebarCollapsed = true`;
+collapsed state renders a 22px strip with a single expand button (state lives
+in `uiStore`, not local — survives navigation away from the tasks page).
+
 ---
 
 ## TaskHeader.svelte
@@ -343,6 +347,51 @@ Shows `work_report` from ExecutorResult:
 
 Shows cost_usd, input_tokens, output_tokens, automation_score.
 Data from the `done` SSE event.
+
+**Collapse toggle:** header chevron sets `ui.costPanelCollapsed = true`; same
+collapsed-strip pattern as `TaskSidebar`.
+
+---
+
+## PipelineInspector.svelte — Report / Agent atlas tabs
+
+Below `TaskHeader`, a tab bar switches the whole inspector body between:
+- **Report** (`activeTab === 'report'`) — the existing `inspector-body`
+  (`PipelineStages` + right-pane stats/WorkReport/ExtrasSection content),
+  unchanged.
+- **Agent atlas** (`activeTab === 'atlas'`) — renders `AgentAtlas.svelte`.
+
+`activeTab` resets to `'report'` whenever `task.task_id` changes (an
+`$effect`), so switching tasks never leaves a stale atlas tab open.
+
+## AgentAtlas.svelte
+
+Hub-and-spoke view of the agents that worked a task: a dashed "Task" hub node
+on top, one card ("spoke") per agent below, connected by a plain CSS
+vertical-tick pattern (no layout library — the current a2a fan-out is small
+enough that a real graph-layout engine, e.g. ELK.js as used by `system-atlas`,
+isn't justified yet).
+
+**Props:** `task` (a `TaskEvent`-shaped object; same shape `PipelineInspector`
+already reads).
+
+**Node source:**
+- `task.a2a_dispatched && task.a2a_assignments.length` → one node per
+  assignment (role, tier, mode, executor/provider/model, plan_status,
+  files_touched, cache_hit, mem_hits, skills, duration_ms, cost_usd, error).
+- otherwise → a single synthetic node built from the top-level task fields
+  (`agent`/`executor`/`provider`/`model`/`report.files_*`/`gateway.cache_hit`),
+  so single-agent tasks (the overwhelming majority locally — see below) still
+  render a one-node atlas instead of an empty view.
+
+Clicking a spoke toggles a detail panel below the graph: **Properties**
+(executor/provider/model/tier/mode/plan) and **Metrics**
+(duration/cost/cache/memory) columns, plus files-touched list, skill chips,
+and the role's error text if it failed. Click the same node again to close.
+
+Summary strip above the graph: role count, ok/failed counts, `task.cost_usd`,
+`task.duration_ms` (read from the task directly, not summed from nodes, so it
+stays correct regardless of how the roles overlapped in time).
 
 ---
 

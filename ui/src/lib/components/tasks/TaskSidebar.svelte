@@ -1,5 +1,5 @@
 <script>
-  import { SearchIcon } from '../../icons.js'
+  import { SearchIcon, ChevronLeftIcon, ChevronRightIcon } from '../../icons.js'
   import ActiveRuns from './ActiveRuns.svelte'
   import StatusDot from '../shared/StatusDot.svelte'
   import { fmtDur, fmtRel } from '../../utils/format.js'
@@ -69,7 +69,20 @@
   }
 </script>
 
+{#if ui.sidebarCollapsed}
+  <div class="sidebar-collapsed">
+    <button class="collapse-toggle" onclick={() => ui.sidebarCollapsed = false} title={t('sidebar.expand')} aria-label={t('sidebar.expand')}>
+      <ChevronRightIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
+{:else}
 <aside class="sidebar">
+  <div class="sidebar-topbar">
+    <span class="sidebar-topbar-title">{t('sidebar.title')}</span>
+    <button class="collapse-toggle" onclick={() => ui.sidebarCollapsed = true} title={t('sidebar.collapse')} aria-label={t('sidebar.collapse')}>
+      <ChevronLeftIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
   <ActiveRuns />
   <div class="sidebar-search">
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
@@ -161,8 +174,50 @@
     {/if}
   </div>
 </aside>
+{/if}
 
 <style>
+  .sidebar-collapsed {
+    width: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-default);
+  }
+
+  .sidebar-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 4px 10px;
+    border-bottom: 1px solid var(--border-muted);
+    flex-shrink: 0;
+  }
+
+  .sidebar-topbar-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .collapse-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    transition: background 0.1s, color 0.1s;
+  }
+  .collapse-toggle:hover { background: var(--bg-inset); color: var(--text-primary); }
+
   .sidebar {
     width: 260px;
     flex-shrink: 0;

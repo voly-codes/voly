@@ -3,6 +3,9 @@ export default {
   'runs.inProgress': 'In progress',
   'runs.heartbeat': 'heartbeat',
   // Task sidebar
+  'sidebar.title': 'Tasks',
+  'sidebar.collapse': 'Collapse panel',
+  'sidebar.expand': 'Expand panel',
   'sidebar.searchPlaceholder': 'Search: agent, model, ID…',
   'sidebar.sortDate': 'Date',
   'sidebar.sortCost': 'Cost',
@@ -110,6 +113,27 @@ export default {
   'empty.store': 'Store',
   'empty.telemetry': 'Telemetry',
 
+  // Inspector tabs
+  'inspector.tabReport': 'Report',
+  'inspector.tabAtlas': 'Agent atlas',
+
+  // Agent atlas
+  'atlas.task': 'Task',
+  'atlas.singleAgent': 'Single agent',
+  'atlas.roles': ['role', 'roles'],
+  'atlas.totalCost': 'Total cost',
+  'atlas.totalDuration': 'Total duration',
+  'atlas.ok': 'ok',
+  'atlas.failed': 'failed',
+  'atlas.files': 'files',
+  'atlas.filesTouched': 'Files touched',
+  'atlas.skills': 'Skills',
+  'atlas.noSkills': 'none',
+  'atlas.selectNode': 'Click a node to see its full properties and metrics.',
+  'atlas.properties': 'Properties',
+  'atlas.metrics': 'Metrics',
+  'atlas.error': 'Error',
+
   // Inspector (right pane)
   'inspector.task': 'Task',
   'inspector.output': 'Output',
@@ -148,6 +172,9 @@ export default {
   'stats.time': 'time',
 
   // Cost panel
+  'cost.title': 'Stats',
+  'cost.collapse': 'Collapse panel',
+  'cost.expand': 'Expand panel',
   'cost.overview': 'Overview',
   'cost.spend': 'spend',
   'cost.tokens': 'tokens',
