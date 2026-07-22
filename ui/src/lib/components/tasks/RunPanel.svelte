@@ -26,6 +26,9 @@
   let a2a_mode = $state('')
   let timeout_s = $state(120)
   let correlation_id = $state('')
+  let workflow = $state('')
+  let max_rounds = $state(3)
+  let deadline_seconds = $state(900)
 
   let running = $state(false)
   let checkingSkills = $state(false)
@@ -121,6 +124,10 @@
   /** Gate 1: suggest marketplace skills → Gate 2: tech detection → run. */
   async function submit() {
     if (!task.trim() || running || checkingSkills || skillGateOpen || checkingTech || techGateOpen) return
+    if (workflow && !cwd.trim()) {
+      error = 'Review workflow requires a working directory.'
+      return
+    }
     checkingSkills = true
     error = null
     try {
@@ -193,6 +200,12 @@
     if (a2a_mode.trim()) req.a2a_mode = a2a_mode.trim()
     if (timeout_s !== 120) req.timeout = timeout_s
     if (correlation_id.trim()) req.correlation_id = correlation_id.trim()
+    if (workflow) {
+      req.workflow = workflow
+      req.max_rounds = Number(max_rounds)
+      req.deadline_seconds = Number(deadline_seconds)
+      delete req.dry_run
+    }
     return req
   }
 
@@ -331,6 +344,9 @@
       bind:a2a_mode
       bind:timeout_s
       bind:correlation_id
+      bind:workflow
+      bind:max_rounds
+      bind:deadline_seconds
       running={busy}
     />
 

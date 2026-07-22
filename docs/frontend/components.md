@@ -306,6 +306,11 @@ chips (done/current), plan `step_statuses`, error. While the card is open,
 poll patches progress in place. When the last active run finishes, the store
 refreshes and the completed TaskEvent replaces the live card.
 
+For `review-until-clean` records the row also shows the current lap and latest
+verdict. Its expanded view exposes a cooperative **Cancel after current call**
+action: cancellation is recorded immediately, then observed by the workflow at
+the next safe boundary; it never interrupts an executor or provider call.
+
 ## TaskSidebar.svelte
 
 List of previous tasks. Data from `GET /api/tasks` (SSE).
@@ -390,6 +395,31 @@ and the role's error text if it failed. Click the same node again to close.
 Summary strip above the graph: role count, ok/failed counts, `task.cost_usd`,
 `task.duration_ms` (read from the task directly, not summed from nodes, so it
 stays correct regardless of how the roles overlapped in time).
+
+`PipelineInspector` keeps this view for normal single-agent and A2A fan-out
+runs. A task whose `workflow` is `review-until-clean` is routed to the directed
+`WorkflowGraph` instead, because its developer/reviewer dependency is cyclic
+and a hub-and-spoke diagram would be misleading.
+
+## WorkflowGraph.svelte and WorkflowTimeline.svelte
+
+Directed live/final view for the bounded review workflow. It renders the two
+runtime roles and both causal edges: implementation flows Developer → Reviewer,
+and blocking findings flow Reviewer → Developer on a repair lap. The active
+node and edge are highlighted; the summary shows lap/max laps, latest verdict,
+explicit stop reason, total duration, and total cost.
+
+Final SSE results use `laps` for per-role executor/provider/model, duration,
+cost, files touched, and errors. Live `/api/runs` records may not have completed
+lap metrics yet, so unavailable values remain visibly empty rather than being
+estimated. `WorkflowTimeline` lists every transition with lap and reason and
+ends with the workflow stop reason. `RunResult.svelte` embeds the same compact
+view for the immediate final SSE response.
+
+`RunAdvanced.svelte` exposes the explicit workflow selector plus bounded
+`max_rounds` (1–20) and `deadline_seconds` (60–3600). A review workflow requires
+a working directory and ignores dry-run mode because its purpose is to perform
+and verify real repairs.
 
 ---
 

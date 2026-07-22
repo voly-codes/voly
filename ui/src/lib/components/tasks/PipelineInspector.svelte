@@ -12,6 +12,7 @@
   import InspectorMetaSections from './InspectorMetaSections.svelte'
   import { buildPipelineStages, buildTokenBar } from './pipelineStageModel.js'
   import AgentAtlas from './AgentAtlas.svelte'
+  import WorkflowGraph from './WorkflowGraph.svelte'
 
   let outputExpanded = $state(true)
   let task = $derived(tasksStore.selected)
@@ -54,7 +55,11 @@
     </div>
 
     {#if activeTab === 'atlas'}
-      <AgentAtlas {task} />
+      {#if task.workflow === 'review-until-clean'}
+        <WorkflowGraph {task} />
+      {:else}
+        <AgentAtlas {task} />
+      {/if}
     {:else}
     <div class="inspector-body">
       <div class="left-pane">

@@ -5,6 +5,9 @@
     a2a_mode = $bindable(''),
     timeout_s = $bindable(120),
     correlation_id = $bindable(''),
+    workflow = $bindable(''),
+    max_rounds = $bindable(3),
+    deadline_seconds = $bindable(900),
     running = false,
   } = $props()
 
@@ -24,6 +27,25 @@
 
   {#if open}
     <div class="advanced-grid">
+      <div class="field field-span2">
+        <label class="field-label" for="run-adv-workflow">Workflow</label>
+        <select id="run-adv-workflow" bind:value={workflow} disabled={running}>
+          <option value="">Single run</option>
+          <option value="review-until-clean">Review until clean</option>
+        </select>
+      </div>
+
+      {#if workflow}
+        <div class="field">
+          <label class="field-label" for="run-adv-rounds">Max review laps</label>
+          <input id="run-adv-rounds" type="number" min="1" max="20" bind:value={max_rounds} disabled={running} />
+        </div>
+        <div class="field">
+          <label class="field-label" for="run-adv-deadline">Deadline (s)</label>
+          <input id="run-adv-deadline" type="number" min="60" max="3600" bind:value={deadline_seconds} disabled={running} />
+        </div>
+      {/if}
+
       <div class="field">
         <label class="field-label" for="run-adv-a2a">A2A mode</label>
         <input
@@ -101,7 +123,8 @@
     letter-spacing: 0.04em;
   }
 
-  .field input {
+  .field input,
+  .field select {
     width: 100%;
     height: 26px;
     padding: 0 8px;
@@ -113,6 +136,8 @@
     outline: none;
   }
 
-  .field input:focus { border-color: var(--accent-blue); }
-  .field input:disabled { opacity: 0.5; cursor: not-allowed; }
+  .field input:focus,
+  .field select:focus { border-color: var(--accent-blue); }
+  .field input:disabled,
+  .field select:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

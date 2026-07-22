@@ -47,6 +47,8 @@ class ReviewLap:
     reviewer_output: str = ""
     verdict: ReviewVerdict | None = None
     findings: list[str] = field(default_factory=list)
+    developer_cost_usd: float = 0.0
+    reviewer_cost_usd: float = 0.0
     cost_usd: float = 0.0
     duration_ms: float = 0.0
     error: str = ""
@@ -87,6 +89,8 @@ class ReviewLoopResult:
                     "reviewer_model": lap.reviewer_model,
                     "verdict": lap.verdict.value if lap.verdict else None,
                     "findings": list(lap.findings),
+                    "developer_cost_usd": round(lap.developer_cost_usd, 6),
+                    "reviewer_cost_usd": round(lap.reviewer_cost_usd, 6),
                     "cost_usd": round(lap.cost_usd, 6),
                     "duration_ms": round(lap.duration_ms, 1),
                     "error": lap.error,
@@ -222,7 +226,8 @@ class ReviewUntilClean:
             lap.reviewer_provider = str(review.get("provider") or provider)
             lap.reviewer_model = str(review.get("model") or model)
             lap.reviewer_output = str(review.get("content") or "")
-            lap.cost_usd += self._review_cost(review)
+            lap.reviewer_cost_usd = self._review_cost(review)
+            lap.cost_usd += lap.reviewer_cost_usd
             lap.duration_ms = self._elapsed_ms(lap_started)
 
             if review.get("error"):
@@ -333,13 +338,15 @@ class ReviewUntilClean:
                 *(report.files_created or []),
                 *(report.files_deleted or []),
             ]))
+        developer_cost = float(result.cost_usd or 0.0)
         return ReviewLap(
             number=number,
             developer_task_id=str(run.task_id or ""),
             developer_executor=str(run.executor or ""),
             developer_output=str(result.output or ""),
             files_touched=files,
-            cost_usd=float(result.cost_usd or 0.0),
+            developer_cost_usd=developer_cost,
+            cost_usd=developer_cost,
         )
 
     def _elapsed_ms(self, started: float) -> float:

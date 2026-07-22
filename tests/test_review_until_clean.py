@@ -71,6 +71,8 @@ def test_clean_first_lap(tmp_path) -> None:
     assert result.stop_reason is ReviewStopReason.CLEAN
     assert result.laps[0].verdict is ReviewVerdict.CLEAN
     assert result.total_cost_usd == 0.12
+    assert result.laps[0].developer_cost_usd == 0.1
+    assert result.laps[0].reviewer_cost_usd == 0.02
     assert runner.calls[0]["emit_event"] is False
     assert gateway.calls[0]["agent"] == "reviewer"
 

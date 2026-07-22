@@ -59,5 +59,13 @@ export function liveTaskFromRun(run) {
       current_role: current,
       age_seconds: run.age_seconds ?? 0,
     },
+    workflow: run.workflow || '',
+    lap: run.lap ?? 0,
+    max_laps: run.max_laps ?? 0,
+    active_role: run.active_role || '',
+    stop_reason: run.stop_reason || '',
+    latest_verdict: run.latest_verdict || '',
+    cancel_requested: !!run.cancel_requested,
+    timeline: run.timeline ?? [],
   }
 }

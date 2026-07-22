@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { t } from '../../i18n/localeStore.svelte.ts'
-  import { fetchRuns } from '../../api/client.js'
+  import { cancelRun, fetchRuns } from '../../api/client.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
 
   const POLL_MS = 4000
@@ -9,6 +9,19 @@
   let runs = $state([])
   let expanded = $state('')
   let hadActive = false
+  let cancelling = $state('')
+
+  async function requestCancel(event, run) {
+    event.stopPropagation()
+    cancelling = run.task_id
+    try {
+      await cancelRun(run.task_id)
+      runs = runs.map(r => r.task_id === run.task_id ? { ...r, cancel_requested: true } : r)
+      tasksStore.patchLive({ ...run, cancel_requested: true })
+    } finally {
+      cancelling = ''
+    }
+  }
 
   async function poll() {
     try {
@@ -73,6 +86,9 @@
             {#if r.current_role}
               <span class="ar-role">{r.current_role}</span>
             {/if}
+            {#if r.workflow}
+              <span class="ar-progress">lap {r.lap ?? 0}/{r.max_laps ?? '—'}</span>
+            {/if}
             {#if r.total_roles > 1}
               <span class="ar-progress">{r.done_roles}/{r.total_roles}</span>
             {/if}
@@ -109,6 +125,18 @@
             {/if}
             {#if r.error}
               <div class="ar-error">{r.error}</div>
+            {/if}
+            {#if r.workflow}
+              <div class="ar-workflow">
+                <span>{r.workflow}</span>
+                <span>{r.latest_verdict || 'running'}</span>
+                <button
+                  type="button"
+                  class="ar-cancel"
+                  disabled={r.cancel_requested || cancelling === r.task_id}
+                  onclick={(event) => requestCancel(event, r)}
+                >{r.cancel_requested ? 'Cancel requested' : 'Cancel after current call'}</button>
+              </div>
             {/if}
           </div>
         {/if}
@@ -255,4 +283,9 @@
     color: var(--accent-red);
     word-break: break-word;
   }
+
+  .ar-workflow { display: flex; align-items: center; gap: 7px; font: 9.5px var(--font-mono); color: var(--text-muted); }
+  .ar-cancel { margin-left: auto; padding: 3px 6px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); color: var(--accent-amber); font-size: 9px; }
+  .ar-cancel:hover:not(:disabled) { border-color: var(--accent-amber); }
+  .ar-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

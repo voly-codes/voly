@@ -160,10 +160,33 @@ returned by any endpoint. Localhost-only API (403 otherwise).
 import { fetchRuns, fetchRun } from '../api/client.js'
 const { runs, active } = await fetchRuns(true)   // active only
 const rec = await fetchRun(taskId)               // single RunRecord
+await cancelRun(taskId)                          // cooperative workflow cancel
 ```
 
 Polled by `ActiveRuns.svelte` (4s) — no SSE; records update via RunTracker
 heartbeats on disk.
+
+Workflow records additionally expose `workflow`, `lap`, `max_laps`,
+`active_role`, `latest_verdict`, `stop_reason`, `cancel_requested`, and a
+causal `timeline`. `liveTaskFromRun()` carries these fields into the selected
+task shape so `PipelineInspector` can render the directed graph. Cancellation
+uses `POST /api/runs/{task_id}/cancel` and is available only for an active
+workflow record.
+
+To start the bounded review loop, `RunPanel` adds these fields to `POST /api/run`:
+
+```javascript
+{
+  workflow: 'review-until-clean',
+  max_rounds: 3,
+  deadline_seconds: 900,
+  cwd: '/absolute/project/path'
+}
+```
+
+The final SSE event includes `workflow`, `stop_reason`, aggregate cost/duration,
+and `laps`. Each lap separates `developer_cost_usd` and `reviewer_cost_usd` so
+the graph does not infer or double-count per-role spend.
 
 ---
 
