@@ -276,6 +276,15 @@ Selected-task card (from `tasksStore.selected`). Shell layout + composition:
 
 Also uses existing `TaskHeader`, `PipelineStages`, `StatsOverview`, `WorkReport`.
 
+**Report / Agent atlas tabs:** below `TaskHeader`, a tab bar switches the whole
+inspector body between:
+- **Report** (`activeTab === 'report'`) — the `inspector-body` described above,
+  unchanged.
+- **Agent atlas** (`activeTab === 'atlas'`) — renders `AgentAtlas.svelte`.
+
+`activeTab` resets to `'report'` whenever `task.task_id` changes (an
+`$effect`), so switching tasks never leaves a stale atlas tab open.
+
 ## PipelineStages.svelte
 
 Pipeline stage visualization for text-only tasks:
@@ -352,17 +361,6 @@ Data from the `done` SSE event.
 collapsed-strip pattern as `TaskSidebar`.
 
 ---
-
-## PipelineInspector.svelte — Report / Agent atlas tabs
-
-Below `TaskHeader`, a tab bar switches the whole inspector body between:
-- **Report** (`activeTab === 'report'`) — the existing `inspector-body`
-  (`PipelineStages` + right-pane stats/WorkReport/ExtrasSection content),
-  unchanged.
-- **Agent atlas** (`activeTab === 'atlas'`) — renders `AgentAtlas.svelte`.
-
-`activeTab` resets to `'report'` whenever `task.task_id` changes (an
-`$effect`), so switching tasks never leaves a stale atlas tab open.
 
 ## AgentAtlas.svelte
 
