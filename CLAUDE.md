@@ -55,6 +55,7 @@ docs/
     pipeline.md      ← Pipeline stages, AgentRouter, smart dispatch, hybrid A2A
     a2a.md           ← A2A modules, auto-dispatch, federation, context handoff
     plan.md          ← Plan gates, verify, tester_command scoping
+    workflows.md     ← Bounded review/repair workflows and stop semantics
     reuse.md         ← voly reuse: GitHub search → pack → pick → apply
     intelligence.md  ← Repository Intelligence: admission, license, architecture map
     capability.md    ← Capability Registry: evidence-based executor routing, matcher
@@ -83,6 +84,7 @@ docs/
 | Pipeline stage / PipelineResult | `docs/backend/pipeline.md` + `docs/ARCHITECTURE.md` |
 | Multi-agent / hybrid / cascade | `docs/backend/pipeline.md` + `docs/backend/a2a.md` |
 | Plan gates / verify | `docs/backend/plan.md` |
+| Bounded agent workflow | `docs/backend/workflows.md` + `docs/ARCHITECTURE.md` |
 | AI Gateway / provider | `docs/backend/ai-gateway.md` |
 | DSPy program / config | `docs/backend/dspy.md` |
 | Config / env var | `docs/backend/config.md` |
