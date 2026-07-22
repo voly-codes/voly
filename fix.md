@@ -48,3 +48,5 @@ commit hash and an English description.
 - `9c02171` — Close remaining strategy gaps: model_provider seeds, health-filtered match, routing policies, and voly run --repo / intelligence.auto.
 
 - `dcc6a6c` — Detect Windows npm executor shims and repo-local Wrangler installations instead of requiring a POSIX-style binary on PATH.
+
+- `642ce3f` — Create a stable root task before execution, merge live RunRecords into the normal task list, and replace the separate In progress cards with one continuously updated task and Agent Atlas.
