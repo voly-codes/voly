@@ -12,9 +12,9 @@ _KNOWN_INDEX_SKILL_IDS = frozenset({"engineering-skills"})
 
 # Ultra-generic task words that let markdown/review skills match every code task.
 _GENERIC_TASK_TOKENS = frozenset({
-    "code", "review", "tests", "test", "write", "writing", "update", "changes",
-    "implement", "implementation", "add", "create", "check", "with", "from",
-    "that", "this", "have", "into", "your", "file", "files", "project",
+    "code", "review", "tests", "test", "testing", "write", "writing", "update",
+    "changes", "implement", "implementation", "add", "create", "check", "with",
+    "from", "that", "this", "have", "into", "your", "file", "files", "project",
 })
 
 # Frontend stack markers — monorepo `ui/` TypeScript must not inject these into

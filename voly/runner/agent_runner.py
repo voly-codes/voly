@@ -163,6 +163,11 @@ class AgentRunner:
         git_before = _git_porcelain(cwd)
         from voly.plan.verify_git import fingerprint_untracked
         fp_before = fingerprint_untracked(cwd, git_before) if cwd else {}
+        # Shallow dir-listing fallback for when cwd isn't itself a git repo
+        # (git status then sees nothing) — see _build_work_report. Cheap
+        # (one non-recursive scandir), so always taken alongside git_before.
+        from voly.runner.work_report import _dir_snapshot_shallow
+        dir_before = _dir_snapshot_shallow(cwd) if cwd else None
         # Pre-run snapshot for the safety policy: lets rollback restore the
         # exact pre-run content even of files that were already dirty.
         from voly.executor.safety import apply_safety_policy, git_snapshot
@@ -308,12 +313,15 @@ class AgentRunner:
 
         git_after = _git_porcelain(cwd)
         fp_after = fingerprint_untracked(cwd, git_after) if cwd else {}
+        dir_after = _dir_snapshot_shallow(cwd) if cwd else None
         work_report = _build_work_report(
             result.output or "",
             git_before,
             git_after,
             fingerprints_before=fp_before,
             fingerprints_after=fp_after,
+            dir_snapshot_before=dir_before,
+            dir_snapshot_after=dir_after,
         )
         result.report = work_report
 

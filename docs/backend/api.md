@@ -319,6 +319,13 @@ Note: the CLI writes records relative to its own cwd — runs launched from a
 different directory than the server's project keep their records in that
 project's `.voly/runs` (same rule as TaskEvents).
 
+**Automatic stale reaping:** the server (`voly/web/server.py`) runs a
+background `Watchdog.reap()` every 2 minutes so a crashed/hung run does not
+stay `running` (and therefore visible via `?active=1`) forever — see
+`docs/backend/pipeline.md` § Multi-agent resilience. Before this, only the
+CLI (`voly runs reap`) cleared stale records, so old runs could pile up as
+permanent "still running" cards in the UI's live task list.
+
 ---
 
 ## GET /api/status

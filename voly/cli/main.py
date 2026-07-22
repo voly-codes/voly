@@ -7,8 +7,22 @@ Subcommands live in voly.cli.commands.*
 from __future__ import annotations
 
 import logging
+import sys
 
 import click
+
+if sys.platform == "win32":
+    # Windows consoles default stdout/stderr to the OS locale codepage
+    # (e.g. cp1251), not UTF-8. Every CLI command that prints Cyrillic task
+    # text or agent output (review reports, multi-agent summaries, error
+    # messages) would otherwise come out as mojibake or raise
+    # UnicodeEncodeError outright — see docs/backend/executors.md for the
+    # matching subprocess-capture fix.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
 
 from voly.capability.sync import startup_sync
 from voly.cli.commands import (

@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import PipelineEmptyState from './PipelineEmptyState.svelte'
@@ -18,12 +19,21 @@
   let outputExpanded = $state(true)
   let task = $derived(tasksStore.selected)
   let activeTab = $state('report')
+  let lastTaskId = $state(undefined)
 
   // Live parent runs open directly on their one shared graph. Historical and
-  // single-agent tasks keep the report-first behavior.
+  // single-agent tasks keep the report-first behavior. Only re-decide the
+  // default tab when the *selected task changes* (task_id) — reading
+  // `_live`/`graph_nodes.length` via untrack() keeps them out of this
+  // effect's dependencies, so a live task's periodic polling updates (every
+  // ~2s, see tasksStore.syncLiveRuns) don't re-run it and silently snap a
+  // manually-chosen tab back to "report" whenever graph_nodes is momentarily
+  // empty between heartbeats.
   $effect(() => {
-    void task?.task_id
-    activeTab = task?._live && task?.graph_nodes?.length ? 'atlas' : 'report'
+    const id = task?.task_id
+    if (id === lastTaskId) return
+    lastTaskId = id
+    activeTab = untrack(() => task?._live && task?.graph_nodes?.length) ? 'atlas' : 'report'
   })
 
   let tokenBar = $derived.by(() => {

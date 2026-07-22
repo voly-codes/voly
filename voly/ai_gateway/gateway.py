@@ -95,6 +95,7 @@ class AIGateway(_GatewayProvidersMixin):
         agent: str | None = None,
         tools: list[dict[str, Any]] | None = None,
         cache_scope: str = "",
+        allow_provider_reroute: bool = True,
         **kwargs: Any,
     ) -> dict[str, Any]:
         if not self._enabled:
@@ -107,10 +108,16 @@ class AIGateway(_GatewayProvidersMixin):
 
         # Skip providers already marked unhealthy (billing/auth) within this process —
         # otherwise every role in a multi-agent wave re-burns Anthropic credits.
+        # `allow_provider_reroute=False` (A2A's chat_with_provider_fallback) opts out:
+        # that caller already does its own tier-scoped health-aware fallback, and this
+        # reroute picks from the *global* PROVIDER_PRIORITY list, not the caller's tier
+        # pool — it could silently swap e.g. a "standard"-tier deepseek assignment for
+        # "mimo" (only ever meant for the weak/cheap tier), whose failure then gets
+        # mis-attributed to deepseek (the assignment is never told a swap happened).
         from voly.ai_gateway.health import get_checker
 
         checker = get_checker()
-        if provider_name and not checker.check(provider_name).healthy:
+        if allow_provider_reroute and provider_name and not checker.check(provider_name).healthy:
             alt, is_fb = checker.best_provider(provider_name)
             if is_fb and alt != provider_name:
                 _log.warning(

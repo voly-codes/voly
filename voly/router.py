@@ -195,6 +195,13 @@ class AgentRouter:
     def analyze_task(self, task: str) -> TaskAnalysis:
         analysis = TaskAnalysis(intent="general", confidence=0.3)
         t = task.lower()
+        # Strip filename-like tokens ("test.md", "config.yaml") before keyword
+        # matching: a capability keyword must describe the task, not just
+        # happen to be part of a file name the task mentions — otherwise
+        # "create test.md and write hello in it" flips requires_testing to
+        # True purely because "test" is a substring of the filename, which
+        # pushes a one-file task into the full multi-agent dispatch path.
+        t = re.sub(r"\b[\w\-]+\.[a-z0-9]{1,5}\b", " ", t)
 
         complexity_signals = [
             (["архитектур", "architecture", "перепроектиров", "refactor.*architect"], "high"),

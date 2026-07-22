@@ -288,10 +288,20 @@ Also uses existing `TaskHeader`, `PipelineStages`, `StatsOverview`, `WorkReport`
 inspector body between:
 - **Report** (`activeTab === 'report'`) — the `inspector-body` described above,
   unchanged.
-- **Agent atlas** (`activeTab === 'atlas'`) — renders `AgentAtlas.svelte`.
+- **Agent atlas** (`activeTab === 'atlas'`) — renders `LiveAgentGraph.svelte`
+  for a live task with `graph_nodes`, `WorkflowGraph.svelte` for a
+  `review-until-clean` workflow, otherwise `AgentAtlas.svelte`.
 
-`activeTab` resets to `'report'` whenever `task.task_id` changes (an
-`$effect`), so switching tasks never leaves a stale atlas tab open.
+`activeTab` auto-picks `'atlas'` vs `'report'` only when `task.task_id`
+*changes* (switching to a different task in the sidebar) — the effect reads
+`task._live` / `task.graph_nodes?.length` through Svelte's `untrack()` so
+they aren't tracked as dependencies. This matters because a live task's
+polling refresh (`tasksStore.syncLiveRuns`, every ~2s) replaces the whole
+`task` object with the same `task_id` but a momentarily-different
+`graph_nodes`; if the effect depended on those fields directly (as it
+originally did), every poll re-ran it and could silently snap a
+manually-selected tab back to `'report'` mid-run, making the Atlas tab appear
+to "bounce back" whenever the user clicked it while a task was still live.
 
 ## PipelineStages.svelte
 

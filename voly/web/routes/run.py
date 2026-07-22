@@ -188,7 +188,10 @@ def _gather_local_context(task: str, cwd: str, max_chars: int = 6000) -> str:
                 *[f"--exclude-dir={d}" for d in _EXCLUDE_DIRS],
                 kw, ".",
             ]
-            result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=5)
+            result = subprocess.run(
+                cmd, cwd=cwd, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=5,
+            )
             for path in result.stdout.strip().splitlines():
                 file_scores[path] = file_scores.get(path, 0) + 1
         except Exception:

@@ -51,6 +51,10 @@ def chat_with_provider_fallback(
                 agent=assignment.role,
                 max_tokens=max_tokens,
                 temperature=temperature,
+                # This loop already does its own tier-scoped provider fallback —
+                # AIGateway's own health-based reroute (global PROVIDER_PRIORITY,
+                # unaware of tiers) must not override the provider chosen here.
+                allow_provider_reroute=False,
             )
         except Exception as e:  # noqa: BLE001
             last_err = str(e)

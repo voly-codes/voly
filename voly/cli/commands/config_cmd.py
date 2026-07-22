@@ -22,8 +22,8 @@ def config_cmd(ctx: click.Context, show: bool, path: bool, export_path: str | No
     if export_path:
         import yaml
 
-        with open(export_path, "w") as f:
-            yaml.dump(config.model_dump(), f, default_flow_style=False)
+        with open(export_path, "w", encoding="utf-8") as f:
+            yaml.dump(config.model_dump(), f, default_flow_style=False, allow_unicode=True)
         click.echo(f"Config exported to: {export_path}")
         return
 
