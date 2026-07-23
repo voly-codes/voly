@@ -91,7 +91,7 @@ def _parse_rate_limit(text: str) -> dict[str, Any]:
 
     # Normalise: remove "Up to", "~", parenthetical notes, strip commas in numbers
     cleaned = re.sub(r'\bup\s+to\b', '', raw, flags=re.IGNORECASE)
-    cleaned = re.sub(r'~', '', cleaned)
+    cleaned = cleaned.replace('~', '')
     cleaned = re.sub(r'\([^)]*\)', '', cleaned)  # strip (anonymous) etc.
     # Remove numeric comma separators, e.g. 14,400 → 14400
     cleaned = re.sub(r'(\d),(\d)', r'\1\2', cleaned)

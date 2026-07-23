@@ -130,7 +130,7 @@ def create_pipeline_handler(config: VOLYConfig, token: str = "", default_cwd: st
                         os.environ["VOLY_A2A_NESTED"] = prev_nested
 
         def log_request(self, code: int | str = "-", size: int | str = "-") -> None:
-            pass
+            pass  # suppress BaseHTTPRequestHandler's default per-request stdout logging
 
     return PipelineHandler
 

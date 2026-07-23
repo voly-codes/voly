@@ -48,7 +48,7 @@ def _sigv4_headers(
     extra_headers: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """Return Authorization + required headers for an S3/R2 request."""
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     amz_date = now.strftime("%Y%m%dT%H%M%SZ")
     date_stamp = now.strftime("%Y%m%d")
     region = "auto"

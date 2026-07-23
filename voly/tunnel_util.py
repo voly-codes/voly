@@ -18,7 +18,6 @@ TUNNEL_URL_RE = re.compile(r"https://[a-z0-9-]+\.trycloudflare\.com")
 DEFAULT_CLOUDFLARED_PATHS = (
     Path.home() / ".local/bin/cloudflared",
     Path("/usr/local/bin/cloudflared"),
-    Path("/tmp/cloudflared"),
 )
 
 

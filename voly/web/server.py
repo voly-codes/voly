@@ -161,13 +161,13 @@ def create_app(
     # Open-core: the web UI has no authentication — the API is open and intended
     # for localhost only. Authentication (JWT / SSO) is a commercial Team-tier
     # feature that lives in the closed voly-cloud distribution.
+    app.add_middleware(CorrelationMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(CorrelationMiddleware)
 
     app.state.app = AppState(
         ev_dir=events_dir or _resolve_events_dir(),
