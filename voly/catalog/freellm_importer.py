@@ -30,6 +30,8 @@ _LAST_UPDATED_RE = re.compile(
 
 SOURCE_REPO = "https://github.com/open-free-llm-api/awesome-free-llm-apis"
 
+_CREDIT_CARD_LABEL = "credit card"
+
 
 # ---------------------------------------------------------------------------
 # Internal provider info gathered while parsing multiple sections
@@ -127,7 +129,7 @@ def _parse_auth(text: str) -> str:
         return "none"
     if "phone" in t:
         return "phone"
-    if "credit card" in t or "creditcard" in t:
+    if _CREDIT_CARD_LABEL in t or "creditcard" in t:
         return "credit_card"
     # "Registration" / "Email" → email-based signup
     return "email"
@@ -206,7 +208,7 @@ def _parse_quick_ref(content: str) -> dict[str, _ProviderInfo]:
     provider_col = _col(header, "provider")
     url_col = _col(header, "base url", "url")
     key_col = _col(header, "get api key", "api key", "key")
-    auth_col = _col(header, "credit card", "auth", "card")
+    auth_col = _col(header, _CREDIT_CARD_LABEL, "auth", "card")
 
     result: dict[str, _ProviderInfo] = {}
     for row in rows:
@@ -224,6 +226,19 @@ def _parse_quick_ref(content: str) -> dict[str, _ProviderInfo]:
     return result
 
 
+def _enrich_provider_from_row(
+    info: _ProviderInfo, row: list[str], modalities_col: int, auth_col: int, key_col: int
+) -> None:
+    if modalities_col >= 0:
+        raw_mod = _strip_html(_cell(row, modalities_col))
+        if raw_mod:
+            info.modalities = _parse_modalities(raw_mod)
+    if auth_col >= 0 and not info.auth_requirement:
+        info.auth_requirement = _parse_auth(_strip_html(_cell(row, auth_col)))
+    if key_col >= 0 and not info.api_key_url:
+        info.api_key_url = _extract_href(_cell(row, key_col))
+
+
 def _parse_permanent_free(content: str, providers: dict[str, _ProviderInfo]) -> None:
     """Enrich `providers` dict with modalities from <!-- BEGIN_PERMANENT_FREE --> section.
 
@@ -238,7 +253,7 @@ def _parse_permanent_free(content: str, providers: dict[str, _ProviderInfo]) -> 
 
     header, rows = _parse_md_table(section)
     provider_col = _col(header, "provider")
-    auth_col = _col(header, "credit card", "auth", "card")
+    auth_col = _col(header, _CREDIT_CARD_LABEL, "auth", "card")
     modalities_col = _col(header, "modalities", "modal")
     key_col = _col(header, "get api key", "api key", "key")
 
@@ -248,15 +263,7 @@ def _parse_permanent_free(content: str, providers: dict[str, _ProviderInfo]) -> 
             continue
         if name not in providers:
             providers[name] = _ProviderInfo()
-        info = providers[name]
-        if modalities_col >= 0:
-            raw_mod = _strip_html(_cell(row, modalities_col))
-            if raw_mod:
-                info.modalities = _parse_modalities(raw_mod)
-        if auth_col >= 0 and not info.auth_requirement:
-            info.auth_requirement = _parse_auth(_strip_html(_cell(row, auth_col)))
-        if key_col >= 0 and not info.api_key_url:
-            info.api_key_url = _extract_href(_cell(row, key_col))
+        _enrich_provider_from_row(providers[name], row, modalities_col, auth_col, key_col)
 
 
 def _parse_best_models(
@@ -442,9 +449,52 @@ def parse_readme_text(content: str) -> list[CatalogModel]:
     # Deduplicate exact provider/model pairs. Provider-qualified IDs preserve
     # the same upstream model offered by multiple providers.
     seen: dict[str, CatalogModel] = {}
-    for m in models:
-        seen[m.id] = m
+    for model in models:
+        seen[model.id] = model
     return list(seen.values())
+
+
+def _find_legacy_id(result: dict[str, CatalogModel], imp: CatalogModel) -> str | None:
+    """Find an existing legacy row whose ID is the raw upstream model ID,
+    matched only when the provider also matches."""
+    return next(
+        (
+            model_id
+            for model_id, model in result.items()
+            if model.id == imp.upstream_model_id and model.provider == imp.provider
+        ),
+        None,
+    )
+
+
+def _merge_model(ex: CatalogModel, imp: CatalogModel) -> CatalogModel:
+    return CatalogModel(
+        id=ex.id,
+        name=ex.name or imp.name,
+        provider=ex.provider or imp.provider,
+        # Preserve routing/cost fields from existing
+        tier=ex.tier,
+        input_cost_per_1m=ex.input_cost_per_1m,
+        output_cost_per_1m=ex.output_cost_per_1m,
+        executor_compat=ex.executor_compat,
+        strengths=ex.strengths,
+        enabled=ex.enabled,
+        # Enrich with freellm metadata; fall back to existing if imported empty
+        base_url=imp.base_url or ex.base_url,
+        context_window=imp.context_window or ex.context_window,
+        modalities=imp.modalities or ex.modalities,
+        rate_limit=imp.rate_limit or ex.rate_limit,
+        auth_requirement=imp.auth_requirement or ex.auth_requirement,
+        api_key_url=imp.api_key_url or ex.api_key_url,
+        # supports_tools: keep existing if set; don't downgrade to None
+        supports_tools=ex.supports_tools if ex.supports_tools is not None else imp.supports_tools,
+        source_url=imp.source_url or ex.source_url,
+        upstream_model_id=ex.upstream_model_id or imp.upstream_model_id,
+        source_updated_at=imp.source_updated_at or ex.source_updated_at,
+        # Never clear a verified flag from existing
+        verified=ex.verified,
+        last_verified_at=ex.last_verified_at,
+    )
 
 
 def merge_with_catalog(
@@ -471,51 +521,12 @@ def merge_with_catalog(
     for imp in imported:
         target_id = imp.id
         if target_id not in result:
-            # Backward compatibility: enrich an existing legacy row whose ID is
-            # the raw upstream model ID when its provider also matches.
-            legacy_id = next(
-                (
-                    model_id
-                    for model_id, model in result.items()
-                    if model.id == imp.upstream_model_id
-                    and model.provider == imp.provider
-                ),
-                None,
-            )
+            legacy_id = _find_legacy_id(result, imp)
             if legacy_id is None:
                 result[target_id] = imp
                 continue
             target_id = legacy_id
 
-        ex = result[target_id]
-        result[target_id] = CatalogModel(
-            id=ex.id,
-            name=ex.name or imp.name,
-            provider=ex.provider or imp.provider,
-            # Preserve routing/cost fields from existing
-            tier=ex.tier,
-            input_cost_per_1m=ex.input_cost_per_1m,
-            output_cost_per_1m=ex.output_cost_per_1m,
-            executor_compat=ex.executor_compat,
-            strengths=ex.strengths,
-            enabled=ex.enabled,
-            # Enrich with freellm metadata; fall back to existing if imported empty
-            base_url=imp.base_url or ex.base_url,
-            context_window=imp.context_window or ex.context_window,
-            modalities=imp.modalities or ex.modalities,
-            rate_limit=imp.rate_limit or ex.rate_limit,
-            auth_requirement=imp.auth_requirement or ex.auth_requirement,
-            api_key_url=imp.api_key_url or ex.api_key_url,
-            # supports_tools: keep existing if set; don't downgrade to None
-            supports_tools=(
-                ex.supports_tools if ex.supports_tools is not None else imp.supports_tools
-            ),
-            source_url=imp.source_url or ex.source_url,
-            upstream_model_id=ex.upstream_model_id or imp.upstream_model_id,
-            source_updated_at=imp.source_updated_at or ex.source_updated_at,
-            # Never clear a verified flag from existing
-            verified=ex.verified,
-            last_verified_at=ex.last_verified_at,
-        )
+        result[target_id] = _merge_model(result[target_id], imp)
 
     return list(result.values())
