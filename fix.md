@@ -3,6 +3,7 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `92712e6` — Fix `OrchestrationReport.to_markdown` returning an identical empty status string for both success and failure (both ternary branches were the same literal), and re-raise `asyncio.CancelledError` in the tasks SSE generator instead of swallowing it, per SonarQube findings on the newly connected local Sonar server.
 - `6cceefa` — Show the assigned executor name (from roles[0]/current_role) instead of a placeholder dash for single-role live tasks in Agent Atlas, since RunRecord has no agent/executor/model fields until the final TaskEvent.
 - `ac96e0c` — Auto-reap stale "running" task records in the web server; strip filename tokens from router keyword matching; align SkillScout's relevance gate with the shared skill-injection stopword list; fix PipelineInspector's Atlas/Report tab snapping back during live polling; detect file creation outside a git repo via a shallow dir-snapshot fallback; add `allow_provider_reroute` so AIGateway's tier-unaware health swap can't hijack A2A's own provider fallback; explicit UTF-8 across subprocess captures, config I/O, and CLI stdio (Windows cp1251 was corrupting/crashing on Cyrillic).
 - `255012f` — Report multi-agent runs as partial when implementation roles fail instead of incorrectly marking them completed.
