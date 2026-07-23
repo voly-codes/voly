@@ -48,8 +48,11 @@ function _mergeNew(incoming: any[], markUnseen = true) {
   }
   tasks = [...map.values()].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
 
-  // Auto-select if we have a deep-linked taskId
-  if (router.taskId && selected?.task_id !== router.taskId) {
+  // Auto-select if we have a deep-linked taskId. router.taskId is always an
+  // 8-char prefix (see selectLive/select below) — comparing it to the full
+  // task_id with !== was always true, so this ran (and could reselect) on
+  // every single update, not just genuine deep-links.
+  if (router.taskId && !selected?.task_id?.startsWith(router.taskId)) {
     const match = tasks.find((x: any) => x.task_id?.startsWith(router.taskId!))
     if (match) selected = match
   }
@@ -59,7 +62,7 @@ async function refresh() {
   try {
     const [t, s, st] = await Promise.all([fetchTasks(), fetchSummary(), fetchStatus()])
     const finalIds = new Set(t.map((item: any) => item.task_id))
-    const live = tasks.filter(item => item._live && !finalIds.has(item.task_id))
+    const live = tasks.filter((item: any) => item._live && !finalIds.has(item.task_id))
     tasks = [...live, ...t].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
     if (selected?._live) {
       const final = t.find((item: any) => item.task_id === selected.task_id)
@@ -69,7 +72,9 @@ async function refresh() {
     status = st
     error = null
 
-    if (router.taskId && selected?.task_id !== router.taskId) {
+    // Same prefix-vs-full-id fix as _mergeNew above — only reselect when the
+    // current selection genuinely doesn't match the deep-linked task.
+    if (router.taskId && !selected?.task_id?.startsWith(router.taskId)) {
       const match = tasks.find((x: any) => x.task_id?.startsWith(router.taskId!))
       if (match) selected = match
       else await loadById(router.taskId)
@@ -84,10 +89,10 @@ async function refresh() {
 function upsertLive(run: any, selectNow = false) {
   const live = liveTaskFromRun(run)
   if (!live) return
-  const index = tasks.findIndex(item => item.task_id === live.task_id)
+  const index = tasks.findIndex((item: any) => item.task_id === live.task_id)
   tasks = index < 0
     ? [live, ...tasks]
-    : tasks.map((item, i) => i === index ? live : item)
+    : tasks.map((item: any, i: number) => i === index ? live : item)
   tasks = [...tasks].sort((a, b) => (b._mtime ?? 0) - (a._mtime ?? 0))
   if (selected?._live && selected.task_id === live.task_id) selected = live
   if (selectNow) selectLive(run)
@@ -98,10 +103,19 @@ async function syncLiveRuns() {
     const data = await fetchRuns(true)
     const runs = data.runs ?? []
     const activeIds = new Set(runs.map((run: any) => run.task_id))
-    const hadMissingLive = tasks.some(item => item._live && !activeIds.has(item.task_id))
+    const hadMissingLive = tasks.some((item: any) => item._live && !activeIds.has(item.task_id))
     for (const run of runs) upsertLive(run)
-    tasks = tasks.filter(item => !item._live || activeIds.has(item.task_id))
-    if (hadMissingLive) await refresh()
+    if (hadMissingLive) {
+      // A live task just finished — let refresh() atomically swap its live
+      // placeholder for the real final task (it only drops a _live entry once
+      // an item with the same task_id shows up in the fetched final list).
+      // Filtering it out of `tasks` here first — before refresh() has fetched
+      // that final entry — briefly (and sometimes not-so-briefly, on a slow
+      // fetch) made the task vanish from the sidebar list mid-transition.
+      await refresh()
+    } else {
+      tasks = tasks.filter((item: any) => !item._live || activeIds.has(item.task_id))
+    }
   } catch {}
 }
 

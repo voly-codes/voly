@@ -168,6 +168,36 @@ records update via RunTracker heartbeats on disk. `/api/run` emits the root
 `task_id` in its first `start` event so UI-launched tasks appear immediately,
 before the first poll.
 
+**Live→final handoff:** when `syncLiveRuns()` notices a task dropped out of
+`/api/runs?active=1` (it finished), it must not drop the task's live entry
+from `tasks` itself — `refresh()` is the only place that atomically swaps a
+`_live` placeholder for the real final task (it drops a live entry only once
+a matching `task_id` shows up in the freshly-fetched final list). Filtering
+the live entry out *before* calling `refresh()` made the task flash out of
+the sidebar mid-transition — confirmed with a state-snapshot test: at the
+instant `fetchTasks()` fires, the old ordering left `tasks` empty; the fixed
+ordering keeps the live entry in place until the final one is ready to
+replace it.
+
+Also note `router.taskId` is always an 8-char prefix (`task_id.slice(0, 8)`,
+set by `select`/`selectLive`) — comparing it to a full `task_id` with `!==`
+is never equal, so `refresh()`/`_mergeNew()`'s deep-link reselect must use
+`.startsWith()`, or it re-triggers on every single update instead of only on
+a genuine deep link.
+
+**`router.navigate()` updates state synchronously.** `routerStore.svelte.ts`
+used to only set `window.location.hash` and let the `hashchange` listener
+update `router.taskId` — but that listener fires on the *next* tick, not
+synchronously. Reproduced with a scripted race: start task B while task A is
+selected, then have a live-run poll land in that one-tick gap — with only the
+hash set, `router.taskId` still read A's id, so `refresh()`'s deep-link
+reselect matched `tasks` against A and flipped `selected` back to it the
+moment B finished (visible as "task disappears and kicks you back to the
+previous task"). `navigate()` now assigns `current` directly before touching
+the hash, closing the gap; the hash still updates for shareable/refreshable
+URLs, and the resulting `hashchange` re-parses to the same (already correct)
+value.
+
 `GET /api/runs` returns only root records by default. Pass
 `include_children=1` for diagnostics; child executor records carry
 `parent_task_id`. Root records expose `graph_nodes` and `graph_edges`, which are
