@@ -158,7 +158,7 @@ async def stream_tasks(request: Request) -> StreamingResponse:
 
                 await asyncio.sleep(5)
         except asyncio.CancelledError:
-            pass
+            raise
 
     return StreamingResponse(
         generator(),
