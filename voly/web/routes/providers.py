@@ -61,7 +61,10 @@ class ProviderKeyIn(BaseModel):
     alias: str = "default"
 
 
-@router.get("/api/providers/keys")
+@router.get(
+    "/api/providers/keys",
+    responses={403: {"description": "provider keys API is localhost-only"}},
+)
 def list_keys(request: Request) -> dict[str, Any]:
     _require_local(request)
     from voly.config import load_config
@@ -80,7 +83,14 @@ def list_keys(request: Request) -> dict[str, Any]:
                 "error": str(exc)}
 
 
-@router.post("/api/providers/keys")
+@router.post(
+    "/api/providers/keys",
+    responses={
+        403: {"description": "provider keys API is localhost-only"},
+        400: {"description": "Invalid request (bad provider, empty key, or CF Secrets Store not configured)"},
+        502: {"description": "Bad gateway from CF Secrets Store"},
+    },
+)
 def create_key(request: Request, body: ProviderKeyIn) -> dict[str, Any]:
     _require_local(request)
     slug = _resolve_slug(body.provider.strip().lower())
@@ -100,7 +110,15 @@ def create_key(request: Request, body: ProviderKeyIn) -> dict[str, Any]:
     }
 
 
-@router.delete("/api/providers/keys/{provider}")
+@router.delete(
+    "/api/providers/keys/{provider}",
+    responses={
+        403: {"description": "provider keys API is localhost-only"},
+        400: {"description": "Invalid provider or CF Secrets Store not configured"},
+        502: {"description": "Bad gateway from CF Secrets Store"},
+        404: {"description": "No stored key for this provider/alias"},
+    },
+)
 def delete_key(request: Request, provider: str, alias: str = "default") -> dict[str, Any]:
     _require_local(request)
     slug = _resolve_slug(provider.strip().lower())

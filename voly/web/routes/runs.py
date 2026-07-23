@@ -48,7 +48,7 @@ def list_runs(
     }
 
 
-@router.get("/api/runs/{task_id}")
+@router.get("/api/runs/{task_id}", responses={404: {"description": "No run record for this task_id"}})
 def get_run(request: Request, task_id: str) -> dict[str, Any]:
     from voly.runtime.runs import RunTracker
 
@@ -58,7 +58,10 @@ def get_run(request: Request, task_id: str) -> dict[str, Any]:
     return _to_dict(rec)
 
 
-@router.post("/api/runs/{task_id}/cancel")
+@router.post(
+    "/api/runs/{task_id}/cancel",
+    responses={409: {"description": "Run is missing or no longer active"}},
+)
 def cancel_run(request: Request, task_id: str) -> dict[str, Any]:
     """Request cooperative stop before the workflow's next blocking turn."""
     from voly.runtime.runs import RunTracker

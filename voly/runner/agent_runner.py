@@ -20,7 +20,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-_chain_log = logging.getLogger("voly.chain")
+_CHAIN_LOGGER_NAME = "voly.chain"
+_chain_log = logging.getLogger(_CHAIN_LOGGER_NAME)
 
 from voly.automation import compute_automation_metrics
 from voly.config import VOLYConfig
@@ -158,7 +159,7 @@ class AgentRunner:
             try:
                 effective_task, dspy_plan_result = _dspy_plan_task(task, self.config)
             except Exception as exc:
-                logging.getLogger("voly.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
+                logging.getLogger(_CHAIN_LOGGER_NAME).debug("[CHAIN:DSPY_PLAN] error=%s", exc)
 
         git_before = _git_porcelain(cwd)
         from voly.plan.verify_git import fingerprint_untracked
@@ -309,7 +310,7 @@ class AgentRunner:
             try:
                 _dspy_store_example(task, effective_task, result, self.config)
             except Exception as exc:
-                logging.getLogger("voly.chain").debug("[CHAIN:DSPY_STORE] error=%s", exc)
+                logging.getLogger(_CHAIN_LOGGER_NAME).debug("[CHAIN:DSPY_STORE] error=%s", exc)
 
         git_after = _git_porcelain(cwd)
         fp_after = fingerprint_untracked(cwd, git_after) if cwd else {}

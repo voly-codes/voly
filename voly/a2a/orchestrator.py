@@ -190,7 +190,7 @@ class A2AOrchestrator:
                     task.agent_url = remote.agent_url
                     self._tasks[task.id] = task
                 except Exception as exc:
-                    logger.error("route_and_delegate: federation.create_remote_task failed: %s", exc)
+                    logger.exception("route_and_delegate: federation.create_remote_task failed: %s", exc)
                     task.state = TaskState.FAILED
                     task.error = str(exc)
                 return task
@@ -263,7 +263,7 @@ class A2AOrchestrator:
                             i, subtask.agent, a2a_task.state, a2a_task.id)
                 results[i] = a2a_task
             except Exception as e:
-                logger.error("dispatch_parallel[%d]: agent=%s exception: %s", i, subtask.agent, e, exc_info=True)
+                logger.exception("dispatch_parallel[%d]: agent=%s exception: %s", i, subtask.agent, e)
                 a2a_task = self.create_task(title=subtask.agent, description=subtask.description)
                 a2a_task.metadata['agent'] = subtask.agent
                 a2a_task.metadata['error'] = str(e)

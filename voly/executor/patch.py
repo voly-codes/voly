@@ -132,7 +132,7 @@ class LocalPatchApplier:
         try:
             full = self._resolve_safe_path(rel_path)
         except ValueError as exc:
-            _log.error("patch read error: %s", exc)
+            _log.exception("patch read error: %s", exc)
             return None
         try:
             original = Path(full).read_text(encoding="utf-8").splitlines(keepends=True)

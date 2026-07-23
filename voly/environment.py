@@ -69,6 +69,8 @@ _EXECUTOR_BINS: dict[str, list[str]] = {
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
+_WORKING_DIRECTORY_LABEL = "Working directory"
+
 
 def _command_names(binary: str, *, windows: bool | None = None) -> tuple[str, ...]:
     """Return executable names used by native and npm CLIs on this platform."""
@@ -241,7 +243,7 @@ def _check_cwd(cwd: str | None, default_cwd: str) -> list[EnvCheck]:
         return [
             EnvCheck(
                 id="cwd",
-                label="Working directory",
+                label=_WORKING_DIRECTORY_LABEL,
                 status="warn",
                 detail="No project cwd set",
                 hint="Set Working dir in the UI, or VOLY_PROJECT_CWD / default_cwd in voly.yaml. Hybrid file writes need a cwd.",
@@ -253,7 +255,7 @@ def _check_cwd(cwd: str | None, default_cwd: str) -> list[EnvCheck]:
         return [
             EnvCheck(
                 id="cwd",
-                label="Working directory",
+                label=_WORKING_DIRECTORY_LABEL,
                 status="error",
                 detail=f"Not a directory: {p}",
                 hint="Pick an existing project folder.",
@@ -264,7 +266,7 @@ def _check_cwd(cwd: str | None, default_cwd: str) -> list[EnvCheck]:
     return [
         EnvCheck(
             id="cwd",
-            label="Working directory",
+            label=_WORKING_DIRECTORY_LABEL,
             status="ok" if git else "warn",
             detail=str(p.resolve()),
             hint="" if git else "Folder exists but has no .git — plan gates / diff checks work best in a git repo.",

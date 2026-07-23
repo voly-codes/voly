@@ -10,6 +10,8 @@ from typing import Any
 
 _log = logging.getLogger("voly.ai_gateway.providers")
 
+_APPLICATION_JSON = "application/json"
+
 
 class _GatewayProvidersMixin:
     """Low-level API call methods for each LLM provider.
@@ -196,7 +198,7 @@ class _GatewayProvidersMixin:
             model = f"@cf/{model}"
 
         url  = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
-        hdrs = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        hdrs = {"Authorization": f"Bearer {token}", "Content-Type": _APPLICATION_JSON}
         msgs = list(messages)
         if system:
             msgs.insert(0, {"role": "system", "content": system})
@@ -280,7 +282,7 @@ class _GatewayProvidersMixin:
         aig_token = os.environ.get("CF_AIG_TOKEN", "")
         # User-Agent is required to pass CF bot protection at the edge.
         hdrs: dict[str, str] = {
-            "Content-Type": "application/json",
+            "Content-Type": _APPLICATION_JSON,
             "User-Agent": "VOLY/0.1 Python-urllib",
         }
         legacy = os.environ.get("VOLY_CF_GATEWAY_API", "rest").strip().lower() == "compat"
@@ -391,7 +393,7 @@ class _GatewayProvidersMixin:
         key = os.environ.get("OMNIROUTE_API_KEY", "")
 
         hdrs: dict[str, str] = {
-            "Content-Type": "application/json",
+            "Content-Type": _APPLICATION_JSON,
             "User-Agent": "VOLY/0.1 Python-urllib",
         }
         if key:
@@ -472,51 +474,51 @@ class _GatewayProvidersMixin:
             if provider_name == "anthropic":
                 key  = os.environ.get("ANTHROPIC_API_KEY", "")
                 base = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com")
-                hdrs = {"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"}
+                hdrs = {"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": _APPLICATION_JSON}
                 return self._call_anthropic(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "openai":
                 key  = os.environ.get("OPENAI_API_KEY", "")
                 base = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com")
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": _APPLICATION_JSON}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name in ("google", "google-ai-studio"):
                 base = os.environ.get("GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com")
-                hdrs = {"Content-Type": "application/json"}
+                hdrs = {"Content-Type": _APPLICATION_JSON}
                 return self._call_google(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "deepseek":
                 key  = os.environ.get("DEEPSEEK_API_KEY", "")
                 base = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": _APPLICATION_JSON}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "mimo":
                 key  = os.environ.get("MIMO_API_KEY", "")
                 base = os.environ.get("MIMO_BASE_URL_OPENAI", "https://token-plan-sgp.xiaomimimo.com")
                 base = base[:-3] if base.endswith("/v1") else base
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": _APPLICATION_JSON}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "mimo-anthropic":
                 key  = os.environ.get("MIMO_API_KEY", "")
                 base = os.environ.get("MIMO_BASE_URL_ANTHROPIC", "https://token-plan-sgp.xiaomimimo.com/anthropic")
-                hdrs = {"x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
+                hdrs = {"x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": _APPLICATION_JSON}
                 return self._call_anthropic(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "opencode":
                 key  = os.environ.get("OPENCODE_API_KEY", "")
                 base = os.environ.get("OPENCODE_BASE_URL", "https://opencode.ai/zen/go")
                 base = base[:-3] if base.endswith("/v1") else base
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "voly/0.1.0"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": _APPLICATION_JSON, "User-Agent": "voly/0.1.0"}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "opencode-zen":
                 key  = os.environ.get("OPENCODE_API_KEY", "")
                 base = os.environ.get("OPENCODE_ZEN_BASE_URL", "https://opencode.ai/zen")
                 base = base[:-3] if base.endswith("/v1") else base
-                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "User-Agent": "voly/0.1.0"}
+                hdrs = {"Authorization": f"Bearer {key}", "Content-Type": _APPLICATION_JSON, "User-Agent": "voly/0.1.0"}
                 return self._call_openai(base, messages, model, max_tokens, temperature, system, hdrs, tools=tools)
 
             if provider_name == "workers-ai":

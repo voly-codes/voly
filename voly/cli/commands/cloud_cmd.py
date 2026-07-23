@@ -20,10 +20,12 @@ import click
 
 _DEFAULT_TTL_DAYS = 30
 _POLL_TIMEOUT_SEC = 600
+_APPLICATION_JSON = "application/json"
+_ISO8601_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def _post(url: str, body: dict[str, Any], token: str | None = None, timeout: float = 15.0) -> tuple[int, dict]:
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    headers = {"Content-Type": _APPLICATION_JSON, "Accept": _APPLICATION_JSON}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(
@@ -46,7 +48,7 @@ def _post(url: str, body: dict[str, Any], token: str | None = None, timeout: flo
 
 def _get(url: str, token: str, timeout: float = 15.0) -> dict:
     req = urllib.request.Request(
-        url, headers={"Accept": "application/json", "Authorization": f"Bearer {token}"}
+        url, headers={"Accept": _APPLICATION_JSON, "Authorization": f"Bearer {token}"}
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
@@ -72,7 +74,7 @@ def _save_link_from_poll(base: str, payload: dict) -> str:
     token_obj = payload.get("device_token") or {}
     device = payload.get("device") or {}
     expires_at = time.strftime(
-        "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + _DEFAULT_TTL_DAYS * 86400)
+        _ISO8601_FORMAT, time.gmtime(time.time() + _DEFAULT_TTL_DAYS * 86400)
     )
     path = save_link_file(
         {
@@ -84,7 +86,7 @@ def _save_link_from_poll(base: str, payload: dict) -> str:
             "user_id": payload.get("user_id") or device.get("user_id") or "",
             "user_email": payload.get("user_email") or "",
             "expires_at": expires_at,
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "created_at": time.strftime(_ISO8601_FORMAT, time.gmtime()),
         }
     )
     return str(path)
@@ -242,7 +244,7 @@ def _legacy_password_login(
     device = minted.get("device") or {}
     token_obj = minted.get("device_token") or {}
     expires_at = time.strftime(
-        "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + int(ttl_days) * 86400)
+        _ISO8601_FORMAT, time.gmtime(time.time() + int(ttl_days) * 86400)
     )
     path = save_link_file(
         {
@@ -254,7 +256,7 @@ def _legacy_password_login(
             "user_id": me.get("user", {}).get("id", ""),
             "user_email": email,
             "expires_at": expires_at,
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "created_at": time.strftime(_ISO8601_FORMAT, time.gmtime()),
         }
     )
     click.echo(f"Linked to org '{org.get('slug', org['tenant_id'])}' as {email}.")
@@ -278,7 +280,7 @@ def cloud_status() -> None:
     click.echo(f"Device: {link.get('device_id') or '(missing — re-run voly cloud login)'}")
     expires = str(link.get("expires_at") or "")
     if expires:
-        expired = expires < time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        expired = expires < time.strftime(_ISO8601_FORMAT, time.gmtime())
         click.echo(f"Token expires: {expires}{' (EXPIRED — re-run voly cloud login)' if expired else ''}")
 
 

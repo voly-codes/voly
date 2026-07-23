@@ -13,6 +13,9 @@ from fastapi.responses import FileResponse, StreamingResponse
 
 router = APIRouter()
 
+_JSON_GLOB = "*.json"
+_ARTIFACT_NOT_FOUND = "Artifact not found"
+
 
 def _state(request: Request):
     return request.app.state.app
@@ -22,7 +25,7 @@ def _load_events(ev_dir: pathlib.Path) -> list[dict[str, Any]]:
     if not ev_dir.exists():
         return []
     out = []
-    for f in ev_dir.glob("*.json"):
+    for f in ev_dir.glob(_JSON_GLOB):
         try:
             d = json.loads(f.read_text())
             d["_mtime"] = f.stat().st_mtime
@@ -35,7 +38,7 @@ def _load_events(ev_dir: pathlib.Path) -> list[dict[str, Any]]:
 @router.get("/api/status")
 def get_status(request: Request) -> dict[str, Any]:
     s = _state(request)
-    events = list(s.ev_dir.glob("*.json")) if s.ev_dir.exists() else []
+    events = list(s.ev_dir.glob(_JSON_GLOB)) if s.ev_dir.exists() else []
     cfg_info: dict[str, Any] = {}
     if s.config:
         cfg_info["marketplace_url"] = bool(
@@ -137,7 +140,7 @@ async def stream_tasks(request: Request) -> StreamingResponse:
                 current: dict[str, float] = {}
                 new_tasks: list[dict[str, Any]] = []
                 if ev_dir.exists():
-                    for f in ev_dir.glob("*.json"):
+                    for f in ev_dir.glob(_JSON_GLOB):
                         current[f.stem] = f.stat().st_mtime
                         if f.stem not in seen:
                             try:
@@ -171,7 +174,7 @@ async def stream_tasks(request: Request) -> StreamingResponse:
     )
 
 
-@router.get("/api/tasks/{task_id}")
+@router.get("/api/tasks/{task_id}", responses={404: {"description": "Task not found"}})
 def get_task(task_id: str, request: Request) -> dict[str, Any]:
     path = _state(request).ev_dir / f"{task_id}.json"
     if not path.exists():
@@ -179,16 +182,19 @@ def get_task(task_id: str, request: Request) -> dict[str, Any]:
     return json.loads(path.read_text())
 
 
-@router.get("/api/tasks/{task_id}/artifacts/{name}")
+@router.get(
+    "/api/tasks/{task_id}/artifacts/{name}",
+    responses={404: {"description": "Artifact not found"}},
+)
 def get_task_artifact(task_id: str, name: str, request: Request) -> FileResponse:
     if "/" in name or "\\" in name or not name.endswith(".png"):
-        raise HTTPException(status_code=404, detail="Artifact not found")
+        raise HTTPException(status_code=404, detail=_ARTIFACT_NOT_FOUND)
     base = (_state(request).ev_dir.parent / "pxpipe" / "images" / task_id).resolve()
     path = (base / name).resolve()
     try:
         path.relative_to(base)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Artifact not found") from None
+        raise HTTPException(status_code=404, detail=_ARTIFACT_NOT_FOUND) from None
     if not path.exists() or not path.is_file():
-        raise HTTPException(status_code=404, detail="Artifact not found")
+        raise HTTPException(status_code=404, detail=_ARTIFACT_NOT_FOUND)
     return FileResponse(path, media_type="image/png")

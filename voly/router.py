@@ -18,6 +18,9 @@ from voly.config import VOLYConfig
 
 _log = logging.getLogger("voly.router")
 
+_LLAMA_SCOUT_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct"
+_QWEN_CODER_MODEL = "@cf/qwen/qwen2.5-coder-32b-instruct"
+
 
 @dataclass
 class TaskAnalysis:
@@ -52,7 +55,7 @@ _PROVIDER_MODELS: dict[str, tuple[str, str]] = {
     "mimo":                ("mimo-v2.5-free", "mimo"),
     "opencode":            ("deepseek-v4-flash", "opencode"),
     # Workers AI: default to fast Llama 4 Scout (131K ctx, tested 2026-06-30)
-    "workers-ai":          ("@cf/meta/llama-4-scout-17b-16e-instruct", "workers-ai"),
+    "workers-ai":          (_LLAMA_SCOUT_MODEL, "workers-ai"),
     "cloudflare-dynamic":  ("dynamic/ai_route", "cloudflare-dynamic"),
     # OmniRoute: self-hosted OpenAI-compat gateway; "auto" = its auto-combo routing.
     # Opt-in only — not injected into _TASK_PROVIDERS default chains.
@@ -62,11 +65,11 @@ _PROVIDER_MODELS: dict[str, tuple[str, str]] = {
 # Workers AI models by task type (all tested working via CF API)
 _WORKERS_AI_MODELS: dict[str, str] = {
     "architecture": "@cf/openai/gpt-oss-120b",              # 128K ctx, large reasoning
-    "review":       "@cf/meta/llama-4-scout-17b-16e-instruct",  # 131K ctx, fast
-    "bug":          "@cf/qwen/qwen2.5-coder-32b-instruct",  # code specialist
-    "test":         "@cf/qwen/qwen2.5-coder-32b-instruct",  # code specialist
-    "docs":         "@cf/meta/llama-4-scout-17b-16e-instruct",
-    "database":     "@cf/qwen/qwen2.5-coder-32b-instruct",
+    "review":       _LLAMA_SCOUT_MODEL,  # 131K ctx, fast
+    "bug":          _QWEN_CODER_MODEL,  # code specialist
+    "test":         _QWEN_CODER_MODEL,  # code specialist
+    "docs":         _LLAMA_SCOUT_MODEL,
+    "database":     _QWEN_CODER_MODEL,
     "default":      "@cf/meta/llama-3.3-70b-instruct-fp8-fast",  # fastest
 }
 

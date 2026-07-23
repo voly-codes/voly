@@ -11,9 +11,12 @@ FREE_REVIEW_MODEL = "deepseek-v4-flash-free"
 FREE_I18N_MODEL = "mimo-v2.5-free"
 FREE_AUDIT_MODEL = "nemotron-3-ultra-free"
 
+_MODEL_COMPOSER_25 = "composer-2.5"
+_MODEL_KIMI_K26 = "kimi-k2.6"
+
 DEFAULT_MODEL_BY_EXECUTOR: dict[str, str] = {
-    "cursor": "composer-2.5",
-    "opencode": "kimi-k2.6",
+    "cursor": _MODEL_COMPOSER_25,
+    "opencode": _MODEL_KIMI_K26,
     "zen": "claude-sonnet-4-6",
     "deepseek": "deepseek-v4-flash",
     "mimo": "mimo-v2.5-free",
@@ -29,13 +32,13 @@ PLANE_ISSUES_PLAN: list[MissionStepSpec] = [
     ),
     MissionStepSpec(
         executor="opencode",
-        model="kimi-k2.6",
+        model=_MODEL_KIMI_K26,
         agent_role="developer",
         skills=["plane-design-system", "component-patterns", "smarty-backend-api"],
     ),
     MissionStepSpec(
         executor="cursor",
-        model="composer-2.5",
+        model=_MODEL_COMPOSER_25,
         agent_role="developer",
         skills=["plane-design-system", "component-patterns"],
     ),
@@ -47,7 +50,7 @@ PLANE_ISSUES_PLAN: list[MissionStepSpec] = [
     ),
     MissionStepSpec(
         executor="cursor",
-        model="composer-2.5",
+        model=_MODEL_COMPOSER_25,
         agent_role="developer",
         skills=["plane-design-system", "component-patterns"],
     ),
@@ -59,7 +62,7 @@ PLANE_ISSUES_PLAN: list[MissionStepSpec] = [
     ),
     MissionStepSpec(
         executor="opencode",
-        model="kimi-k2.6",
+        model=_MODEL_KIMI_K26,
         agent_role="developer",
         skills=["plane-design-system", "ux-copy"],
     ),
@@ -130,13 +133,13 @@ def match_task(
     if ex == "zen":
         model = FREE_REVIEW_MODEL if re.search(r"\breview\b|\baudit\b|\bchecklist\b", text) else "claude-sonnet-4-6"
     elif ex == "cursor":
-        model = "composer-2.5"
+        model = _MODEL_COMPOSER_25
     elif "backend" in text:
         model = "deepseek-v4-pro"
     elif "calendar" in text or "gantt" in text or "spreadsheet" in text:
         model = "gpt-5.4-mini"
     else:
-        model = "kimi-k2.6"
+        model = _MODEL_KIMI_K26
 
     model = resolve_model(ex, model, catalog_base=catalog_base, prefer_free=ex == "zen" and "review" in text)
     return ex, model

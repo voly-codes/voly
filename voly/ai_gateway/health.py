@@ -10,6 +10,8 @@ _log = logging.getLogger("voly.ai_gateway.health")
 
 _TTL = 60.0  # seconds between re-checks
 
+_RUNTIME_EXCLUDED = "runtime excluded"
+
 
 def _runtime_exclude_ttl() -> float:
     """How long a mark_unhealthy() exclusion holds before the provider is re-tried.
@@ -87,9 +89,9 @@ class ProviderHealthChecker:
         self._cache[provider] = ProviderStatus(
             name=provider,
             healthy=False,
-            reason=reason or "runtime excluded",
+            reason=reason or _RUNTIME_EXCLUDED,
         )
-        _log.warning("provider %s marked unhealthy: %s", provider, reason or "runtime excluded")
+        _log.warning("provider %s marked unhealthy: %s", provider, reason or _RUNTIME_EXCLUDED)
 
     def configure_byok(self, enabled: bool, providers: list[str] | None = None) -> None:
         """Sync BYOK state from config; resets cached statuses."""
@@ -124,7 +126,7 @@ class ProviderHealthChecker:
                 _log.info("provider %s exclusion expired — re-checking", provider)
             else:
                 cached = self._cache.get(provider)
-                reason = cached.reason if cached else "runtime excluded"
+                reason = cached.reason if cached else _RUNTIME_EXCLUDED
                 return ProviderStatus(name=provider, healthy=False, reason=reason)
 
         cached = self._cache.get(provider)

@@ -2,6 +2,9 @@
 
 from voly.config._types import ModelConfig
 
+_MIMO_V2_5_PRO = "mimo-v2.5-pro"
+_MIMO_V2_5 = "mimo-v2.5"
+
 _DEFAULT_MODELS: dict[str, ModelConfig] = {
     # Anthropic (via Cloudflare Gateway)
     "claude-sonnet": ModelConfig(provider="anthropic", model="claude-sonnet-4-5-20250929"),
@@ -16,8 +19,8 @@ _DEFAULT_MODELS: dict[str, ModelConfig] = {
     "deepseek-chat":     ModelConfig(provider="deepseek", model="deepseek-chat"),
     "deepseek-reasoner": ModelConfig(provider="deepseek", model="deepseek-reasoner"),
     # MiMo direct
-    "mimo-pro":  ModelConfig(provider="mimo", model="mimo-v2.5-pro"),
-    "mimo-fast": ModelConfig(provider="mimo", model="mimo-v2.5"),
+    "mimo-pro":  ModelConfig(provider="mimo", model=_MIMO_V2_5_PRO),
+    "mimo-fast": ModelConfig(provider="mimo", model=_MIMO_V2_5),
     "mimo-omni": ModelConfig(provider="mimo", model="mimo-v2-omni"),
 
     # ── OpenCode Go (opencode.ai/zen/go/v1) — subscription-based ──
@@ -30,8 +33,8 @@ _DEFAULT_MODELS: dict[str, ModelConfig] = {
     "qwen3.7-max":       ModelConfig(provider="opencode", model="qwen3.7-max"),
     "minimax-m3":        ModelConfig(provider="opencode", model="minimax-m3"),
     "glm-5.2":           ModelConfig(provider="opencode", model="glm-5.2"),
-    "mimo-v2.5":         ModelConfig(provider="opencode", model="mimo-v2.5"),
-    "mimo-v2.5-pro":     ModelConfig(provider="opencode", model="mimo-v2.5-pro"),
+    _MIMO_V2_5:         ModelConfig(provider="opencode", model=_MIMO_V2_5),
+    _MIMO_V2_5_PRO:     ModelConfig(provider="opencode", model=_MIMO_V2_5_PRO),
 
     # ── OpenCode Zen (opencode.ai/zen/v1) — pay-per-use curated ──
     "claude-sonnet-4-6":      ModelConfig(provider="opencode-zen", model="claude-sonnet-4-6"),

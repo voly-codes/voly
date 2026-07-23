@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
 
+_APPLICATION_JSON = "application/json"
+
 # Оценка стоимости по провайдеру/модели: (input_usd_per_1k, output_usd_per_1k)
 _COST_RATES: dict[str, tuple[float, float]] = {
     # Anthropic
@@ -273,8 +275,8 @@ def send_to_pipeline(
     """POST TaskEvent в CF Pipelines ingest (JSON array batch of one)."""
     body = json.dumps([event_to_pipeline_record(event)], ensure_ascii=False).encode("utf-8")
     headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
+        "Content-Type": _APPLICATION_JSON,
+        "Accept": _APPLICATION_JSON,
         "User-Agent": USER_AGENT,
     }
     auth = token if token is not None else resolve_pipeline_token()
@@ -383,7 +385,7 @@ def _emit_to_r2(
     """PUT события в R2 через R2Client (правильный SigV4)."""
     from voly.cloudflare.r2 import R2Client
     r2 = R2Client(endpoint, access_key, secret_key, timeout=5.0)
-    r2.put(bucket, f"events/{event.task_id}.json", event.to_json().encode(), "application/json")
+    r2.put(bucket, f"events/{event.task_id}.json", event.to_json().encode(), _APPLICATION_JSON)
 
 
 def summarize_error_classes(events: list[TaskEvent]) -> dict[str, Any]:

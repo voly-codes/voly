@@ -6,6 +6,8 @@ import json
 
 import click
 
+_VOLY_YAML = "voly.yaml"
+
 
 @click.group()
 def catalog() -> None:
@@ -25,8 +27,8 @@ def catalog_sync(ctx: click.Context, push: bool) -> None:
     cwd = Path.cwd()
     project = cwd
     voly_root = cwd if (cwd / "voly" / "voly").is_dir() else cwd.parent
-    if (cwd / "voly.yaml").is_file() or (cwd / "voly" / "voly.yaml").is_file():
-        voly_root = cwd / "voly" if (cwd / "voly" / "voly.yaml").is_file() else cwd
+    if (cwd / _VOLY_YAML).is_file() or (cwd / "voly" / _VOLY_YAML).is_file():
+        voly_root = cwd / "voly" if (cwd / "voly" / _VOLY_YAML).is_file() else cwd
 
     sup = CombatSupervisor(str(project), voly_root=Path(voly_root))
     try:

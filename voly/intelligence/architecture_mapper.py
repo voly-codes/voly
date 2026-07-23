@@ -9,6 +9,10 @@ from pathlib import Path
 
 _log = logging.getLogger("voly.intelligence.architecture_mapper")
 
+_PACKAGE_JSON = "package.json"
+_PYPROJECT_TOML = "pyproject.toml"
+_REQUIREMENTS_TXT_GLOB = "requirements*.txt"
+
 HEURISTIC_PATTERNS: dict[str, list[str]] = {
     "python": [".py"],
     "typescript": [".ts", ".tsx"],
@@ -21,14 +25,14 @@ HEURISTIC_PATTERNS: dict[str, list[str]] = {
 }
 
 FRAMEWORK_SIGNALS: dict[str, list[str]] = {
-    "react": ["package.json"],
-    "vue": ["package.json"],
+    "react": [_PACKAGE_JSON],
+    "vue": [_PACKAGE_JSON],
     "next.js": ["next.config.*", "next.config.js", "next.config.ts"],
     "svelte": ["svelte.config.*"],
-    "fastapi": ["requirements*.txt", "pyproject.toml"],
+    "fastapi": [_REQUIREMENTS_TXT_GLOB, _PYPROJECT_TOML],
     "django": ["manage.py", "settings.py"],
-    "flask": ["requirements*.txt", "pyproject.toml"],
-    "express": ["package.json"],
+    "flask": [_REQUIREMENTS_TXT_GLOB, _PYPROJECT_TOML],
+    "express": [_PACKAGE_JSON],
     "nestjs": ["nest-cli.json"],
     "vite": ["vite.config.*"],
     "docker": ["Dockerfile", "docker-compose.yml", "docker-compose.yaml"],
@@ -82,7 +86,7 @@ def _read_text(path: Path) -> str:
 
 
 def _npm_deps(root: Path) -> dict[str, str]:
-    pkg = root / "package.json"
+    pkg = root / _PACKAGE_JSON
     if not pkg.is_file():
         return {}
     try:
@@ -99,9 +103,9 @@ def _npm_deps(root: Path) -> dict[str, str]:
 
 def _python_manifest_text(root: Path) -> str:
     chunks: list[str] = []
-    for path in sorted(root.glob("requirements*.txt")):
+    for path in sorted(root.glob(_REQUIREMENTS_TXT_GLOB)):
         chunks.append(_read_text(path))
-    pyproject = root / "pyproject.toml"
+    pyproject = root / _PYPROJECT_TOML
     if pyproject.is_file():
         chunks.append(_read_text(pyproject))
     return "\n".join(chunks).lower()
