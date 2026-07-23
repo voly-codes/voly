@@ -9,11 +9,16 @@ function parseHash(): void {
 }
 
 function navigate(page: string, taskId: string | null = null): void {
-  const hash = taskId ? `#/${page}/${taskId}` : `#/${page}`
+  // Update state synchronously — setting location.hash alone only takes
+  // effect once the browser's own 'hashchange' event fires and re-runs
+  // parseHash(), which lands on the next tick. Any code reading router.taskId
+  // in that gap (e.g. tasksStore's 2s live-run poll) would see the *previous*
+  // task's id and could reselect onto it. Setting the hash below still keeps
+  // the URL shareable/refreshable; hashchange re-parsing it afterward is a
+  // harmless no-op since it already matches.
+  current = { page, taskId }
   if (typeof window !== 'undefined') {
-    window.location.hash = hash
-  } else {
-    current = { page, taskId }
+    window.location.hash = taskId ? `#/${page}/${taskId}` : `#/${page}`
   }
 }
 

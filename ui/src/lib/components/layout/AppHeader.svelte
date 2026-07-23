@@ -1,5 +1,6 @@
 <script>
-  import { MoonIcon, SunIcon, ActivityIcon } from '../../icons.js'
+  import { MoonIcon, SunIcon } from '../../icons.js'
+  import PixelGoose from '../shared/PixelGoose.svelte'
   import { theme } from '../../stores/themeStore.svelte.ts'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
 
@@ -8,7 +9,7 @@
 
 <header class="app-header">
   <div class="brand">
-    <ActivityIcon size="16" strokeWidth="2" />
+    <span class="brand-goose"><PixelGoose size={18} title="VOLY" /></span>
     <span class="brand-name">VOLY</span>
   </div>
 
@@ -58,7 +59,8 @@
     gap: 12px;
     padding: 0 12px;
     background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 2px solid var(--frame-strong);
+    box-shadow: 0 3px 0 var(--voly-orange);
     flex-shrink: 0;
     z-index: 10;
   }
@@ -67,13 +69,14 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-primary);
+    color: var(--voly-orange);
     font-weight: 600;
     font-size: 13px;
     flex-shrink: 0;
   }
 
-  .brand-name { letter-spacing: -0.01em; }
+  .brand-goose { padding: 2px 5px 1px 3px; border: 2px solid var(--voly-orange); background: color-mix(in srgb, var(--voly-paper) 18%, var(--bg-surface)); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 42%, transparent); }
+  .brand-name { color: var(--text-primary); font-family: var(--font-mono); letter-spacing: 0.08em; }
 
   .header-stats {
     display: flex;
@@ -116,15 +119,15 @@
   .lang-switch {
     display: flex;
     gap: 2px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-default);
+    border-radius: 0;
     padding: 2px;
     background: var(--bg-inset, transparent);
   }
   .lang-btn {
     background: none;
     border: none;
-    border-radius: 3px;
+    border-radius: 0;
     padding: 2px 7px;
     font-size: 10px;
     font-weight: 700;
@@ -135,9 +138,9 @@
   }
   .lang-btn:hover { color: var(--text-primary); }
   .lang-btn.active {
-    color: var(--text-primary);
-    background: var(--bg-surface);
-    box-shadow: 0 0 0 1px var(--border-default);
+    color: #fffaf1;
+    background: var(--voly-orange);
+    box-shadow: none;
   }
 
   .icon-btn {
@@ -146,8 +149,8 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-default);
+    border-radius: 0;
     background: none;
     color: var(--text-secondary);
     cursor: pointer;

@@ -45,8 +45,13 @@ def _build_opencode_run_cmd(
     Subprocess ``cwd`` alone is not enough: OpenCode resolves the project root
     (git root / session dir) independently and may write outside the sandbox.
     ``--dir`` pins the workspace explicitly (see ``opencode run --help``).
+
+    ``--auto`` is required for headless runs: this subprocess has no TTY, so
+    without it OpenCode has no way to satisfy an interactive permission
+    prompt for file writes / shell commands and silently degrades to a
+    text-only response instead of making the requested changes.
     """
-    cmd = ["opencode", "run", "--format", "json", "-m", model_id]
+    cmd = ["opencode", "run", "--format", "json", "-m", model_id, "--auto"]
     if extra_args:
         cmd.extend(extra_args)
     if cwd:

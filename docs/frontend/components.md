@@ -1,5 +1,13 @@
 # Components — Frontend Reference
 
+## VOLY pixel identity
+
+`PixelGoose.svelte` is the reusable, CSS-token-colored brand mark used by the app header and agent graphs. Graph canvases use a crisp 16 px pixel grid, 3 px square frames, and hard offset shadows derived from `--voly-orange` and `--voly-ink`; keep these surfaces square and respect reduced-motion preferences.
+
+The application shell uses the same system globally: warm paper surfaces, ink structural borders, orange selection/action states, square controls, and hard shadows. Semantic success/warning/error colors remain distinct. New top-level pages should consume the shared tokens in `app.css` instead of introducing cool neutral surfaces or rounded-card styling.
+
+Structural borders use `--frame-strong`, not `--voly-ink`: in dark mode the ink token is intentionally light for artwork and text. Repeating pixel grids are reserved for graph canvases and branded empty states so operational data stays readable on solid surfaces.
+
 ---
 
 ## RunPanel.svelte
@@ -276,6 +284,25 @@ Selected-task card (from `tasksStore.selected`). Shell layout + composition:
 
 Also uses existing `TaskHeader`, `PipelineStages`, `StatsOverview`, `WorkReport`.
 
+**Report / Agent atlas tabs:** below `TaskHeader`, a tab bar switches the whole
+inspector body between:
+- **Report** (`activeTab === 'report'`) — the `inspector-body` described above,
+  unchanged.
+- **Agent atlas** (`activeTab === 'atlas'`) — renders `LiveAgentGraph.svelte`
+  for a live task with `graph_nodes`, `WorkflowGraph.svelte` for a
+  `review-until-clean` workflow, otherwise `AgentAtlas.svelte`.
+
+`activeTab` auto-picks `'atlas'` vs `'report'` only when `task.task_id`
+*changes* (switching to a different task in the sidebar) — the effect reads
+`task._live` / `task.graph_nodes?.length` through Svelte's `untrack()` so
+they aren't tracked as dependencies. This matters because a live task's
+polling refresh (`tasksStore.syncLiveRuns`, every ~2s) replaces the whole
+`task` object with the same `task_id` but a momentarily-different
+`graph_nodes`; if the effect depended on those fields directly (as it
+originally did), every poll re-ran it and could silently snap a
+manually-selected tab back to `'report'` mid-run, making the Atlas tab appear
+to "bounce back" whenever the user clicked it while a task was still live.
+
 ## PipelineStages.svelte
 
 Pipeline stage visualization for text-only tasks:
@@ -286,24 +313,22 @@ Each stage is a colored badge. A failed stage is highlighted red.
 
 ---
 
-## ActiveRuns.svelte
-
-"In progress" block at the top of `TaskSidebar`: polls `/api/runs?active=1`
-every 4s and lists runs that are still executing (including CLI-launched
-ones) — task text, current role/executor, progress `done/total`, elapsed.
-Click opens the live task card in `PipelineInspector` (via `tasksStore.selectLive`)
-and expands a drill-down: task id, heartbeat age (red when >60s), role
-chips (done/current), plan `step_statuses`, error. While the card is open,
-poll patches progress in place. When the last active run finishes, the store
-refreshes and the completed TaskEvent replaces the live card.
-
 ## TaskSidebar.svelte
 
-List of previous tasks. Data from `GET /api/tasks` (SSE).
-Click — loads the task into `PipelineInspector`.
-In-flight rows from the Run drawer (`ui.activeRuns`) are clickable: resolve to
-a server `/api/runs` record when possible and open the live card; otherwise
-re-open the Run drawer.
+One unified list of completed and running tasks. Completed records arrive from
+`GET /api/tasks`/SSE; root `RunRecord`s are merged into the same store every two
+seconds and inserted immediately from `/api/run`'s `start` event. A running row
+has one role/running label. Click loads the live record into
+`PipelineInspector`; there is no separate "In progress" section.
+
+The selected live task updates in place from RunTracker heartbeats. Its shared
+`LiveAgentGraph` exposes agent assignment, skills, routing, files, plan stages
+and status. When execution finishes, the TaskEvent with the same `task_id`
+replaces the live shape without creating a second row.
+
+**Collapse toggle:** header chevron button sets `ui.sidebarCollapsed = true`;
+collapsed state renders a 22px strip with a single expand button (state lives
+in `uiStore`, not local — survives navigation away from the tasks page).
 
 ---
 
@@ -343,6 +368,93 @@ Shows `work_report` from ExecutorResult:
 
 Shows cost_usd, input_tokens, output_tokens, automation_score.
 Data from the `done` SSE event.
+
+**Collapse toggle:** header chevron sets `ui.costPanelCollapsed = true`; same
+collapsed-strip pattern as `TaskSidebar`.
+
+---
+
+## AgentAtlas.svelte
+
+Hub-and-spoke view of the agents that worked a task: a dashed "Task" hub node
+on top, one card ("spoke") per agent below, connected by a plain CSS
+vertical-tick pattern (no layout library — the current a2a fan-out is small
+enough that a real graph-layout engine, e.g. ELK.js as used by `system-atlas`,
+isn't justified yet).
+
+**Props:** `task` (a `TaskEvent`-shaped object; same shape `PipelineInspector`
+already reads).
+
+**Node source:**
+- `task.a2a_dispatched && task.a2a_assignments.length` → one node per
+  assignment (role, tier, mode, executor/provider/model, plan_status,
+  files_touched, cache_hit, mem_hits, skills, duration_ms, cost_usd, error).
+- otherwise → a single synthetic node built from the top-level task fields
+  (`agent`/`executor`/`provider`/`model`/`report.files_*`/`gateway.cache_hit`),
+  so single-agent tasks (the overwhelming majority locally — see below) still
+  render a one-node atlas instead of an empty view.
+
+Clicking a spoke toggles a detail panel below the graph: **Properties**
+(executor/provider/model/tier/mode/plan) and **Metrics**
+(duration/cost/cache/memory) columns, plus files-touched list, skill chips,
+and the role's error text if it failed. Click the same node again to close.
+
+Summary strip above the graph: role count, ok/failed counts, `task.cost_usd`,
+`task.duration_ms` (read from the task directly, not summed from nodes, so it
+stays correct regardless of how the roles overlapped in time).
+
+`PipelineInspector` keeps this view for normal single-agent and A2A fan-out
+runs. A task whose `workflow` is `review-until-clean` is routed to the directed
+`WorkflowGraph` instead, because its developer/reviewer dependency is cyclic
+and a hub-and-spoke diagram would be misleading.
+
+## WorkflowGraph.svelte and WorkflowTimeline.svelte
+
+Directed live/final view for the bounded review workflow. It renders the two
+runtime roles and both causal edges: implementation flows Developer → Reviewer,
+and blocking findings flow Reviewer → Developer on a repair lap. The active
+node and edge are highlighted; the summary shows lap/max laps, latest verdict,
+explicit stop reason, total duration, and total cost.
+
+Final SSE results use `laps` for per-role executor/provider/model, duration,
+cost, files touched, and errors. Live `/api/runs` records may not have completed
+lap metrics yet, so unavailable values remain visibly empty rather than being
+estimated. `WorkflowTimeline` lists every transition with lap and reason and
+ends with the workflow stop reason. `RunResult.svelte` embeds the same compact
+view for the immediate final SSE response.
+
+`RunAdvanced.svelte` exposes the explicit workflow selector plus bounded
+`max_rounds` (1–20) and `deadline_seconds` (60–3600). A review workflow requires
+a working directory and ignores dry-run mode because its purpose is to perform
+and verify real repairs.
+
+## LiveAgentGraph.svelte
+
+The default inspector canvas for a live parent run with `graph_nodes`. It is a
+single, scrollable directed graph for the whole run—not one flow per agent.
+Stable node ids are updated in place on every poll; an executor child never
+becomes a second canvas.
+
+`agentGraphModel.js` lays out dependency DAGs in columns and gives a cyclic
+workflow a deterministic left-to-right fallback. Each node shows live status,
+executor/provider/model route, duration, cost, touched-file count, and error.
+The most recent causal transition (or the edge entering a running node) is
+animated. Reduced-motion preferences disable the signal animation. Live graph
+runs open directly on the Agent atlas tab; historical/single-agent tasks remain
+report-first and retain `AgentAtlas.svelte`.
+
+The canvas borrows a restrained subset of the public `voly_web` identity:
+brand orange `#DD7454`, paper/ink color mixing, square pixel markers, crisp
+two-pixel borders, and offset non-blurred shadows. The active dependency uses a
+stepped orange pixel signal. Semantic success/failure colors remain unchanged,
+and dark mode remaps the paper/ink tokens instead of forcing the landing page's
+light palette onto the dashboard.
+
+The same always-visible identity anchors are applied to `AppHeader`,
+`TaskHeader`, the Report/Agent atlas tabs, `AgentAtlas`, and the final
+`WorkflowGraph`. This ensures the VOLY styling is visible before a live run
+starts; `LiveAgentGraph` is the animated extension of that shared language, not
+the only branded surface.
 
 ---
 

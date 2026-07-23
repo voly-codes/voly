@@ -14,7 +14,9 @@ class A2AReport:
     task_id: str
     task: str
     timestamp: str = field(
-        default_factory=lambda: datetime.datetime.utcnow().isoformat() + "Z"
+        default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z")
     )
     subtasks: list[dict[str, Any]] = field(default_factory=list)
     merged_result: str = ""

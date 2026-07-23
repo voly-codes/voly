@@ -9,6 +9,8 @@ from fastapi import APIRouter, Body, HTTPException, Request
 
 router = APIRouter()
 
+_MARKETPLACE_UNAVAILABLE_HINT = "Remote marketplace unavailable; showing local registry fallback"
+
 
 def _url(request: Request) -> str:
     return request.app.state.app.marketplace_url()
@@ -95,7 +97,7 @@ def marketplace_skills(
             "total": len(skills),
             "configured": False,
             "error": str(exc),
-            "hint": "Remote marketplace unavailable; showing local registry fallback",
+            "hint": _MARKETPLACE_UNAVAILABLE_HINT,
         }
 
 
@@ -112,7 +114,7 @@ def marketplace_search(
             "skills": skills[:limit],
             "total": len(skills),
             "configured": False,
-            "hint": "Remote marketplace unavailable; showing local registry fallback",
+            "hint": _MARKETPLACE_UNAVAILABLE_HINT,
         }
     try:
         from voly.registry.marketplace import MarketplaceClient
@@ -126,11 +128,17 @@ def marketplace_search(
             "total": len(skills),
             "configured": False,
             "error": str(exc),
-            "hint": "Remote marketplace unavailable; showing local registry fallback",
+            "hint": _MARKETPLACE_UNAVAILABLE_HINT,
         }
 
 
-@router.post("/api/marketplace/skills/{skill_id}/install")
+@router.post(
+    "/api/marketplace/skills/{skill_id}/install",
+    responses={
+        503: {"description": "Marketplace not configured"},
+        500: {"description": "Skill install failed"},
+    },
+)
 def marketplace_install(skill_id: str, request: Request) -> dict[str, Any]:
     url = _url(request)
     if not url:
@@ -208,7 +216,13 @@ def marketplace_plugins(request: Request, status: str = "active", limit: int = 5
         }
 
 
-@router.post("/api/marketplace/plugins/sync")
+@router.post(
+    "/api/marketplace/plugins/sync",
+    responses={
+        503: {"description": "Marketplace not configured (set CF_WORKER_MARKETPLACE_URL)"},
+        502: {"description": "Bad gateway from remote marketplace"},
+    },
+)
 def marketplace_plugins_sync(
     request: Request,
     payload: dict[str, Any] = Body(default_factory=dict),

@@ -46,7 +46,7 @@ def _load_dotenv(start_dir: Path | None = None) -> None:
     start_dir/cwd to merge project-level .env. First loaded value wins.
     """
     def _apply(env_file: Path) -> None:
-        with open(env_file) as f:
+        with open(env_file, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#") or "=" not in line:
@@ -89,7 +89,7 @@ def load_config(config_path: str | Path | None = None) -> VOLYConfig:
     _load_dotenv(path.parent if path else None)
 
     if path and path.exists():
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             raw = yaml.safe_load(f) or {}
         return _parse_config(raw)
 

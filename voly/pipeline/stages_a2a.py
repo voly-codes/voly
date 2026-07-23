@@ -7,6 +7,9 @@ from typing import Any
 
 from voly.pipeline.types import PipelineResult, PipelineStage
 
+_PIPELINE_LOGGER_NAME = "voly.pipeline"
+_CAPABILITY_PROFILES_DIR = ".voly/capability/profiles"
+
 
 class _A2AStageMixin:
     """Mixin: AG-UI session + A2A federation / local multi-agent."""
@@ -109,7 +112,7 @@ class _A2AStageMixin:
 
         # Poll until all tasks complete or timeout
         import logging as _logging
-        _poll_log = _logging.getLogger('voly.pipeline')
+        _poll_log = _logging.getLogger(_PIPELINE_LOGGER_NAME)
         poll_deadline = _time.monotonic() + timeout
         poll_interval = 3.0
         from voly.a2a import TaskState as _TaskState
@@ -144,9 +147,9 @@ class _A2AStageMixin:
         report = A2AReport.from_a2a_tasks(task_id, task, a2a_tasks, merged, duration_ms)
         try:
             saved = report.save(__import__('pathlib').Path(reports_dir).parent)
-            import logging; logging.getLogger('voly.pipeline').info('A2A report saved: %s', saved)
+            import logging; logging.getLogger(_PIPELINE_LOGGER_NAME).info('A2A report saved: %s', saved)
         except Exception as e:
-            import logging; logging.getLogger('voly.pipeline').warning('A2A report save failed: %s', e)
+            import logging; logging.getLogger(_PIPELINE_LOGGER_NAME).warning('A2A report save failed: %s', e)
 
         agents_used = [t.metadata.get('agent', 'unknown') for t in a2a_tasks]
         route = RouteDecision(agent='a2a', model='multi-agent', provider='a2a', routing_score=0.9)
@@ -219,7 +222,7 @@ class _A2AStageMixin:
                 from voly.capability.registry import CapabilityRegistry
 
                 profiles_dir = str(
-                    getattr(cap_cfg, "profiles_dir", None) or ".voly/capability/profiles"
+                    getattr(cap_cfg, "profiles_dir", None) or _CAPABILITY_PROFILES_DIR
                 )
                 worker_url = str(getattr(cap_cfg, "worker_url", "") or "")
                 matcher = ExecutorMatcher(
@@ -291,6 +294,7 @@ class _A2AStageMixin:
                 max_turns=30,
                 timeout=max(timeout, 30),
                 emit_event=False,
+                parent_task_id=task_id,
             )
         plan_cfg = getattr(self.config, "plan", None)  # type: ignore[attr-defined]
         # PR5: fill empty tester_command from project scan (does not enable plan gates).
@@ -323,8 +327,8 @@ class _A2AStageMixin:
             plan_config=plan_cfg,
             capability_worker_url=str(getattr(cap_cfg, "worker_url", "") or "") if cap_cfg else "",
             capability_profiles_dir=str(
-                getattr(cap_cfg, "profiles_dir", None) or ".voly/capability/profiles"
-            ) if cap_cfg else ".voly/capability/profiles",
+                getattr(cap_cfg, "profiles_dir", None) or _CAPABILITY_PROFILES_DIR
+            ) if cap_cfg else _CAPABILITY_PROFILES_DIR,
             capability_worker_timeout_s=float(
                 getattr(cap_cfg, "worker_timeout_s", 3.0) or 3.0
             ) if cap_cfg else 3.0,

@@ -1,27 +1,28 @@
 """CLI command groups — each module exposes a Click group or command."""
 from .a2a import a2a, agui
-from .infra import memory, rtk, headroom, pxpipe, mcp
-from .platform import registry, model, ai_gateway, scan_project, match_task
-from .skill import skill
-from .runner import runner
-from .telemetry import telemetry
-from .runs_cmd import runs
-from .analytics import compare, savings, balance
-from .lifecycle import init, setup
-from .serve_cmd import serve
-from .run_cmd import run
-from .status_cmd import status
-from .config_cmd import config_cmd
-from .tunnel import tunnel
-from .spend import spend
+from .analytics import balance, compare, savings
+from .capability_cmd import capability_cmd
 from .catalog import catalog
 from .cloud_cmd import cloud
+from .config_cmd import config_cmd
 from .dspy_cmd import dspy_cmd
-from .ui_cmd import ui
+from .infra import headroom, mcp, memory, pxpipe, rtk
+from .lifecycle import init, setup
 from .plan_cmd import plan_cmd
-from .reuse_cmd import reuse_cmd
+from .platform import ai_gateway, match_task, model, registry, scan_project
 from .repo import repo_cmd
-from .capability_cmd import capability_cmd
+from .reuse_cmd import reuse_cmd
+from .run_cmd import run
+from .runner import runner
+from .runs_cmd import runs
+from .serve_cmd import serve
+from .skill import skill
+from .spend import spend
+from .status_cmd import status
+from .telemetry import telemetry
+from .tunnel import tunnel
+from .ui_cmd import ui
+from .workflow_cmd import workflow_cmd
 
 __all__ = [
     "a2a",
@@ -59,4 +60,5 @@ __all__ = [
     "reuse_cmd",
     "repo_cmd",
     "capability_cmd",
+    "workflow_cmd",
 ]

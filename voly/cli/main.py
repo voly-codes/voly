@@ -7,49 +7,63 @@ Subcommands live in voly.cli.commands.*
 from __future__ import annotations
 
 import logging
-import os
+import sys
 
 import click
 
-from voly.config import load_config
+if sys.platform == "win32":
+    # Windows consoles default stdout/stderr to the OS locale codepage
+    # (e.g. cp1251), not UTF-8. Every CLI command that prints Cyrillic task
+    # text or agent output (review reports, multi-agent summaries, error
+    # messages) would otherwise come out as mojibake or raise
+    # UnicodeEncodeError outright — see docs/backend/executors.md for the
+    # matching subprocess-capture fix.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+from voly.capability.sync import startup_sync
 from voly.cli.commands import (
     a2a,
     agui,
-    memory,
-    rtk,
-    headroom,
-    pxpipe,
-    mcp,
-    registry,
-    model,
     ai_gateway,
-    scan_project,
-    match_task,
-    skill,
-    runner,
-    telemetry,
-    runs,
-    compare,
-    savings,
     balance,
-    init,
-    setup,
-    serve,
-    run,
-    status,
-    config_cmd,
-    tunnel,
-    spend,
+    capability_cmd,
     catalog,
     cloud,
+    compare,
+    config_cmd,
     dspy_cmd,
-    ui,
+    headroom,
+    init,
+    match_task,
+    mcp,
+    memory,
+    model,
     plan_cmd,
-    reuse_cmd,
+    pxpipe,
+    registry,
     repo_cmd,
-    capability_cmd,
+    reuse_cmd,
+    rtk,
+    run,
+    runner,
+    runs,
+    savings,
+    scan_project,
+    serve,
+    setup,
+    skill,
+    spend,
+    status,
+    telemetry,
+    tunnel,
+    ui,
+    workflow_cmd,
 )
-from voly.capability.sync import startup_sync
+from voly.config import load_config
 
 
 @click.group()
@@ -106,6 +120,7 @@ main.add_command(plan_cmd)
 main.add_command(reuse_cmd)
 main.add_command(repo_cmd)
 main.add_command(capability_cmd)
+main.add_command(workflow_cmd)
 
 # Core commands
 main.add_command(init)

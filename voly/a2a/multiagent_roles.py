@@ -7,6 +7,8 @@ from typing import Any
 
 from voly.a2a.assignment import (
     Assignment,
+)
+from voly.a2a.assignment import (
     exclude_provider_on_gateway_error as _exclude_provider_on_gateway_error,
 )
 from voly.a2a.chat_fallback import chat_with_provider_fallback
@@ -83,7 +85,7 @@ class _RoleExecMixin:
                     a.mode, a.mode_reason = role_mode, "skipped_no_code"
                     a.plan_status = "skipped"
                     self.done[a.idx] = a
-                    self.heartbeat(a.role, len(self.done))
+                    self.heartbeat(a, len(self.done))
                     _log.info(
                         "multiagent[%d] %s early-exit: code_gen but no impl succeeded",
                         a.idx, a.role,
@@ -109,7 +111,7 @@ class _RoleExecMixin:
                     a.mode, a.mode_reason = a.mode or "chat", "skipped_prior_failed"
                     a.plan_status = "skipped"
                     self.done[a.idx] = a
-                    self.heartbeat(a.role, len(self.done))
+                    self.heartbeat(a, len(self.done))
                     return None
                 self.degraded_notes[a.idx] = failed_priors
                 a.mode_reason = (
@@ -131,7 +133,7 @@ class _RoleExecMixin:
                 a.content = f"({a.error})"
                 a.plan_status = "blocked"
                 self.done[a.idx] = a
-                self.heartbeat(a.role, len(self.done))
+                self.heartbeat(a, len(self.done))
                 return None
             self.engine.transition(self.plan, sid, RUNNING)
             a.plan_status = RUNNING
@@ -228,7 +230,7 @@ class _RoleExecMixin:
                     a.files_touched = delta
             self.finish_step_plan(a, exec_ok=False, git_before=git_before)
             self.done[a.idx] = a
-            self.heartbeat(a.role, len(self.done))
+            self.heartbeat(a, len(self.done))
             self._emit_role_evidence(a)
             return
         a.duration_ms = (time.monotonic() - _t0) * 1000
@@ -272,7 +274,7 @@ class _RoleExecMixin:
             )
         self.finish_step_plan(a, exec_ok=a.ok, git_before=git_before)
         self.done[a.idx] = a
-        self.heartbeat(a.role, len(self.done))
+        self.heartbeat(a, len(self.done))
         self._emit_role_evidence(a)
 
     def _emit_role_evidence(self, a: Assignment) -> None:
@@ -348,7 +350,7 @@ class _RoleExecMixin:
             _exclude_provider_on_gateway_error(a.provider, a.error)
             self.finish_step_plan(a, exec_ok=False, git_before=git_before)
             self.done[a.idx] = a
-            self.heartbeat(a.role, len(self.done))
+            self.heartbeat(a, len(self.done))
             self._emit_role_evidence(a)
             return False
 
@@ -392,6 +394,6 @@ class _RoleExecMixin:
             a, exec_ok=process_ok if self.gates_on else a.ok, git_before=git_before,
         )
         self.done[a.idx] = a
-        self.heartbeat(a.role, len(self.done))
+        self.heartbeat(a, len(self.done))
         self._emit_role_evidence(a)
         return bool(resp.get("spend_limited"))

@@ -77,12 +77,18 @@ class ClaudeCodeExecutor(Executor):
         )
 
         try:
+            # claude CLI always emits UTF-8 JSON — without an explicit encoding,
+            # Python decodes with the OS locale (e.g. cp1251 on Windows), which
+            # corrupts non-ASCII output (Cyrillic task text/results) or raises
+            # UnicodeDecodeError outright on some byte sequences.
             proc = subprocess.run(
                 cmd,
                 cwd=cwd,
                 env=env,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
             )
             duration_ms = (time.monotonic() - started) * 1000

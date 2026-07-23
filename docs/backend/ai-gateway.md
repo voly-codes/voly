@@ -190,12 +190,25 @@ Runtime exclusion (`mark_unhealthy()` after 401/quota errors) expires after
 `VOLY_PROVIDER_EXCLUDE_TTL` seconds (default 900; `0` = forever). After expiry the
 provider is re-checked and re-enters tier resolution. **`AIGateway.chat()` consults
 the health checker before each attempt**: an unhealthy primary is swapped via
-`best_provider()`, gateway/direct fallback chains skip excluded providers, and
-terminal billing/auth errors mark the provider unhealthy inside the gateway (not
-only on the A2A chat-fallback path). That stops Anthropic from being re-tried on
-every multi-agent role after the first credit failure in the same process. A2A
-chat fallback also skips the originally assigned provider when it is currently
+`best_provider()` (from the *global* `PROVIDER_PRIORITY` list — see below),
+gateway/direct fallback chains skip excluded providers, and terminal billing/auth
+errors mark the provider unhealthy inside the gateway (not only on the A2A
+chat-fallback path). That stops Anthropic from being re-tried on every
+multi-agent role after the first credit failure in the same process. A2A chat
+fallback also skips the originally assigned provider when it is currently
 unhealthy (`voly/a2a/assignment.py: exclude_provider_on_gateway_error`).
+
+**`chat(..., allow_provider_reroute=True)`** — the gateway-level swap above is
+opt-out per call. A2A's `chat_with_provider_fallback`
+(`voly/a2a/chat_fallback.py`) passes `allow_provider_reroute=False`: it already
+walks its own tier-scoped provider list, and letting the gateway *also* swap
+providers — from a global priority list that ignores tiers entirely — could
+silently move a `standard`-tier role's `deepseek` call onto `mimo` (only ever
+meant for `weak`/`cheap` tiers). Because that swap happens inside `chat()`,
+the A2A loop and the `Assignment` record it writes to the report never learn
+a swap occurred, so a `mimo` failure got reported and health-marked against
+`deepseek` instead. Callers outside A2A (single-model pipeline path, DSPy)
+keep the default `True` — this only changes A2A's own tier-aware chat path.
 
 ---
 

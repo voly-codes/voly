@@ -5,10 +5,15 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+_APACHE_2_0 = "apache-2.0"
+_GPL_2_0 = "gpl-2.0"
+_GPL_3_0 = "gpl-3.0"
+_AGPL_3_0 = "agpl-3.0"
+
 # SPDX-ish keys normalized to lowercase.
 DEFAULT_ALLOWED = frozenset({
     "mit",
-    "apache-2.0",
+    _APACHE_2_0,
     "bsd-2-clause",
     "bsd-3-clause",
     "isc",
@@ -17,9 +22,9 @@ DEFAULT_ALLOWED = frozenset({
 })
 
 DEFAULT_DENIED = frozenset({
-    "gpl-2.0",
-    "gpl-3.0",
-    "agpl-3.0",
+    _GPL_2_0,
+    _GPL_3_0,
+    _AGPL_3_0,
     "lgpl-2.1",
     "lgpl-3.0",
 })
@@ -35,14 +40,14 @@ _LICENSE_FILE_NAMES = (
 # Heuristic text → SPDX
 _TEXT_HINTS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bMIT License\b", re.I), "mit"),
-    (re.compile(r"Apache License[, ]+Version 2\.0", re.I), "apache-2.0"),
+    (re.compile(r"Apache License[, ]+Version 2\.0", re.I), _APACHE_2_0),
     (re.compile(r"BSD 3-Clause", re.I), "bsd-3-clause"),
     (re.compile(r"BSD 2-Clause", re.I), "bsd-2-clause"),
     (re.compile(r"\bISC License\b", re.I), "isc"),
     (re.compile(r"\bUnlicense\b", re.I), "unlicense"),
-    (re.compile(r"GNU AFFERO GENERAL PUBLIC LICENSE", re.I), "agpl-3.0"),
-    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 3", re.I), "gpl-3.0"),
-    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 2", re.I), "gpl-2.0"),
+    (re.compile(r"GNU AFFERO GENERAL PUBLIC LICENSE", re.I), _AGPL_3_0),
+    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 3", re.I), _GPL_3_0),
+    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 2", re.I), _GPL_2_0),
 ]
 
 
@@ -53,13 +58,13 @@ def normalize_spdx(value: str | None) -> str:
     s = s.replace(" ", "-")
     # GitHub sometimes returns "mit" already; normalize common aliases
     aliases = {
-        "apache-2": "apache-2.0",
-        "apache2": "apache-2.0",
+        "apache-2": _APACHE_2_0,
+        "apache2": _APACHE_2_0,
         "bsd-3": "bsd-3-clause",
         "bsd-2": "bsd-2-clause",
-        "gplv3": "gpl-3.0",
-        "gplv2": "gpl-2.0",
-        "agplv3": "agpl-3.0",
+        "gplv3": _GPL_3_0,
+        "gplv2": _GPL_2_0,
+        "agplv3": _AGPL_3_0,
         "the-unlicense": "unlicense",
     }
     return aliases.get(s, s)

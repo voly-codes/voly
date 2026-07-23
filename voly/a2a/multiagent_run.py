@@ -67,10 +67,56 @@ class _LocalRun(_PlanGatesMixin, _RoleExecMixin):
             return []
         return [{"id": s.id, "status": s.status, "role": s.role} for s in self.plan.steps]
 
-    def heartbeat(self, role: str, done_n: int) -> None:
+    def graph_node(self, assignment: Assignment, status: str | None = None) -> dict[str, Any]:
+        if status is None:
+            if assignment.idx in self.done:
+                status = "completed" if assignment.ok else (
+                    "blocked" if assignment.plan_status in ("blocked", "skipped") else "failed"
+                )
+            else:
+                status = "pending"
+        return {
+            "id": f"agent-{assignment.idx}",
+            "role": assignment.role,
+            "status": status,
+            "mode": assignment.mode or self.role_modes.get(assignment.idx, "chat"),
+            "executor": assignment.executor or "",
+            "provider": assignment.provider or "",
+            "model": assignment.model or "",
+            "tier": assignment.tier or "",
+            "skills": list(assignment.skills or []),
+            "input_tokens": assignment.input_tokens or 0,
+            "output_tokens": assignment.output_tokens or 0,
+            "cache_hit": bool(assignment.cache_hit),
+            "duration_ms": round(assignment.duration_ms or 0.0, 1),
+            "cost_usd": round(assignment.cost_usd or 0.0, 6),
+            "files_touched": list(assignment.files_touched or []),
+            "error": assignment.error or "",
+        }
+
+    def activate(self, assignment: Assignment, mode: str) -> None:
         if self.tracker is not None and self.task_id:
+            node = self.graph_node(assignment, "running")
+            node["mode"] = mode
+            self.tracker.graph_update(
+                self.task_id, node=node,
+            )
+            self.heartbeat(assignment, len(self.done), update_node=False)
+
+    def heartbeat(
+        self,
+        assignment: Assignment,
+        done_n: int,
+        *,
+        update_node: bool = True,
+    ) -> None:
+        if self.tracker is not None and self.task_id:
+            if update_node:
+                self.tracker.graph_update(
+                    self.task_id, node=self.graph_node(assignment),
+                )
             self.tracker.heartbeat(
-                self.task_id, role, done_n,
+                self.task_id, assignment.role, done_n,
                 step_statuses=self.step_snapshot() if self.plan is not None else None,
             )
 
@@ -112,6 +158,7 @@ class _LocalRun(_PlanGatesMixin, _RoleExecMixin):
                     exec_items.append((a, user, system, git_before))
                 else:
                     chat_items.append((a, user, system, git_before))
+                self.activate(a, mode)
 
             resps: dict[int, dict[str, Any]] = {}
             if use_parallel and len(chat_items) > 1:
@@ -138,7 +185,7 @@ class _LocalRun(_PlanGatesMixin, _RoleExecMixin):
             for a, user, system, git_before in exec_items:
                 self.run_executor(a, user, system, git_before)
 
-            for a, user, system, git_before in chat_items:
+            for a, _user, _system, git_before in chat_items:
                 if self.finalize_chat(a, resps[a.idx], git_before):
                     spend_stop = resps[a.idx]
 

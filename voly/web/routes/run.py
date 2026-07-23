@@ -9,14 +9,14 @@ import os
 import re
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from voly.executor.base import executor_failure_details
 from voly.correlation import ensure_correlation_id, get_correlation_id
+from voly.executor.base import executor_failure_details
 
 router = APIRouter()
 # Executor calls are blocking (subprocess.run) but I/O-bound, not CPU-bound —
@@ -60,6 +60,10 @@ class RunRequest(BaseModel):
     # User-confirmed tech stack from TechSelectionModal.
     # Each entry: {name, label, version, category, notes?}
     tech_stack: list[dict] = []
+    # Explicit bounded workflow. Empty preserves existing dispatch behavior.
+    workflow: Literal["", "review-until-clean"] = ""
+    max_rounds: int = 3
+    deadline_seconds: float = 900.0
 
 
 class TechDetectRequest(BaseModel):
@@ -184,7 +188,10 @@ def _gather_local_context(task: str, cwd: str, max_chars: int = 6000) -> str:
                 *[f"--exclude-dir={d}" for d in _EXCLUDE_DIRS],
                 kw, ".",
             ]
-            result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=5)
+            result = subprocess.run(
+                cmd, cwd=cwd, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=5,
+            )
             for path in result.stdout.strip().splitlines():
                 file_scores[path] = file_scores.get(path, 0) + 1
         except Exception:
@@ -242,9 +249,9 @@ def _extract_relevant_lines(content: str, keywords: list[str], max_lines: int = 
 
 # ── Run helpers ───────────────────────────────────────────────────────────────
 
-def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
-    from voly.pipeline import Pipeline
+def _pipeline_run(req: RunRequest, config: Any, task_id: str = "") -> dict[str, Any]:
     from voly.catalog.tech_registry import tech_stack_context
+    from voly.pipeline import Pipeline
 
     cfg = config
     if cfg is None:
@@ -272,12 +279,14 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
             context=context or None,
             force_model=req.model or None,
             force_agent=req.agent or None,
-            delegate_to_a2a=req.a2a_delegate,
+        delegate_to_a2a=req.a2a_delegate,
+        task_id=task_id or None,
         )
     finally:
         pipeline.shutdown()
 
     out: dict[str, Any] = {
+        "task_id": task_id,
         "success": result.success,
         "stage": result.stage.value,
         "duration_ms": result.duration_ms,
@@ -329,7 +338,7 @@ def _pipeline_run(req: RunRequest, config: Any) -> dict[str, Any]:
     return out
 
 
-def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
+def _executor_run(req: RunRequest, config: Any, task_id: str = "") -> dict[str, Any]:
     from voly.runner.agent_runner import AgentRunner
 
     cfg = config
@@ -361,6 +370,7 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
         max_turns=req.max_turns, timeout=req.timeout, model=req.model or "",
         dry_run=req.dry_run,
         correlation_id=get_correlation_id() or "",
+        task_id=task_id,
     )
     meta = result.result.metadata or {}
     out = {
@@ -393,6 +403,63 @@ def _executor_run(req: RunRequest, config: Any) -> dict[str, Any]:
     if rep is not None:
         out["report"] = rep.to_dict() if hasattr(rep, "to_dict") else rep
     return out
+
+
+def _review_workflow_run(
+    req: RunRequest,
+    config: Any,
+    runs_dir: str,
+    workflow_id: str = "",
+) -> dict[str, Any]:
+    """Run the explicit bounded review workflow for CLI/UI parity."""
+    if req.dry_run:
+        raise ValueError("review-until-clean does not support dry_run")
+    cfg = config
+    if cfg is None:
+        from voly.config import load_config
+
+        cfg = load_config()
+
+    from voly.catalog.tech_registry import tech_stack_context
+    from voly.pipeline import Pipeline
+    from voly.runner.agent_runner import AgentRunner
+    from voly.runtime.runs import RunTracker
+    from voly.telemetry import new_task_id
+    from voly.workflow import ReviewUntilClean
+
+    work_dir = os.path.abspath(os.path.expanduser(
+        req.cwd or getattr(cfg, "default_cwd", "") or os.getcwd()
+    ))
+    task = req.task
+    if req.tech_stack:
+        task = f"{tech_stack_context(req.tech_stack)}\n\n{task}"
+    context = _gather_local_context(req.task, work_dir)
+    if context:
+        task = f"{task}\n\n{context}"
+
+    pipeline = Pipeline(cfg)
+    try:
+        result = ReviewUntilClean(
+            runner=AgentRunner(cfg),
+            gateway=pipeline.gateway,
+        ).run(
+            task,
+            cwd=work_dir,
+            executor=req.executor if req.executor != "pipeline" else "claude-code",
+            max_rounds=req.max_rounds,
+            deadline_seconds=req.deadline_seconds,
+            executor_timeout=req.timeout,
+            max_turns=req.max_turns,
+            reviewer_model=req.model,
+            tracker=RunTracker(runs_dir),
+            workflow_id=workflow_id or new_task_id(),
+        )
+    finally:
+        pipeline.shutdown()
+    payload = result.to_dict()
+    payload["cost_usd"] = payload["total_cost_usd"]
+    payload["cwd"] = work_dir
+    return payload
 
 
 def _needs_executor(task: str, config: Any) -> bool:
@@ -445,7 +512,14 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             "cwd": req.cwd or "",
             "correlation_id": ensure_correlation_id(),
         }
-        if req.executor == "pipeline":
+        if req.workflow:
+            start_payload.update({
+                "workflow": req.workflow,
+                "executor": req.executor if req.executor != "pipeline" else "claude-code",
+                "max_rounds": req.max_rounds,
+                "deadline_seconds": req.deadline_seconds,
+            })
+        elif req.executor == "pipeline":
             effective_cwd = (
                 req.cwd
                 or getattr(config, "default_cwd", "")
@@ -507,11 +581,59 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
             except Exception as exc:
                 _log.debug("[DISPATCH] auto-promote check failed: %s", exc)
 
+        from voly.runtime.runs import COMPLETED, FAILED, RunTracker
+        from voly.telemetry import new_task_id
+
+        run_id = new_task_id()
+        runs_dir = str(request.app.state.app.ev_dir.parent / "runs")
+        tracker = RunTracker(runs_dir)
+        initial_roles = (
+            ["developer", "reviewer"]
+            if effective_req.workflow == "review-until-clean"
+            else [str(start_payload.get("executor") or effective_req.executor or "pipeline")]
+        )
+        rec = tracker.start(
+            run_id,
+            effective_req.task,
+            initial_roles,
+            graph_nodes=[{
+                "id": "dispatch",
+                "role": "dispatch",
+                "status": "running",
+                "skills": [],
+            }],
+        )
+        start_payload.update({
+            "task_id": run_id,
+            "status": rec.status,
+            "started_at": rec.started_at,
+            "heartbeat_at": rec.heartbeat_at,
+            "elapsed_seconds": 0,
+            "age_seconds": 0,
+            "roles": rec.roles,
+            "total_roles": rec.total_roles,
+            "done_roles": 0,
+            "current_role": rec.current_role,
+            "graph_nodes": rec.graph_nodes,
+            "graph_edges": rec.graph_edges,
+        })
         start_payload["correlation_id"] = ensure_correlation_id()
         yield _sse("start", start_payload)
         try:
-            fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
-            future = loop.run_in_executor(_THREAD_POOL, fn, effective_req, config)
+            if effective_req.workflow == "review-until-clean":
+                future = loop.run_in_executor(
+                    _THREAD_POOL,
+                    _review_workflow_run,
+                    effective_req,
+                    config,
+                    runs_dir,
+                    run_id,
+                )
+            else:
+                fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
+                future = loop.run_in_executor(
+                    _THREAD_POOL, fn, effective_req, config, run_id,
+                )
             while True:
                 done, _pending = await asyncio.wait({future}, timeout=_RUN_HEARTBEAT_SECONDS)
                 if future in done:
@@ -519,8 +641,14 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                     if isinstance(result, dict):
                         result = {
                             **result,
+                            "task_id": run_id,
                             "correlation_id": ensure_correlation_id(),
                         }
+                        tracker.finish(
+                            run_id,
+                            status=COMPLETED if result.get("success") else FAILED,
+                            error=str(result.get("error") or ""),
+                        )
                     yield _sse("done", result)
                     break
                 if await request.is_disconnected():
@@ -533,6 +661,7 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                     return
                 yield _sse("heartbeat", {})
         except Exception as exc:
+            tracker.finish(run_id, status=FAILED, error=str(exc))
             yield _sse("error", {"error": str(exc)})
 
     return StreamingResponse(

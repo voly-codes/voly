@@ -153,12 +153,16 @@ class OpenCodeExecutor(Executor):
         _log.info("opencode._run_cli_one model=%s cwd=%s cmd=%s", model_id, work_dir, cmd[:8])
         started = time.monotonic()
         try:
+            # UTF-8 explicit: CLI output is UTF-8 regardless of OS locale (see
+            # claude_code.py for the corruption/UnicodeDecodeError this avoids).
             proc = subprocess.run(
                 cmd,
                 cwd=work_dir,
                 env={**os.environ},
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
             )
             duration_ms = (time.monotonic() - started) * 1000

@@ -20,7 +20,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-_chain_log = logging.getLogger("voly.chain")
+_CHAIN_LOGGER_NAME = "voly.chain"
+_chain_log = logging.getLogger(_CHAIN_LOGGER_NAME)
 
 from voly.automation import compute_automation_metrics
 from voly.config import VOLYConfig
@@ -100,6 +101,8 @@ class AgentRunner:
         correlation_id: str = "",
         collect_evidence: bool = True,
         repo_url: str = "",
+        parent_task_id: str = "",
+        task_id: str = "",
     ) -> RunnerResult:
         from voly.correlation import ensure_correlation_id, get_correlation_id
         from voly.runner.repo_intel import analyze_repo_for_run
@@ -109,7 +112,7 @@ class AgentRunner:
         cid = ensure_correlation_id(correlation_id or None)
         executor_name, agent_role = resolve_executor(agent, self.config)
         task_type = detect_task_type(task)
-        task_id = new_task_id()
+        task_id = task_id or new_task_id()
         repo_ctx = analyze_repo_for_run(repo_url)
 
         executor = _build_executor(executor_name, model or None)
@@ -131,7 +134,9 @@ class AgentRunner:
                 from voly.runtime.runs import RunTracker
 
                 tracker = RunTracker(self.config.telemetry.runs_dir)
-                tracker.start(task_id, task, [executor_name])
+                tracker.start(
+                    task_id, task, [executor_name], parent_task_id=parent_task_id,
+                )
                 hb_stop = threading.Event()
 
                 def _hb_loop() -> None:
@@ -154,11 +159,16 @@ class AgentRunner:
             try:
                 effective_task, dspy_plan_result = _dspy_plan_task(task, self.config)
             except Exception as exc:
-                logging.getLogger("voly.chain").debug("[CHAIN:DSPY_PLAN] error=%s", exc)
+                logging.getLogger(_CHAIN_LOGGER_NAME).debug("[CHAIN:DSPY_PLAN] error=%s", exc)
 
         git_before = _git_porcelain(cwd)
         from voly.plan.verify_git import fingerprint_untracked
         fp_before = fingerprint_untracked(cwd, git_before) if cwd else {}
+        # Shallow dir-listing fallback for when cwd isn't itself a git repo
+        # (git status then sees nothing) — see _build_work_report. Cheap
+        # (one non-recursive scandir), so always taken alongside git_before.
+        from voly.runner.work_report import _dir_snapshot_shallow
+        dir_before = _dir_snapshot_shallow(cwd) if cwd else None
         # Pre-run snapshot for the safety policy: lets rollback restore the
         # exact pre-run content even of files that were already dirty.
         from voly.executor.safety import apply_safety_policy, git_snapshot
@@ -300,16 +310,19 @@ class AgentRunner:
             try:
                 _dspy_store_example(task, effective_task, result, self.config)
             except Exception as exc:
-                logging.getLogger("voly.chain").debug("[CHAIN:DSPY_STORE] error=%s", exc)
+                logging.getLogger(_CHAIN_LOGGER_NAME).debug("[CHAIN:DSPY_STORE] error=%s", exc)
 
         git_after = _git_porcelain(cwd)
         fp_after = fingerprint_untracked(cwd, git_after) if cwd else {}
+        dir_after = _dir_snapshot_shallow(cwd) if cwd else None
         work_report = _build_work_report(
             result.output or "",
             git_before,
             git_after,
             fingerprints_before=fp_before,
             fingerprints_after=fp_after,
+            dir_snapshot_before=dir_before,
+            dir_snapshot_after=dir_after,
         )
         result.report = work_report
 

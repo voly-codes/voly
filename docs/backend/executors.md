@@ -412,3 +412,29 @@ before the run and modified again by the executor is caught and restored to
 its pre-run (dirty) content. Note: `WorkReport` file lists still come from
 the porcelain delta, so such files may be missing from the report display —
 report-side follow-up.
+
+### WorkReport file detection outside a git repo
+
+`_git_porcelain(cwd)` (`voly/runner/work_report.py`) returns `{}` when `cwd`
+is not itself a git repository (e.g. a plain folder that merely contains
+other repos, like a user's `~/git` directory) — `git status` sees nothing
+there, so `_build_work_report` used to report `files_created: []` even when
+the executor genuinely wrote a file. When both the before and after porcelain
+maps come back empty, `_build_work_report` now falls back to a **shallow,
+non-recursive** before/after directory snapshot (`_dir_snapshot_shallow`:
+one `os.scandir(cwd)`, immediate files only, `{name: (size, mtime)}`) taken
+by `AgentRunner.run` around the executor call, and diffs that instead. It
+never recurses or runs `git init` on the caller's directory — safe even when
+`cwd` is large and not owned by the run.
+
+### Subprocess output encoding (Windows)
+
+Every executor/safety/plan subprocess call that captures CLI or `git` stdout
+(`claude_code.py`, `zen.py`, `opencode.py`, `safety.py`, `plan/verify_git.py`,
+`ai_gateway/project_state.py`, `runner/work_report.py::_git_porcelain`) now
+passes `encoding="utf-8", errors="replace"` explicitly. Without it,
+`subprocess.run(..., text=True)` decodes with the OS locale — cp1251/cp1252
+on Windows — while `claude`/`opencode`/`zen`/git all emit UTF-8, so any
+Cyrillic (or other non-Latin-1) task text or result corrupted into mojibake,
+or raised `UnicodeDecodeError: 'charmap' codec can't decode byte …` outright
+and failed the run with `agent: "unknown"` in the TaskEvent.

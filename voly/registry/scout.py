@@ -41,10 +41,14 @@ class SkillScout:
             return []
 
         local_ids: set[str] = {s.id for s in self._registry.index.list_all()}
-        import re
-        keywords = {
-            w for w in re.sub(r"[^\w\s]", "", task.lower()).split() if len(w) > 3
-        }
+        # Shared with the A2A per-role skill-injection gate (voly/pipeline/skills.py)
+        # so both relevance gates treat the same words as non-signal — without
+        # this, a task that just says "testing strategy" would "match" any
+        # skill whose blurb happens to mention "testing", including totally
+        # unrelated ones (e.g. a 1C-specific BDD skill for a GUI calculator task).
+        from voly.pipeline.skills import _task_keywords, _tokens
+
+        keywords = _task_keywords(task)
 
         suggestions: list[dict[str, Any]] = []
         for raw in result.get("skills", []):
@@ -53,11 +57,12 @@ class SkillScout:
                 continue
             # Marketplace FTS can rank loosely related skills; require at least
             # one task keyword in the skill's name/description/tags before
-            # suggesting an install (pre-run gate relevance).
-            haystack = " ".join(
-                [raw.get("name", ""), raw.get("description", ""), *raw.get("tags", [])]
-            ).lower()
-            if keywords and not any(w in haystack for w in keywords):
+            # suggesting an install (pre-run gate relevance). Token-boundary
+            # match — a plain substring check would let "write" hit "writing".
+            haystack = _tokens(
+                " ".join([raw.get("name", ""), raw.get("description", ""), *raw.get("tags", [])])
+            )
+            if keywords and not (keywords & haystack):
                 continue
             suggestions.append({
                 "id": sid,

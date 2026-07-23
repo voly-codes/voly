@@ -33,6 +33,7 @@ def test_report_not_ready_without_keys_or_cli(monkeypatch: pytest.MonkeyPatch) -
 
     # Force no CLI binaries
     monkeypatch.setattr("voly.environment.shutil.which", lambda _name: None)
+    monkeypatch.setattr("voly.environment._local_cli_candidates", lambda _name: [])
 
     report = collect_environment_report(None)
     assert report.ready is False
@@ -66,6 +67,31 @@ def test_executor_claude_detected(monkeypatch: pytest.MonkeyPatch) -> None:
     report = collect_environment_report(None)
     assert report.executors["claude-code"]["available"] is True
     assert report.executors["opencode"]["available"] is False
+
+
+def test_executor_wrangler_detects_local_windows_npm_wrapper(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setattr("voly.environment.shutil.which", lambda _name: None)
+    wrapper = tmp_path / "wrangler.cmd"
+    wrapper.write_text("@echo off\n", encoding="utf-8")
+
+    def fake_candidates(name: str):
+        return [wrapper] if name == "wrangler" else []
+
+    monkeypatch.setattr("voly.environment._local_cli_candidates", fake_candidates)
+    report = collect_environment_report(None)
+
+    assert report.executors["wrangler"]["available"] is True
+    assert report.executors["wrangler"]["path"] == str(wrapper.resolve())
+
+
+def test_windows_command_names_include_npm_cmd_wrapper(
+) -> None:
+    from voly.environment import _command_names
+
+    assert "wrangler.cmd" in _command_names("wrangler", windows=True)
 
 
 def test_api_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -4,6 +4,7 @@
   import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills, detectTech } from '../../api/client.js'
   import CategoryPickerModal from './CategoryPickerModal.svelte'
   import { ui } from '../../stores/uiStore.svelte'
+  import { tasksStore } from '../../stores/tasksStore.svelte'
   import RunParams from './RunParams.svelte'
   import RunOptions from './RunOptions.svelte'
   import RunAdvanced from './RunAdvanced.svelte'
@@ -26,6 +27,9 @@
   let a2a_mode = $state('')
   let timeout_s = $state(120)
   let correlation_id = $state('')
+  let workflow = $state('')
+  let max_rounds = $state(3)
+  let deadline_seconds = $state(900)
 
   let running = $state(false)
   let checkingSkills = $state(false)
@@ -121,6 +125,10 @@
   /** Gate 1: suggest marketplace skills → Gate 2: tech detection → run. */
   async function submit() {
     if (!task.trim() || running || checkingSkills || skillGateOpen || checkingTech || techGateOpen) return
+    if (workflow && !cwd.trim()) {
+      error = 'Review workflow requires a working directory.'
+      return
+    }
     checkingSkills = true
     error = null
     try {
@@ -193,6 +201,12 @@
     if (a2a_mode.trim()) req.a2a_mode = a2a_mode.trim()
     if (timeout_s !== 120) req.timeout = timeout_s
     if (correlation_id.trim()) req.correlation_id = correlation_id.trim()
+    if (workflow) {
+      req.workflow = workflow
+      req.max_rounds = Number(max_rounds)
+      req.deadline_seconds = Number(deadline_seconds)
+      delete req.dry_run
+    }
     return req
   }
 
@@ -204,12 +218,11 @@
     warning = null
     startedAt = Date.now()
 
-    const runId = crypto.randomUUID()
-    ui.pushRun({ id: runId, task: task.slice(0, 80), executor, agent: agent || 'auto', model: model || '—', startedAt: Date.now() })
-
     try {
       for await (const event of runTask(buildRunRequest(techStack))) {
         if (event.type === 'start') {
+          tasksStore.upsertLive(event, true)
+          ui.runOpen = false
           if (event.hybrid_warning) {
             warning = HYBRID_WARNING_LABELS[event.hybrid_warning] ?? event.hybrid_warning
           }
@@ -224,7 +237,6 @@
       error = e.message
     } finally {
       running = false
-      ui.resolveRun(runId)
     }
   }
 
@@ -331,6 +343,9 @@
       bind:a2a_mode
       bind:timeout_s
       bind:correlation_id
+      bind:workflow
+      bind:max_rounds
+      bind:deadline_seconds
       running={busy}
     />
 

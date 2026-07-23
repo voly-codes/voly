@@ -150,6 +150,8 @@ export const fetchGatewayStatus = () => get('/api/gateway/status')
 export const fetchRuns = (active = true, limit = 50) =>
   get(`/api/runs?${new URLSearchParams({ active: active ? '1' : '', limit })}`)
 export const fetchRun = taskId => get(`/api/runs/${encodeURIComponent(taskId)}`)
+export const cancelRun = taskId =>
+  post(`/api/runs/${encodeURIComponent(taskId)}/cancel`, {}).then(r => r.json())
 
 // SSE task stream
 export async function taskStream() {

@@ -154,6 +154,11 @@ def test_active_empty_architect_blocks_developer(tmp_path: Path):
     assert rec is not None
     assert rec.plan_id.startswith("a2a-")
     assert rec.step_statuses  # snapshot present
+    assert len(rec.graph_nodes) == len(assignments)
+    assert rec.graph_edges
+    by_graph_role = {node["role"]: node for node in rec.graph_nodes}
+    assert by_graph_role["architect"]["status"] == "failed"
+    assert by_graph_role["developer"]["status"] in ("blocked", "failed")
 
 
 def test_shadow_empty_architect_still_runs_developer(tmp_path: Path):

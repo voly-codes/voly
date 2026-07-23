@@ -61,14 +61,14 @@
   .stage-icon {
     width: 24px;
     height: 24px;
-    border-radius: 50%;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     background: var(--bg-inset);
     color: var(--text-muted);
-    border: 1px solid var(--border-default);
+    border: 2px solid var(--border-default);
   }
 
   .stage-icon-ok {
@@ -85,7 +85,7 @@
 
   .stage-line {
     flex: 1;
-    width: 1px;
+    width: 2px;
     background: var(--border-default);
     margin: 3px 0;
     min-height: 12px;
@@ -105,8 +105,8 @@
   }
 
   .stage-label {
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--text-primary);
   }
 
@@ -120,7 +120,7 @@
   :global(.stage-check) { color: var(--accent-green); margin-left: auto; }
   :global(.stage-err-icon) { color: var(--accent-red); margin-left: auto; }
 
-  .stage-detail { font-size: 11px; color: var(--text-secondary); }
+  .stage-detail { font-size: 12px; color: var(--text-secondary); }
 
   .stage-meta {
     font-size: 10px;
@@ -130,7 +130,7 @@
   }
 
   .stage-hint {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
     line-height: 1.4;
     margin-top: 3px;

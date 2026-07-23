@@ -290,4 +290,7 @@ dspy:
 
 def create_default_config(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(_DEFAULT_YAML)
+    # Explicit UTF-8: without it, Path.write_text() falls back to the OS
+    # locale (e.g. cp1251 on Windows), which can't encode the arrows (→)
+    # already in this template and raises UnicodeEncodeError.
+    path.write_text(_DEFAULT_YAML, encoding="utf-8")

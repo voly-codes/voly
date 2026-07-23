@@ -6,12 +6,17 @@
   import RunResultHeader from './RunResultHeader.svelte'
   import SkillSuggestBanner from './SkillSuggestBanner.svelte'
   import WorkReport from './WorkReport.svelte'
+  import WorkflowGraph from './WorkflowGraph.svelte'
 
   let { result } = $props()
 </script>
 
 <div class="run-result">
   <RunResultHeader {result} />
+
+  {#if result.workflow === 'review-until-clean'}
+    <WorkflowGraph task={result} compact />
+  {/if}
 
   <BillingChainTimelog chain_timelog={result.chain_timelog} />
 

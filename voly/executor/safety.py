@@ -109,7 +109,8 @@ def content_touched_files(
         try:
             proc = subprocess.run(
                 ["git", "diff", "--name-only", snapshot],
-                cwd=cwd, capture_output=True, text=True, timeout=15,
+                cwd=cwd, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=15,
             )
             if proc.returncode == 0:
                 touched.update(p.strip() for p in proc.stdout.splitlines() if p.strip())
@@ -129,7 +130,8 @@ def git_snapshot(cwd: str) -> str:
     try:
         proc = subprocess.run(
             ["git", "stash", "create", "voly-safety-snapshot"],
-            cwd=cwd, capture_output=True, text=True, timeout=10,
+            cwd=cwd, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=10,
         )
         if proc.returncode != 0:
             return ""
@@ -138,7 +140,8 @@ def git_snapshot(cwd: str) -> str:
             return sha
         head = subprocess.run(
             ["git", "rev-parse", "HEAD"],
-            cwd=cwd, capture_output=True, text=True, timeout=5,
+            cwd=cwd, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=5,
         )
         return head.stdout.strip() if head.returncode == 0 else ""
     except Exception:  # noqa: BLE001
@@ -165,7 +168,8 @@ def rollback_files(cwd: str, snapshot: str, files: list[str], created: list[str]
                 continue
             proc = subprocess.run(
                 ["git", "checkout", snapshot, "--", path],
-                cwd=cwd, capture_output=True, text=True, timeout=10,
+                cwd=cwd, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=10,
             )
             if proc.returncode == 0:
                 done.append(path)
@@ -183,7 +187,8 @@ def capture_diff(cwd: str, snapshot: str, created: list[str]) -> str:
         if snapshot:
             proc = subprocess.run(
                 ["git", "diff", snapshot],
-                cwd=cwd, capture_output=True, text=True, timeout=15,
+                cwd=cwd, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=15,
             )
             if proc.returncode == 0 and proc.stdout:
                 parts.append(proc.stdout)

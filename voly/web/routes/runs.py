@@ -29,10 +29,17 @@ def _to_dict(rec: Any) -> dict[str, Any]:
 
 
 @router.get("/api/runs")
-def list_runs(request: Request, active: bool = False, limit: int = 50) -> dict[str, Any]:
+def list_runs(
+    request: Request,
+    active: bool = False,
+    include_children: bool = False,
+    limit: int = 50,
+) -> dict[str, Any]:
     from voly.runtime.runs import RUNNING, RunTracker
 
     records = RunTracker(_runs_dir(request)).list()
+    if not include_children:
+        records = [r for r in records if not r.parent_task_id]
     if active:
         records = [r for r in records if r.status == RUNNING]
     return {
@@ -41,7 +48,7 @@ def list_runs(request: Request, active: bool = False, limit: int = 50) -> dict[s
     }
 
 
-@router.get("/api/runs/{task_id}")
+@router.get("/api/runs/{task_id}", responses={404: {"description": "No run record for this task_id"}})
 def get_run(request: Request, task_id: str) -> dict[str, Any]:
     from voly.runtime.runs import RunTracker
 
@@ -49,3 +56,21 @@ def get_run(request: Request, task_id: str) -> dict[str, Any]:
     if rec is None:
         raise HTTPException(status_code=404, detail=f"no run record for {task_id}")
     return _to_dict(rec)
+
+
+@router.post(
+    "/api/runs/{task_id}/cancel",
+    responses={409: {"description": "Run is missing or no longer active"}},
+)
+def cancel_run(request: Request, task_id: str) -> dict[str, Any]:
+    """Request cooperative stop before the workflow's next blocking turn."""
+    from voly.runtime.runs import RunTracker
+
+    accepted = RunTracker(_runs_dir(request)).request_cancel(task_id)
+    if not accepted:
+        raise HTTPException(status_code=409, detail="run is missing or no longer active")
+    return {
+        "task_id": task_id,
+        "cancel_requested": True,
+        "interrupts_active_subprocess": False,
+    }

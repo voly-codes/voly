@@ -149,6 +149,23 @@ provider in the tier (`chat_with_provider_fallback`). Anthropic is last in
 strong/standard tier pools so credit-balance errors do not burn the first
 attempt of every role.
 
+**`allow_provider_reroute=False`:** `chat_with_provider_fallback` always calls
+`AIGateway.chat(..., allow_provider_reroute=False)`. Without this,
+`AIGateway.chat()` has its own independent health-based provider swap
+(`voly/ai_gateway/gateway.py`, before `_gateway_call`/`_delegated_or_direct`)
+that picks a replacement from the **global** `PROVIDER_PRIORITY` list
+(`voly/ai_gateway/health.py`) — not the caller's tier pool. That swap could
+silently move a `standard`-tier `deepseek` assignment onto `mimo` (a
+`weak`/`cheap`-tier-only provider), and because the swap happens *inside*
+`gateway.chat()`, `chat_with_provider_fallback`'s loop variable and the
+`Assignment.provider`/`Assignment.model` displayed in the report never learn
+about it — a fatal `mimo` error then gets attributed to the still-unaware
+`deepseek` entry, and `exclude_provider_on_gateway_error` marks the wrong
+provider unhealthy. `allow_provider_reroute=False` disables the gateway-level
+swap for A2A calls; `chat_with_provider_fallback`'s own loop already does the
+tier-scoped equivalent correctly. Other `AIGateway.chat()` callers (single-model
+pipeline path, DSPy) keep the default `True` — unaffected.
+
 Per-role **executors** (`resolve_role_executor`): developer / tester / devops →
 `cursor`, bugfixer → `deepseek` (override:
 `VOLY_A2A_EXECUTOR_<ROLE>`). Lead may set `execution: executor` for any role in
@@ -252,6 +269,18 @@ voly runs show <task_id>       # details of one run
 voly runs reap [--yes]         # find (and mark) runs without heartbeat
 ```
 
+**Automatic reaping (Web UI server):** `voly/web/server.py::_start_watchdog_reaper`
+starts a daemon thread on `create_app()` that calls `Watchdog.reap()` every 2
+minutes (`_WATCHDOG_INTERVAL_SECONDS`), using the same `runs_dir` the `/api/runs`
+routes read (`ev_dir.parent / "runs"`) and `a2a.task_timeout_seconds` /
+`telemetry.watchdog_stale_factor` from config. Previously only the CLI
+(`voly runs reap`) cleared stale records, so a crashed or hung executor/chain
+left a permanently `running` `RunRecord` — `GET /api/runs?active=1` has no
+age filtering of its own, so `tasksStore.syncLiveRuns()` kept rendering it as
+a live task card forever, alongside any new run, until someone ran the CLI by
+hand. The background thread is best-effort (swallows all errors) and stops via
+`AppState.watchdog_stop` (a `threading.Event`, currently only set in tests).
+
 The records also provide empirical data for roadmap §6 — real chain lengths and hang
 frequency — to decide whether more expensive rungs (checkpoint/resume) are needed.
 
@@ -317,6 +346,16 @@ add, write, fix, refactor, migrate, напиши, создай, добавь, р
 
 This is used in `web/routes/run.py` for smart dispatch.
 
+**Filename-token stripping:** before any keyword matching, `analyze_task`
+strips filename-like tokens (`\b[\w-]+\.[a-z0-9]{1,5}\b`, e.g. `test.md`,
+`config.yaml`) from the lowercased task text. Without this, a task like
+*"создай файл test.md и напиши в нем - привет"* set `requires_testing = True`
+purely because the filename **test**.md contains the substring `test` —
+pushing a trivial one-file task into the full multi-agent auto-dispatch
+(`_would_dispatch_a2a`, flag_count ≥ 2) plus the GitHub auto-reuse search
+(which independently does the same naive substring match — not yet fixed)
+instead of a single `claude-code` executor call.
+
 ---
 
 ## Lazy skill suggestion (SKILL_SUGGEST stage)
@@ -340,6 +379,18 @@ prompts are truncated to ~240 characters for FTS. Suggestions must share at
 least one task keyword with the skill's name/description/tags (loose FTS hits
 are dropped). Returns slim dicts
 `{id, name, description, repository, install_kind, tags}`.
+
+The keyword extraction and haystack tokenization are the **same** helpers
+used by `match_skills_for_task` below (`_task_keywords` / `_tokens` from
+`voly/pipeline/skills.py`) — one shared `_GENERIC_TASK_TOKENS` stopword list
+and one word-boundary tokenizer for both relevance gates. Before this was
+unified, `SkillScout` had its own naive `word in haystack` substring check
+with no stopword filtering: a task like *"calculator gui testing strategy"*
+matched the unrelated `1c-vanessa` skill purely because its description
+mentions "testing 1c forms" — the single shared word "testing" was enough.
+Reusing the same helpers means any future stopword fix (e.g. adding a
+too-generic word) benefits both the marketplace pre-run suggestion gate and
+the A2A per-role skill-injection gate at once.
 
 **Relevance scoring (SKILL_INJECT / A2A skills):**
 `match_skills_for_task` (`voly/pipeline/skills.py`) scores every candidate

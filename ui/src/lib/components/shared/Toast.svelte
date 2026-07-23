@@ -44,9 +44,9 @@
     gap: 8px;
     padding: 8px 10px;
     font-size: 12px;
-    border-radius: var(--radius-md);
-    border: 1px solid;
-    box-shadow: var(--shadow-md);
+    border-radius: 0;
+    border: 2px solid;
+    box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 50%, transparent);
     pointer-events: auto;
     animation: toast-in 0.2s ease;
   }
@@ -87,7 +87,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     opacity: 0.7;
   }
 
@@ -100,4 +100,6 @@
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+
+  @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
 </style>

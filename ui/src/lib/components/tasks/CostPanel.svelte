@@ -1,7 +1,8 @@
 <script>
-  import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon } from '../../icons.js'
+  import { TrendingUpIcon, CoinsIcon, CpuIcon, TimerIcon, ChevronLeftIcon, ChevronRightIcon } from '../../icons.js'
   import { fmtTokens, fmtDur, statusLabel } from '../../utils/format.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
+  import { ui } from '../../stores/uiStore.svelte'
   import { t } from '../../i18n/localeStore.svelte.ts'
 
   let summary = $derived(tasksStore.summary)
@@ -20,7 +21,20 @@
   )
 </script>
 
+{#if ui.costPanelCollapsed}
+  <div class="cost-collapsed">
+    <button class="collapse-toggle" onclick={() => ui.costPanelCollapsed = false} title={t('cost.expand')} aria-label={t('cost.expand')}>
+      <ChevronLeftIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
+{:else}
 <div class="cost-panel">
+  <div class="cost-topbar">
+    <span class="cost-topbar-title">{t('cost.title')}</span>
+    <button class="collapse-toggle" onclick={() => ui.costPanelCollapsed = true} title={t('cost.collapse')} aria-label={t('cost.collapse')}>
+      <ChevronRightIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
   {#if summary}
     <section class="panel-section">
       <div class="section-title">{t('cost.overview')}</div>
@@ -119,12 +133,55 @@
     </section>
   {/if}
 </div>
+{/if}
 
 <style>
+  .cost-collapsed {
+    width: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+    background: var(--bg-surface);
+    border-left: 2px solid var(--frame-strong);
+  }
+
+  .cost-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 10px 4px 4px;
+    border-bottom: 2px solid var(--border-default);
+    background: color-mix(in srgb, var(--voly-orange) 7%, var(--bg-surface));
+  }
+
+  .cost-topbar-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .collapse-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border-radius: 0;
+    flex-shrink: 0;
+    transition: background 0.1s, color 0.1s;
+  }
+  .collapse-toggle:hover { background: var(--bg-inset); color: var(--text-primary); }
+
   .cost-panel {
     width: 240px;
     flex-shrink: 0;
-    border-left: 1px solid var(--border-default);
+    border-left: 2px solid var(--frame-strong);
     overflow-y: auto;
     background: var(--bg-surface);
   }
@@ -135,12 +192,13 @@
   }
 
   .section-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-muted);
     margin-bottom: 8px;
+    font-family: var(--font-mono);
   }
 
   .cards {
@@ -151,8 +209,8 @@
 
   .card {
     background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-muted);
+    border-radius: 0;
     padding: 6px 8px;
     display: flex;
     flex-direction: column;
@@ -165,6 +223,7 @@
     font-weight: 600;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
   }
 
   .card-label {
@@ -194,14 +253,14 @@
     flex: 1;
     height: 4px;
     background: var(--bg-inset);
-    border-radius: 2px;
+    border-radius: 0;
     overflow: hidden;
   }
 
   .bar-fill {
     height: 100%;
-    background: var(--accent-blue);
-    border-radius: 2px;
+    background: var(--voly-orange);
+    border-radius: 0;
     transition: width 0.3s;
   }
 
@@ -227,7 +286,7 @@
     align-items: center;
     gap: 4px;
     padding: 2px 6px;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     background: var(--bg-inset);
     border: 1px solid var(--border-muted);
   }

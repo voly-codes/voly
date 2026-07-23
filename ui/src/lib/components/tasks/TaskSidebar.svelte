@@ -1,9 +1,7 @@
 <script>
-  import { SearchIcon } from '../../icons.js'
-  import ActiveRuns from './ActiveRuns.svelte'
+  import { SearchIcon, ChevronLeftIcon, ChevronRightIcon } from '../../icons.js'
   import StatusDot from '../shared/StatusDot.svelte'
   import { fmtDur, fmtRel } from '../../utils/format.js'
-  import { fetchRuns } from '../../api/client.js'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import { ui } from '../../stores/uiStore.svelte'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
@@ -54,23 +52,22 @@
   ])
   void i18n.locale
 
-  async function openLocalRun(run) {
-    try {
-      const data = await fetchRuns(true)
-      const runs = data.runs ?? []
-      const match = runs.find(r => (r.task || '').startsWith((run.task || '').slice(0, 40)))
-        ?? (runs.length === 1 ? runs[0] : null)
-      if (match) {
-        tasksStore.selectLive(match)
-        return
-      }
-    } catch {}
-    ui.runOpen = true
-  }
 </script>
 
+{#if ui.sidebarCollapsed}
+  <div class="sidebar-collapsed">
+    <button class="collapse-toggle" onclick={() => ui.sidebarCollapsed = false} title={t('sidebar.expand')} aria-label={t('sidebar.expand')}>
+      <ChevronRightIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
+{:else}
 <aside class="sidebar">
-  <ActiveRuns />
+  <div class="sidebar-topbar">
+    <span class="sidebar-topbar-title">{t('sidebar.title')}</span>
+    <button class="collapse-toggle" onclick={() => ui.sidebarCollapsed = true} title={t('sidebar.collapse')} aria-label={t('sidebar.collapse')}>
+      <ChevronLeftIcon size="14" strokeWidth="2" />
+    </button>
+  </div>
   <div class="sidebar-search">
     <SearchIcon size="13" strokeWidth="2" class="search-icon" />
     <input
@@ -106,25 +103,6 @@
   </div>
 
   <div class="task-list">
-    {#each ui.activeRuns as run (run.id)}
-      <button type="button" class="task-row task-row--running" onclick={() => openLocalRun(run)}>
-        <div class="task-row-top">
-          <StatusDot status="running" size={7} />
-          <span class="task-agent">{run.agent}</span>
-          <span class="running-badge">{t('sidebar.running')}</span>
-        </div>
-        <div class="task-row-mid">
-          <span class="task-model">{run.model}</span>
-          {#if run.executor !== run.agent}
-            <span class="task-executor">via {run.executor}</span>
-          {/if}
-        </div>
-        <div class="task-row-bot">
-          <span class="task-prompt">{run.task}</span>
-        </div>
-      </button>
-    {/each}
-
     {#each filtered as task (task.task_id)}
       {@const isSelected = selected?.task_id === task.task_id}
       {@const isNew = tasksStore.isUnseen(task.task_id)}
@@ -137,6 +115,9 @@
         <div class="task-row-top">
           <StatusDot status={task.status} size={7} />
           <span class="task-agent">{task.agent ?? t('sidebar.unknown')}</span>
+          {#if task._live || task.status === 'running'}
+            <span class="running-badge">{task._live_progress?.current_role || t('sidebar.running')}</span>
+          {/if}
           {#if isNew}
             <span class="new-badge">new</span>
           {/if}
@@ -156,20 +137,64 @@
       </button>
     {/each}
 
-    {#if filtered.length === 0 && ui.activeRuns.length === 0}
+    {#if filtered.length === 0}
       <div class="empty">{t('sidebar.noTasks')}</div>
     {/if}
   </div>
 </aside>
+{/if}
 
 <style>
+  .sidebar-collapsed {
+    width: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 6px;
+    background: var(--bg-surface);
+    border-right: 2px solid var(--frame-strong);
+  }
+
+  .sidebar-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 4px 10px;
+    border-bottom: 2px solid var(--border-default);
+    background: color-mix(in srgb, var(--voly-orange) 7%, var(--bg-surface));
+    flex-shrink: 0;
+  }
+
+  .sidebar-topbar-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .collapse-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border-radius: 0;
+    flex-shrink: 0;
+    transition: background 0.1s, color 0.1s;
+  }
+  .collapse-toggle:hover { background: var(--bg-inset); color: var(--text-primary); }
+
   .sidebar {
     width: 260px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     background: var(--bg-surface);
-    border-right: 1px solid var(--border-default);
+    border-right: 2px solid var(--frame-strong);
     overflow: hidden;
   }
 
@@ -178,7 +203,10 @@
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    border-bottom: 1px solid var(--border-muted);
+    margin: 7px 8px 4px;
+    padding: 6px 8px;
+    border: 2px solid var(--border-default);
+    background: var(--bg-inset);
     color: var(--text-muted);
   }
 
@@ -189,6 +217,7 @@
     outline: none;
     font-size: 12px;
     color: var(--text-primary);
+    font-family: var(--font-mono);
   }
 
   .search-input::placeholder { color: var(--text-muted); }
@@ -197,7 +226,7 @@
     display: flex;
     gap: 4px;
     padding: 4px 8px;
-    border-bottom: 1px solid var(--border-muted);
+    border-bottom: 2px solid var(--border-muted);
   }
 
   .filter-group {
@@ -209,8 +238,8 @@
     height: 24px;
     padding: 0 6px;
     background: var(--bg-inset);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-default);
+    border-radius: 0;
     font-size: 10px;
     color: var(--text-secondary);
     outline: none;
@@ -245,6 +274,7 @@
     text-align: left;
     padding: 7px 10px;
     border-bottom: 1px solid var(--border-muted);
+    border-left: 4px solid transparent;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -253,7 +283,7 @@
   }
 
   .task-row:hover { background: var(--bg-surface-hover); }
-  .task-row.selected { background: var(--bg-inset); }
+  .task-row.selected { background: color-mix(in srgb, var(--voly-orange) 12%, var(--bg-inset)); border-left-color: var(--voly-orange); }
 
   .task-row-top {
     display: flex;
@@ -269,12 +299,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-family: var(--font-mono);
   }
 
   .task-cost {
     font-size: 11px;
     font-variant-numeric: tabular-nums;
-    color: var(--accent-amber);
+    color: var(--voly-orange);
     flex-shrink: 0;
   }
 
@@ -324,12 +355,6 @@
     color: var(--text-muted);
   }
 
-  .task-row--running {
-    cursor: pointer;
-    border-left: 2px solid var(--running-fg, var(--accent-blue));
-    background: color-mix(in srgb, var(--running-fg, var(--accent-blue)) 5%, transparent);
-  }
-
   .running-badge {
     margin-left: auto;
     font-size: 9px;
@@ -343,15 +368,6 @@
 
   @keyframes run-pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
-  .task-prompt {
-    font-size: 10px;
-    color: var(--text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-  }
-
   .unseen {
     border-left: 2px solid var(--accent-blue);
   }
@@ -361,9 +377,9 @@
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    background: var(--accent-blue);
+    background: var(--voly-orange);
     color: var(--accent-blue-foreground, #fff);
-    border-radius: 4px;
+    border-radius: 0;
     padding: 0 4px;
     line-height: 14px;
     flex-shrink: 0;

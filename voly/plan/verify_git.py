@@ -32,7 +32,8 @@ def _git_has_commits(cwd: str, timeout: float = 5.0) -> bool:
     try:
         p = subprocess.run(
             ["git", "rev-parse", "HEAD"],
-            cwd=cwd, capture_output=True, text=True, timeout=timeout,
+            cwd=cwd, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=timeout,
         )
         return p.returncode == 0
     except (OSError, subprocess.SubprocessError):
@@ -45,7 +46,8 @@ def _git_seed_commit(cwd: str, timeout: float = 10.0) -> bool:
         cfg = ["-c", "user.email=voly@local", "-c", "user.name=voly"]
         subprocess.run(
             ["git", *cfg, "commit", "--allow-empty", "-m", "chore: voly seed commit"],
-            cwd=cwd, capture_output=True, text=True, timeout=timeout,
+            cwd=cwd, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=timeout,
         )
         return _git_has_commits(cwd)
     except (OSError, subprocess.SubprocessError):
@@ -82,7 +84,8 @@ def ensure_git_repo(cwd: str, *, timeout: float = 10.0) -> bool:
         try:
             proc = subprocess.run(
                 ["git", "init"],
-                cwd=cwd, capture_output=True, text=True, timeout=timeout,
+                cwd=cwd, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=timeout,
             )
             if proc.returncode != 0:
                 return False

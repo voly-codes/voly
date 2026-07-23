@@ -130,6 +130,19 @@ Config (`voly.yaml` → `a2a`):
 | `executor_roles` | (built-in) | Empty → developer, bugfixer, tester, devops |
 | `federation_url` | — | CF A2A worker URL |
 
+### One live parent graph
+
+`run_local` initializes the parent `RunRecord.graph_nodes/graph_edges` from
+assignments and their `depends_on` indices. Nodes have stable `agent-{idx}` ids
+and are upserted from `pending` to `running`, then to
+`completed`/`failed`/`blocked` with their actual route, duration, cost, files,
+and error. Parallel chat roles can therefore be running on the same canvas.
+
+Hybrid AgentRunner calls set `parent_task_id` to the A2A task id. Their child
+records remain available through direct lookup or `GET /api/runs?include_children=1`,
+while the default active-run list contains only the parent. This prevents one
+logical multi-agent run from appearing as several independent flows.
+
 ---
 
 ## Recursion guard (P0)

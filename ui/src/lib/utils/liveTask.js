@@ -1,7 +1,8 @@
 /** Map an in-flight RunRecord (/api/runs) to a TaskEvent-shaped object for PipelineInspector. */
 export function liveTaskFromRun(run) {
   if (!run?.task_id) return null
-  const roles = run.roles ?? []
+  const graphNodes = run.graph_nodes ?? []
+  const roles = (run.roles?.length ? run.roles : graphNodes.map(node => node.role || node.id)) ?? []
   const done = run.done_roles ?? 0
   const current = run.current_role ?? ''
   const steps = run.step_statuses ?? []
@@ -10,35 +11,42 @@ export function liveTaskFromRun(run) {
   )
 
   const assignments = roles.map((role, i) => {
+    const graphNode = graphNodes.find(node => node.role === role || node.id === role) ?? {}
     const doneRole = i < done
     const isCurrent = role === current
     return {
       role,
-      tier: '',
-      model: '',
-      provider: '',
-      skills: [],
-      input_tokens: 0,
-      output_tokens: 0,
-      cost_usd: 0,
-      ok: doneRole,
-      cache_hit: false,
-      mode: isCurrent ? 'running' : doneRole ? 'done' : 'pending',
+      tier: graphNode.tier || '',
+      model: graphNode.model || '',
+      provider: graphNode.provider || '',
+      skills: graphNode.skills || [],
+      input_tokens: graphNode.input_tokens || 0,
+      output_tokens: graphNode.output_tokens || 0,
+      cost_usd: graphNode.cost_usd || 0,
+      ok: graphNode.status === 'completed' || doneRole,
+      cache_hit: !!graphNode.cache_hit,
+      mode: graphNode.status || (isCurrent ? 'running' : doneRole ? 'done' : 'pending'),
       mode_reason: isCurrent ? 'in_progress' : doneRole ? 'completed' : 'queued',
-      executor: null,
-      files_touched: [],
+      executor: graphNode.executor || null,
+      files_touched: graphNode.files_touched || [],
       plan_status: stepByRole[role] ?? (isCurrent ? 'running' : doneRole ? 'done' : null),
       plan_verify_ok: null,
     }
   })
 
+  // RunRecord (backend) has no agent/executor/model fields of its own — that
+  // identity only exists once the final TaskEvent is emitted. For a single
+  // role, `roles[0]` (or `current_role`) IS the executor name and is already
+  // known live — use it instead of a placeholder dash, so the Atlas view
+  // isn't blank for the whole in-progress duration of a plain (non-A2A) run.
+  const singleExecutor = roles[0] || current || ''
   return {
     task_id: run.task_id,
     status: run.status || 'running',
-    agent: roles.length > 1 ? 'a2a-local' : (run.agent || '—'),
+    agent: roles.length > 1 ? 'a2a-local' : (singleExecutor || run.agent || '—'),
     model: roles.length > 1 ? 'multi-agent' : (run.model || '—'),
     provider: roles.length > 1 ? 'a2a-local' : '',
-    executor: roles.length > 1 ? 'a2a-local' : (run.executor || ''),
+    executor: roles.length > 1 ? 'a2a-local' : (singleExecutor || run.executor || ''),
     task_prompt: run.task || '',
     result: null,
     error: run.error || null,
@@ -47,7 +55,7 @@ export function liveTaskFromRun(run) {
     _mtime: Date.now() / 1000,
     tokens: { input: 0, output: 0, saved_rtk: 0, saved_headroom: 0 },
     gateway: { cache_hit: false, fallback_used: false, dlp_blocked: false },
-    skill_ids: [],
+    skill_ids: [...new Set(graphNodes.flatMap(node => node.skills || []))],
     a2a_dispatched: roles.length > 1,
     a2a_subtask_count: roles.length,
     a2a_agents_used: roles,
@@ -59,5 +67,17 @@ export function liveTaskFromRun(run) {
       current_role: current,
       age_seconds: run.age_seconds ?? 0,
     },
+    workflow: run.workflow || '',
+    lap: run.lap ?? 0,
+    max_laps: run.max_laps ?? 0,
+    active_role: run.active_role || '',
+    stop_reason: run.stop_reason || '',
+    latest_verdict: run.latest_verdict || '',
+    cancel_requested: !!run.cancel_requested,
+    timeline: run.timeline ?? [],
+    workflow_metrics: run.workflow_metrics ?? {},
+    graph_nodes: graphNodes,
+    graph_edges: run.graph_edges ?? [],
+    live_steps: steps,
   }
 }

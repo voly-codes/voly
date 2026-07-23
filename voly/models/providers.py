@@ -16,6 +16,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
+_APPLICATION_JSON = "application/json"
+
 
 @dataclass
 class ModelUsage:
@@ -87,7 +89,7 @@ class AnthropicProvider(ModelProvider):
         headers = {
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
+            "content-type": _APPLICATION_JSON,
         }
 
         body: dict[str, Any] = {
@@ -165,7 +167,7 @@ class OpenAIProvider(ModelProvider):
         url = f"{self.base_url}/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
+            "Content-Type": _APPLICATION_JSON,
         }
 
         msgs = list(messages)
@@ -237,7 +239,7 @@ class GoogleProvider(ModelProvider):
         import urllib.error
 
         url = f"{self.base_url}/v1beta/models/{model}:generateContent?key={self.api_key}"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": _APPLICATION_JSON}
 
         contents = []
         for msg in messages:
@@ -303,7 +305,7 @@ class OllamaProvider(ModelProvider):
         import urllib.error
 
         url = f"{self.base_url}/api/chat"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": _APPLICATION_JSON}
 
         msgs = list(messages)
         if system:

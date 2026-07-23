@@ -7,6 +7,8 @@ from pathlib import Path
 
 import click
 
+_NO_API_KEY = "No API key"
+
 
 # ── compare ───────────────────────────────────────────────────────────────────
 
@@ -345,13 +347,13 @@ def balance(as_json: bool) -> None:
         else:
             results.append({"provider": "DeepSeek", "balance": None, "error": "API unavailable"})
     else:
-        results.append({"provider": "DeepSeek", "balance": None, "error": "No API key"})
+        results.append({"provider": "DeepSeek", "balance": None, "error": _NO_API_KEY})
 
     mimo_key = os.getenv("MIMO_API_KEY", "")
     results.append({
         "provider": "MiMo",
         "balance": None,
-        "note": "No public balance API" if mimo_key else "No API key",
+        "note": "No public balance API" if mimo_key else _NO_API_KEY,
         "url": "https://xiaomimimo.com/console",
     })
 
@@ -359,7 +361,7 @@ def balance(as_json: bool) -> None:
     results.append({
         "provider": "OpenCode (Zen/Go)",
         "balance": None,
-        "note": "No public balance API" if oc_key else "No API key",
+        "note": "No public balance API" if oc_key else _NO_API_KEY,
         "url": "https://opencode.ai/settings",
     })
 
@@ -367,7 +369,7 @@ def balance(as_json: bool) -> None:
     results.append({
         "provider": "Anthropic (Claude)",
         "balance": None,
-        "note": "Check console" if anth_key else "No API key",
+        "note": "Check console" if anth_key else _NO_API_KEY,
         "url": "https://console.anthropic.com/settings/billing",
     })
 

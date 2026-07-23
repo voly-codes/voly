@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte'
   import { i18n, t } from '../../i18n/localeStore.svelte.ts'
   import { tasksStore } from '../../stores/tasksStore.svelte'
   import PipelineEmptyState from './PipelineEmptyState.svelte'
@@ -11,9 +12,29 @@
   import InspectorAgentsList from './InspectorAgentsList.svelte'
   import InspectorMetaSections from './InspectorMetaSections.svelte'
   import { buildPipelineStages, buildTokenBar } from './pipelineStageModel.js'
+  import AgentAtlas from './AgentAtlas.svelte'
+  import WorkflowGraph from './WorkflowGraph.svelte'
+  import LiveAgentGraph from './LiveAgentGraph.svelte'
 
   let outputExpanded = $state(true)
   let task = $derived(tasksStore.selected)
+  let activeTab = $state('report')
+  let lastTaskId = $state(undefined)
+
+  // Live parent runs open directly on their one shared graph. Historical and
+  // single-agent tasks keep the report-first behavior. Only re-decide the
+  // default tab when the *selected task changes* (task_id) — reading
+  // `_live`/`graph_nodes.length` via untrack() keeps them out of this
+  // effect's dependencies, so a live task's periodic polling updates (every
+  // ~2s, see tasksStore.syncLiveRuns) don't re-run it and silently snap a
+  // manually-chosen tab back to "report" whenever graph_nodes is momentarily
+  // empty between heartbeats.
+  $effect(() => {
+    const id = task?.task_id
+    if (id === lastTaskId) return
+    lastTaskId = id
+    activeTab = untrack(() => task?._live && task?.graph_nodes?.length) ? 'atlas' : 'report'
+  })
 
   let tokenBar = $derived.by(() => {
     void i18n.locale
@@ -32,6 +53,30 @@
   <div class="inspector">
     <TaskHeader {task} />
 
+    <div class="inspector-tabs">
+      <button
+        type="button"
+        class="inspector-tab"
+        class:active={activeTab === 'report'}
+        onclick={() => activeTab = 'report'}
+      >{t('inspector.tabReport')}</button>
+      <button
+        type="button"
+        class="inspector-tab"
+        class:active={activeTab === 'atlas'}
+        onclick={() => activeTab = 'atlas'}
+      >{t('inspector.tabAtlas')}</button>
+    </div>
+
+    {#if activeTab === 'atlas'}
+      {#if task._live && task.graph_nodes?.length}
+        <LiveAgentGraph {task} />
+      {:else if task.workflow === 'review-until-clean'}
+        <WorkflowGraph {task} />
+      {:else}
+        <AgentAtlas {task} />
+      {/if}
+    {:else}
     <div class="inspector-body">
       <div class="left-pane">
         <PipelineStages {stages} />
@@ -73,15 +118,43 @@
         </div>
       </div>
     </div>
+    {/if}
   </div>
 {/if}
 
 <style>
+  .inspector-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 6px 14px 0;
+    border-bottom: 2px solid var(--frame-strong);
+    background: color-mix(in srgb, var(--voly-paper) 5%, var(--bg-surface));
+    flex-shrink: 0;
+  }
+
+  .inspector-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border: 2px solid transparent;
+    border-bottom: 0;
+    margin-bottom: -1px;
+    transition: color 0.12s, border-color 0.12s;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .inspector-tab:hover { color: var(--text-primary); }
+  .inspector-tab.active { color: var(--voly-orange); border-color: var(--voly-orange); background: var(--bg-inset); box-shadow: 3px 0 0 color-mix(in srgb, var(--voly-orange) 42%, transparent); }
+
   .inspector {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: var(--bg-surface);
   }
 
   .inspector-body {
@@ -93,11 +166,12 @@
   .left-pane {
     flex: 1;
     min-width: 0;
-    border-right: 1px solid var(--border-default);
+    border-right: 2px solid var(--frame-strong);
     overflow-y: auto;
     padding: 14px 14px 14px 16px;
     display: flex;
     flex-direction: column;
+    background: var(--bg-surface);
   }
 
   .right-pane {
@@ -106,6 +180,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: color-mix(in srgb, var(--bg-inset) 38%, var(--bg-surface));
   }
 
   .right-sections {
@@ -116,7 +191,7 @@
 
   .task-prompt-field {
     padding: 10px 14px 8px;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 2px solid var(--border-default);
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -140,8 +215,8 @@
     max-height: 120px;
     overflow-y: auto;
     background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
-    border-radius: var(--radius-sm);
+    border: 2px solid var(--border-muted);
+    border-radius: 0;
     padding: 6px 8px;
   }
 
@@ -153,9 +228,9 @@
     white-space: pre-wrap;
     word-break: break-word;
     background: var(--bg-inset);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     padding: 8px 10px;
-    border: 1px solid var(--border-muted);
+    border: 2px solid var(--border-muted);
     max-height: 200px;
     overflow-y: auto;
   }

@@ -88,6 +88,11 @@ GITHUB_TOKEN=ghp_...   # or GH_TOKEN — voly reuse search / pack (GitHub REST)
 VOLY_PROJECT_CWD=/path/to/target/project
 # default cwd for executors (or default_cwd in voly.yaml).
 
+On Windows, npm CLIs are commonly exposed as `.cmd` wrappers. Environment
+readiness detects `wrangler.cmd` on PATH and the repo-local
+`cf-workers/agent/node_modules/.bin/wrangler.cmd`; install it with
+`npm ci --prefix cf-workers/agent`.
+
 VOLY_A2A_TOKEN=...
 # Bearer token for federation requests to A2A/agent workers (a2a.token).
 

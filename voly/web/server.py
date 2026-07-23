@@ -27,7 +27,7 @@ def _load_dotenv_once() -> None:
     env_file = pathlib.Path(__file__).parent.parent.parent / ".env"
     if not env_file.exists():
         return
-    with open(env_file) as f:
+    with open(env_file, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#") or "=" not in line:
@@ -51,6 +51,38 @@ def _resolve_events_dir() -> pathlib.Path:
 
 
 _load_dotenv_once()
+
+# Reap stale RunRecords every 2 minutes so a crashed/hung executor or
+# multi-agent chain does not leave a permanently "running" card in the UI
+# (previously only `voly runs reap` cleared these — never run automatically,
+# so old records piled up in the live task list forever). Best-effort: any
+# error here must never affect request handling.
+_WATCHDOG_INTERVAL_SECONDS = 120.0
+
+
+def _start_watchdog_reaper(app: "FastAPI") -> None:
+    import threading
+
+    def _loop() -> None:
+        from voly.runtime.runs import Watchdog
+
+        stop = app.state.app.watchdog_stop
+        while not stop.wait(_WATCHDOG_INTERVAL_SECONDS):
+            try:
+                state = app.state.app
+                runs_dir = str(state.ev_dir.parent / "runs")
+                cfg = state.config
+                task_timeout = float(
+                    getattr(getattr(cfg, "a2a", None), "task_timeout_seconds", 120.0) or 120.0
+                )
+                stale_factor = float(
+                    getattr(getattr(cfg, "telemetry", None), "watchdog_stale_factor", 2.0) or 2.0
+                )
+                Watchdog(runs_dir, task_timeout=task_timeout, stale_factor=stale_factor).reap()
+            except Exception:  # noqa: BLE001
+                pass
+
+    threading.Thread(target=_loop, daemon=True, name="voly-watchdog-reaper").start()
 
 
 def _configure_logging() -> None:
@@ -129,13 +161,13 @@ def create_app(
     # Open-core: the web UI has no authentication — the API is open and intended
     # for localhost only. Authentication (JWT / SSO) is a commercial Team-tier
     # feature that lives in the closed voly-cloud distribution.
+    app.add_middleware(CorrelationMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(CorrelationMiddleware)
 
     app.state.app = AppState(
         ev_dir=events_dir or _resolve_events_dir(),
@@ -164,6 +196,8 @@ def create_app(
 
     if _STATIC.exists():
         app.mount("/", StaticFiles(directory=str(_STATIC), html=True), name="static")
+
+    _start_watchdog_reaper(app)
 
     return app
 

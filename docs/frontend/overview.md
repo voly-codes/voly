@@ -61,7 +61,6 @@ ui/
                                         #   MultiAgentPanel / SkillSuggestBanner / PxpipeArtifacts)
           TaskHeader.svelte             # task card header (+ RoleStrip)
           TaskSidebar.svelte
-          ActiveRuns.svelte             # in-progress runs poller
           PipelineStages.svelte         # pipeline stage visualization
           PipelineInspector.svelte      # shell (+ InspectorAgentsList / InspectorBillingChain /
                                         #   InspectorMetaSections + pipelineStageModel.js)

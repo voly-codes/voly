@@ -56,10 +56,10 @@ class FederationClient:
                 return result
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
-            logger.error("A2A federation %s %s → HTTP %s: %s", method, url, exc.code, detail)
+            logger.exception("A2A federation %s %s → HTTP %s: %s", method, url, exc.code, detail)
             raise FederationClientError(f"HTTP {exc.code}: {detail}") from exc
         except urllib.error.URLError as exc:
-            logger.error("A2A federation %s %s → URLError: %s", method, url, exc.reason)
+            logger.exception("A2A federation %s %s → URLError: %s", method, url, exc.reason)
             raise FederationClientError(str(exc.reason)) from exc
 
     def health(self) -> dict[str, Any]:

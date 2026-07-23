@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import threading
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
 class AppState:
     ev_dir: pathlib.Path
     config: "VOLYConfig | None" = None
+    # Signals the background watchdog-reaper thread (server.py) to stop.
+    watchdog_stop: threading.Event = field(default_factory=threading.Event)
 
     def marketplace_url(self) -> str:
         if self.config:

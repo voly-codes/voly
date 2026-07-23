@@ -23,6 +23,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+_PYPROJECT_TOML = "pyproject.toml"
+_PACKAGE_JSON = "package.json"
+_CSPROJ_GLOB = "*.csproj"
+_CARGO_TOML = "Cargo.toml"
+_GO_MOD = "go.mod"
+_YAML_GLOB = "*.yaml"
+
 
 @dataclass
 class LanguageInfo:
@@ -91,12 +98,12 @@ class ProjectProfile:
 
 
 LANGUAGE_DETECTORS: dict[str, dict[str, Any]] = {
-    "python": {"files": ["pyproject.toml", "setup.py", "requirements.txt", "Pipfile"], "exts": [".py"], "pkg_mgr": "pip"},
+    "python": {"files": [_PYPROJECT_TOML, "setup.py", "requirements.txt", "Pipfile"], "exts": [".py"], "pkg_mgr": "pip"},
     "typescript": {"files": ["tsconfig.json", "next.config.ts"], "exts": [".ts", ".tsx"], "pkg_mgr": "npm"},
-    "javascript": {"files": ["package.json"], "exts": [".js", ".jsx", ".mjs"], "pkg_mgr": "npm"},
-    "csharp": {"files": ["*.csproj", "*.sln"], "exts": [".cs"], "pkg_mgr": "dotnet"},
-    "rust": {"files": ["Cargo.toml"], "exts": [".rs"], "pkg_mgr": "cargo"},
-    "go": {"files": ["go.mod"], "exts": [".go"], "pkg_mgr": "go"},
+    "javascript": {"files": [_PACKAGE_JSON], "exts": [".js", ".jsx", ".mjs"], "pkg_mgr": "npm"},
+    "csharp": {"files": [_CSPROJ_GLOB, "*.sln"], "exts": [".cs"], "pkg_mgr": "dotnet"},
+    "rust": {"files": [_CARGO_TOML], "exts": [".rs"], "pkg_mgr": "cargo"},
+    "go": {"files": [_GO_MOD], "exts": [".go"], "pkg_mgr": "go"},
     "java": {"files": ["pom.xml", "build.gradle", "build.gradle.kts"], "exts": [".java"], "pkg_mgr": "maven"},
     "ruby": {"files": ["Gemfile"], "exts": [".rb"], "pkg_mgr": "bundler"},
 }
@@ -105,7 +112,7 @@ FRAMEWORK_DETECTORS: dict[str, dict[str, Any]] = {
     "nextjs": {"files": ["next.config.ts", "next.config.js", "next.config.mjs"], "deps": ["next"], "langs": ["typescript", "javascript"]},
     "react": {"deps": ["react", "react-dom"], "langs": ["typescript", "javascript"]},
     "vue": {"deps": ["vue"], "langs": ["typescript", "javascript"]},
-    "dotnet": {"files": ["*.csproj"], "langs": ["csharp"]},
+    "dotnet": {"files": [_CSPROJ_GLOB], "langs": ["csharp"]},
     "aspnet": {"files": ["Program.cs", "Startup.cs"], "langs": ["csharp"]},
     "django": {"deps": ["django"], "langs": ["python"]},
     "fastapi": {"deps": ["fastapi"], "langs": ["python"]},
@@ -230,10 +237,10 @@ class ProjectScanner:
 
     def _detect_lang_version(self, lang: str) -> str | None:
         version_markers: dict[str, tuple[str, str]] = {
-            "python": ("pyproject.toml", r'requires-python\s*=\s*">=([\d.]+)"'),
-            "rust": ("Cargo.toml", r'edition\s*=\s*"(\d+)"'),
-            "csharp": ("*.csproj", r'TargetFramework[^>]*>net([\d.]+)<'),
-            "go": ("go.mod", r'go\s+([\d.]+)'),
+            "python": (_PYPROJECT_TOML, r'requires-python\s*=\s*">=([\d.]+)"'),
+            "rust": (_CARGO_TOML, r'edition\s*=\s*"(\d+)"'),
+            "csharp": (_CSPROJ_GLOB, r'TargetFramework[^>]*>net([\d.]+)<'),
+            "go": (_GO_MOD, r'go\s+([\d.]+)'),
         }
         if lang in version_markers:
             marker_file, pattern = version_markers[lang]
@@ -248,21 +255,21 @@ class ProjectScanner:
     def _detect_package_managers(self) -> list[str]:
         managers = []
         pm_markers = {
-            "npm": ["package.json"],
+            "npm": [_PACKAGE_JSON],
             "pnpm": ["pnpm-lock.yaml"],
             "yarn": ["yarn.lock"],
             "pip": ["requirements.txt", "setup.py"],
             "uv": ["uv.lock"],
             "poetry": ["pyproject.toml:poetry"],
-            "cargo": ["Cargo.toml"],
-            "dotnet": ["*.csproj"],
+            "cargo": [_CARGO_TOML],
+            "dotnet": [_CSPROJ_GLOB],
             "maven": ["pom.xml"],
             "gradle": ["build.gradle", "build.gradle.kts"],
             "bundler": ["Gemfile"],
-            "go": ["go.mod"],
+            "go": [_GO_MOD],
         }
 
-        pyproject = self._read_file("pyproject.toml")
+        pyproject = self._read_file(_PYPROJECT_TOML)
         if pyproject:
             if "poetry" in pyproject:
                 managers.append("poetry")
@@ -291,7 +298,7 @@ class ProjectScanner:
                 if self._file_exists(f):
                     score += 3
             for dep in spec.get("deps", []):
-                content = self._read_file("package.json") or self._read_file("pyproject.toml") or ""
+                content = self._read_file(_PACKAGE_JSON) or self._read_file(_PYPROJECT_TOML) or ""
                 if dep in content:
                     score += 2
             lang_names = {l.name for l in languages}
@@ -314,7 +321,7 @@ class ProjectScanner:
                     if provider == "github-actions":
                         wf_dir = self.project_path / ".github" / "workflows"
                         if wf_dir.exists():
-                            count = len(list(wf_dir.glob("*.yml"))) + len(list(wf_dir.glob("*.yaml")))
+                            count = len(list(wf_dir.glob("*.yml"))) + len(list(wf_dir.glob(_YAML_GLOB)))
                     ci_list.append(CIInfo(provider=provider, config_file=marker, pipeline_count=count))
                     break
         return ci_list
@@ -325,10 +332,10 @@ class ProjectScanner:
             infra.docker = True
         if self._file_exists("docker-compose.yml") or self._file_exists("docker-compose.yaml"):
             infra.docker = True
-        if self._file_exists("k8s") or list(self.project_path.glob("*.yaml")):
+        if self._file_exists("k8s") or list(self.project_path.glob(_YAML_GLOB)):
             infra.kubernetes = any(
                 content and "kind:" in content
-                for path in self.project_path.rglob("*.yaml")
+                for path in self.project_path.rglob(_YAML_GLOB)
                 for content in [self._read_file(str(path.relative_to(self.project_path)))]
             )
 
@@ -347,7 +354,7 @@ class ProjectScanner:
 
         for db, deps in DB_DETECTORS.items():
             for dep in deps:
-                for manifest in ["package.json", "pyproject.toml", "Cargo.toml", "Gemfile", "go.mod"]:
+                for manifest in [_PACKAGE_JSON, _PYPROJECT_TOML, _CARGO_TOML, "Gemfile", _GO_MOD]:
                     content = self._read_file(manifest)
                     if content and dep.lower() in content.lower():
                         if db not in infra.databases:
@@ -359,7 +366,7 @@ class ProjectScanner:
         detected = []
         for tfw, markers in TEST_DETECTORS.items():
             for marker in markers:
-                for manifest in ["package.json", "pyproject.toml", "Cargo.toml", "Gemfile", "go.mod"]:
+                for manifest in [_PACKAGE_JSON, _PYPROJECT_TOML, _CARGO_TOML, "Gemfile", _GO_MOD]:
                     content = self._read_file(manifest)
                     if content and marker.lower() in content.lower():
                         if tfw not in detected:
@@ -370,7 +377,7 @@ class ProjectScanner:
         detected = []
         for linter, markers in LINTER_DETECTORS.items():
             for marker in markers:
-                for manifest in ["package.json", "pyproject.toml", "Cargo.toml"]:
+                for manifest in [_PACKAGE_JSON, _PYPROJECT_TOML, _CARGO_TOML]:
                     content = self._read_file(manifest)
                     if content and marker.lower() in content.lower():
                         if linter not in detected:

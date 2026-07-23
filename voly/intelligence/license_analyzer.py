@@ -7,6 +7,11 @@ from pathlib import Path
 
 from voly.intelligence.schema import LicenseInfo
 
+_APACHE_2_0 = "apache-2.0"
+_GPL_2_0 = "gpl-2.0"
+_GPL_3_0 = "gpl-3.0"
+_AGPL_3_0 = "agpl-3.0"
+
 _PERMISSIVE = dict(
     commercial_use=True,
     modification=True,
@@ -35,7 +40,7 @@ _STRONG_COPYLEFT = dict(
 
 SPDX_MATRIX: dict[str, dict] = {
     "mit": _PERMISSIVE,
-    "apache-2.0": _PERMISSIVE,
+    _APACHE_2_0: _PERMISSIVE,
     "bsd-2-clause": _PERMISSIVE,
     "bsd-3-clause": _PERMISSIVE,
     "isc": _PERMISSIVE,
@@ -45,9 +50,9 @@ SPDX_MATRIX: dict[str, dict] = {
     "lgpl-2.1": _WEAK_COPYLEFT,
     "lgpl-3.0": _WEAK_COPYLEFT,
     "mpl-2.0": _WEAK_COPYLEFT,
-    "gpl-2.0": _STRONG_COPYLEFT,
-    "gpl-3.0": _STRONG_COPYLEFT,
-    "agpl-3.0": _STRONG_COPYLEFT,
+    _GPL_2_0: _STRONG_COPYLEFT,
+    _GPL_3_0: _STRONG_COPYLEFT,
+    _AGPL_3_0: _STRONG_COPYLEFT,
 }
 
 _UNKNOWN = LicenseInfo(
@@ -62,14 +67,14 @@ _UNKNOWN = LicenseInfo(
 
 _TEXT_HINTS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bMIT License\b", re.I), "mit"),
-    (re.compile(r"Apache License[, ]+Version 2\.0", re.I), "apache-2.0"),
+    (re.compile(r"Apache License[, ]+Version 2\.0", re.I), _APACHE_2_0),
     (re.compile(r"BSD 3-Clause", re.I), "bsd-3-clause"),
     (re.compile(r"BSD 2-Clause", re.I), "bsd-2-clause"),
     (re.compile(r"\bISC License\b", re.I), "isc"),
     (re.compile(r"\bUnlicense\b", re.I), "unlicense"),
-    (re.compile(r"GNU AFFERO GENERAL PUBLIC LICENSE", re.I), "agpl-3.0"),
-    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 3", re.I), "gpl-3.0"),
-    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 2", re.I), "gpl-2.0"),
+    (re.compile(r"GNU AFFERO GENERAL PUBLIC LICENSE", re.I), _AGPL_3_0),
+    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 3", re.I), _GPL_3_0),
+    (re.compile(r"GNU GENERAL PUBLIC LICENSE\s+Version 2", re.I), _GPL_2_0),
     (re.compile(r"GNU LESSER GENERAL PUBLIC LICENSE\s+Version 3", re.I), "lgpl-3.0"),
     (re.compile(r"GNU LESSER GENERAL PUBLIC LICENSE\s+Version 2", re.I), "lgpl-2.1"),
     (re.compile(r"Mozilla Public License[, ]+Version 2\.0", re.I), "mpl-2.0"),
@@ -78,13 +83,13 @@ _TEXT_HINTS: list[tuple[re.Pattern[str], str]] = [
 ]
 
 _ALIASES = {
-    "apache-2": "apache-2.0",
-    "apache2": "apache-2.0",
+    "apache-2": _APACHE_2_0,
+    "apache2": _APACHE_2_0,
     "bsd-3": "bsd-3-clause",
     "bsd-2": "bsd-2-clause",
-    "gplv3": "gpl-3.0",
-    "gplv2": "gpl-2.0",
-    "agplv3": "agpl-3.0",
+    "gplv3": _GPL_3_0,
+    "gplv2": _GPL_2_0,
+    "agplv3": _AGPL_3_0,
     "the-unlicense": "unlicense",
 }
 

@@ -73,6 +73,15 @@ report may be injected into local context. Details: `docs/backend/reuse.md`.
 5. **Runtime state is not source.** `.voly/events/`, datasets, compiled programs are generated artifacts.
 6. **Billing fallback chain.** On a billing error the executor is automatically replaced: `claude-code → cursor → deepseek → wrangler → opencode → zen`.
 
+### Bounded workflow layer
+
+Concrete multi-turn product scenarios may compose the two execution paths
+without introducing a general workflow engine. The first scenario is
+`ReviewUntilClean`: `AgentRunner` performs file changes, an independent reviewer
+uses `AIGateway.chat()`, and blocking findings reactivate the runner until a
+clean verdict or an explicit round/deadline/spend/failure guardrail stops the
+loop. See [`docs/backend/workflows.md`](backend/workflows.md).
+
 ---
 
 ## Layers A/B — make vs delegate

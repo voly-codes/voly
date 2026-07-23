@@ -23,7 +23,7 @@
 <style>
   .dot {
     display: inline-block;
-    border-radius: 50%;
+    border-radius: 0;
     flex-shrink: 0;
     vertical-align: middle;
   }
@@ -31,7 +31,9 @@
     animation: status-pulse 1.8s ease-in-out infinite;
   }
   @keyframes status-pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 transparent; }
-    50%       { opacity: 0.7; box-shadow: 0 0 6px 3px color-mix(in srgb, var(--running-fg) 40%, transparent); }
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 transparent; }
+    50%       { opacity: 0.7; box-shadow: 3px 3px 0 color-mix(in srgb, var(--running-fg) 40%, transparent); }
   }
+
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 </style>
