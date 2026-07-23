@@ -26,7 +26,7 @@ def test_build_opencode_run_cmd_includes_dir(tmp_path: Path) -> None:
 def test_build_opencode_run_cmd_without_cwd() -> None:
     cmd = _build_opencode_run_cmd("hi", model_id="opencode/bar")
     assert "--dir" not in cmd
-    assert cmd == ["opencode", "run", "--format", "json", "-m", "opencode/bar", "hi"]
+    assert cmd == ["opencode", "run", "--format", "json", "-m", "opencode/bar", "--auto", "hi"]
 
 
 def test_build_opencode_run_cmd_expands_user(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
