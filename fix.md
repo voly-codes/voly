@@ -3,6 +3,18 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `535e969` — Fix a real data gap in the A2A live graph: a role's own
+  per-attempt billing fallback (`ExecutorResult.metadata["chain_timelog"]`,
+  already produced by `agent_runner.py` for every executor call) was
+  computed but never threaded past the `executor_runner` dict boundary in
+  `voly/a2a/hybrid.py`, so `Assignment`/`graph_node()` never carried it and
+  a role that had to retry on a different executor was invisible on
+  `LiveAgentGraph`/`AgentAtlas` — only the flat task-level billing chain
+  (`InspectorBillingChain`) showed it, and only when the fallback happened
+  to also occur at the top level. Added `Assignment.chain_timelog`,
+  populated it in `multiagent_roles.run_executor()`, and exposed it on
+  `graph_node()`/`to_event_dict()`.
+
 - `722ca063` — Fix a live-task flash and a deep-link reselect race in Agent Atlas: `syncLiveRuns()` now lets `refresh()` atomically swap a finished task's `_live` placeholder for the real final entry instead of filtering it out first (which briefly emptied it from the sidebar); `router.navigate()` sets state synchronously instead of waiting for the next-tick `hashchange` event, closing a gap where a live-run poll could read the previous task's id; and the deep-link reselect in `_mergeNew()`/`refresh()` now uses `.startsWith()` instead of `!==` against the full `task_id`, since `router.taskId` is always an 8-char prefix (the old comparison was always true, so it ran on every update).
 
 - `054346d8` — Clear the remaining 61 SonarQube HIGH-impact findings across 24 files: extracted module-level constants for 34 duplicated string literals (S1192), documented `responses={...}` for 17 HTTPException status codes on FastAPI routes in web/routes/{marketplace,tasks,providers,runs}.py — tracing through helper functions to the real route-level codes (S8415), and switched 5 `logger.error` calls in except blocks to `logger.exception` for automatic traceback capture (S8572). Left `voly/environment.py:73` (S8495) as-is after review — its `tuple[str, ...]` return is intentionally variadic and no caller unpacks it, so there's no real bug. 456 relevant tests pass. Originally attempted via `voly run --executor opencode --model deepseek-v4-pro`; the model produced a text plan (no tool calls, not even after fixing the `--auto` bug in 891af9fc) instead of applying edits at this batch size, so this batch was done directly.
