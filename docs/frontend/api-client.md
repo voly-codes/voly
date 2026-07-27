@@ -203,6 +203,14 @@ value.
 `parent_task_id`. Root records expose `graph_nodes` and `graph_edges`, which are
 updated in place and rendered as one `LiveAgentGraph` while agents work.
 
+Each `graph_nodes[i]` (built by `Assignment.graph_node()` in
+`voly/a2a/multiagent_run.py`) also carries `chain_timelog: list[dict]` — that
+role's own per-attempt billing-fallback chain (`executor`, `model`, `status`,
+`duration_ms`, `error`), identical shape to the task-level `chain_timelog`
+already used by `InspectorBillingChain`. Empty unless that specific role's
+executor call actually had to retry on a different executor; `LiveAgentGraph`
+uses `length > 1` to draw a red dashed fallback edge into that node.
+
 Workflow records additionally expose `workflow`, `lap`, `max_laps`,
 `active_role`, `latest_verdict`, `stop_reason`, `cancel_requested`, and a
 causal `timeline`. Completed records also have `workflow_metrics` for rollout

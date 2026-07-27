@@ -209,7 +209,7 @@
 
   .card {
     background: var(--bg-inset);
-    border: 2px solid var(--border-muted);
+    border: 1.5px solid var(--frame-strong);
     border-radius: 0;
     padding: 6px 8px;
     display: flex;
@@ -288,12 +288,12 @@
     padding: 2px 6px;
     border-radius: 0;
     background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
+    border: 1.5px solid var(--border-default);
   }
 
-  .status-completed { color: var(--accent-green); }
-  .status-failed, .status-error { color: var(--accent-red); }
-  .status-running { color: var(--running-fg); }
+  .status-completed { color: var(--accent-green); border-color: var(--accent-green); }
+  .status-failed, .status-error { color: var(--accent-red); border-color: var(--accent-red); }
+  .status-running { color: var(--running-fg); border-color: var(--running-fg); }
 
   .status-n { font-size: 12px; font-weight: 600; }
   .status-name { font-size: 10px; color: var(--text-muted); }

@@ -76,7 +76,7 @@
   }
 
   .brand-goose { padding: 2px 5px 1px 3px; border: 2px solid var(--voly-orange); background: color-mix(in srgb, var(--voly-paper) 18%, var(--bg-surface)); box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 42%, transparent); }
-  .brand-name { color: var(--text-primary); font-family: var(--font-mono); letter-spacing: 0.08em; }
+  .brand-name { color: var(--text-primary); font-family: var(--font-display); font-size: 15px; letter-spacing: 0.08em; }
 
   .header-stats {
     display: flex;

@@ -17,7 +17,8 @@ Main task run panel. Contains:
 - `<RunParams>` — executor / cwd selection (with directory browse)
 - `<RunOptions>` — tier-2 collapsible agent / model / max turns / dry run / repo URL
 - `<RunAdvanced>` — tier-3 collapsible a2a mode / timeout / correlation ID
-- textarea for task
+- auto-growing textarea for task (height tracks content up to 240px, via a
+  `$effect` measuring `scrollHeight` — no fixed row count) + **Attach** button
 - `<DiffPreview>` — dry-run unified diff (when `result.dry_run_diff` is set)
 - Run button
 - `<RunResult>` for output
@@ -58,6 +59,17 @@ warning banner (e.g. "Hybrid code generation skipped (no cwd set)...").
 
 **Environment:** on mount (and when cwd changes) calls `GET /api/environment?cwd=…`,
 passes `executors` map into `RunParams`, and shows tips via `EnvironmentBanner`.
+
+**Attachments:** `/api/run` has no file-upload endpoint, so the **Attach**
+button (paperclip icon, `PaperclipIcon` in `icons.ts`) reads picked files
+client-side via `File.text()` and keeps them in local `attachments` state —
+nothing is uploaded. Text files only (accept list covers common source/doc
+extensions), capped at 200KB/file and 5 files; each shows as a removable chip
+below the textarea. At send time, `effectiveTask()` appends
+`--- filename ---\n<content>` blocks after the typed prompt and that combined
+string is what's sent to `suggestSkills`/`detectTech`/`POST /api/run` — the
+`task` textarea binding itself is never mutated, so what the user typed stays
+exactly what they see.
 
 ---
 
@@ -408,6 +420,12 @@ runs. A task whose `workflow` is `review-until-clean` is routed to the directed
 `WorkflowGraph` instead, because its developer/reviewer dependency is cyclic
 and a hub-and-spoke diagram would be misleading.
 
+**Billing fallback badge:** a spoke shows a red `⇄ fallback` badge (next to
+the existing `cache` badge) when `a2a_assignments[i].chain_timelog.length > 1`
+— i.e. this role's own executor call had to retry on a different executor
+(billing error / not available). Same source data as `InspectorBillingChain`'s
+timeline, just surfaced per-node here instead of in a separate list.
+
 ## WorkflowGraph.svelte and WorkflowTimeline.svelte
 
 Directed live/final view for the bounded review workflow. It renders the two
@@ -442,6 +460,20 @@ The most recent causal transition (or the edge entering a running node) is
 animated. Reduced-motion preferences disable the signal animation. Live graph
 runs open directly on the Agent atlas tab; historical/single-agent tasks remain
 report-first and retain `AgentAtlas.svelte`.
+
+**Billing fallback edge:** `layoutAgentGraph()` marks an edge `fallback: true`
+when its target node's `chain_timelog.length > 1` (the role had to retry on a
+different executor — same signal as `InspectorBillingChain`'s list, plotted as
+a graph edge instead). The edge renders red and dashed (`.connector.fallback`)
+with a small `⇄ fallback` label at its midpoint, distinct from the orange
+`.connector.active` animated-transition style. `chain_timelog` reaches the
+graph via `Assignment.chain_timelog` → `graph_node()` (backend,
+`voly/a2a/multiagent_run.py`), populated in `run_executor()`
+(`voly/a2a/multiagent_roles.py`) from the `executor_runner` result
+(`voly/a2a/hybrid.py`), which reads it off `ExecutorResult.metadata` — the
+same per-role billing-fallback bookkeeping `agent_runner.py` already does for
+single-agent runs (see `docs/backend/executors.md`), just threaded through the
+A2A path too, where it previously stopped at the `Assignment` boundary.
 
 The canvas borrows a restrained subset of the public `voly_web` identity:
 brand orange `#DD7454`, paper/ink color mixing, square pixel markers, crisp
@@ -513,6 +545,14 @@ data; UI is split into:
 | `GatewayMetricCards.svelte` | cache / rate / spend / fallback / DLP / errors cards |
 | `GatewayTotals.svelte` | requests / tokens / cost / rpm chips |
 | `GatewayBreakdown.svelte` | by-provider / by-model bars + health bricks |
+
+**Mounted in a `<Drawer>`, not a route.** Gateway/Telemetry/DSPy used to be
+`router.page` full-page views; they're now `nav-right` drawer triggers
+(`ui.gatewayOpen`/`telemetryOpen`/`dspyOpen` in `uiStore.svelte.ts`), same
+pattern CF/Marketplace already used — `App.svelte`'s `router.page` is `'tasks'`
+only now. The page components themselves (`GatewayPage`/`TelemetryPage`/
+`DSPyPage`) are unchanged; only their mount point moved. Keyboard shortcuts
+2/3/4 open the corresponding drawer instead of navigating.
 
 ## AppHeader.svelte
 

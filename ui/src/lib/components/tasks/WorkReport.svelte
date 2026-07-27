@@ -53,15 +53,21 @@
   .report-files {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    border: 1.5px solid var(--frame-strong);
   }
 
   .rf-row {
     display: flex;
     align-items: baseline;
     gap: 6px;
+    padding: 4px 8px;
     font-size: 10.5px;
     font-family: var(--font-mono);
+    background: var(--bg-inset);
+  }
+
+  .rf-row:not(:last-child) {
+    border-bottom: 1px solid var(--border-muted);
   }
 
   .rf-icon {

@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { PlayIcon, StopCircleIcon, ZapIcon } from '../../icons.js'
+  import { PlayIcon, StopCircleIcon, ZapIcon, PaperclipIcon, XIcon } from '../../icons.js'
   import { runTask, fetchAgents, fetchModels, fetchStatus, fetchEnvironment, suggestSkills, detectTech } from '../../api/client.js'
   import CategoryPickerModal from './CategoryPickerModal.svelte'
   import { ui } from '../../stores/uiStore.svelte'
@@ -48,6 +48,60 @@
   let checkingTech = $state(false)
 
   let categoryPickerOpen = $state(false)
+
+  // Attachments: /api/run has no file-upload support, so attached text files
+  // are read client-side and inlined into the task text at send time — the
+  // textarea (`task`) itself stays pure user-typed prompt.
+  const MAX_ATTACHMENT_BYTES = 200_000
+  const MAX_ATTACHMENTS = 5
+  let attachments = $state([])
+  let attachError = $state(null)
+  let fileInputEl = $state(null)
+  let textareaEl = $state(null)
+
+  function effectiveTask() {
+    const base = task.trim()
+    if (!attachments.length) return base
+    const files = attachments
+      .map(a => `--- ${a.name} ---\n${a.content}`)
+      .join('\n\n')
+    return `${base}\n\n${files}`
+  }
+
+  async function onFilesPicked(e) {
+    const files = Array.from(e.target.files ?? [])
+    e.target.value = ''
+    attachError = null
+    for (const file of files) {
+      if (attachments.length >= MAX_ATTACHMENTS) {
+        attachError = `Up to ${MAX_ATTACHMENTS} attachments.`
+        break
+      }
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        attachError = `${file.name} is too large (max ${Math.round(MAX_ATTACHMENT_BYTES / 1000)}KB).`
+        continue
+      }
+      try {
+        const content = await file.text()
+        attachments = [...attachments, { name: file.name, size: file.size, content }]
+      } catch {
+        attachError = `Could not read ${file.name} as text.`
+      }
+    }
+  }
+
+  function removeAttachment(index) {
+    attachments = attachments.filter((_, i) => i !== index)
+  }
+
+  // Auto-grow the textarea with the content, capped so it never swallows the
+  // rest of the drawer.
+  $effect(() => {
+    void task
+    if (!textareaEl) return
+    textareaEl.style.height = 'auto'
+    textareaEl.style.height = `${Math.min(textareaEl.scrollHeight, 240)}px`
+  })
 
   const HYBRID_WARNING_LABELS = {
     hybrid_skipped_no_cwd: 'Hybrid code generation skipped (no cwd set) — running chat-only.',
@@ -132,7 +186,7 @@
     checkingSkills = true
     error = null
     try {
-      const data = await suggestSkills(task.trim(), 5)
+      const data = await suggestSkills(effectiveTask(), 5)
       const suggestions = data?.suggestions ?? []
       if (suggestions.length > 0) {
         skillSuggestions = suggestions
@@ -152,7 +206,7 @@
     if (executor === 'pipeline' || executor === 'claude-code' || executor === 'cursor') {
       checkingTech = true
       try {
-        const data = await detectTech(task.trim(), cwd)
+        const data = await detectTech(effectiveTask(), cwd)
         const detected = data?.detected ?? []
         if (detected.length > 0) {
           techDetected = detected
@@ -188,7 +242,7 @@
 
   function buildRunRequest(techStack) {
     const req = {
-      task: task.trim(),
+      task: effectiveTask(),
       executor,
       agent,
       model,
@@ -322,11 +376,46 @@
         class="task-input"
         placeholder="Describe your task…"
         bind:value={task}
+        bind:this={textareaEl}
         onkeydown={keydown}
         rows="2"
         disabled={busy}
       ></textarea>
+      <button
+        type="button"
+        class="attach-btn"
+        onclick={() => fileInputEl?.click()}
+        disabled={busy || attachments.length >= MAX_ATTACHMENTS}
+        title="Attach text files (added as context, not uploaded)"
+      >
+        <PaperclipIcon size="14" strokeWidth="2" />
+      </button>
+      <input
+        type="file"
+        multiple
+        accept=".txt,.md,.json,.yaml,.yml,.js,.ts,.py,.go,.rs,.css,.html,.svelte,.log,.csv"
+        bind:this={fileInputEl}
+        onchange={onFilesPicked}
+        hidden
+      />
     </div>
+
+    {#if attachments.length}
+      <div class="attachments">
+        {#each attachments as file, i}
+          <span class="attachment-chip">
+            {file.name}
+            <button type="button" onclick={() => removeAttachment(i)} aria-label={`Remove ${file.name}`}>
+              <XIcon size="11" strokeWidth="2" />
+            </button>
+          </span>
+        {/each}
+      </div>
+    {/if}
+
+    {#if attachError}
+      <div class="attach-error">{attachError}</div>
+    {/if}
 
     <RunOptions
       bind:agent
@@ -468,7 +557,56 @@
 
   .input-area {
     display: flex;
+    align-items: flex-end;
+    gap: 6px;
     padding: 8px 14px 0;
+  }
+
+  .attach-btn {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-inset);
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .attach-btn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--accent-blue); }
+  .attach-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 14px 0;
+  }
+
+  .attachment-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 6px 3px 8px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    background: var(--bg-inset);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-sm);
+  }
+  .attachment-chip button {
+    display: flex;
+    color: var(--text-muted);
+  }
+  .attachment-chip button:hover { color: var(--accent-red); }
+
+  .attach-error {
+    padding: 4px 14px 0;
+    font-size: 11px;
+    color: var(--accent-red);
   }
 
   .run-row {
@@ -491,6 +629,9 @@
     outline: none;
     transition: border-color 0.15s;
     line-height: 1.45;
+    min-height: 2.6em;
+    max-height: 240px;
+    overflow-y: auto;
   }
   .task-input:focus { border-color: var(--accent-blue); }
   .task-input::placeholder { color: var(--text-muted); }

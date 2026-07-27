@@ -207,9 +207,11 @@
   }
 
   .task-prompt-text {
-    font-size: 12px;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
     color: var(--text-primary);
-    line-height: 1.5;
+    line-height: 1.35;
     white-space: pre-wrap;
     word-break: break-word;
     max-height: 120px;

@@ -62,7 +62,10 @@
       <svg viewBox={`0 0 ${layout.width} ${layout.height}`} aria-hidden="true">
         <defs><marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" /></marker></defs>
         {#each layout.edges as edge}
-          <path class="connector" class:active={activeEdge(edge)} d={edge.d} marker-end="url(#flow-arrow)" />
+          <path class="connector" class:active={activeEdge(edge)} class:fallback={edge.fallback} d={edge.d} marker-end="url(#flow-arrow)" />
+        {/each}
+        {#each layout.edges.filter(e => e.fallback) as edge}
+          <text class="connector-label" x={edge.midX} y={edge.midY - 8} text-anchor="middle">⇄ fallback</text>
         {/each}
       </svg>
 
@@ -113,6 +116,9 @@
   svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .connector { fill: none; stroke: color-mix(in srgb, var(--voly-ink) 35%, var(--border-default)); stroke-width: 1.5; marker-end: url(#flow-arrow); transition: stroke .2s, stroke-width .2s; }
   .connector.active { stroke: var(--voly-orange); stroke-width: 3; stroke-dasharray: 3 6; stroke-linecap: square; animation: signal .8s steps(6, end) infinite; }
+  .connector.fallback { stroke: var(--accent-red); stroke-width: 2.5; stroke-dasharray: 6 3; }
+  .connector.fallback.active { stroke: var(--accent-red); }
+  .connector-label { font: 700 9px var(--font-mono); fill: var(--accent-red); text-transform: uppercase; letter-spacing: .04em; }
   marker path { fill: context-stroke; }
   .agent-node { position: absolute; width: 220px; height: 132px; padding: 10px; border: 3px solid color-mix(in srgb, var(--voly-ink) 60%, var(--border-default)); border-radius: 0; background: color-mix(in srgb, var(--voly-paper) 8%, var(--bg-surface)); box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 38%, transparent); display: flex; flex-direction: column; gap: 7px; transition: border-color .2s, transform .2s, box-shadow .2s; }
   .agent-node.active { border-color: var(--voly-orange); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 color-mix(in srgb, var(--voly-orange) 78%, transparent); }

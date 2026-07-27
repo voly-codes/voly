@@ -207,6 +207,7 @@ def make_agent_runner_executor(
             "output_tokens": int(er.output_tokens or 0),
             "files_touched": files,
             "executor": rr.executor or agent_key,
+            "chain_timelog": list((er.metadata or {}).get("chain_timelog") or []),
         }
 
     return executor_runner

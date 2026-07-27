@@ -157,6 +157,10 @@ class Assignment:
     # Plan gates (Rung B PR4) — status of the mirrored Plan step
     plan_status: str = ""         # pending|running|verified|failed|…
     plan_verify_ok: bool | None = None  # None = no checks; False = failed verify
+    # Per-role billing fallback chain (executor attempts for this role's own
+    # call) — mirrors ExecutorResult.metadata["chain_timelog"], only present
+    # when this role's executor call actually had to fall back.
+    chain_timelog: list[dict[str, Any]] = field(default_factory=list)
 
     def to_event_dict(self) -> dict[str, Any]:
         return {
@@ -179,6 +183,7 @@ class Assignment:
             "files_touched": list(self.files_touched),
             "plan_status": self.plan_status or None,
             "plan_verify_ok": self.plan_verify_ok,
+            "chain_timelog": list(self.chain_timelog),
         }
 
 

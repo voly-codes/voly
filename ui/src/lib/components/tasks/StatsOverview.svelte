@@ -64,10 +64,11 @@
 <style>
   .stats-strip {
     display: flex;
-    gap: 1px;
-    border-bottom: 2px solid var(--border-default);
+    gap: 1.5px;
+    border: 1.5px solid var(--frame-strong);
+    border-top: none;
     flex-shrink: 0;
-    background: var(--border-muted);
+    background: var(--frame-strong);
   }
 
   .stat-card {

@@ -47,7 +47,17 @@ export function layoutAgentGraph(nodes = [], edges = []) {
     const bend = Math.max(42, Math.abs(x2 - x1) * 0.45)
     const c1 = forward ? x1 + bend : x1 - bend
     const c2 = forward ? x2 - bend : x2 + bend
-    return [{ ...edge, d: `M ${x1} ${y1} C ${c1} ${y1}, ${c2} ${y2}, ${x2} ${y2}` }]
+    // A role whose own executor call had to bill-fallback (chain_timelog has
+    // more than one attempt) marks the edge feeding INTO it — same signal as
+    // InspectorBillingChain, just surfaced on the graph instead of a list.
+    const fallback = (to.chain_timelog?.length ?? 0) > 1
+    return [{
+      ...edge,
+      fallback,
+      midX: (x1 + x2) / 2,
+      midY: (y1 + y2) / 2,
+      d: `M ${x1} ${y1} C ${c1} ${y1}, ${c2} ${y2}, ${x2} ${y2}`,
+    }]
   })
   const columns = Math.max(1, ...Object.values(depth).map(Number)) + 1
   const maxRows = Math.max(1, ...Object.values(rows).map(Number))

@@ -16,6 +16,9 @@ export default {
   'app.runDrawerTitle': 'Run a task',
   'app.cfDrawerTitle': 'Cloudflare',
   'app.marketDrawerTitle': 'Skill Marketplace',
+  'app.gatewayDrawerTitle': 'AI Gateway',
+  'app.telemetryDrawerTitle': 'Telemetry',
+  'app.dspyDrawerTitle': 'DSPy',
 
   // Header
   'header.tasks': 'tasks',

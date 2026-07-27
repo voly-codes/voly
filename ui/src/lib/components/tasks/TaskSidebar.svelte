@@ -273,17 +273,23 @@
     width: 100%;
     text-align: left;
     padding: 7px 10px;
-    border-bottom: 1px solid var(--border-muted);
-    border-left: 4px solid transparent;
+    border: 1.5px solid transparent;
+    border-bottom-color: var(--border-muted);
     display: flex;
     flex-direction: column;
     gap: 3px;
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 0.1s, border-color 0.1s, box-shadow 0.1s;
   }
 
   .task-row:hover { background: var(--bg-surface-hover); }
-  .task-row.selected { background: color-mix(in srgb, var(--voly-orange) 12%, var(--bg-inset)); border-left-color: var(--voly-orange); }
+  .task-row.selected {
+    background: color-mix(in srgb, var(--voly-orange) 12%, var(--bg-inset));
+    border-color: var(--voly-orange);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    z-index: 1;
+  }
 
   .task-row-top {
     display: flex;

@@ -14,6 +14,9 @@ export default {
   'app.runDrawerTitle': 'Запустить задачу',
   'app.cfDrawerTitle': 'Cloudflare',
   'app.marketDrawerTitle': 'Marketplace скилов',
+  'app.gatewayDrawerTitle': 'AI Gateway',
+  'app.telemetryDrawerTitle': 'Телеметрия',
+  'app.dspyDrawerTitle': 'DSPy',
 
   'header.tasks': 'задач',
   'header.totalCost': 'всего $',

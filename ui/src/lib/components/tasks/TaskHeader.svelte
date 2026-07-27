@@ -96,22 +96,25 @@
     font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
-    background: color-mix(in srgb, var(--voly-orange) 8%, var(--bg-inset));
-    border: 1px solid color-mix(in srgb, var(--voly-orange) 45%, var(--border-muted));
-    border-radius: 2px;
+    background: var(--bg-inset);
+    border: 1.5px solid var(--voly-orange);
+    border-radius: 0;
     padding: 1px 6px;
   }
 
   .task-status {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1.5px solid;
     border-radius: 0;
     padding: 1px 6px;
   }
-  .status-completed { background: color-mix(in srgb, var(--accent-green) 15%, transparent); color: var(--accent-green); }
-  .status-partial { background: color-mix(in srgb, var(--accent-amber, #d4a017) 15%, transparent); color: var(--accent-amber, #d4a017); }
-  .status-failed, .status-error { background: color-mix(in srgb, var(--accent-red) 15%, transparent); color: var(--accent-red); }
-  .status-running { background: color-mix(in srgb, var(--running-fg) 15%, transparent); color: var(--running-fg); }
+  .status-completed { background: var(--accent-green); border-color: var(--accent-green); color: var(--accent-green-foreground, #07111f); }
+  .status-partial { background: var(--accent-amber, #d4a017); border-color: var(--accent-amber, #d4a017); color: var(--accent-amber-foreground, #07111f); }
+  .status-failed, .status-error { background: var(--accent-red); border-color: var(--accent-red); color: var(--accent-red-foreground, #fff); }
+  .status-running { background: var(--running-fg); border-color: var(--running-fg); color: var(--bg-primary); }
 
   .meta-strip {
     display: flex;
@@ -125,7 +128,7 @@
     font-size: 10px;
     border-radius: 0;
     overflow: hidden;
-    border: 1px solid;
+    border: 1.5px solid;
   }
 
   .meta-k {
@@ -142,11 +145,11 @@
   }
 
   .meta-agent {
-    border-color: color-mix(in srgb, var(--accent-blue) 25%, transparent);
+    border-color: var(--accent-blue);
   }
   .meta-agent .meta-k {
-    background: color-mix(in srgb, var(--accent-blue) 15%, transparent);
-    color: var(--accent-blue);
+    background: var(--accent-blue);
+    color: var(--accent-blue-foreground, #fff);
   }
   .meta-agent .meta-v {
     background: var(--bg-surface);
@@ -154,11 +157,11 @@
   }
 
   .meta-model {
-    border-color: color-mix(in srgb, var(--accent-purple) 25%, transparent);
+    border-color: var(--accent-purple);
   }
   .meta-model .meta-k {
-    background: color-mix(in srgb, var(--accent-purple) 15%, transparent);
-    color: var(--accent-purple);
+    background: var(--accent-purple);
+    color: var(--accent-purple-foreground, #fff);
   }
   .meta-model .meta-v {
     background: var(--bg-surface);
@@ -166,11 +169,11 @@
   }
 
   .meta-provider {
-    border-color: color-mix(in srgb, var(--accent-sky) 25%, transparent);
+    border-color: var(--accent-sky);
   }
   .meta-provider .meta-k {
-    background: color-mix(in srgb, var(--accent-sky) 15%, transparent);
-    color: var(--accent-sky);
+    background: var(--accent-sky);
+    color: var(--accent-sky-foreground, #07111f);
   }
   .meta-provider .meta-v {
     background: var(--bg-surface);
@@ -178,11 +181,11 @@
   }
 
   .meta-executor {
-    border-color: color-mix(in srgb, var(--accent-teal) 25%, transparent);
+    border-color: var(--accent-teal);
   }
   .meta-executor .meta-k {
-    background: color-mix(in srgb, var(--accent-teal) 15%, transparent);
-    color: var(--accent-teal);
+    background: var(--accent-teal);
+    color: var(--accent-teal-foreground, #07111f);
   }
   .meta-executor .meta-v {
     background: var(--bg-surface);
@@ -190,11 +193,11 @@
   }
 
   .meta-type {
-    border-color: color-mix(in srgb, var(--accent-amber) 25%, transparent);
+    border-color: var(--accent-amber);
   }
   .meta-type .meta-k {
-    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
-    color: var(--accent-amber);
+    background: var(--accent-amber);
+    color: var(--accent-amber-foreground, #07111f);
   }
   .meta-type .meta-v {
     background: var(--bg-surface);

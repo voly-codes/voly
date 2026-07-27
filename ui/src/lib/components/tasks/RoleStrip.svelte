@@ -51,14 +51,14 @@
     font-weight: 500;
     color: var(--text-primary);
     background: var(--bg-inset);
-    border: 1px solid var(--border-muted);
-    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--frame-strong);
+    border-radius: 0;
     padding: 1px 6px;
   }
 
   .role-chip.role-failed {
-    border-color: color-mix(in srgb, var(--accent-red) 35%, transparent);
-    background: color-mix(in srgb, var(--accent-red) 8%, transparent);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
   }
 
   .role-dot {

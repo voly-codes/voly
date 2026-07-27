@@ -248,6 +248,7 @@ class _RoleExecMixin:
             ]
             if result.get("executor"):
                 a.executor = str(result["executor"])
+            a.chain_timelog = list(result.get("chain_timelog") or [])
         else:
             a.content = str(result or "")
             a.ok = bool(a.content.strip())

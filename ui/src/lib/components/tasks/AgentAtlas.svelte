@@ -23,6 +23,7 @@
         filesTouched: a.files_touched ?? [],
         cacheHit: !!a.cache_hit,
         memHits: a.mem_hits ?? 0,
+        hasFallback: (a.chain_timelog?.length ?? 0) > 1,
         skills: a.skills ?? [],
         durationMs: a.duration_ms ?? 0,
         costUsd: a.cost_usd ?? 0,
@@ -144,6 +145,7 @@
                 <span class="spoke-metric files">{n.filesTouched.length} {t('atlas.files')}</span>
               {/if}
               {#if n.cacheHit}<span class="spoke-badge cached">cache</span>{/if}
+              {#if n.hasFallback}<span class="spoke-badge fallback" title="Executor billing fallback occurred for this role">⇄ fallback</span>{/if}
             </div>
           </button>
         </div>
@@ -342,6 +344,11 @@
     font-size: 9px; font-weight: 600; padding: 0 5px; border-radius: var(--radius-sm);
     color: var(--accent-green); background: color-mix(in srgb, var(--accent-green) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-green) 30%, transparent);
+  }
+
+  .spoke-badge.fallback {
+    color: var(--accent-red); background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+    border-color: color-mix(in srgb, var(--accent-red) 30%, transparent);
   }
 
   .atlas-hint {

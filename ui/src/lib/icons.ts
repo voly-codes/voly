@@ -61,6 +61,7 @@ export { default as MonitorIcon } from "@lucide/svelte/icons/monitor";
 export { default as MoonIcon } from "@lucide/svelte/icons/moon";
 export { default as MoreHorizontalIcon } from "@lucide/svelte/icons/ellipsis";
 export { default as MousePointer2Icon } from "@lucide/svelte/icons/mouse-pointer-2";
+export { default as PaperclipIcon } from "@lucide/svelte/icons/paperclip";
 export { default as PencilIcon } from "@lucide/svelte/icons/pencil";
 export { default as PinIcon } from "@lucide/svelte/icons/pin";
 export { default as PlusIcon } from "@lucide/svelte/icons/plus";

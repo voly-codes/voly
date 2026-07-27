@@ -14,7 +14,7 @@
   import Drawer from './lib/components/shared/Drawer.svelte'
   import Toast from './lib/components/shared/Toast.svelte'
   import Spinner from './lib/components/shared/Spinner.svelte'
-  import { PlayIcon, CloudUploadIcon, BookOpenIcon } from './lib/icons.js'
+  import { PlayIcon, CloudUploadIcon, BookOpenIcon, RouteIcon, BarChart2Icon, BrainCircuitIcon } from './lib/icons.js'
   import { tasksStore } from './lib/stores/tasksStore.svelte'
   import { ui } from './lib/stores/uiStore.svelte'
   import { toast } from './lib/stores/toastStore.svelte'
@@ -24,16 +24,18 @@
 
   // Re-read locale so nav labels update on language switch
   const navItems = $derived([
-    { id: 'tasks',     label: t('nav.tasks') },
-    { id: 'gateway',   label: t('nav.gateway') },
-    { id: 'telemetry', label: t('nav.telemetry') },
-    { id: 'dspy',      label: t('nav.dspy') },
+    { id: 'tasks', label: t('nav.tasks') },
   ])
 
-  const drawerBtns = $derived([
-    { open: () => ui.runOpen    = true, icon: PlayIcon,        label: t('nav.run') },
-    { open: () => ui.cfOpen     = true, icon: CloudUploadIcon, label: t('nav.cf') },
-    { open: () => ui.marketOpen = true, icon: BookOpenIcon,    label: t('nav.skills') },
+  // "Run" is the primary action (mockup's "+ New task") — visually distinct
+  // (filled, shadowed) from the secondary utility drawers, which are all the
+  // same bordered-only weight.
+  const utilityBtns = $derived([
+    { open: () => ui.gatewayOpen   = true, icon: RouteIcon,        label: t('nav.gateway') },
+    { open: () => ui.telemetryOpen = true, icon: BarChart2Icon,    label: t('nav.telemetry') },
+    { open: () => ui.dspyOpen      = true, icon: BrainCircuitIcon, label: t('nav.dspy') },
+    { open: () => ui.cfOpen        = true, icon: CloudUploadIcon,  label: t('nav.cf') },
+    { open: () => ui.marketOpen    = true, icon: BookOpenIcon,     label: t('nav.skills') },
   ])
   void i18n.locale
 
@@ -41,9 +43,9 @@
     router.init()
     const unreg = registerShortcuts({
       '1-false-false-false': () => router.navigate('tasks'),
-      '2-false-false-false': () => router.navigate('gateway'),
-      '3-false-false-false': () => router.navigate('telemetry'),
-      '4-false-false-false': () => router.navigate('dspy'),
+      '2-false-false-false': () => { ui.gatewayOpen = true },
+      '3-false-false-false': () => { ui.telemetryOpen = true },
+      '4-false-false-false': () => { ui.dspyOpen = true },
       'r-true-true-false': global(() => { ui.runOpen = true }),
       'Escape-false-false-false': () => {
         if (ui.activeModal) { ui.activeModal = null; return }
@@ -91,7 +93,12 @@
     </div>
 
     <div class="nav-right">
-      {#each drawerBtns as btn}
+      <button class="run-cta" onclick={() => ui.runOpen = true} title={t('nav.run')}>
+        <PlayIcon size="14" strokeWidth="2.5" />
+        <span>{t('nav.run')}</span>
+      </button>
+      <span class="nav-divider"></span>
+      {#each utilityBtns as btn}
         {@const Icon = btn.icon}
         <button class="drawer-trigger" onclick={btn.open} title={btn.label}>
           <Icon size="13" strokeWidth="2" />
@@ -101,7 +108,7 @@
     </div>
   </nav>
 
-  {#if tasksStore.error && router.page === 'tasks'}
+  {#if tasksStore.error}
     <div class="error-banner">
       {t('app.apiError', { error: tasksStore.error })}
       <button onclick={() => { tasksStore.refresh(); toast.info(t('app.refreshing')) }}>{t('common.retry')}</button>
@@ -109,25 +116,14 @@
   {/if}
 
   <div class="body">
-    {#if router.page === 'tasks'}
-      {#if tasksStore.loading && tasksStore.tasks.length === 0}
-        <div class="loading"><Spinner size={24} /> {t('app.loadingTasks')}</div>
-      {:else}
-        <TaskSidebar />
-        <main class="main">
-          <PipelineInspector />
-        </main>
-        <CostPanel />
-      {/if}
-
-    {:else if router.page === 'gateway'}
-      <GatewayPage />
-
-    {:else if router.page === 'telemetry'}
-      <TelemetryPage />
-
-    {:else if router.page === 'dspy'}
-      <DSPyPage />
+    {#if tasksStore.loading && tasksStore.tasks.length === 0}
+      <div class="loading"><Spinner size={24} /> {t('app.loadingTasks')}</div>
+    {:else}
+      <TaskSidebar />
+      <main class="main">
+        <PipelineInspector />
+      </main>
+      <CostPanel />
     {/if}
   </div>
 </div>
@@ -135,6 +131,18 @@
 <!-- Drawers -->
 <Drawer bind:open={ui.runOpen} title={t('app.runDrawerTitle')} width="480px">
   <RunPanel onTaskComplete={() => { ui.runOpen = false; tasksStore.refresh() }} />
+</Drawer>
+
+<Drawer bind:open={ui.gatewayOpen} title={t('app.gatewayDrawerTitle')} width="min(720px, 96vw)">
+  <GatewayPage />
+</Drawer>
+
+<Drawer bind:open={ui.telemetryOpen} title={t('app.telemetryDrawerTitle')} width="min(720px, 96vw)">
+  <TelemetryPage />
+</Drawer>
+
+<Drawer bind:open={ui.dspyOpen} title={t('app.dspyDrawerTitle')} width="min(720px, 96vw)">
+  <DSPyPage />
 </Drawer>
 
 <Drawer bind:open={ui.cfOpen} title={t('app.cfDrawerTitle')} width="520px">
@@ -247,7 +255,8 @@
     border-radius: 0;
     color: var(--text-muted);
     background: transparent;
-    transition: background 0.12s, color 0.12s;
+    border-bottom: 2px solid transparent;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
 
   .nav-btn:hover {
@@ -256,9 +265,8 @@
   }
 
   .nav-btn.active {
-    background: var(--voly-orange);
-    color: #fffaf1;
-    box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 65%, transparent);
+    color: var(--voly-orange);
+    border-bottom-color: var(--voly-orange);
   }
 
   .nav-badge {
@@ -275,6 +283,35 @@
     font-weight: 700;
     margin-left: 4px;
     line-height: 1;
+  }
+
+  .run-cta {
+    height: 28px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--voly-orange);
+    color: #fffaf1;
+    border: 2px solid var(--voly-ink);
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--voly-ink) 65%, transparent);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+
+  .run-cta:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 color-mix(in srgb, var(--voly-ink) 65%, transparent);
+  }
+
+  .nav-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-default);
+    margin: 0 6px;
+    flex-shrink: 0;
   }
 
   .drawer-trigger {

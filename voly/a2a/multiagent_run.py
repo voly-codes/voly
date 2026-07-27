@@ -92,6 +92,7 @@ class _LocalRun(_PlanGatesMixin, _RoleExecMixin):
             "cost_usd": round(assignment.cost_usd or 0.0, 6),
             "files_touched": list(assignment.files_touched or []),
             "error": assignment.error or "",
+            "chain_timelog": list(assignment.chain_timelog or []),
         }
 
     def activate(self, assignment: Assignment, mode: str) -> None:

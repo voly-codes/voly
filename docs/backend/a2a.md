@@ -138,6 +138,18 @@ and are upserted from `pending` to `running`, then to
 `completed`/`failed`/`blocked` with their actual route, duration, cost, files,
 and error. Parallel chat roles can therefore be running on the same canvas.
 
+Each node also carries `chain_timelog` (`Assignment.chain_timelog`, populated
+in `multiagent_roles.run_executor()` from the `executor_runner` result's
+`chain_timelog` key — see `voly/a2a/hybrid.py`'s `make_agent_runner_executor`,
+which reads it off `ExecutorResult.metadata`). This is the SAME per-role
+billing-fallback bookkeeping `agent_runner.py` produces for single-agent runs
+(`docs/backend/executors.md`); it previously stopped at the executor-result
+boundary and never reached `Assignment`/`graph_node()`, so an A2A role that
+had to retry on a different executor was invisible on the live graph — only
+the flat task-level billing chain (`InspectorBillingChain`) showed it, and
+only when the fallback happened to also occur at the top level. Empty list
+= no fallback for that role.
+
 Hybrid AgentRunner calls set `parent_task_id` to the A2A task id. Their child
 records remain available through direct lookup or `GET /api/runs?include_children=1`,
 while the default active-run list contains only the parent. This prevents one
