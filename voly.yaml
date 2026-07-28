@@ -217,6 +217,12 @@ evidence:
   eval_policy_id: executor-basic
   eval_policy_version: "1"
 
+# Deterministic Eval Engine (record-only during Phase 2 rollout).
+evaluation:
+  enabled: true
+  policy_id: auto
+  command_timeout_seconds: 120
+
 # Remote analytics is separate from local telemetry/evidence and requires
 # explicit consent. Sanitized metadata only; never raw prompts/results/paths.
 cloud_analytics:

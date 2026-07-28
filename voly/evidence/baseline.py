@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import shlex
 import subprocess
 import time
@@ -88,7 +87,9 @@ def _auto_commands(cwd: Path, profile: Any) -> list[_Command]:
 
 def _split_command(command: str) -> list[str]:
     try:
-        return shlex.split(str(command), posix=os.name != "nt")
+        # Configuration commands use one documented, shell-independent quoting
+        # grammar on every OS. The resulting argv is executed with shell=False.
+        return shlex.split(str(command), posix=True)
     except ValueError:
         return []
 
@@ -120,6 +121,7 @@ def _run_check(command: _Command, cwd: Path, timeout: float, max_chars: int) -> 
             name=command.name,
             command=command.display,
             status="unavailable",
+            argv=list(command.argv),
             duration_ms=(time.monotonic() - started) * 1000,
             failure_kind="environment_failure",
             output_excerpt=str(exc)[:max_chars],
@@ -129,6 +131,7 @@ def _run_check(command: _Command, cwd: Path, timeout: float, max_chars: int) -> 
             name=command.name,
             command=command.display,
             status="timeout",
+            argv=list(command.argv),
             duration_ms=(time.monotonic() - started) * 1000,
             failure_kind="environment_failure",
             output_excerpt=f"timeout after {timeout:g}s",
@@ -138,6 +141,7 @@ def _run_check(command: _Command, cwd: Path, timeout: float, max_chars: int) -> 
             name=command.name,
             command=command.display,
             status="error",
+            argv=list(command.argv),
             duration_ms=(time.monotonic() - started) * 1000,
             failure_kind="environment_failure",
             output_excerpt=str(exc)[:max_chars],
@@ -150,6 +154,7 @@ def _run_check(command: _Command, cwd: Path, timeout: float, max_chars: int) -> 
         name=command.name,
         command=command.display,
         status="passed" if ok else "failed",
+        argv=list(command.argv),
         exit_code=proc.returncode,
         duration_ms=(time.monotonic() - started) * 1000,
         failure_kind="" if ok else "preexisting_failure",

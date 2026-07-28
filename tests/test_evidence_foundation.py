@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 
 from voly.config import EvidenceConfig, RTKConfig, VOLYConfig
+from voly.evaluation import EvalCheckResult, EvalReport
 from voly.evidence import (
     BaselineCheck,
     EvidenceOutcome,
@@ -152,7 +153,7 @@ def test_agent_runner_writes_versioned_evidence(monkeypatch, tmp_path) -> None:
 
     record = EvidenceStore(store_dir).load(result.task_id)
     assert record is not None
-    assert record.schema_version == 1
+    assert record.schema_version == 2
     assert record.task_fingerprint != "fix backend"
     assert record.execution.executor == "zen"
     assert record.outcome.failure_class == "agent_failure"
@@ -216,12 +217,31 @@ def test_cloud_evidence_record_excludes_raw_observations() -> None:
             comment="customer-specific correction",
         )
     ]
+    record.evaluation = EvalReport(
+        policy_id="executor-basic",
+        policy_version="1",
+        state="soft_failure",
+        started_at="2026-07-28T00:00:00Z",
+        completed_at="2026-07-28T00:00:01Z",
+        checks=[
+            EvalCheckResult(
+                id="post_checks:tests",
+                evaluator="baseline_replay",
+                status="failed",
+                message="customer command failed",
+                detail={
+                    "argv": ["pytest", "private/customer/tests"],
+                    "stderr_tail": "API_KEY=private",
+                },
+            )
+        ],
+    )
 
     cloud = evidence_to_cloud_record(record)
     serialized = json.dumps(cloud)
 
     assert cloud["evidence_id"] != record.task_id
-    assert cloud["schema_version"] == 1
+    assert cloud["schema_version"] == 2
     assert cloud["source_schema_version"] == record.schema_version
     assert set(cloud) == {
         "schema_version",
@@ -232,6 +252,7 @@ def test_cloud_evidence_record_excludes_raw_observations() -> None:
         "baseline",
         "execution",
         "outcome",
+        "evaluation",
         "human_feedback",
     }
     assert "task_fingerprint" not in cloud
@@ -240,3 +261,6 @@ def test_cloud_evidence_record_excludes_raw_observations() -> None:
     assert "private repository note" not in serialized
     assert "private/skill.md" not in serialized
     assert "customer-specific correction" not in serialized
+    assert "customer command failed" not in serialized
+    assert "private/customer/tests" not in serialized
+    assert cloud["evaluation"]["state"] == "soft_failure"

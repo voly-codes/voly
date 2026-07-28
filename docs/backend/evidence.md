@@ -15,6 +15,7 @@ start RunRecord heartbeat
 → git/safety snapshot
 → executor + billing fallback
 → WorkReport
+→ deterministic Eval Engine (when enabled)
 → root-cause classification
 → atomic EvidenceRecord write
 → TaskEvent
@@ -25,7 +26,7 @@ The baseline is captured before the executor can edit files. Baseline commands
 may create ignored caches or build artifacts, so the later git/safety snapshot
 is intentionally taken after baseline capture.
 
-## EvidenceRecord v1
+## EvidenceRecord v2
 
 Records are JSON files under `evidence.store_dir` (default
 `.voly/evidence/<task_id>.json`) and contain:
@@ -36,9 +37,11 @@ Records are JSON files under `evidence.store_dir` (default
 - skill version/commit slots and eval-policy id/version;
 - cost, duration, retry count, files changed and executor outcome;
 - root-cause class plus `penalize_agent`;
-- human feedback as a separate list from automated evidence.
+- human feedback as a separate list from automated evidence;
+- optional versioned EvalReport with underlying deterministic check results.
 
-`schema_version` is currently `1`. Change the schema version when removing a
+`schema_version` is currently `2`; v2 adds exact baseline `argv` and the
+optional evaluation report. Change the schema version when removing a
 field or changing field semantics. Additive readers should continue tolerating
 older records when migrations are introduced.
 
@@ -90,6 +93,14 @@ Initial deterministic mapping:
 Capability Registry v1 now skips negative EMA updates when
 `penalize_agent=false`. Successful executor outcomes retain the existing v1
 scoring until the Eval Engine can provide verified-success evidence.
+
+## Deterministic evaluation
+
+When `evaluation.enabled`, VOLY selects an EvalPolicy before execution and
+replays every baseline command that originally passed. Exact `argv` is retained
+to avoid platform-specific command-string reparsing. The result is record-only:
+it sets the EvidenceRecord outcome state but does not yet gate the executor or
+update capability scores. See [evaluation.md](evaluation.md).
 
 ## Human feedback hook
 
@@ -147,7 +158,7 @@ strict allowlist:
 It excludes `task_fingerprint`, repository observations, file paths and
 free-form text. The sanitizer does not upload by itself; every remote
 destination is additionally gated by `cloud_analytics.enabled=false` by
-default. The remote allowlist has its own `schema_version: 1` and records the
+default. The Evidence remote allowlist has its own `schema_version: 2` and records the
 local EvidenceRecord version as `source_schema_version`. This keeps consent,
 data minimization and schema evolution independent and fail-closed.
 
@@ -172,6 +183,11 @@ evidence:
   output_max_chars: 2000
   eval_policy_id: executor-basic
   eval_policy_version: "1"
+
+evaluation:
+  enabled: false
+  policy_id: auto
+  command_timeout_seconds: 120
 ```
 
 Environment override: `VOLY_EVIDENCE_ENABLED=1|0`.

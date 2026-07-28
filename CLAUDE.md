@@ -59,7 +59,8 @@ docs/
     reuse.md         ← voly reuse: GitHub search → pack → pick → apply
     intelligence.md  ← Repository Intelligence: admission, license, architecture map
     capability.md    ← Capability Registry: evidence-based executor routing, matcher
-    evidence.md      ← EvidenceRecord v1, repository baseline, root-cause attribution
+    evidence.md      ← EvidenceRecord v2, repository baseline, root-cause attribution
+    evaluation.md    ← EvalPolicy registry, deterministic post-run Eval Engine
     executors.md     ← All executors, billing fallback chain, WranglerExecutor
     ai-gateway.md    ← AIGateway, CF route schema, providers, env vars
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter

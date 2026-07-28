@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from voly import __version__
+from voly.evaluation.schema import EvalReport
 from voly.evidence.classifier import classify_root_cause
 from voly.evidence.schema import (
     EvidenceOutcome,
@@ -31,6 +32,7 @@ def build_evidence_record(
     eval_policy_id: str = "executor-basic",
     eval_policy_version: str = "1",
     skills: list[dict[str, str]] | None = None,
+    evaluation: EvalReport | None = None,
 ) -> EvidenceRecord:
     metadata = getattr(result, "metadata", None) or {}
     report = getattr(result, "report", None)
@@ -41,6 +43,11 @@ def build_evidence_record(
         error_class=error_class,
         error=str(getattr(result, "error", "") or ""),
         baseline=baseline,
+    )
+    outcome_state = (
+        evaluation.state
+        if evaluation is not None and bool(getattr(result, "success", False))
+        else root.state
     )
     return EvidenceRecord(
         task_id=task_id,
@@ -60,7 +67,7 @@ def build_evidence_record(
         ),
         outcome=EvidenceOutcome(
             success=bool(getattr(result, "success", False)),
-            state=root.state,
+            state=outcome_state,
             failure_class=root.failure_class,
             error_class=error_class or "",
             penalize_agent=root.penalize_agent,
@@ -69,4 +76,5 @@ def build_evidence_record(
             retries=int(retry_count or 0),
             files_changed=len(changed),
         ),
+        evaluation=evaluation,
     )

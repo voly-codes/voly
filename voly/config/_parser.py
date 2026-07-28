@@ -16,6 +16,7 @@ from voly.config._types import (
     CloudConfig,
     CostPolicyConfig,
     DSPyConfig,
+    EvaluationConfig,
     EvidenceConfig,
     ExecutorSafetyConfig,
     HeadroomConfig,
@@ -384,6 +385,20 @@ def _parse_config(raw: dict) -> VOLYConfig:
     if "VOLY_EVIDENCE_ENABLED" in os.environ:
         config.evidence.enabled = _parse_bool(
             os.environ.get("VOLY_EVIDENCE_ENABLED"), False
+        )
+
+    if "evaluation" in raw:
+        evaluation = raw["evaluation"]
+        config.evaluation = EvaluationConfig(
+            enabled=_parse_bool(evaluation.get("enabled"), False),
+            policy_id=str(evaluation.get("policy_id") or "auto"),
+            command_timeout_seconds=float(
+                evaluation.get("command_timeout_seconds", 120.0)
+            ),
+        )
+    if "VOLY_EVALUATION_ENABLED" in os.environ:
+        config.evaluation.enabled = _parse_bool(
+            os.environ.get("VOLY_EVALUATION_ENABLED"), False
         )
 
     if "cloud" in raw:

@@ -54,6 +54,14 @@ path-safe characters, comments are bounded to 2,000 characters, and the
 system records provenance as `cli` or `api`. Human comments never enter the
 Cloud Analytics allowlist.
 
+With `evaluation.enabled`, AgentRunner selects a built-in versioned EvalPolicy
+before execution. After safety handling, the deterministic Eval Engine verifies
+executor success, retained file changes and exact replay of baseline checks.
+The EvalReport is stored in EvidenceRecord v2. This rollout is record-only:
+`verified_success`, `partial_success` and `soft_failure` do not yet alter
+primary routing or capability scores. Canonical detail:
+`docs/backend/evaluation.md`.
+
 `voly/runner/agent_runner.py` is the file-capable execution path. It resolves executors, optionally refines the task with DSPy, executes the backend, and applies **billing fallback** when an executor signals a billing error.
 
 The fallback chain in code (`BILLING_FALLBACK_CHAIN`) is:

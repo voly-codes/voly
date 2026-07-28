@@ -227,6 +227,13 @@ evidence:
   eval_policy_id: executor-basic
   eval_policy_version: "1"
 
+# Deterministic Eval Engine. Record-only: it enriches EvidenceRecord but does
+# not yet gate executor results or primary routing.
+evaluation:
+  enabled: false
+  policy_id: auto              # auto | executor-basic | documentation-basic | testing-basic
+  command_timeout_seconds: 120
+
 # VOLY Cloud device link. Login enables authentication/heartbeats, not analytics.
 # Prefer: voly cloud login --url https://cloud.voly.codes (browser confirm).
 # Env overrides: VOLY_CLOUD_ENABLED / _URL / _TENANT_ID / _TOKEN / _USER_ID / _DEVICE_ID.

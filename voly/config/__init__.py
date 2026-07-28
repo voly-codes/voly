@@ -8,7 +8,7 @@ Public API — all names importable as `from voly.config import <name>`:
     RTKConfig, HeadroomConfig, PxpipeConfig, MemoryConfig, A2AConfig, AGUIConfig,
     SpendConfig, RegistryConfig, ScannerConfig, ReuseConfig,
     AIGatewayConfig, MCPConfig, TelemetryConfig, EvidenceConfig, CloudConfig,
-    CloudAnalyticsConfig, DSPyConfig, PlanConfig,
+    CloudAnalyticsConfig, DSPyConfig, EvaluationConfig, PlanConfig,
     CostPolicyConfig, ExecutorSafetyConfig
 
   Functions:
@@ -35,6 +35,7 @@ from voly.config._types import (
     CloudConfig,
     CostPolicyConfig,
     DSPyConfig,
+    EvaluationConfig,
     EvidenceConfig,
     ExecutorSafetyConfig,
     HeadroomConfig,
@@ -71,6 +72,7 @@ __all__ = [
     "MCPConfig",
     "TelemetryConfig",
     "EvidenceConfig",
+    "EvaluationConfig",
     "CloudConfig",
     "CloudAnalyticsConfig",
     "DSPyConfig",

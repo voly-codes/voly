@@ -110,6 +110,7 @@ open versioned interfaces — they are frozen by contract tests
 |---|---|---|
 | `TaskEvent` (task telemetry) | `schema_version: 3` | `voly/telemetry.py`, `docs/backend/api.md` |
 | Cloud analytics allowlist | `schema_version: 1` | `voly/telemetry.py`, `docs/backend/api.md` |
+| Evidence Cloud allowlist | `schema_version: 2` | `voly/evidence/privacy.py`, `docs/backend/evidence.md` |
 | Spend protocol (`/spend/record`, `/spend/check`, …) | v1 | `docs/backend/spend-protocol.md` |
 | A2A federation | — | `cf-workers/a2a/`, `docs/backend/api.md` |
 
@@ -304,6 +305,14 @@ Explicit feedback enters through `voly evidence feedback` or
 remain local.
 Canonical details: `docs/backend/evidence.md`.
 
+### `voly/evaluation/` — deterministic Eval Engine
+
+`registry.py` selects a versioned built-in policy before execution;
+`engine.py` evaluates executor/safety/file-change evidence and replays exact
+baseline argv after execution. EvalReport is stored in EvidenceRecord v2 but
+does not yet gate primary routing. Canonical details:
+`docs/backend/evaluation.md`.
+
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 ```
@@ -442,7 +451,8 @@ Remote CF Pipelines, R2 and linked Cloud run history are fail-closed behind
 `cloud_analytics.enabled` (default false) and receive only an explicit metadata
 allowlist. Raw prompts/results/errors, repository paths, reports and artifacts
 never cross that boundary. Remote run/evidence identifiers are one-way hashes.
-The remote allowlist is its own `schema_version: 1` contract and carries
+The TaskEvent remote allowlist is `schema_version: 1`; the Evidence remote
+allowlist is `schema_version: 2`. Both carry
 `source_schema_version` for the local TaskEvent/EvidenceRecord lineage.
 
 ### `cf-workers/agent/` — CF Worker
@@ -518,7 +528,8 @@ docs/backend/
   reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
   intelligence.md           ← Repository Intelligence: admission, license, architecture map
   capability.md             ← Capability Registry: evidence-based executor routing, matcher, scorer
-  evidence.md               ← baseline, EvidenceRecord v1, root-cause attribution
+  evidence.md               ← baseline, EvidenceRecord v2, root-cause attribution
+  evaluation.md             ← EvalPolicy v1, deterministic post-run evaluation
   config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events, tech gate, CF Worker endpoints
   spend-protocol.md         ← spend protocol contract (/spend/record, /spend/check)

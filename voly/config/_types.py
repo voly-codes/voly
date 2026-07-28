@@ -312,6 +312,15 @@ class EvidenceConfig:
 
 
 @dataclass
+class EvaluationConfig:
+    """Deterministic post-run evaluation; record-only during staged rollout."""
+
+    enabled: bool = False
+    policy_id: str = "auto"
+    command_timeout_seconds: float = 120.0
+
+
+@dataclass
 class PlanConfig:
     """Plan state machine + verification gates (Rung B). See plan-gate-verification proposal."""
 
@@ -442,6 +451,7 @@ class VOLYConfig:
     executor_safety: ExecutorSafetyConfig = field(default_factory=ExecutorSafetyConfig)
     telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
     evidence: EvidenceConfig = field(default_factory=EvidenceConfig)
+    evaluation: EvaluationConfig = field(default_factory=EvaluationConfig)
     cloud: CloudConfig = field(default_factory=CloudConfig)
     cloud_analytics: CloudAnalyticsConfig = field(default_factory=CloudAnalyticsConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)

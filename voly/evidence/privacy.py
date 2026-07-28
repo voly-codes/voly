@@ -7,7 +7,7 @@ from typing import Any
 
 from voly.evidence.schema import EvidenceRecord
 
-EVIDENCE_CLOUD_SCHEMA_VERSION = 1
+EVIDENCE_CLOUD_SCHEMA_VERSION = 2
 
 
 def evidence_to_cloud_record(record: EvidenceRecord) -> dict[str, Any]:
@@ -34,6 +34,25 @@ def evidence_to_cloud_record(record: EvidenceRecord) -> dict[str, Any]:
     evidence_id = hashlib.sha256(
         f"voly-cloud-evidence:{record.task_id}".encode()
     ).hexdigest()
+    evaluation = None
+    if record.evaluation is not None:
+        evaluation = {
+            "schema_version": record.evaluation.schema_version,
+            "policy_id": record.evaluation.policy_id,
+            "policy_version": record.evaluation.policy_version,
+            "state": record.evaluation.state,
+            "deterministic_only": record.evaluation.deterministic_only,
+            "checks": [
+                {
+                    "id": check.id,
+                    "evaluator": check.evaluator,
+                    "status": check.status,
+                    "required": check.required,
+                    "duration_ms": check.duration_ms,
+                }
+                for check in record.evaluation.checks
+            ],
+        }
     return {
         "schema_version": EVIDENCE_CLOUD_SCHEMA_VERSION,
         "source_schema_version": record.schema_version,
@@ -68,6 +87,7 @@ def evidence_to_cloud_record(record: EvidenceRecord) -> dict[str, Any]:
             "retries": record.outcome.retries,
             "files_changed": record.outcome.files_changed,
         },
+        "evaluation": evaluation,
         "human_feedback": [
             {"kind": item.kind, "source": item.source}
             for item in record.human_feedback

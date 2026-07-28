@@ -5,7 +5,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-EVIDENCE_SCHEMA_VERSION = 1
+from voly.evaluation.schema import EvalReport
+
+EVIDENCE_SCHEMA_VERSION = 2
 
 
 @dataclass
@@ -15,6 +17,7 @@ class BaselineCheck:
     name: str
     command: str
     status: str
+    argv: list[str] = field(default_factory=list)
     exit_code: int | None = None
     duration_ms: float = 0.0
     failure_kind: str = ""
@@ -87,6 +90,7 @@ class EvidenceRecord:
     baseline: RepositoryBaseline
     execution: ExecutionBundle
     outcome: EvidenceOutcome
+    evaluation: EvalReport | None = None
     human_feedback: list[HumanFeedback] = field(default_factory=list)
     schema_version: int = EVIDENCE_SCHEMA_VERSION
 
@@ -106,6 +110,7 @@ class EvidenceRecord:
             for item in (data.get("human_feedback") or [])
             if isinstance(item, dict)
         ]
+        evaluation_data = data.get("evaluation")
         return cls(
             task_id=str(data["task_id"]),
             created_at=str(data.get("created_at") or ""),
@@ -114,6 +119,11 @@ class EvidenceRecord:
             baseline=RepositoryBaseline(checks=checks, **baseline_data),
             execution=ExecutionBundle(**dict(data.get("execution") or {})),
             outcome=EvidenceOutcome(**dict(data.get("outcome") or {})),
+            evaluation=(
+                EvalReport.from_dict(evaluation_data)
+                if isinstance(evaluation_data, dict)
+                else None
+            ),
             human_feedback=feedback,
             schema_version=int(data.get("schema_version") or EVIDENCE_SCHEMA_VERSION),
         )

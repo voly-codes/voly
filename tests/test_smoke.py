@@ -56,6 +56,7 @@ def test_import_pipeline() -> None:
 
 def test_import_plan() -> None:
     import voly.plan  # noqa: F401
+    import voly.evaluation  # noqa: F401
     from voly.plan import PlanEngine, PlanStore  # noqa: F401
 
 
@@ -251,6 +252,7 @@ def test_setuptools_packages_include_core() -> None:
     required = {
         "voly.pipeline",
         "voly.plan",
+        "voly.evaluation",
         "voly.config",
         "voly.cloudflare",
         "voly.web.routes",

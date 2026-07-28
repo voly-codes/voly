@@ -27,9 +27,9 @@ writes a local EvidenceRecord before normal telemetry.
 The repo treats several interfaces as versioned contracts and protects them with tests. The high-signal ones are:
 
 - **`TaskEvent` telemetry** — `schema_version: 3` with `correlation_id` (`voly/telemetry.py`, `voly/correlation.py`, `docs/backend/api.md`)
-- **`EvidenceRecord`** — independent local `schema_version: 1`; baseline,
-  execution identity, root cause and human feedback (`voly/evidence/`,
-  `docs/backend/evidence.md`)
+- **`EvidenceRecord`** — independent local `schema_version: 2`; baseline,
+  execution identity, root cause, deterministic evaluation and human feedback
+  (`voly/evidence/`, `voly/evaluation/`, `docs/backend/evidence.md`)
 - **Spend protocol** — HTTP spend record/check (`docs/backend/spend-protocol.md`)
 - **A2A federation** — task create/complete/callback contracts
 

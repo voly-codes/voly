@@ -121,6 +121,8 @@ def _check_git_diff_nonempty(check: AcceptanceCheck, ctx: VerifyContext) -> Veri
     else:
         # No before snapshot: any dirty porcelain counts as change evidence.
         changed = set(after.keys())
+    if not changed and ctx.files_touched:
+        changed = set(ctx.files_touched)
 
     if check.paths:
         wanted = set(check.paths)
@@ -213,14 +215,28 @@ def _check_command(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:
         return VerifyResult(CHECK_COMMAND, False, "command requires cwd")
     from voly.plan.suggest import scope_pytest_command
 
-    run = scope_pytest_command(str(check.run).strip(), list(ctx.files_touched or []))
+    raw_run = str(check.run).strip()
+    run = (
+        scope_pytest_command(raw_run, list(ctx.files_touched or []))
+        if ctx.scope_pytest_to_files
+        else raw_run
+    )
     try:
         argv = shlex.split(run, posix=os.name != "nt")
     except ValueError as exc:
         return VerifyResult(CHECK_COMMAND, False, f"invalid run string: {exc}")
     if not argv:
         return VerifyResult(CHECK_COMMAND, False, "empty command after split")
+    return run_command_argv(argv, ctx, expect_exit=int(check.expect_exit))
 
+
+def run_command_argv(
+    argv: list[str],
+    ctx: VerifyContext,
+    *,
+    expect_exit: int = 0,
+) -> VerifyResult:
+    """Run a pre-tokenized command without reparsing or invoking a shell."""
     # Refuse shell metacharacters that only work with shell=True.
     # argv is already split; still block absolute weirdness by requiring cwd jail
     # only for relative first token paths that look like files — not PATH bins.
@@ -257,7 +273,7 @@ def _check_command(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:
     except OSError as exc:
         return VerifyResult(CHECK_COMMAND, False, f"os error: {exc}", {"argv": argv})
 
-    expected = int(check.expect_exit)
+    expected = int(expect_exit)
     ok = proc.returncode == expected
     stdout = (proc.stdout or "")[-2000:]
     stderr = (proc.stderr or "")[-2000:]

@@ -17,6 +17,8 @@ Important patterns in the checked-in template (`voly init` / `voly/config/_templ
   explicit `cloud_analytics` consent
 - Evidence Foundation is staged through `evidence.enabled`; baseline command
   discovery and explicit command overrides live under `evidence.*`
+- deterministic post-run evaluation is staged through `evaluation.enabled`;
+  it records EvalReport evidence without gating routing
 - DSPy can run in shadow or active mode
 - `auth` defaults to **disabled** (localhost-only open API)
 
@@ -111,6 +113,7 @@ High-signal suites after control-plane changes:
 | Packaging | `tests/test_smoke.py::test_setuptools_packages_include_core` |
 | Contracts | `tests/test_protocol_contracts.py` (TaskEvent v3 / correlation_id) |
 | Evidence Foundation | `tests/test_evidence_foundation.py` |
+| Eval Engine | `tests/test_evaluation.py` |
 | CF Containers | `tests/test_cf_containers_executor.py` |
 | Skill seed / scout | `tests/test_skill_seed_path.py`, `tests/test_skill_scout_cf.py` |
 
@@ -134,9 +137,9 @@ the effective state. While disabled, configured CF Pipeline/R2 endpoints and
 Cloud credentials do not receive run events. When enabled, remote payloads use
 a metadata allowlist: task/result/error text, repository paths, reports,
 artifacts, baseline commands/output/notes and feedback comments are removed;
-local `.voly/events` and `.voly/evidence` remain complete. The remote
-allowlists use their own `schema_version: 1` and carry the local
-`source_schema_version`.
+local `.voly/events` and `.voly/evidence` remain complete. TaskEvent Cloud
+Analytics uses `schema_version: 1`; Evidence Cloud uses `schema_version: 2`.
+Both carry the local `source_schema_version`.
 
 ## Text encoding on Windows
 

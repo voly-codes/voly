@@ -238,6 +238,21 @@ executor runs capture a build/test/lint baseline before edits and write a local
 EvidenceRecord after execution. Review inferred commands before enabling this
 for a large repository. See [evidence.md](evidence.md).
 
+### Deterministic evaluation
+
+```yaml
+evaluation:
+  enabled: false
+  policy_id: auto
+  command_timeout_seconds: 120
+```
+
+`VOLY_EVALUATION_ENABLED=1|0` overrides `enabled`. Evaluation requires local
+Evidence Foundation, selects a versioned policy before execution, and replays
+the exact baseline command vectors after the executor and safety stage. It is
+record-only in this increment and does not change routing or the visible
+executor result. See [evaluation.md](evaluation.md).
+
 ### Cloud analytics consent
 
 ```yaml

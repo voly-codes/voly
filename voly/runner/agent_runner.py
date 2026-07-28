@@ -155,6 +155,25 @@ class AgentRunner:
         # snapshot: tests/build/lint may create ignored caches, but their outcome
         # must describe the pre-existing repository state.
         evidence_cfg = getattr(self.config, "evidence", None)
+        evaluation_cfg = getattr(self.config, "evaluation", None)
+        eval_policy = None
+        if (
+            evidence_cfg is not None
+            and bool(getattr(evidence_cfg, "enabled", False))
+            and evaluation_cfg is not None
+            and bool(getattr(evaluation_cfg, "enabled", False))
+        ):
+            try:
+                from voly.evaluation import select_policy
+
+                eval_policy = select_policy(
+                    task_type,
+                    str(getattr(evaluation_cfg, "policy_id", "auto")),
+                )
+            except Exception as exc:  # noqa: BLE001
+                logging.getLogger(_CHAIN_LOGGER_NAME).warning(
+                    "[CHAIN:EVAL_POLICY] failed: %s", exc
+                )
         baseline = None
         if evidence_cfg is not None and bool(getattr(evidence_cfg, "enabled", False)):
             try:
@@ -407,6 +426,43 @@ class AgentRunner:
         elif safety.rolled_back:
             result.metadata["safety_rolled_back"] = list(safety.rolled_back)
 
+        evaluation_report = None
+        if eval_policy is not None and baseline is not None:
+            try:
+                from voly.evaluation import evaluate_run
+
+                report_files = []
+                if work_report is not None:
+                    report_files = sorted(
+                        set(work_report.files_changed or [])
+                        | set(work_report.files_created or [])
+                    )
+                evaluation_report = evaluate_run(
+                    eval_policy,
+                    result=result,
+                    baseline=baseline,
+                    cwd=cwd,
+                    git_before=git_before,
+                    git_after=git_after,
+                    files_touched=report_files,
+                    command_timeout_seconds=float(
+                        getattr(
+                            evaluation_cfg,
+                            "command_timeout_seconds",
+                            120.0,
+                        )
+                    ),
+                )
+                result.metadata["eval_state"] = evaluation_report.state
+                result.metadata["eval_policy_id"] = evaluation_report.policy_id
+                result.metadata["eval_policy_version"] = (
+                    evaluation_report.policy_version
+                )
+            except Exception as exc:  # noqa: BLE001
+                logging.getLogger(_CHAIN_LOGGER_NAME).warning(
+                    "[CHAIN:EVAL_ENGINE] failed: %s", exc
+                )
+
         automation_score, manual_steps = compute_automation_metrics(
             executor_name, result, task_type=task_type
         )
@@ -437,12 +493,25 @@ class AgentRunner:
                     error_class=final_error_class,
                     retry_count=retry_count,
                     total_cost_usd=total_cost_usd,
-                    eval_policy_id=str(
-                        getattr(evidence_cfg, "eval_policy_id", "executor-basic")
+                    eval_policy_id=(
+                        evaluation_report.policy_id
+                        if evaluation_report is not None
+                        else str(
+                            getattr(
+                                evidence_cfg,
+                                "eval_policy_id",
+                                "executor-basic",
+                            )
+                        )
                     ),
-                    eval_policy_version=str(
-                        getattr(evidence_cfg, "eval_policy_version", "1")
+                    eval_policy_version=(
+                        evaluation_report.policy_version
+                        if evaluation_report is not None
+                        else str(
+                            getattr(evidence_cfg, "eval_policy_version", "1")
+                        )
                     ),
+                    evaluation=evaluation_report,
                 )
                 evidence_path = EvidenceStore(
                     str(getattr(evidence_cfg, "store_dir", ".voly/evidence"))

@@ -56,6 +56,9 @@ class VerifyContext:
     command_timeout: float = DEFAULT_COMMAND_TIMEOUT
     # Raised from the default limit only by a strict architect plan marker.
     approved_file_line_limit: int = 0
+    # Plan checks may narrow pytest to touched tests; Eval baseline replay must
+    # execute the exact original command to preserve before/after comparability.
+    scope_pytest_to_files: bool = True
 
 
 class VerifyError(Exception):
