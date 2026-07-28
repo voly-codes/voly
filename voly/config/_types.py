@@ -262,8 +262,8 @@ class CloudConfig:
     org history (voly-cloud ``POST /cloud/v1/tenants/{id}/runs/report``).
 
     ``token`` is the tenant edge JWT from the org manifest, not a user session
-    token. Reporting is best-effort telemetry: metadata only (task text capped,
-    cost, files touched), never file contents.
+    token. Linking and heartbeat do not imply analytics consent; remote run
+    reporting is separately gated by ``CloudAnalyticsConfig``.
     """
 
     enabled: bool = False
@@ -273,6 +273,13 @@ class CloudConfig:
     user_id: str = ""       # optional attribution shown in the org timeline
     device_id: str = ""     # AgentDevice id — required for heartbeat / runs/report
     timeout_seconds: float = 5.0
+
+
+@dataclass
+class CloudAnalyticsConfig:
+    """Explicit consent gate for sanitized remote analytics."""
+
+    enabled: bool = False
 
 
 @dataclass
@@ -287,6 +294,21 @@ class TelemetryConfig:
     runs_dir: str = ".voly/runs"
     # A run is "stale" when its heartbeat is older than stale_factor × task_timeout.
     watchdog_stale_factor: float = 2.0
+
+
+@dataclass
+class EvidenceConfig:
+    """Local Evidence Foundation; disabled by default during staged rollout."""
+
+    enabled: bool = False
+    store_dir: str = ".voly/evidence"
+    baseline_enabled: bool = True
+    baseline_auto_commands: bool = True
+    baseline_commands: dict[str, str] = field(default_factory=dict)
+    baseline_timeout_seconds: float = 120.0
+    output_max_chars: int = 2000
+    eval_policy_id: str = "executor-basic"
+    eval_policy_version: str = "1"
 
 
 @dataclass
@@ -419,7 +441,9 @@ class VOLYConfig:
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
     executor_safety: ExecutorSafetyConfig = field(default_factory=ExecutorSafetyConfig)
     telemetry: TelemetryConfig = field(default_factory=TelemetryConfig)
+    evidence: EvidenceConfig = field(default_factory=EvidenceConfig)
     cloud: CloudConfig = field(default_factory=CloudConfig)
+    cloud_analytics: CloudAnalyticsConfig = field(default_factory=CloudAnalyticsConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)
     capability: CapabilityConfig = field(default_factory=CapabilityConfig)

@@ -88,7 +88,9 @@ After each executor run, `record_run()` collects evidence in a fire-and-forget d
 
 ### `record_run()` flow
 
-1. **Skip** when `billing_error` or `not_available` is set (no score, no EMA update).
+1. **Skip** when `billing_error`, `not_available`, or
+   `penalize_agent=false` is set (no score, no EMA update). Evidence Foundation
+   sets the latter for provider/tool/environment/repository/policy failures.
 2. **Compute** `run_score` via `_compute_run_score()`.
 3. **Thread** — spawn a daemon thread (or caller thread in `fire_executor_evidence`) that:
    - updates the local registry EMA (`_update_local_ema()`), and
@@ -119,6 +121,11 @@ Executors without file tools that succeed without changing files receive the low
 | `voly/a2a/core.py` → `multiagent_roles.py` | After each finalized multi-agent role (executor or chat) | `role_dimension(role)` — e.g. `tester` → `testing`, `devops` → `devops` |
 
 Multi-agent executor sub-runs pass `collect_evidence=False` to `AgentRunner.run()` so evidence is recorded once per role via the A2A hook (role-based dimension), not twice.
+
+EvidenceRecord and capability profile are distinct contracts. The former keeps
+the baseline, execution bundle and root cause under `.voly/evidence/`; the
+current Capability Registry consumes only the attribution decision and its
+existing v1 score. See [evidence.md](evidence.md).
 
 ## CLI
 

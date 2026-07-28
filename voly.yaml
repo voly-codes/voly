@@ -205,6 +205,23 @@ telemetry:
   pipeline_timeout_seconds: 5
   r2_enabled: true
 
+# Evidence Foundation: repository baseline + local versioned evidence records.
+evidence:
+  enabled: true
+  store_dir: ".voly/evidence"
+  baseline_enabled: true
+  baseline_auto_commands: true
+  baseline_commands: {}
+  baseline_timeout_seconds: 120
+  output_max_chars: 2000
+  eval_policy_id: executor-basic
+  eval_policy_version: "1"
+
+# Remote analytics is separate from local telemetry/evidence and requires
+# explicit consent. Sanitized metadata only; never raw prompts/results/paths.
+cloud_analytics:
+  enabled: false
+
 # DSPy optimizer layer (optional, requires: pip install voly[dspy])
 # mode: off | shadow | active
 # shadow — runs in parallel, logs diff to telemetry, does NOT affect responses

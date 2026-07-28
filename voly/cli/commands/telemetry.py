@@ -1,18 +1,19 @@
 """Telemetry CLI — pipeline status and test delivery."""
+
 from __future__ import annotations
 
 import click
 
 from voly.telemetry import (
     TaskEvent,
+    TelemetryDeliveryError,
     TokenMetrics,
-    emit_event_from_config,
+    emit_event,
     event_to_pipeline_record,
     new_task_id,
     resolve_pipeline_endpoint,
     resolve_pipeline_token,
     send_to_pipeline,
-    TelemetryDeliveryError,
 )
 
 
@@ -30,12 +31,20 @@ def telemetry_status(ctx: click.Context) -> None:
 
     config = ctx.obj["config"]
     tel = config.telemetry
+    analytics = getattr(config, "cloud_analytics", None)
+    analytics_enabled = bool(getattr(analytics, "enabled", False))
     endpoint = resolve_pipeline_endpoint(tel.pipeline_url)
 
     click.echo("Telemetry sinks")
     click.echo("=" * 40)
     click.echo(f"  Local events:  {tel.events_dir}/")
-    click.echo(f"  Pipeline:      {'enabled' if tel.pipeline_enabled else 'disabled'}")
+    click.echo(
+        f"  Remote consent: {'enabled' if analytics_enabled else 'disabled'}"
+    )
+    click.echo(
+        "  Pipeline:      "
+        + ("enabled" if analytics_enabled and tel.pipeline_enabled else "disabled")
+    )
     click.echo(f"  Pipeline URL:  {endpoint or '(not configured)'}")
     click.echo(f"  Pipeline auth: {'yes' if resolve_pipeline_token() else 'no'}")
     click.echo(f"  R2 direct:     {'yes' if tel.r2_enabled and os.environ.get('CF_R2_ENDPOINT') else 'no'}")
@@ -96,6 +105,13 @@ def telemetry_test(ctx: click.Context, dry_run: bool) -> None:
         click.echo(event_to_pipeline_record(event))
         return
 
+    analytics = getattr(config, "cloud_analytics", None)
+    if not bool(getattr(analytics, "enabled", False)):
+        raise click.ClickException(
+            "Remote analytics consent is disabled. Set "
+            "cloud_analytics.enabled: true or VOLY_CLOUD_ANALYTICS_ENABLED=true."
+        )
+
     try:
         send_to_pipeline(
             endpoint,
@@ -105,7 +121,12 @@ def telemetry_test(ctx: click.Context, dry_run: bool) -> None:
     except TelemetryDeliveryError as exc:
         raise click.ClickException(str(exc)) from exc
 
-    path = emit_event_from_config(event, config)
+    path = emit_event(
+        event,
+        events_dir=tel.events_dir,
+        pipeline_enabled=False,
+        r2_enabled=False,
+    )
     click.echo(f"Pipeline: OK ({endpoint})")
     if path:
         click.echo(f"Local:    {path}")

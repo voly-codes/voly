@@ -3,12 +3,13 @@ Task telemetry — замеры на задачу.
 
 Каждый вызов pipeline.run() / runner эмитирует TaskEvent:
   1. Локальный JSON в `.voly/events/<task_id>.json` (fallback + savings CLI)
-  2. CF Pipelines HTTP ingest (если `CF_PIPELINE_TELEMETRY_ENDPOINT` задан)
-  3. Прямой upload в R2 (legacy, пока pipeline не владеет хранилищем)
+  2. Sanitized CF Pipelines ingest (endpoint + explicit cloud analytics consent)
+  3. Sanitized R2 upload (legacy, credentials + the same explicit consent)
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -135,11 +136,12 @@ class GatewayMetrics:
     dlp_blocked: bool = False
 
 
-# Версия схемы TaskEvent — публичный контракт ядра (события читают внешние
-# потребители: CF Pipelines, R2, hosted-дашборды). Любое изменение набора
-# полей/семантики — бамп версии + правка контрактного теста
-# (tests/test_protocol_contracts.py) + docs/backend/api.md.
+# Complete local TaskEvent contract. Remote analytics uses the independent
+# allowlist schema below; neither Pipeline nor R2 receives TaskEvent directly.
+# Any field/semantic change requires a version bump, contract-test update and
+# matching docs/backend/api.md change.
 TASK_EVENT_SCHEMA_VERSION = 3
+CLOUD_ANALYTICS_SCHEMA_VERSION = 1
 
 
 @dataclass
@@ -252,17 +254,48 @@ def resolve_pipeline_token() -> str:
 
 
 def event_to_pipeline_record(event: TaskEvent) -> dict[str, Any]:
-    """Плоская запись для CF Pipelines SQL-трансформации."""
-    record = event.to_dict()
-    record["ts_us"] = int(time.time() * 1_000_000)
-    record["tokens_input"] = event.tokens.input
-    record["tokens_output"] = event.tokens.output
-    record["tokens_saved_rtk"] = event.tokens.saved_rtk
-    record["tokens_saved_headroom"] = event.tokens.saved_headroom
-    record["cache_hit"] = event.gateway.cache_hit
-    record["fallback_used"] = event.gateway.fallback_used
-    record["dlp_blocked"] = event.gateway.dlp_blocked
-    return record
+    """Build a sanitized allowlisted record for remote analytics.
+
+    Local TaskEvent JSON remains complete. Remote records deliberately exclude
+    prompts, results, free-form errors, repository paths, reports, artifacts,
+    stage logs and A2A assignment payloads.
+    """
+    event_id = hashlib.sha256(
+        f"voly-cloud-analytics:{event.task_id}".encode()
+    ).hexdigest()
+    return {
+        "schema_version": CLOUD_ANALYTICS_SCHEMA_VERSION,
+        "source_schema_version": event.schema_version,
+        "event_id": event_id,
+        "ts_us": int(time.time() * 1_000_000),
+        "status": event.status,
+        "success": event.status == "completed",
+        "agent": event.agent,
+        "executor": event.executor,
+        "model": event.model,
+        "provider": event.provider,
+        "task_type": event.task_type,
+        "skill_ids": list(event.skill_ids),
+        "cost_usd": event.cost_usd,
+        "duration_ms": event.duration_ms,
+        "tokens_input": event.tokens.input,
+        "tokens_output": event.tokens.output,
+        "tokens_saved_rtk": event.tokens.saved_rtk,
+        "tokens_saved_headroom": event.tokens.saved_headroom,
+        "cache_hit": event.gateway.cache_hit,
+        "fallback_used": event.gateway.fallback_used,
+        "dlp_blocked": event.gateway.dlp_blocked,
+        "retry_count": event.retry_count,
+        "retry_cost_usd": event.retry_cost_usd,
+        "error_class": event.error_class,
+        "dspy_enabled": event.dspy_enabled,
+        "dspy_used": event.dspy_used,
+        "dspy_mode": event.dspy_mode,
+        "dspy_program_id": event.dspy_program_id,
+        "dspy_program_version": event.dspy_program_version,
+        "a2a_dispatched": event.a2a_dispatched,
+        "a2a_subtask_count": event.a2a_subtask_count,
+    }
 
 
 def send_to_pipeline(
@@ -272,7 +305,7 @@ def send_to_pipeline(
     timeout: float = 5.0,
     token: str | None = None,
 ) -> None:
-    """POST TaskEvent в CF Pipelines ingest (JSON array batch of one)."""
+    """POST one sanitized Cloud Analytics v1 record to CF Pipelines."""
     body = json.dumps([event_to_pipeline_record(event)], ensure_ascii=False).encode("utf-8")
     headers = {
         "Content-Type": _APPLICATION_JSON,
@@ -314,22 +347,23 @@ def emit_event(
     pipeline_enabled: bool = True,
     pipeline_timeout: float | None = None,
     r2_enabled: bool = True,
+    remote_analytics_enabled: bool = False,
 ) -> Path | None:
-    """Записывает TaskEvent локально и доставляет в Pipeline / R2 при наличии конфига."""
+    """Persist locally; upload sanitized analytics only with explicit consent."""
     if events_dir is None:
         events_dir = Path(".voly") / "events"
 
     path = _write_local_event(event, events_dir)
 
     endpoint = resolve_pipeline_endpoint(pipeline_url or "")
-    if pipeline_enabled and endpoint:
+    if remote_analytics_enabled and pipeline_enabled and endpoint:
         timeout = pipeline_timeout if pipeline_timeout is not None else 5.0
         try:
             send_to_pipeline(endpoint, event, timeout=timeout)
         except TelemetryDeliveryError as exc:
             logger.debug("telemetry: pipeline upload failed: %s", exc)
 
-    if r2_enabled:
+    if remote_analytics_enabled and r2_enabled:
         r2_endpoint = os.environ.get("CF_R2_ENDPOINT")
         r2_bucket = os.environ.get("CF_R2_BUCKET_TELEMETRY", "voly-telemetry")
         r2_key_id = os.environ.get("CF_R2_ACCESS_KEY_ID")
@@ -352,6 +386,8 @@ def emit_event_from_config(event: TaskEvent, config: Any | None = None) -> Path 
     if telemetry is None:
         return emit_event(event)
 
+    cloud_analytics = getattr(config, "cloud_analytics", None)
+    analytics_enabled = bool(getattr(cloud_analytics, "enabled", False))
     path = emit_event(
         event,
         events_dir=telemetry.events_dir,
@@ -359,6 +395,7 @@ def emit_event_from_config(event: TaskEvent, config: Any | None = None) -> Path 
         pipeline_enabled=telemetry.pipeline_enabled,
         pipeline_timeout=telemetry.pipeline_timeout_seconds,
         r2_enabled=telemetry.r2_enabled,
+        remote_analytics_enabled=analytics_enabled,
     )
     try:
         from voly.spend import record_task_spend
@@ -385,7 +422,13 @@ def _emit_to_r2(
     """PUT события в R2 через R2Client (правильный SigV4)."""
     from voly.cloudflare.r2 import R2Client
     r2 = R2Client(endpoint, access_key, secret_key, timeout=5.0)
-    r2.put(bucket, f"events/{event.task_id}.json", event.to_json().encode(), _APPLICATION_JSON)
+    record = event_to_pipeline_record(event)
+    r2.put(
+        bucket,
+        f"events/{record['event_id']}.json",
+        json.dumps(record, ensure_ascii=False).encode("utf-8"),
+        _APPLICATION_JSON,
+    )
 
 
 def summarize_error_classes(events: list[TaskEvent]) -> dict[str, Any]:

@@ -6,6 +6,7 @@ from .catalog import catalog
 from .cloud_cmd import cloud
 from .config_cmd import config_cmd
 from .dspy_cmd import dspy_cmd
+from .evidence_cmd import evidence_cmd
 from .infra import headroom, mcp, memory, pxpipe, rtk
 from .lifecycle import init, setup
 from .plan_cmd import plan_cmd
@@ -55,6 +56,7 @@ __all__ = [
     "catalog",
     "cloud",
     "dspy_cmd",
+    "evidence_cmd",
     "ui",
     "plan_cmd",
     "reuse_cmd",

@@ -6,8 +6,8 @@ import os
 import re
 import shlex
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from voly.plan.types import AcceptanceCheck
 from voly.plan.verify_git import changed_paths, git_porcelain, safe_join
@@ -225,12 +225,18 @@ def _check_command(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:
     # argv is already split; still block absolute weirdness by requiring cwd jail
     # only for relative first token paths that look like files — not PATH bins.
     timeout = ctx.command_timeout if ctx.command_timeout > 0 else DEFAULT_COMMAND_TIMEOUT
+    child_env = os.environ.copy()
+    child_env["PYTHONUTF8"] = "1"
+    child_env["PYTHONIOENCODING"] = "utf-8:replace"
     try:
         proc = subprocess.run(
             argv,
             cwd=ctx.cwd,
+            env=child_env,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
             shell=False,
         )

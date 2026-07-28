@@ -26,6 +26,9 @@ VOLY has two main execution paths:
 
    Opt-in cloud path: `--executor cf-containers` (Cloudflare Containers / sandbox Worker).
 
+   With `evidence.enabled`, this path captures repository health before edits
+   and writes a versioned local EvidenceRecord after execution.
+
 The project is intentionally **project-agnostic**: the target codebase is supplied at runtime through `--cwd` or configuration, rather than being hardcoded into the source tree.
 
 ## Security model (self-host)
@@ -48,6 +51,8 @@ See [Configuration and operations](config-and-operations.md) and `docs/backend/a
 - **UI** — Svelte app for runs, gateway, telemetry, DSPy, marketplace
 - **Marketplace and catalog** — skills/plugins with local fallback when the remote worker is down; `voly skill seed --path` for CF draft skills; `SKILL_SUGGEST` via SkillScout
 - **Observability** — `correlation_id` on TaskEvent v3 / SSE / CF Workers
+- **Evidence Foundation** — pre-run baseline, execution-bundle versioning,
+  root-cause attribution, local atomic evidence and human-feedback hooks
 - **Configuration and operations** — runtime config (including `memory.backend: agent_memory`), env vars, packaging, generated artifacts, tests
 
 ## Wiki map
@@ -74,6 +79,7 @@ If you are changing the UI, start with the frontend page and then inspect `ui/sr
 - `voly/web/routes/*` — API routes (including `auth.py`)
 - `voly/pipeline/core.py` — pipeline orchestration and cache scoping
 - `voly/runner/agent_runner.py` — executor chain, DSPy planning, work reports
+- `voly/evidence/*` — baseline, EvidenceRecord v1, root-cause classification, store
 - `voly/ai_gateway/gateway.py` — middleware stack, spend-on-success, upstream delegation
 - `ui/src/lib/components/*` — dashboard sections and panels
 - `tests/` — behavioral and contract tests (including `tests/test_web_auth.py`)

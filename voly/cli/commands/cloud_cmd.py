@@ -87,6 +87,7 @@ def _save_link_from_poll(base: str, payload: dict) -> str:
             "user_email": payload.get("user_email") or "",
             "expires_at": expires_at,
             "created_at": time.strftime(_ISO8601_FORMAT, time.gmtime()),
+            "analytics_enabled": False,
         }
     )
     return str(path)
@@ -114,7 +115,7 @@ def cloud_login(
     no_browser: bool,
     device_name: str | None,
 ) -> None:
-    """Link this device: local runs will appear in the org's shared history."""
+    """Link this device; run analytics requires a separate explicit opt-in."""
     base = base_url.strip().rstrip("/")
     if email:
         _legacy_password_login(base, email, password, org_slug, ttl_days)
@@ -167,8 +168,8 @@ def _device_code_login(base: str, *, no_browser: bool, device_name: str) -> None
             email = body.get("user_email") or ""
             click.echo(f"Linked to org '{slug}'{f' as {email}' if email else ''}.")
             click.echo(f"Device token saved to {path}.")
-            click.echo("Finished local runs will now appear in the org's shared history.")
-            click.echo("Tip: `voly cloud sync` uploads past local runs; heartbeats run with `voly ui`.")
+            click.echo("Remote analytics remains disabled until explicit opt-in.")
+            click.echo("Enable with: `voly cloud analytics enable`.")
             return
         if detail == "authorization_pending":
             click.echo(".", nl=False)
@@ -257,16 +258,20 @@ def _legacy_password_login(
             "user_email": email,
             "expires_at": expires_at,
             "created_at": time.strftime(_ISO8601_FORMAT, time.gmtime()),
+            "analytics_enabled": False,
         }
     )
     click.echo(f"Linked to org '{org.get('slug', org['tenant_id'])}' as {email}.")
     click.echo(f"Device token valid until {expires_at} — saved to {path}.")
+    click.echo("Remote analytics remains disabled until explicit opt-in.")
+    click.echo("Enable with: `voly cloud analytics enable`.")
 
 
 @cloud.command("status")
 def cloud_status() -> None:
     """Show the current device link."""
-    from voly.cloud_link import link_file_path, read_link_file
+    from voly.cloud_link import cloud_analytics_enabled, link_file_path, read_link_file
+    from voly.config import load_config
 
     link = read_link_file()
     if not link:
@@ -278,6 +283,10 @@ def cloud_status() -> None:
     click.echo(f"Org: {link.get('tenant_slug') or link.get('tenant_id', '?')}")
     click.echo(f"User: {link.get('user_email') or link.get('user_id', '?')}")
     click.echo(f"Device: {link.get('device_id') or '(missing — re-run voly cloud login)'}")
+    click.echo(
+        "Cloud analytics: "
+        + ("enabled" if cloud_analytics_enabled(load_config()) else "disabled")
+    )
     expires = str(link.get("expires_at") or "")
     if expires:
         expired = expires < time.strftime(_ISO8601_FORMAT, time.gmtime())
@@ -293,6 +302,42 @@ def cloud_logout() -> None:
         click.echo(f"Unlinked — removed {link_file_path()}.")
     else:
         click.echo("Already unlinked.")
+
+
+@cloud.command("analytics")
+@click.argument(
+    "action",
+    required=False,
+    default="status",
+    type=click.Choice(["status", "enable", "disable"], case_sensitive=False),
+)
+def cloud_analytics(action: str) -> None:
+    """Show or change explicit consent for sanitized remote analytics."""
+    from voly.cloud_link import (
+        cloud_analytics_enabled,
+        link_file_path,
+        read_link_file,
+        save_link_file,
+    )
+    from voly.config import load_config
+
+    link = read_link_file()
+    if not link:
+        click.echo(
+            f"Not linked ({link_file_path()} missing). Run cloud login first.",
+            err=True,
+        )
+        raise SystemExit(1)
+    if action != "status":
+        link["analytics_enabled"] = action == "enable"
+        save_link_file(link)
+    effective = cloud_analytics_enabled(load_config())
+    click.echo(f"Cloud analytics: {'enabled' if effective else 'disabled'}")
+    if action == "disable" and effective:
+        click.echo(
+            "Link consent is disabled, but config/env still enables analytics.",
+            err=True,
+        )
 
 
 @cloud.command("heartbeat")
@@ -324,6 +369,14 @@ def cloud_sync(since_days: int, limit: int, dry_run: bool) -> None:
     config = load_config()
     if resolve_cloud_link(config) is None:
         click.echo("Not linked. Run: voly cloud login --url <control-plane>", err=True)
+        raise SystemExit(1)
+    from voly.cloud_link import cloud_analytics_enabled
+
+    if not cloud_analytics_enabled(config):
+        click.echo(
+            "Cloud analytics consent is disabled. Run: voly cloud analytics enable",
+            err=True,
+        )
         raise SystemExit(1)
     result = sync_local_events(config, since_days=since_days, limit=limit, dry_run=dry_run)
     click.echo(

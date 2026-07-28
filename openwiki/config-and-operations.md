@@ -13,7 +13,10 @@ Important patterns in the checked-in template (`voly init` / `voly/config/_templ
 - model entries are provider-scoped and use environment variables for API keys
 - `default_cwd` is the project root passed to agents and gateway cache scoping
 - AI Gateway settings include cache (optional disk persist dir), rate limits, spend limits, fallback, and DLP
-- telemetry points to `.voly/events` and optional pipeline/R2 backends
+- telemetry points to local `.voly/events`; pipeline/R2 additionally require
+  explicit `cloud_analytics` consent
+- Evidence Foundation is staged through `evidence.enabled`; baseline command
+  discovery and explicit command overrides live under `evidence.*`
 - DSPy can run in shadow or active mode
 - `auth` defaults to **disabled** (localhost-only open API)
 
@@ -80,10 +83,12 @@ Draft CF skills: `docs/marketplace/skills/skill-cf-containers.yaml`, `skill-cf-a
 Do not commit:
 
 - `.voly/events/`
+- `.voly/evidence/`
 - `.voly/gateway_cache/`
 - `.voly/dspy/datasets/`
 - `.voly/dspy/programs/`
 - `.voly/reports/`
+- `.voly/wheels/`
 - `.voly/runs/`
 - `.venv/`
 - `ui/node_modules/`
@@ -105,10 +110,45 @@ High-signal suites after control-plane changes:
 | Failure paths | `tests/test_failure_paths.py` |
 | Packaging | `tests/test_smoke.py::test_setuptools_packages_include_core` |
 | Contracts | `tests/test_protocol_contracts.py` (TaskEvent v3 / correlation_id) |
+| Evidence Foundation | `tests/test_evidence_foundation.py` |
 | CF Containers | `tests/test_cf_containers_executor.py` |
 | Skill seed / scout | `tests/test_skill_seed_path.py`, `tests/test_skill_scout_cf.py` |
 
 Doc link CI: `scripts/check_doc_links.py`. Env/doc sync: `scripts/check_env_doc_sync.py`.
+
+## Remote analytics consent
+
+Local telemetry and evidence are independent from remote analytics. Linking a
+device with `voly cloud login` enables authentication and heartbeats only;
+analytics remains disabled until an explicit opt-in:
+
+```bash
+voly cloud analytics enable
+# alternatives:
+# cloud_analytics.enabled: true
+# VOLY_CLOUD_ANALYTICS_ENABLED=true
+```
+
+`voly cloud analytics disable` revokes link-file consent, and `status` shows
+the effective state. While disabled, configured CF Pipeline/R2 endpoints and
+Cloud credentials do not receive run events. When enabled, remote payloads use
+a metadata allowlist: task/result/error text, repository paths, reports,
+artifacts, baseline commands/output/notes and feedback comments are removed;
+local `.voly/events` and `.voly/evidence` remain complete. The remote
+allowlists use their own `schema_version: 1` and carry the local
+`source_schema_version`.
+
+## Text encoding on Windows
+
+Tracked source and documentation use UTF-8 with LF, enforced for editors by
+`.editorconfig` and normalized by Git through `.gitattributes` (PowerShell
+scripts retain CRLF). The `voly` CLI configures stdout/stderr as UTF-8 on
+Windows, executor and verifier subprocesses capture output as UTF-8 with
+replacement, and CI helper scripts use ASCII `[OK]` / `[WARN]` / `[FAIL]`
+markers so legacy local code pages cannot crash them.
+
+On Windows PowerShell 5.1, pass `-Encoding UTF8` to `Get-Content`; its default
+can misread valid UTF-8 files. PowerShell 7 uses UTF-8 defaults and is preferred.
 
 ## Operational guidance
 
@@ -121,6 +161,8 @@ Doc link CI: `scripts/check_doc_links.py`. Env/doc sync: `scripts/check_env_doc_
 ## Useful source files
 
 - `voly.yaml` / `voly/config/_template.py`
+- `voly/evidence/*`
+- `docs/backend/evidence.md`
 - `codeops.yaml`
 - `.env.example`
 - `pyproject.toml`

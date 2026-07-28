@@ -75,6 +75,7 @@ packages = [
     "voly.config",
     "voly.dspy",
     "voly.dspy.programs",
+    "voly.evidence",
     "voly.executor",
     "voly.headroom",
     "voly.inference",

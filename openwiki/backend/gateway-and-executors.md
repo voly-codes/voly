@@ -37,6 +37,23 @@ Canonical detail: `docs/backend/ai-gateway.md`.
 
 ## Executors
 
+### Evidence Foundation
+
+When enabled, `AgentRunner` runs deterministic repository baseline checks
+before an executor can edit files. After fallback, safety and WorkReport it
+writes `.voly/evidence/<task_id>.json`. Root-cause attribution prevents
+provider, tool, environment and pre-existing repository failures from reducing
+the agent's capability EMA. The EvidenceRecord contract remains separate from
+TaskEvent v3.
+
+Developers can inspect a record with `voly evidence show <task_id>` and append
+explicit feedback with `voly evidence feedback <task_id> <kind>`. The same
+local-only surface is available through `GET /api/evidence/{task_id}` and
+`POST /api/evidence/{task_id}/feedback`. Interface task ids are constrained to
+path-safe characters, comments are bounded to 2,000 characters, and the
+system records provenance as `cli` or `api`. Human comments never enter the
+Cloud Analytics allowlist.
+
 `voly/runner/agent_runner.py` is the file-capable execution path. It resolves executors, optionally refines the task with DSPy, executes the backend, and applies **billing fallback** when an executor signals a billing error.
 
 The fallback chain in code (`BILLING_FALLBACK_CHAIN`) is:
@@ -81,6 +98,8 @@ Model routing is separated from file writes so the pipeline gets centralized cac
 - `voly/ai_gateway/error_classifier.py`
 - `voly/ai_gateway/models.py` (`SpendLimit`)
 - `voly/runner/agent_runner.py`
+- `voly/evidence/*`
+- `docs/backend/evidence.md`
 - `voly/executor/base.py`
 - `voly/executor/cf_containers.py`
 - `voly/executor/patch.py`

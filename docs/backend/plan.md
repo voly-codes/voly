@@ -109,6 +109,14 @@ voly plan show auth-refactor
 
 Unknown types **fail closed**.
 
+Command checks are platform-neutral, but the command itself must name an
+executable available on the target OS. Tests and generated examples should use
+the active Python interpreter rather than Unix-only utilities such as `true`,
+`false`, or `sleep`. Captured command output is decoded explicitly as UTF-8 with
+replacement, matching executor subprocess handling. The verifier also sets
+`PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8:replace` in the child environment so
+Python checks emit the same encoding on Windows instead of the local code page.
+
 Verifier modules (`voly/plan/`; public import remains `voly.plan.verify`):
 
 | Module | Contents |

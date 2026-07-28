@@ -288,6 +288,13 @@ not inside a single executor.
 Chain constants and `_build_executor` live in `executor_factory.py`;
 `AgentRunner.run()` (in `agent_runner.py`) walks the chain.
 
+When `evidence.enabled=true`, AgentRunner first captures a repository baseline
+and, after the final executor attempt, writes a versioned local EvidenceRecord.
+Provider/tool/environment/pre-existing-repository failures are marked
+`penalize_agent=false`, so Capability Registry does not learn a negative EMA
+from conditions outside the agent's control. See
+[evidence.md](evidence.md) for ordering, schema and baseline commands.
+
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 
@@ -438,3 +445,15 @@ on Windows — while `claude`/`opencode`/`zen`/git all emit UTF-8, so any
 Cyrillic (or other non-Latin-1) task text or result corrupted into mojibake,
 or raised `UnicodeDecodeError: 'charmap' codec can't decode byte …` outright
 and failed the run with `agent: "unknown"` in the TaskEvent.
+
+The `voly` CLI also calls `configure_utf8_stdio()` before importing command
+modules. On Windows it reconfigures stdout/stderr to UTF-8 with replacement for
+unencodable output; redirected/test streams that do not support
+`TextIOWrapper.reconfigure()` are left unchanged. CI helper scripts use ASCII
+status prefixes (`[OK]`, `[WARN]`, `[FAIL]`) so they remain printable even when
+invoked by a legacy Python process using a local code page.
+
+Repository text policy is explicit: `.editorconfig` declares UTF-8/LF for
+editors and `.gitattributes` normalizes source/docs to LF while preserving CRLF
+for PowerShell scripts. Existing files can be audited without rewriting the
+worktree with `git ls-files --eol`.

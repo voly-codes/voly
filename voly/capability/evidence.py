@@ -33,6 +33,8 @@ class RunRecord:
     billing_error: bool = False
     not_available: bool = False
     duration_ms: float = 0.0
+    failure_class: str = ""
+    penalize_agent: bool = True
 
 
 def infer_dimension_from_task(task: str, default: str = "backend") -> str:
@@ -60,6 +62,8 @@ def resolve_run_dimension(task: str, agent_role: str = "") -> str:
 
 def _compute_run_score(record: RunRecord) -> float | None:
     if record.billing_error or record.not_available:
+        return None
+    if not record.success and not record.penalize_agent:
         return None
     if not record.success:
         return 0.0
@@ -137,6 +141,16 @@ def fire_executor_evidence(
             billing_error=bool(getattr(result, "billing_error", False)),
             not_available=bool(getattr(result, "not_available", False)),
             duration_ms=float(getattr(result, "duration_ms", 0.0) or 0.0),
+            failure_class=str(
+                (getattr(result, "metadata", None) or {}).get(
+                    "evidence_failure_class", ""
+                )
+            ),
+            penalize_agent=bool(
+                (getattr(result, "metadata", None) or {}).get(
+                    "evidence_penalize_agent", True
+                )
+            ),
         )
         threading.Thread(
             target=record_run,

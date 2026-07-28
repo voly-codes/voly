@@ -23,9 +23,11 @@ dist/
 
 # VOLY runtime state
 .voly/events/
+.voly/evidence/
 .voly/dspy/datasets/
 .voly/dspy/programs/
 .voly/reports/
+.voly/wheels/
 
 # External repos (use git submodule if needed)
 # headroom/

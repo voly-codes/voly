@@ -210,12 +210,24 @@ telemetry:
   enabled: true
   events_dir: ".voly/events"
   pipeline_url: "${CF_PIPELINE_TELEMETRY_ENDPOINT}"
-  pipeline_enabled: true
+  pipeline_enabled: true       # destination switch; still needs cloud_analytics consent
   pipeline_timeout_seconds: 5
-  r2_enabled: true
+  r2_enabled: true             # destination switch; still needs cloud_analytics consent
 
-# VOLY Cloud link — report finished local runs into the shared org history
-# (metadata only: task text capped, cost, files touched — never file contents).
+# Evidence Foundation (local-only): baseline before file edits + versioned facts.
+# Staged rollout: enable per team/project after reviewing inferred commands.
+evidence:
+  enabled: false
+  store_dir: ".voly/evidence"
+  baseline_enabled: true
+  baseline_auto_commands: true
+  baseline_commands: {}        # optional overrides, e.g. {tests: "pytest -q"}
+  baseline_timeout_seconds: 120
+  output_max_chars: 2000
+  eval_policy_id: executor-basic
+  eval_policy_version: "1"
+
+# VOLY Cloud device link. Login enables authentication/heartbeats, not analytics.
 # Prefer: voly cloud login --url https://cloud.voly.codes (browser confirm).
 # Env overrides: VOLY_CLOUD_ENABLED / _URL / _TENANT_ID / _TOKEN / _USER_ID / _DEVICE_ID.
 cloud:
@@ -226,6 +238,12 @@ cloud:
   user_id: ""                  # optional attribution in the org timeline
   device_id: ""                # AgentDevice id (heartbeat / runs/report)
   timeout_seconds: 5
+
+# Explicit opt-in for every remote analytics destination (Cloud run history,
+# CF Pipelines, R2). Payloads exclude prompts, results, free-form errors,
+# repository paths and file contents.
+cloud_analytics:
+  enabled: false
 
 # Plan gates (Rung B): multi-step plans with acceptance checks.
 # CLI: voly plan run <file.yaml>  — see docs/proposals/plan-gate-verification.md

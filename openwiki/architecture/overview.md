@@ -17,13 +17,19 @@ The canonical explanation lives in `docs/ARCHITECTURE.md`, and the implementatio
 The pipeline handles text-only reasoning and orchestration steps. In `voly/pipeline/core.py`, it coordinates stages such as routing, memory retrieval, RTK filtering, skill injection, optional DSPy, and the final `AIGateway.chat()` call.
 
 ### 2) Executor path
-The executor path is for tasks that must write files. `voly/runner/agent_runner.py` resolves an executor, optionally refines the task with DSPy, executes the chosen backend, and then applies billing fallback when needed.
+The executor path is for tasks that must write files. `voly/runner/agent_runner.py`
+resolves an executor, optionally captures a repository baseline, refines the
+task with DSPy, executes the chosen backend, applies billing fallback, and
+writes a local EvidenceRecord before normal telemetry.
 
 ## Public contracts
 
 The repo treats several interfaces as versioned contracts and protects them with tests. The high-signal ones are:
 
 - **`TaskEvent` telemetry** — `schema_version: 3` with `correlation_id` (`voly/telemetry.py`, `voly/correlation.py`, `docs/backend/api.md`)
+- **`EvidenceRecord`** — independent local `schema_version: 1`; baseline,
+  execution identity, root cause and human feedback (`voly/evidence/`,
+  `docs/backend/evidence.md`)
 - **Spend protocol** — HTTP spend record/check (`docs/backend/spend-protocol.md`)
 - **A2A federation** — task create/complete/callback contracts
 
@@ -56,10 +62,10 @@ Wheel/sdist must include core packages (`voly.pipeline`, `voly.config`, `voly.cl
 - `docs/ARCHITECTURE.md`
 - `voly/pipeline/core.py`
 - `voly/runner/agent_runner.py`
+- `voly/evidence/*`
 - `voly/ai_gateway/gateway.py`
 - `voly/web/server.py`
 - `voly/web/auth/*`
 - `voly/telemetry.py`
 - `voly/correlation.py`
 - `voly/memory/agent_memory_client.py`
-

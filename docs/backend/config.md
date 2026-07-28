@@ -158,13 +158,16 @@ VOLY_CLOUD_TENANT_ID=...
 VOLY_CLOUD_TOKEN=...
 VOLY_CLOUD_USER_ID=...
 VOLY_CLOUD_DEVICE_ID=...
-# VOLY Cloud link (voly/cloud_link.py): report finished local runs into the
-# org's shared history (control plane POST .../runs/report, device-bound
-# tenant edge JWT). Metadata only — task text capped at 500 chars, cost,
-# files touched; never file contents. Env overrides the `cloud:` yaml
-# section; best-effort delivery, failures never break the run.
+# VOLY Cloud device link (voly/cloud_link.py). Linking authenticates this
+# device and enables heartbeats, but does NOT consent to run analytics.
 # Prefer `voly cloud login --url <cp>` (browser confirm) over putting a
 # password on the laptop — that writes `.voly/cloud.json` with device_id.
+
+VOLY_CLOUD_ANALYTICS_ENABLED=false
+# Explicit opt-in for all remote run analytics: linked Cloud run history,
+# CF Pipeline and R2. Defaults false even when endpoints/credentials exist.
+# Remote payloads exclude raw task/result/error text, repository paths,
+# file contents, baseline excerpts/commands/notes and feedback comments.
 
 VOLY_CLOUD_LINK_FILE=.voly/cloud.json
 # Path of the device link written by `voly cloud login` (default shown).
@@ -190,6 +193,7 @@ VOLY_PXPIPE_OVERRIDE_BASE_URL=false
 # Recommended — browser confirm (dashboard session), no password on the laptop:
 voly cloud login --url https://cloud.voly.codes
 voly cloud status
+voly cloud analytics status|enable|disable
 voly cloud sync [--since 30] [--limit 200]   # upload past .voly/events
 voly cloud heartbeat --once                  # or leave running / use `voly ui`
 voly cloud logout
@@ -201,7 +205,10 @@ voly cloud login --url http://127.0.0.1:7790 --email you@example.com [--org slug
 `login` (default) starts a device-code session, opens `/link`, and polls until
 you approve in the dashboard. The device-bound JWT is stored in
 `.voly/cloud.json` (includes `device_id`). Heartbeats keep the agent **Online**
-in the org dashboard; `sync` backfills runs that finished before linking.
+in the org dashboard. Analytics remains disabled after login until
+`voly cloud analytics enable`, `cloud_analytics.enabled: true`, or
+`VOLY_CLOUD_ANALYTICS_ENABLED=true`. Once opted in, `sync` backfills sanitized
+runs that finished before linking.
 
 > Ports for `voly serve` (9202) and `voly ui` (7788) are set via the `--port` flag, NOT via
 > env variables. Sync of `docs ↔ .env.example ↔ code` is checked by the CI gate
@@ -210,6 +217,39 @@ in the org dashboard; `sync` backfills runs that finished before linking.
 ---
 
 ## voly.yaml — key fields
+
+### Evidence Foundation
+
+```yaml
+evidence:
+  enabled: false
+  store_dir: ".voly/evidence"
+  baseline_enabled: true
+  baseline_auto_commands: true
+  baseline_commands: {}
+  baseline_timeout_seconds: 120
+  output_max_chars: 2000
+  eval_policy_id: executor-basic
+  eval_policy_version: "1"
+```
+
+`VOLY_EVIDENCE_ENABLED=1|0` overrides `enabled`. When enabled, file-capable
+executor runs capture a build/test/lint baseline before edits and write a local
+EvidenceRecord after execution. Review inferred commands before enabling this
+for a large repository. See [evidence.md](evidence.md).
+
+### Cloud analytics consent
+
+```yaml
+cloud_analytics:
+  enabled: false
+```
+
+This is a separate fail-closed gate from `telemetry.enabled`, `cloud.enabled`,
+configured Pipeline URLs and R2 credentials. Local `.voly/events` and
+`.voly/evidence` continue to work while it is false; no run analytics POST/PUT
+is attempted. When true, every destination receives a strict metadata
+allowlist rather than serialized local records.
 
 ```yaml
 default_model: kimi-k3
@@ -396,6 +436,11 @@ config.capability.enabled        # bool — capability-aware fallback chain
 config.capability.worker_url     # CF Worker URL (VOLY_CAPABILITY_WORKER_URL)
 config.capability.profiles_dir   # local profile cache path
 config.capability.worker_timeout_s  # HTTP timeout for capability Worker calls
+config.evidence.enabled             # local EvidenceRecord + pre-run baseline
+config.evidence.store_dir           # local generated evidence directory
+config.evidence.baseline_auto_commands  # discover build/test/lint commands
+config.evidence.baseline_commands   # explicit name → command overrides
+config.cloud_analytics.enabled      # explicit remote-analytics consent
 ```
 
 > **No auth config in open-core.** Web UI authentication (JWT/SSO), team

@@ -57,6 +57,13 @@ Ports are CLI flags (`--port`), not env vars.
 
 `docs/backend/api.md` is the canonical endpoint reference. The most important orchestration route is `POST /api/run` (SSE stream). Smart dispatch and A2A behavior are described there and in the pipeline wiki page.
 
+Local Evidence Foundation records are available through
+`GET /api/evidence/{task_id}` and explicit feedback through
+`POST /api/evidence/{task_id}/feedback`. CLI equivalents are
+`voly evidence show` and `voly evidence feedback`. These surfaces contain
+local repository observations and comments and must not be exposed beyond the
+server's localhost boundary.
+
 SSE `start` / `done` include `correlation_id` (TaskEvent schema v3). Incoming `X-Correlation-ID` is accepted; otherwise one is generated (`voly/correlation.py`).
 
 ## What to watch when changing entrypoints

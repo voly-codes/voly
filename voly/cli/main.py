@@ -7,25 +7,15 @@ Subcommands live in voly.cli.commands.*
 from __future__ import annotations
 
 import logging
-import sys
 
 import click
 
-if sys.platform == "win32":
-    # Windows consoles default stdout/stderr to the OS locale codepage
-    # (e.g. cp1251), not UTF-8. Every CLI command that prints Cyrillic task
-    # text or agent output (review reports, multi-agent summaries, error
-    # messages) would otherwise come out as mojibake or raise
-    # UnicodeEncodeError outright — see docs/backend/executors.md for the
-    # matching subprocess-capture fix.
-    for _stream in (sys.stdout, sys.stderr):
-        try:
-            _stream.reconfigure(encoding="utf-8")
-        except (AttributeError, ValueError):
-            pass
+from voly.cli._encoding import configure_utf8_stdio
 
-from voly.capability.sync import startup_sync
-from voly.cli.commands import (
+configure_utf8_stdio()
+
+from voly.capability.sync import startup_sync  # noqa: E402
+from voly.cli.commands import (  # noqa: E402
     a2a,
     agui,
     ai_gateway,
@@ -36,6 +26,7 @@ from voly.cli.commands import (
     compare,
     config_cmd,
     dspy_cmd,
+    evidence_cmd,
     headroom,
     init,
     match_task,
@@ -63,7 +54,7 @@ from voly.cli.commands import (
     ui,
     workflow_cmd,
 )
-from voly.config import load_config
+from voly.config import load_config  # noqa: E402
 
 
 @click.group()
@@ -116,6 +107,7 @@ main.add_command(spend)
 main.add_command(catalog)
 main.add_command(cloud)
 main.add_command(dspy_cmd, name="dspy")
+main.add_command(evidence_cmd)
 main.add_command(plan_cmd)
 main.add_command(reuse_cmd)
 main.add_command(repo_cmd)

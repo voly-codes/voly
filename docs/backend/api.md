@@ -328,6 +328,29 @@ permanent "still running" cards in the UI's live task list.
 
 ---
 
+## Local evidence and human feedback
+
+These endpoints read and update `evidence.store_dir` (default
+`.voly/evidence`). They expose complete local records, including repository
+observations and human comments, so they inherit the API's localhost-only
+security boundary.
+
+| Method | Route | Body | Result |
+|---|---|---|---|
+| GET | `/api/evidence/{task_id}` | — | Complete `EvidenceRecord` JSON |
+| POST | `/api/evidence/{task_id}/feedback` | `{kind, comment?}` | Appended feedback item |
+
+Allowed `kind` values are `accepted`, `edited`, `major_rewrite`, `reverted`,
+`pr_rejected`, and `manual_fix`. The server sets `source=api`; clients cannot
+override provenance. Comments are limited to 2,000 characters. Invalid bodies
+return `422`, malformed task ids return `400`, and unknown records return
+`404`.
+
+Equivalent CLI commands are `voly evidence show <task_id>` and
+`voly evidence feedback <task_id> <kind> [--comment TEXT]`.
+
+---
+
 ## GET /api/status
 
 Server state, configuration, versions.
@@ -417,12 +440,12 @@ Write telemetry from external sources.
 
 ### TaskEvent contract (schema_version: 3)
 
-`TaskEvent` (`voly/telemetry.py`) is the public versioned task event format;
-it is consumed by external readers (CF Pipelines ingest, R2, dashboards).
-Each event carries `schema_version` (currently `3`). The v3 field set is frozen
-by the contract test `tests/test_protocol_contracts.py` — changing the schema
-requires bumping `TASK_EVENT_SCHEMA_VERSION`, updating this section, and the
-snapshot in the test. Key field groups: identification (`task_id`, `agent`, `executor`,
+`TaskEvent` (`voly/telemetry.py`) is the complete local versioned task event
+format used by `.voly/events`, local APIs and local dashboards. Each event
+carries `schema_version` (currently `3`). The v3 field set is frozen by the
+contract test `tests/test_protocol_contracts.py` — changing the schema requires
+bumping `TASK_EVENT_SCHEMA_VERSION`, updating this section, and the snapshot
+in the test. Key field groups: identification (`task_id`, `agent`, `executor`,
 `status`, `schema_version`, `correlation_id`), cost (`cost_usd`, `retry_count`,
 `retry_cost_usd`, `tokens`), diagnostics (`error`, `error_class`,
 `chain_timelog`), local artifacts (`artifacts`), A2A (`a2a_*`), DSPy (`dspy_*`).
@@ -431,6 +454,16 @@ snapshot in the test. Key field groups: identification (`task_id`, `agent`, `exe
 calls (forwarded as `X-Correlation-ID`) so Workers Logs custom fields can be
 filtered together with VOLY events. Clients may send `X-Correlation-ID` or
 `X-Request-ID`; otherwise the API generates a UUID.
+
+CF Pipelines, R2 and linked Cloud run history do **not** receive serialized
+TaskEvent v3. They are gated by explicit `cloud_analytics.enabled` consent and
+receive the separate Cloud Analytics allowlist (`schema_version: 1`,
+`source_schema_version: 3`). Its exact top-level field set is also frozen in
+`tests/test_protocol_contracts.py`. It includes a pseudonymous event id,
+task/executor/model categories, token/cost/duration/outcome/error-class and
+DSPy/A2A counters. It excludes `task_id`, correlation id, prompts, results,
+free-form errors, reports, paths, artifacts, stage/chain logs and assignment
+payloads.
 
 Related contract: spend protocol — `docs/backend/spend-protocol.md`.
 

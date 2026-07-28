@@ -150,6 +150,39 @@ class AgentRunner:
             except Exception:  # noqa: BLE001
                 tracker = None
 
+        # Evidence Foundation: capture repository health before any file-capable
+        # executor runs. This is intentionally separate from the later git
+        # snapshot: tests/build/lint may create ignored caches, but their outcome
+        # must describe the pre-existing repository state.
+        evidence_cfg = getattr(self.config, "evidence", None)
+        baseline = None
+        if evidence_cfg is not None and bool(getattr(evidence_cfg, "enabled", False)):
+            try:
+                from voly.evidence import capture_repository_baseline
+
+                baseline = capture_repository_baseline(
+                    cwd,
+                    auto_commands=bool(
+                        getattr(evidence_cfg, "baseline_enabled", True)
+                        and getattr(evidence_cfg, "baseline_auto_commands", True)
+                    ),
+                    commands=(
+                        dict(getattr(evidence_cfg, "baseline_commands", None) or {})
+                        if getattr(evidence_cfg, "baseline_enabled", True)
+                        else {}
+                    ),
+                    timeout_seconds=float(
+                        getattr(evidence_cfg, "baseline_timeout_seconds", 120.0)
+                    ),
+                    output_max_chars=int(
+                        getattr(evidence_cfg, "output_max_chars", 2000)
+                    ),
+                )
+            except Exception as exc:  # noqa: BLE001
+                logging.getLogger(_CHAIN_LOGGER_NAME).warning(
+                    "[CHAIN:EVIDENCE_BASELINE] failed: %s", exc
+                )
+
         # DSPy task planning stage: refine the task before handing to executor.
         # Active only when dspy.enabled and the task_planner program exists in registry.
         effective_task = task
@@ -388,6 +421,45 @@ class AgentRunner:
             status = budget_status(total_cost_usd, self.config)
             budget_exceeded = status == "budget_exceeded"
 
+        final_error_class = classify_failure(result) or ""
+        if baseline is not None and evidence_cfg is not None:
+            try:
+                from voly.evidence import EvidenceStore, build_evidence_record
+
+                evidence_record = build_evidence_record(
+                    task_id=task_id,
+                    task=task,
+                    task_type=task_type or "unknown",
+                    agent=agent_role,
+                    executor=executor_name,
+                    result=result,
+                    baseline=baseline,
+                    error_class=final_error_class,
+                    retry_count=retry_count,
+                    total_cost_usd=total_cost_usd,
+                    eval_policy_id=str(
+                        getattr(evidence_cfg, "eval_policy_id", "executor-basic")
+                    ),
+                    eval_policy_version=str(
+                        getattr(evidence_cfg, "eval_policy_version", "1")
+                    ),
+                )
+                evidence_path = EvidenceStore(
+                    str(getattr(evidence_cfg, "store_dir", ".voly/evidence"))
+                ).save(evidence_record)
+                result.metadata["evidence_record"] = str(evidence_path)
+                result.metadata["evidence_failure_class"] = (
+                    evidence_record.outcome.failure_class
+                )
+                result.metadata["evidence_penalize_agent"] = (
+                    evidence_record.outcome.penalize_agent
+                )
+                result.metadata["baseline_health"] = baseline.health
+            except Exception as exc:  # noqa: BLE001
+                logging.getLogger(_CHAIN_LOGGER_NAME).warning(
+                    "[CHAIN:EVIDENCE_STORE] failed: %s", exc
+                )
+
         if hb_stop is not None:
             hb_stop.set()
         if tracker is not None:
@@ -418,7 +490,7 @@ class AgentRunner:
                 cost_usd=total_cost_usd,
                 retry_count=retry_count,
                 retry_cost_usd=round(retry_cost_usd, 6),
-                error_class=classify_failure(result),
+                error_class=final_error_class or None,
                 duration_ms=result.duration_ms,
                 model=result.metadata.get("model") if result.metadata else (model or executor_name),
                 provider=result.metadata.get("provider") if result.metadata else executor_name,

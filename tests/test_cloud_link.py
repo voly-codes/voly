@@ -7,7 +7,7 @@ import json
 import pytest
 
 from voly.cloud_link import build_report_body, report_run_event
-from voly.config import CloudConfig, VOLYConfig
+from voly.config import CloudAnalyticsConfig, CloudConfig, VOLYConfig
 from voly.telemetry import TaskEvent, emit_event_from_config
 
 _CLOUD_ENV_KEYS = (
@@ -16,6 +16,7 @@ _CLOUD_ENV_KEYS = (
     "VOLY_CLOUD_TENANT_ID",
     "VOLY_CLOUD_TOKEN",
     "VOLY_CLOUD_USER_ID",
+    "VOLY_CLOUD_ANALYTICS_ENABLED",
 )
 
 
@@ -29,21 +30,21 @@ def _hermetic_cloud_env(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
 
 
 def _event(**overrides) -> TaskEvent:
-    defaults = dict(
-        task_id="run-1",
-        agent="claude",
-        status="completed",
-        executor="claude-code",
-        cost_usd=0.42,
-        task_prompt="add health endpoint",
-        report={
+    defaults = {
+        "task_id": "run-1",
+        "agent": "claude",
+        "status": "completed",
+        "executor": "claude-code",
+        "cost_usd": 0.42,
+        "task_prompt": "add health endpoint",
+        "report": {
             "summary": "added /health",
             "files_changed": ["app.py"],
             "files_created": ["tests/test_health.py"],
             "files_deleted": [],
             "actions": [],
         },
-    )
+    }
     defaults.update(overrides)
     return TaskEvent(**defaults)
 
@@ -57,6 +58,7 @@ def _linked_config() -> VOLYConfig:
         token="jwt-token",
         user_id="u-1",
     )
+    config.cloud_analytics = CloudAnalyticsConfig(enabled=True)
     return config
 
 
@@ -75,25 +77,31 @@ class _Resp:
 
 def test_build_report_body_maps_task_event_fields() -> None:
     body = build_report_body(_event(), user_id="u-1")
-    assert body["run_id"] == "run-1"
-    assert body["task"] == "add health endpoint"
+    assert len(body["run_id"]) == 64
+    assert body["run_id"] != "run-1"
+    assert body["task"] == "unknown task"
     assert body["success"] is True
     assert body["status"] == "completed"
     assert body["executor"] == "claude-code"
     assert body["cost_usd"] == pytest.approx(0.42)
-    assert body["files_touched"] == ["app.py", "tests/test_health.py"]
-    assert body["summary"] == "added /health"
-    assert body["user_id"] == "u-1"
+    assert body["files_touched"] == []
+    assert body["files_touched_count"] == 2
+    assert body["summary"] == "completed; files_touched=2"
+    assert "user_id" not in body
+    serialized = json.dumps(body)
+    assert "add health endpoint" not in serialized
+    assert "added /health" not in serialized
+    assert "app.py" not in serialized
 
 
 def test_build_report_body_falls_back_to_result_and_task_id() -> None:
     event = _event(task_prompt=None, report=None, result="x" * 900, status="failed")
     body = build_report_body(event)
-    assert body["task"] == "run-1"
+    assert body["task"] == "unknown task"
     assert body["success"] is False
-    assert len(body["summary"]) == 500
+    assert body["summary"] == "failed; files_touched=0"
     assert body["files_touched"] == []
-    assert body["user_id"] is None
+    assert event.result not in json.dumps(body)
 
 
 def test_report_run_event_posts_tenant_jwt(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -110,8 +118,9 @@ def test_report_run_event_posts_tenant_jwt(monkeypatch: pytest.MonkeyPatch) -> N
     assert report_run_event(_event(), _linked_config()) is True
     assert captured["url"] == "http://cloud.test:7790/cloud/v1/tenants/t-abc/runs/report"
     assert captured["auth"] == "Bearer jwt-token"
-    assert captured["body"]["run_id"] == "run-1"
-    assert captured["body"]["user_id"] == "u-1"
+    assert len(captured["body"]["run_id"]) == 64
+    assert captured["body"]["run_id"] != "run-1"
+    assert "user_id" not in captured["body"]
 
 
 def test_report_run_event_noop_when_disabled_or_incomplete(
@@ -128,6 +137,10 @@ def test_report_run_event_noop_when_disabled_or_incomplete(
     incomplete = _linked_config()
     incomplete.cloud.token = ""
     assert report_run_event(_event(), incomplete) is False
+
+    no_consent = _linked_config()
+    no_consent.cloud_analytics.enabled = False
+    assert report_run_event(_event(), no_consent) is False
 
 
 def test_report_run_event_swallows_delivery_errors(
@@ -174,12 +187,14 @@ def test_parser_env_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("VOLY_CLOUD_URL", "http://cp:7790")
     monkeypatch.setenv("VOLY_CLOUD_TENANT_ID", "t-env")
     monkeypatch.setenv("VOLY_CLOUD_TOKEN", "tok-env")
+    monkeypatch.setenv("VOLY_CLOUD_ANALYTICS_ENABLED", "true")
 
     config = _parse_config({})
     assert config.cloud.enabled is True
     assert config.cloud.base_url == "http://cp:7790"
     assert config.cloud.tenant_id == "t-env"
     assert config.cloud.token == "tok-env"
+    assert config.cloud_analytics.enabled is True
 
 
 def test_parser_yaml_section(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -194,13 +209,15 @@ def test_parser_yaml_section(monkeypatch: pytest.MonkeyPatch) -> None:
                 "token": "tok-yaml",
                 "user_id": "u-yaml",
                 "timeout_seconds": 2,
-            }
+            },
+            "cloud_analytics": {"enabled": True},
         }
     )
     assert config.cloud.enabled is True
     assert config.cloud.tenant_id == "t-yaml"
     assert config.cloud.user_id == "u-yaml"
     assert config.cloud.timeout_seconds == pytest.approx(2.0)
+    assert config.cloud_analytics.enabled is True
 
 
 # --- device link file + voly cloud CLI -------------------------------------
@@ -222,7 +239,13 @@ def test_report_falls_back_to_link_file(monkeypatch: pytest.MonkeyPatch) -> None
     from voly.cloud_link import save_link_file
 
     save_link_file(
-        {"base_url": "http://cp:7790/", "tenant_id": "t-link", "token": "tok-link", "user_id": "u-9"}
+        {
+            "base_url": "http://cp:7790/",
+            "tenant_id": "t-link",
+            "token": "tok-link",
+            "user_id": "u-9",
+            "analytics_enabled": True,
+        }
     )
     captured: dict = {}
 
@@ -237,7 +260,7 @@ def test_report_falls_back_to_link_file(monkeypatch: pytest.MonkeyPatch) -> None
     assert report_run_event(_event(), VOLYConfig()) is True
     assert captured["url"] == "http://cp:7790/cloud/v1/tenants/t-link/runs/report"
     assert captured["auth"] == "Bearer tok-link"
-    assert captured["body"]["user_id"] == "u-9"
+    assert "user_id" not in captured["body"]
 
 
 def test_explicit_config_wins_over_link_file(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -309,12 +332,23 @@ def test_cli_cloud_login_status_logout(monkeypatch: pytest.MonkeyPatch) -> None:
     assert link["tenant_id"] == "t-cli"
     assert link["token"] == "tenant-tok"
     assert link["device_id"] == "dev-1"
+    assert link["analytics_enabled"] is False
     assert "Bearer user-tok" in captured_tokens
 
     result = runner.invoke(cloud, ["status"])
     assert result.exit_code == 0, result.output
     assert "cliorg" in result.output
     assert "dev-1" in result.output
+    assert "Cloud analytics: disabled" in result.output
+
+    result = runner.invoke(cloud, ["analytics", "enable"])
+    assert result.exit_code == 0, result.output
+    assert "Cloud analytics: enabled" in result.output
+    assert read_link_file()["analytics_enabled"] is True
+
+    result = runner.invoke(cloud, ["analytics", "disable"])
+    assert result.exit_code == 0, result.output
+    assert "Cloud analytics: disabled" in result.output
 
     result = runner.invoke(cloud, ["logout"])
     assert result.exit_code == 0
@@ -392,6 +426,7 @@ def test_cli_device_code_login(monkeypatch: pytest.MonkeyPatch) -> None:
     assert link["device_id"] == "dev-2"
     assert link["token"] == "edge-2"
     assert link["tenant_slug"] == "acme"
+    assert link["analytics_enabled"] is False
 
 
 def test_send_heartbeat_and_sync(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -405,6 +440,7 @@ def test_send_heartbeat_and_sync(tmp_path, monkeypatch: pytest.MonkeyPatch) -> N
             "token": "tok",
             "device_id": "dev-9",
             "user_id": "u-1",
+            "analytics_enabled": True,
         }
     )
     urls: list[str] = []

@@ -59,6 +59,7 @@ docs/
     reuse.md         ← voly reuse: GitHub search → pack → pick → apply
     intelligence.md  ← Repository Intelligence: admission, license, architecture map
     capability.md    ← Capability Registry: evidence-based executor routing, matcher
+    evidence.md      ← EvidenceRecord v1, repository baseline, root-cause attribution
     executors.md     ← All executors, billing fallback chain, WranglerExecutor
     ai-gateway.md    ← AIGateway, CF route schema, providers, env vars
     dspy.md          ← DSPy programs, TaskPlanner, shadow/active, adapter
@@ -134,7 +135,7 @@ voly run "<task>" --executor claude-code --cwd /home/lanies/git/codeops/voly
 |---|---|
 | Project-agnostic core | No hardcoded paths/product logic in `voly/` |
 | Target project via `--cwd` | Executors work on external repos via `--cwd` |
-| Generated state not source | Do not commit `.voly/events/`, DSPy datasets, compiled programs |
+| Generated state not source | Do not commit `.voly/events/`, `.voly/evidence/`, DSPy datasets, compiled programs |
 | Gateway first | Model calls go through `AIGateway.chat()` — except executors |
 | Docs move with code | Docs are updated with the code, in the same commit |
 
@@ -195,6 +196,7 @@ voly plan list|show
 voly reuse search|pack|pick|apply|run
 voly repo inspect|analyze|map|license
 voly capability list|show|match|reset
+voly evidence show|feedback
 voly workflow review-until-clean <task> --cwd <project>
 ```
 
@@ -215,7 +217,7 @@ pytest tests/ -q                          # full run
 
 ## Do not commit
 
-`.env`, `.voly/events/`, `.voly/dspy/datasets/`, `.voly/dspy/programs/`,
+`.env`, `.voly/events/`, `.voly/evidence/`, `.voly/dspy/datasets/`, `.voly/dspy/programs/`,
 `.voly/reports/`, `.venv/`, `.pytest_cache/`, `.ruff_cache/`,
 `ui/node_modules/`, `voly/web/static/assets/`
 

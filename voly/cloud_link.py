@@ -5,8 +5,8 @@ When a laptop is linked to an org (``cloud:`` in voly.yaml, device-code
 so the team sees one shared history alongside hosted runs.
 
 Control-plane endpoint: ``POST /cloud/v1/tenants/{tenant_id}/runs/report``,
-authenticated with a **device-bound** tenant edge JWT. Best-effort: metadata
-only (task text capped, cost, files touched — never file contents).
+authenticated with a **device-bound** tenant edge JWT. Best-effort and explicit
+opt-in: only sanitized metadata, never task/result text or repository paths.
 """
 
 from __future__ import annotations
@@ -24,9 +24,6 @@ from typing import Any
 from voly.telemetry import USER_AGENT, TaskEvent, load_events
 
 logger = logging.getLogger(__name__)
-
-_TASK_CAP = 500
-_SUMMARY_CAP = 500
 
 LINK_FILE_ENV = "VOLY_CLOUD_LINK_FILE"
 _DEFAULT_LINK_FILE = Path(".voly") / "cloud.json"
@@ -117,22 +114,35 @@ def _files_touched(event: TaskEvent) -> list[str]:
     return files
 
 
+def cloud_analytics_enabled(config: Any | None = None) -> bool:
+    """Return explicit remote-analytics consent from env, config, or link file."""
+    env = os.environ.get("VOLY_CLOUD_ANALYTICS_ENABLED")
+    if env is not None:
+        return env.strip().lower() in {"1", "true", "yes", "on"}
+    analytics = getattr(config, "cloud_analytics", None) if config is not None else None
+    if bool(getattr(analytics, "enabled", False)):
+        return True
+    link = read_link_file()
+    return bool(link and link.get("analytics_enabled") is True)
+
+
 def build_report_body(event: TaskEvent, *, user_id: str = "") -> dict[str, Any]:
-    """Metadata-only run record matching the control plane's report schema."""
-    report = event.report or {}
-    summary = report.get("summary")
-    if not isinstance(summary, str) or not summary.strip():
-        summary = (event.result or "")[:_SUMMARY_CAP]
+    """Sanitized run record matching the control plane's report schema."""
+    from voly.telemetry import event_to_pipeline_record
+
+    record = event_to_pipeline_record(event)
+    files_changed = len(_files_touched(event))
+    outcome = "completed" if event.status == "completed" else "failed"
     return {
-        "run_id": event.task_id,
-        "task": (event.task_prompt or event.task_id)[:_TASK_CAP],
+        "run_id": record["event_id"],
+        "task": f"{event.task_type or 'unknown'} task",
         "success": event.status == "completed",
         "status": event.status,
         "executor": event.executor or event.agent,
         "cost_usd": event.cost_usd,
-        "files_touched": _files_touched(event),
-        "summary": summary[:_SUMMARY_CAP],
-        "user_id": user_id or None,
+        "files_touched": [],
+        "files_touched_count": files_changed,
+        "summary": f"{outcome}; files_touched={files_changed}",
     }
 
 
@@ -222,12 +232,15 @@ def stop_heartbeat_loop() -> None:
 
 def report_run_event(event: TaskEvent, config: Any | None = None) -> bool:
     """POST one finished run to the linked control plane. Returns True on 2xx."""
+    if not cloud_analytics_enabled(config):
+        logger.debug("cloud run report skipped — analytics consent is disabled")
+        return False
     link = resolve_cloud_link(config)
     if link is None:
         return False
 
     url = f"{link['base_url']}/cloud/v1/tenants/{link['tenant_id']}/runs/report"
-    body = build_report_body(event, user_id=link["user_id"])
+    body = build_report_body(event)
     try:
         status, _ = _request(
             "POST", url, token=link["token"], body=body, timeout=link["timeout_seconds"]
@@ -252,7 +265,7 @@ def sync_local_events(
     """Upload historical `.voly/events` to the linked org (idempotent by run_id)."""
     link = resolve_cloud_link(config)
     counts = {"synced": 0, "skipped": 0, "failed": 0}
-    if link is None:
+    if link is None or not cloud_analytics_enabled(config):
         return counts
 
     target = Path(events_dir) if events_dir else Path(".voly") / "events"

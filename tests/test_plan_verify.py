@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -20,11 +21,11 @@ from voly.plan import (
 )
 from voly.plan.verify import (
     CHECK_COMMAND,
+    CHECK_FILE_LINE_LIMIT,
     CHECK_FILES_EXIST,
     CHECK_FILES_MISSING,
     CHECK_GIT_DIFF_CONTAINS,
     CHECK_GIT_DIFF_NONEMPTY,
-    CHECK_FILE_LINE_LIMIT,
     CHECK_OUTPUT_NONEMPTY,
     CHECK_OUTPUT_REGEX,
     VerifyContext,
@@ -47,6 +48,12 @@ def engine() -> PlanEngine:
 @pytest.fixture()
 def cwd(tmp_path: Path) -> Path:
     return tmp_path
+
+
+def _python_script_command(cwd: Path, name: str, source: str) -> str:
+    script = cwd / name
+    script.write_text(source, encoding="utf-8")
+    return f"{sys.executable} {script.name}"
 
 
 # ── Path jail ────────────────────────────────────────────────────────────────
@@ -98,15 +105,17 @@ def test_files_exist_path_escape_fails(cwd: Path) -> None:
 
 def test_command_success(cwd: Path) -> None:
     ctx = VerifyContext(cwd=str(cwd), command_timeout=10)
-    r = run_check(AcceptanceCheck(type=CHECK_COMMAND, run="true"), ctx)
+    command = _python_script_command(cwd, "success.py", "raise SystemExit(0)\n")
+    r = run_check(AcceptanceCheck(type=CHECK_COMMAND, run=command), ctx)
     assert r.ok
     assert r.detail["returncode"] == 0
 
 
 def test_command_expect_exit(cwd: Path) -> None:
     ctx = VerifyContext(cwd=str(cwd), command_timeout=10)
+    command = _python_script_command(cwd, "expected_exit.py", "raise SystemExit(1)\n")
     r = run_check(
-        AcceptanceCheck(type=CHECK_COMMAND, run="false", expect_exit=1),
+        AcceptanceCheck(type=CHECK_COMMAND, run=command, expect_exit=1),
         ctx,
     )
     assert r.ok
@@ -114,14 +123,20 @@ def test_command_expect_exit(cwd: Path) -> None:
 
 def test_command_failure(cwd: Path) -> None:
     ctx = VerifyContext(cwd=str(cwd), command_timeout=10)
-    r = run_check(AcceptanceCheck(type=CHECK_COMMAND, run="false"), ctx)
+    command = _python_script_command(cwd, "failure.py", "raise SystemExit(1)\n")
+    r = run_check(AcceptanceCheck(type=CHECK_COMMAND, run=command), ctx)
     assert not r.ok
 
 
 def test_command_timeout(cwd: Path) -> None:
     ctx = VerifyContext(cwd=str(cwd), command_timeout=0.3)
+    command = _python_script_command(
+        cwd,
+        "timeout.py",
+        "import time\ntime.sleep(5)\n",
+    )
     r = run_check(
-        AcceptanceCheck(type=CHECK_COMMAND, run="sleep 5"),
+        AcceptanceCheck(type=CHECK_COMMAND, run=command),
         ctx,
     )
     assert not r.ok
@@ -131,20 +146,34 @@ def test_command_timeout(cwd: Path) -> None:
 def test_command_requires_run_and_cwd() -> None:
     r = run_check(AcceptanceCheck(type=CHECK_COMMAND, run=""), VerifyContext(cwd="/tmp"))
     assert not r.ok
-    r2 = run_check(AcceptanceCheck(type=CHECK_COMMAND, run="true"), VerifyContext())
+    r2 = run_check(AcceptanceCheck(type=CHECK_COMMAND, run=sys.executable), VerifyContext())
     assert not r2.ok
 
 
 def test_command_python_write_then_exist(cwd: Path) -> None:
     script = cwd / "w.py"
-    script.write_text("open('out.txt','w').write('hi')\n")
+    script.write_text("open('out.txt','w').write('hi')\n", encoding="utf-8")
     ctx = VerifyContext(cwd=str(cwd), command_timeout=15)
     r = run_check(
-        AcceptanceCheck(type=CHECK_COMMAND, run=f"python3 {script.name}"),
+        AcceptanceCheck(type=CHECK_COMMAND, run=f"{sys.executable} {script.name}"),
         ctx,
     )
     assert r.ok
     assert (cwd / "out.txt").read_text() == "hi"
+
+
+def test_command_captures_utf8_output(cwd: Path) -> None:
+    command = _python_script_command(
+        cwd,
+        "utf8_output.py",
+        "print('Проверка UTF-8')\n",
+    )
+    ctx = VerifyContext(cwd=str(cwd), command_timeout=10)
+
+    r = run_check(AcceptanceCheck(type=CHECK_COMMAND, run=command), ctx)
+
+    assert r.ok
+    assert r.detail["stdout_tail"].strip() == "Проверка UTF-8"
 
 
 # ── output ───────────────────────────────────────────────────────────────────

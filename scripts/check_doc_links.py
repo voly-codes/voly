@@ -53,12 +53,12 @@ def main() -> int:
                 broken.append(f"{rel} → {target}")
 
     if broken:
-        print("✘ broken relative doc links:")
+        print("[FAIL] broken relative doc links:")
         for b in broken:
             print(f"    {b}")
         print("\nFix: update the link or restore the target file.")
         return 1
-    print("✓ doc-links: all relative Markdown links resolve.")
+    print("[OK] doc-links: all relative Markdown links resolve.")
     return 0
 
 

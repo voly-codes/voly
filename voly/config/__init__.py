@@ -7,7 +7,8 @@ Public API — all names importable as `from voly.config import <name>`:
     ModelConfig, AgentConfig, VOLYConfig,
     RTKConfig, HeadroomConfig, PxpipeConfig, MemoryConfig, A2AConfig, AGUIConfig,
     SpendConfig, RegistryConfig, ScannerConfig, ReuseConfig,
-    AIGatewayConfig, MCPConfig, TelemetryConfig, CloudConfig, DSPyConfig, PlanConfig,
+    AIGatewayConfig, MCPConfig, TelemetryConfig, EvidenceConfig, CloudConfig,
+    CloudAnalyticsConfig, DSPyConfig, PlanConfig,
     CostPolicyConfig, ExecutorSafetyConfig
 
   Functions:
@@ -19,18 +20,22 @@ Public API — all names importable as `from voly.config import <name>`:
 Internal modules (underscore-prefixed) are not part of the public API.
 """
 
+from voly.config._defaults import _DEFAULT_MODELS
+from voly.config._loader import load_config
+from voly.config._template import create_default_config
 from voly.config._types import (
     DEFAULT_CONFIG_FILENAME,
-    DEFAULT_PXPIPE_PORT,
     DEFAULT_PROXY_PORT,
+    DEFAULT_PXPIPE_PORT,
     A2AConfig,
+    AgentConfig,
     AGUIConfig,
     AIGatewayConfig,
-    AgentConfig,
+    CloudAnalyticsConfig,
     CloudConfig,
-    VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
+    EvidenceConfig,
     ExecutorSafetyConfig,
     HeadroomConfig,
     MCPConfig,
@@ -38,16 +43,14 @@ from voly.config._types import (
     ModelConfig,
     PlanConfig,
     PxpipeConfig,
-    RTKConfig,
     RegistryConfig,
     ReuseConfig,
+    RTKConfig,
     ScannerConfig,
     SpendConfig,
     TelemetryConfig,
+    VOLYConfig,
 )
-from voly.config._defaults import _DEFAULT_MODELS
-from voly.config._loader import load_config
-from voly.config._template import create_default_config
 
 __all__ = [
     # dataclasses
@@ -67,7 +70,9 @@ __all__ = [
     "AIGatewayConfig",
     "MCPConfig",
     "TelemetryConfig",
+    "EvidenceConfig",
     "CloudConfig",
+    "CloudAnalyticsConfig",
     "DSPyConfig",
     "PlanConfig",
     "CostPolicyConfig",

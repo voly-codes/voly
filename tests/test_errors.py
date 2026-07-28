@@ -236,6 +236,7 @@ def test_emit_event_handles_pipeline_failure_gracefully(tmp_path: Path, monkeypa
         event,
         events_dir=tmp_path,
         pipeline_url="https://pipe.example.com/ingest",
+        remote_analytics_enabled=True,
     )
     assert path is not None
     assert path.exists()

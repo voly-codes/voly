@@ -5,15 +5,18 @@ from __future__ import annotations
 import os
 
 from voly.config._types import (
+    DEFAULT_PROXY_PORT,
+    DEFAULT_PXPIPE_PORT,
     A2AConfig,
+    AgentConfig,
     AGUIConfig,
     AIGatewayConfig,
-    AgentConfig,
     CapabilityConfig,
+    CloudAnalyticsConfig,
     CloudConfig,
-    VOLYConfig,
     CostPolicyConfig,
     DSPyConfig,
+    EvidenceConfig,
     ExecutorSafetyConfig,
     HeadroomConfig,
     IntelligenceConfig,
@@ -22,14 +25,13 @@ from voly.config._types import (
     ModelConfig,
     PlanConfig,
     PxpipeConfig,
-    RTKConfig,
     RegistryConfig,
     ReuseConfig,
+    RTKConfig,
     ScannerConfig,
     SpendConfig,
     TelemetryConfig,
-    DEFAULT_PROXY_PORT,
-    DEFAULT_PXPIPE_PORT,
+    VOLYConfig,
 )
 
 
@@ -362,6 +364,28 @@ def _parse_config(raw: dict) -> VOLYConfig:
                 config.telemetry.pipeline_url = env_url.rstrip("/")
                 break
 
+    if "evidence" in raw:
+        e = raw["evidence"]
+        config.evidence = EvidenceConfig(
+            enabled=_parse_bool(e.get("enabled"), False),
+            store_dir=str(e.get("store_dir") or ".voly/evidence"),
+            baseline_enabled=_parse_bool(e.get("baseline_enabled"), True),
+            baseline_auto_commands=_parse_bool(e.get("baseline_auto_commands"), True),
+            baseline_commands={
+                str(name): str(command)
+                for name, command in dict(e.get("baseline_commands") or {}).items()
+                if str(command).strip()
+            },
+            baseline_timeout_seconds=float(e.get("baseline_timeout_seconds", 120.0)),
+            output_max_chars=int(e.get("output_max_chars", 2000)),
+            eval_policy_id=str(e.get("eval_policy_id") or "executor-basic"),
+            eval_policy_version=str(e.get("eval_policy_version") or "1"),
+        )
+    if "VOLY_EVIDENCE_ENABLED" in os.environ:
+        config.evidence.enabled = _parse_bool(
+            os.environ.get("VOLY_EVIDENCE_ENABLED"), False
+        )
+
     if "cloud" in raw:
         c = raw["cloud"]
         config.cloud = CloudConfig(
@@ -387,6 +411,16 @@ def _parse_config(raw: dict) -> VOLYConfig:
             setattr(config.cloud, attr, env_value)
     if "VOLY_CLOUD_ENABLED" in os.environ:
         config.cloud.enabled = _parse_bool(os.environ.get("VOLY_CLOUD_ENABLED"), False)
+
+    if "cloud_analytics" in raw:
+        analytics = raw["cloud_analytics"]
+        config.cloud_analytics = CloudAnalyticsConfig(
+            enabled=_parse_bool(analytics.get("enabled"), False),
+        )
+    if "VOLY_CLOUD_ANALYTICS_ENABLED" in os.environ:
+        config.cloud_analytics.enabled = _parse_bool(
+            os.environ.get("VOLY_CLOUD_ANALYTICS_ENABLED"), False
+        )
 
     if "dspy" in raw:
         d = raw["dspy"]

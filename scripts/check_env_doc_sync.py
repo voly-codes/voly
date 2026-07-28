@@ -76,22 +76,22 @@ def main() -> int:
     ok = True
     if missing_env:
         ok = False
-        print("✘ VOLY_* vars read by code but MISSING from .env.example:")
+        print("[FAIL] VOLY_* vars read by code but MISSING from .env.example:")
         for v in missing_env:
             print(f"    {v}")
     if missing_docs:
         ok = False
-        print("✘ VOLY_* vars read by code but NOT documented under docs/:")
+        print("[FAIL] VOLY_* vars read by code but NOT documented under docs/:")
         for v in missing_docs:
             print(f"    {v}")
     if stale:
         # Warning only — a var may be documented ahead of use.
-        print("⚠ VOLY_* vars in .env.example/docs but not referenced in code:")
+        print("[WARN] VOLY_* vars in .env.example/docs but not referenced in code:")
         for v in stale:
             print(f"    {v}")
 
     if ok:
-        print(f"✓ env-doc-sync: {len(required)} user-facing VOLY_* vars in sync "
+        print(f"[OK] env-doc-sync: {len(required)} user-facing VOLY_* vars in sync "
               f"(.env.example + docs).")
         return 0
     print("\nFix: add the var to .env.example and docs/backend/config.md, "

@@ -109,6 +109,7 @@ open versioned interfaces — they are frozen by contract tests
 | Contract | Version | Where documented |
 |---|---|---|
 | `TaskEvent` (task telemetry) | `schema_version: 3` | `voly/telemetry.py`, `docs/backend/api.md` |
+| Cloud analytics allowlist | `schema_version: 1` | `voly/telemetry.py`, `docs/backend/api.md` |
 | Spend protocol (`/spend/record`, `/spend/check`, …) | v1 | `docs/backend/spend-protocol.md` |
 | A2A federation | — | `cf-workers/a2a/`, `docs/backend/api.md` |
 
@@ -165,6 +166,16 @@ class PipelineResult:
 ## Executor path (file-capable agents)
 
 `voly/runner/agent_runner.py:AgentRunner.run()` — for tasks that write files.
+With Evidence Foundation enabled, the path is:
+
+```text
+repository baseline → DSPy plan → executor/fallback → WorkReport
+→ root-cause classification → local EvidenceRecord → TaskEvent
+```
+
+EvidenceRecord is separate from the frozen TaskEvent v3 contract. It stores a
+versioned execution bundle and prevents provider/tool/environment or
+pre-existing repository failures from reducing agent capability evidence.
 
 ### Billing fallback chain
 
@@ -270,7 +281,8 @@ Does not contain product logic.
 
 ### `voly/runner/` — executor path
 
-`AgentRunner.run()` orchestrates: DSPy plan → executor → billing fallback → git diff → telemetry.
+`AgentRunner.run()` orchestrates: repository baseline → DSPy plan → executor →
+billing fallback → git diff → EvidenceRecord → telemetry.
 
 Capability-aware fallback (`voly/capability/fallback.py`) replaces the static `BILLING_FALLBACK_CHAIN` when capability profiles are loaded: `ExecutorMatcher` scores available executors against the task dimension and project features, reordering or excluding executors via `hard_exclude()` before the billing chain runs.
 
@@ -280,6 +292,17 @@ Capability-aware fallback (`voly/capability/fallback.py`) replaces the static `B
 | `executor_factory.py` | `EXECUTOR_NAMES`, `BILLING_FALLBACK_CHAIN`, `_build_executor` |
 | `work_report.py` | git porcelain → `WorkReport` |
 | `dspy_hooks.py` | optional TaskPlanner plan/store |
+
+### `voly/evidence/` — Evidence Foundation
+
+Local, versioned facts for executor runs. `baseline.py` captures stack and
+deterministic pre-run checks; `classifier.py` attributes root cause;
+`record.py` binds task/executor/model/runtime/eval-policy versions; `store.py`
+writes `.voly/evidence/<task_id>.json` atomically and appends human feedback.
+Explicit feedback enters through `voly evidence feedback` or
+`POST /api/evidence/{task_id}/feedback`; task ids are path-safe and comments
+remain local.
+Canonical details: `docs/backend/evidence.md`.
 
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
@@ -379,6 +402,7 @@ Middleware stack: DLP → Cache → Rate limit → Spend limit → Provider call
 | `routes/run.py` | POST `/api/run` — SSE + smart dispatch + context gather + tech gate endpoints (`/api/tech/*`) + greenfield scaffolding |
 | `routes/tasks.py` | GET `/api/tasks`, SSE stream, artifacts |
 | `routes/runs.py` | GET `/api/runs` — in-flight RunRecords (Rung A) |
+| `routes/evidence.py` | GET local EvidenceRecord; POST explicit human feedback |
 | `routes/registry.py` | agents, models, skills |
 | `routes/marketplace.py` | skill suggest / install (pre-run gate) |
 | `routes/environment.py` | GET `/api/environment` — local readiness |
@@ -413,7 +437,13 @@ Hash-based routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy`.
 `TaskEvent` — emitted for every pipeline/executor run.
 `_COST_RATES` — sole source of truth for pricing rates.
 
-Destinations: `.voly/events/<task_id>.json` + optional CF Pipelines / R2.
+Local destination: `.voly/events/<task_id>.json` with the complete TaskEvent.
+Remote CF Pipelines, R2 and linked Cloud run history are fail-closed behind
+`cloud_analytics.enabled` (default false) and receive only an explicit metadata
+allowlist. Raw prompts/results/errors, repository paths, reports and artifacts
+never cross that boundary. Remote run/evidence identifiers are one-way hashes.
+The remote allowlist is its own `schema_version: 1` contract and carries
+`source_schema_version` for the local TaskEvent/EvidenceRecord lineage.
 
 ### `cf-workers/agent/` — CF Worker
 
@@ -467,6 +497,8 @@ Do not commit:
 .voly/dspy/datasets/
 .voly/dspy/programs/
 .voly/reports/
+.voly/evidence/
+.voly/wheels/
 ```
 
 ---
@@ -486,6 +518,7 @@ docs/backend/
   reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
   intelligence.md           ← Repository Intelligence: admission, license, architecture map
   capability.md             ← Capability Registry: evidence-based executor routing, matcher, scorer
+  evidence.md               ← baseline, EvidenceRecord v1, root-cause attribution
   config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events, tech gate, CF Worker endpoints
   spend-protocol.md         ← spend protocol contract (/spend/record, /spend/check)

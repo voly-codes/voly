@@ -31,6 +31,7 @@ def test_build_opencode_run_cmd_without_cwd() -> None:
 
 def test_build_opencode_run_cmd_expands_user(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     nested = tmp_path / "proj"
     nested.mkdir()
     # simulate ~/proj

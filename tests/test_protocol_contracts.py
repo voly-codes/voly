@@ -20,11 +20,11 @@ from unittest.mock import patch
 
 from voly.spend.client import SpendClient
 from voly.telemetry import (
+    CLOUD_ANALYTICS_SCHEMA_VERSION,
     TASK_EVENT_SCHEMA_VERSION,
     TaskEvent,
     event_to_pipeline_record,
 )
-
 
 # ─── TaskEvent schema v3 ───────────────────────────────────────────────────────
 
@@ -43,6 +43,17 @@ _V3_FIELDS = {
     "dspy_dataset", "dspy_compile_id", "dspy_score", "dspy_shadow_delta",
     "task_prompt", "result", "stage_log", "report", "artifacts", "chain_timelog",
     "a2a_dispatched", "a2a_subtask_count", "a2a_agents_used", "a2a_assignments",
+}
+
+_CLOUD_ANALYTICS_V1_FIELDS = {
+    "schema_version", "source_schema_version", "event_id", "ts_us",
+    "status", "success", "agent", "executor", "model", "provider",
+    "task_type", "skill_ids", "cost_usd", "duration_ms",
+    "tokens_input", "tokens_output", "tokens_saved_rtk",
+    "tokens_saved_headroom", "cache_hit", "fallback_used", "dlp_blocked",
+    "retry_count", "retry_cost_usd", "error_class", "dspy_enabled",
+    "dspy_used", "dspy_mode", "dspy_program_id", "dspy_program_version",
+    "a2a_dispatched", "a2a_subtask_count",
 }
 
 
@@ -66,7 +77,10 @@ def test_task_event_serializes_schema_version():
     assert d["correlation_id"] == "c-1"
     # И в плоской записи для CF Pipelines
     rec = event_to_pipeline_record(ev)
-    assert rec["schema_version"] == 3
+    assert CLOUD_ANALYTICS_SCHEMA_VERSION == 1
+    assert rec["schema_version"] == 1
+    assert rec["source_schema_version"] == 3
+    assert set(rec) == _CLOUD_ANALYTICS_V1_FIELDS
     # Ключевые плоские поля pipeline-записи (контракт SQL-трансформации)
     for key in ("ts_us", "tokens_input", "tokens_output", "cache_hit", "fallback_used"):
         assert key in rec
