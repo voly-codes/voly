@@ -7,6 +7,11 @@ from pathlib import Path
 
 import click
 
+from voly.evaluation.calibration import (
+    DEFAULT_MIN_SAMPLES,
+    build_calibration_report,
+    save_calibration_report,
+)
 from voly.evaluation.golden import (
     GoldenDatasetError,
     load_golden_dataset,
@@ -83,3 +88,35 @@ def eval_run(dataset: Path, case_ids: tuple[str, ...], output: Path | None) -> N
     )
     if report["summary"]["failed"]:
         raise click.exceptions.Exit(1)
+
+
+@eval_cmd.command("calibrate")
+@click.option(
+    "--evidence-dir",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path(".voly/evidence"),
+    show_default=True,
+)
+@click.option("--min-samples", type=click.IntRange(min=1), default=DEFAULT_MIN_SAMPLES)
+@click.option(
+    "--output",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=Path(".voly/reports/llm-judge-calibration.json"),
+    show_default=True,
+)
+def eval_calibrate(evidence_dir: Path, min_samples: int, output: Path) -> None:
+    """Compare completed LLM-judge decisions with explicit human labels."""
+    try:
+        report = build_calibration_report(evidence_dir, min_samples=min_samples)
+        save_calibration_report(report, output)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(
+        json.dumps(
+            {
+                **report["summary"],
+                "report": str(output),
+            },
+            ensure_ascii=False,
+        )
+    )

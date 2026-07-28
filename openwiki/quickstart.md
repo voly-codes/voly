@@ -55,6 +55,8 @@ See [Configuration and operations](config-and-operations.md) and `docs/backend/a
   root-cause attribution, local atomic evidence and human-feedback hooks
 - **Golden regression evaluation** — versioned curated datasets replayed in
   temporary workspaces with exact argv and no model/provider calls
+- **Judge calibration** — local per-lineage comparison of LLM-judge decisions
+  with latest explicit human feedback, without automatic threshold tuning
 - **Configuration and operations** — runtime config (including `memory.backend: agent_memory`), env vars, packaging, generated artifacts, tests
 
 ## Wiki map

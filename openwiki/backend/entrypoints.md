@@ -70,6 +70,11 @@ strict versioned schema and fixture boundary. The second replays exact argv in
 temporary fixture copies, writes a local `.voly/eval-runs/*.json` report, and
 exits non-zero when any expectation fails. It does not call a model provider.
 
+`voly eval calibrate` aggregates completed LLM-judge decisions against their
+latest explicit human feedback. It writes a local report with per-lineage
+confusion matrices and uncertainty intervals; it never mutates evidence,
+thresholds, or routing.
+
 SSE `start` / `done` include `correlation_id` (TaskEvent schema v3). Incoming `X-Correlation-ID` is accepted; otherwise one is generated (`voly/correlation.py`).
 
 ## What to watch when changing entrypoints

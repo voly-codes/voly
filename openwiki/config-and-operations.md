@@ -121,6 +121,7 @@ High-signal suites after control-plane changes:
 | Evidence Foundation | `tests/test_evidence_foundation.py` |
 | Eval Engine | `tests/test_evaluation.py` |
 | Golden regression replay | `tests/test_golden_evaluation.py` |
+| LLM judge calibration | `tests/test_judge_calibration.py` |
 | CF Containers | `tests/test_cf_containers_executor.py` |
 | Skill seed / scout | `tests/test_skill_seed_path.py`, `tests/test_skill_scout_cf.py` |
 

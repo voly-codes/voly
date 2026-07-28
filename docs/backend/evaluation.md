@@ -148,6 +148,32 @@ the original judge score. This per-run signal is the input for later aggregate
 calibration and drift monitoring; an LLM judge remains only one evidence source
 and is never the sole high-risk security approval.
 
+Aggregate those local events with:
+
+```bash
+voly eval calibrate
+voly eval calibrate --evidence-dir .voly/evidence --min-samples 20 \
+  --output .voly/reports/llm-judge-calibration.json
+```
+
+Calibration report schema v1 scans local EvidenceRecord JSON, ignores invalid
+or unlabeled records, and uses only the latest explicit feedback event for each
+completed judge decision so repeated feedback does not overweight one run. It
+keeps separate lineages for policy ID/version, rubric, actual model, provider,
+and threshold.
+
+Each lineage reports a pass/fail confusion matrix, agreement rate with a 95%
+Wilson interval, false-pass rate, false-fail rate, pass precision/recall, and
+local task IDs for disagreements. `false_pass` means the judge passed output
+that a human later failed; it must remain visible rather than being hidden in
+one average.
+
+Groups below `--min-samples` are `informational`; reaching the configured count
+marks them `sufficient`, not automatically safe. The report never changes the
+judge threshold, policy, routing, or source EvidenceRecord. Threshold changes
+remain an explicit human decision followed by a new policy lineage and a
+controlled regression run.
+
 Judge tokens and estimated cost are included in the run totals. Cached judge
 responses add zero cost. When the provider omits token counts, VOLY records
 bounded estimates with `tokens_estimated: true`.
@@ -307,6 +333,7 @@ reuse a version accidentally.
 ```bash
 python -m pytest tests/test_evaluation.py -q
 python -m pytest tests/test_golden_evaluation.py -q
+python -m pytest tests/test_judge_calibration.py -q
 python -m pytest tests/test_evidence_foundation.py tests/test_plan_verify.py -q
 ```
 

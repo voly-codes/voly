@@ -322,6 +322,11 @@ workspace, and executes exact argv with `shell=False` and a credential-minimized
 environment. Local reports live under `.voly/eval-runs/`; the runner makes no
 model calls, but v1 does not enforce OS-level network isolation.
 
+`voly eval calibrate` is the local judge-quality feedback loop. It reads
+append-only human calibration events from EvidenceRecord files and aggregates
+confusion matrices per exact policy/rubric/model/provider/threshold lineage.
+Reports are observational: they never tune thresholds or routing automatically.
+
 Documentation tasks additionally use the project-agnostic Markdown link
 evaluator and a pending human-review requirement. `EvidenceStore` resolves the
 review check atomically when explicit feedback arrives.

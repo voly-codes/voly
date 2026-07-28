@@ -1,5 +1,10 @@
 """Deterministic evaluation public API."""
 
+from voly.evaluation.calibration import (
+    CALIBRATION_REPORT_SCHEMA_VERSION,
+    build_calibration_report,
+    save_calibration_report,
+)
 from voly.evaluation.engine import apply_human_feedback, evaluate_run
 from voly.evaluation.golden import (
     GOLDEN_REPORT_SCHEMA_VERSION,
@@ -30,6 +35,7 @@ from voly.evaluation.trajectory import evaluate_trajectory
 
 __all__ = [
     "EVAL_SCHEMA_VERSION",
+    "CALIBRATION_REPORT_SCHEMA_VERSION",
     "GOLDEN_SCHEMA_VERSION",
     "GOLDEN_REPORT_SCHEMA_VERSION",
     "GoldenDataset",
@@ -54,4 +60,6 @@ __all__ = [
     "load_golden_dataset",
     "run_golden_dataset",
     "save_golden_report",
+    "build_calibration_report",
+    "save_calibration_report",
 ]

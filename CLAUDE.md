@@ -198,7 +198,7 @@ voly reuse search|pack|pick|apply|run
 voly repo inspect|analyze|map|license
 voly capability list|show|match|reset
 voly evidence show|feedback
-voly eval validate|run
+voly eval validate|run|calibrate
 voly workflow review-until-clean <task> --cwd <project>
 ```
 
