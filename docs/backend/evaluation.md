@@ -230,15 +230,88 @@ Environment overrides:
 The generated config is disabled for staged rollout. The checked-in dogfood
 config enables record-only evaluation.
 
+## Golden datasets and offline regression replay
+
+Golden dataset schema v1 adds a separate, deterministic regression surface for
+controlled comparisons. It does not replace per-run EvalPolicy checks or the
+FinOps benchmark: EvalPolicy evaluates one real executor run, while a golden
+dataset replays the same curated cases against a candidate implementation.
+
+```bash
+voly eval validate path/to/dataset.json
+voly eval run path/to/dataset.json
+voly eval run path/to/dataset.json --case stable-case-id \
+  --output .voly/eval-runs/custom.json
+```
+
+The JSON root contains `schema_version`, `dataset_id`, `version`,
+`description`, and a non-empty `cases` array. Every case has a stable unique
+ID, one of `typical`, `edge`, or `adversarial`, a fixture directory, exact
+argument vector, bounded timeout, and measurable expectations:
+
+```json
+{
+  "schema_version": 1,
+  "dataset_id": "python-core",
+  "version": "2026.07.1",
+  "description": "Curated core regressions.",
+  "cases": [
+    {
+      "id": "valid-config",
+      "category": "typical",
+      "fixture": "fixtures/valid-config",
+      "argv": ["{python}", "check.py"],
+      "timeout_seconds": 30,
+      "expected": {
+        "exit_code": 0,
+        "stdout_contains": ["valid"],
+        "stderr_not_contains": ["Traceback"],
+        "files": [
+          {"path": "result.json", "exists": true, "contains": ["\"ok\": true"]}
+        ]
+      }
+    }
+  ]
+}
+```
+
+`{python}` is the only runtime placeholder and resolves to the interpreter
+running VOLY. Display command strings are never parsed. Unknown schema keys,
+versions, duplicate IDs, absolute/traversing paths, invalid hashes, unbounded
+timeouts, and fixture symlinks fail validation.
+
+Each case copies its fixture into a new temporary workspace and runs exact
+`argv` with `shell=False`, no stdin, bounded output tails, and a minimized
+environment. API keys and other credentials are not inherited; HOME and temp
+directories are isolated. The original fixture is never modified. Reports
+record the dataset version and canonical SHA-256 fingerprint of both the JSON
+contract and fixture file contents, declared and resolved argv, per-check
+results, bounded output tails, and aggregate counts.
+They are written atomically under `.voly/eval-runs/` by default and must not be
+committed.
+
+This is an offline VOLY evaluation path: it makes no model/provider calls.
+The child command is still trusted project code and OS-level network isolation
+is not enforced in v1. Reports state `network_policy: not_enforced` instead of
+claiming a sandbox. Use reviewed fixtures and an external network sandbox when
+that boundary is required.
+
+Dataset maintenance follows continuous evaluation practice: keep stable case
+IDs, preserve representative normal cases, add edge and adversarial cases when
+production failures are discovered, and bump the dataset version whenever
+expected behavior changes. The fingerprint distinguishes content changes that
+reuse a version accidentally.
+
 ## Tests
 
 ```bash
 python -m pytest tests/test_evaluation.py -q
+python -m pytest tests/test_golden_evaluation.py -q
 python -m pytest tests/test_evidence_foundation.py tests/test_plan_verify.py -q
 ```
 
-Visual evaluation, approval blocking, golden datasets, capability-score
-updates, decay and evidence-driven routing remain later Phase 2/3 work.
+Visual evaluation, approval blocking, capability-score updates, decay and
+evidence-driven routing remain later Phase 2/3 work.
 
 ## Design references
 
@@ -251,3 +324,9 @@ updates, decay and evidence-driven routing remain later Phase 2/3 work.
 - [OpenAI Graders](https://platform.openai.com/docs/api-reference/graders)
   documents explicit model graders, score ranges, structured outputs and
   multi-dimensional grading.
+- [OpenAI Evaluation best practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices)
+  recommends task-specific datasets containing typical, edge, and adversarial
+  cases with continuous growth from observed failures.
+- [Anthropic: Define success criteria and build evaluations](https://platform.claude.com/docs/en/test-and-evaluate/develop-tests)
+  recommends specific measurable criteria, task-specific tests, and
+  deterministic code-based grading where possible.

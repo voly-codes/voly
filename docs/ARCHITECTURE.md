@@ -315,6 +315,13 @@ on safety events or rollbacks. EvalReport is stored in EvidenceRecord v2 but
 does not yet gate primary routing. Canonical details:
 `docs/backend/evaluation.md`.
 
+Golden datasets are the controlled regression companion to per-run evaluation.
+`voly eval validate|run` loads a strict versioned JSON dataset, fingerprints
+its canonical content, copies each reviewed fixture into an isolated temporary
+workspace, and executes exact argv with `shell=False` and a credential-minimized
+environment. Local reports live under `.voly/eval-runs/`; the runner makes no
+model calls, but v1 does not enforce OS-level network isolation.
+
 Documentation tasks additionally use the project-agnostic Markdown link
 evaluator and a pending human-review requirement. `EvidenceStore` resolves the
 review check atomically when explicit feedback arrives.
@@ -525,6 +532,7 @@ Do not commit:
 .voly/dspy/programs/
 .voly/reports/
 .voly/evidence/
+.voly/eval-runs/
 .voly/wheels/
 ```
 

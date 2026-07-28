@@ -64,6 +64,12 @@ Local Evidence Foundation records are available through
 local repository observations and comments and must not be exposed beyond the
 server's localhost boundary.
 
+Controlled regression suites use `voly eval validate <dataset.json>` and
+`voly eval run <dataset.json> [--case <id>]`. The first command validates the
+strict versioned schema and fixture boundary. The second replays exact argv in
+temporary fixture copies, writes a local `.voly/eval-runs/*.json` report, and
+exits non-zero when any expectation fails. It does not call a model provider.
+
 SSE `start` / `done` include `correlation_id` (TaskEvent schema v3). Incoming `X-Correlation-ID` is accepted; otherwise one is generated (`voly/correlation.py`).
 
 ## What to watch when changing entrypoints

@@ -53,6 +53,8 @@ See [Configuration and operations](config-and-operations.md) and `docs/backend/a
 - **Observability** — `correlation_id` on TaskEvent v3 / SSE / CF Workers
 - **Evidence Foundation** — pre-run baseline, execution-bundle versioning,
   root-cause attribution, local atomic evidence and human-feedback hooks
+- **Golden regression evaluation** — versioned curated datasets replayed in
+  temporary workspaces with exact argv and no model/provider calls
 - **Configuration and operations** — runtime config (including `memory.backend: agent_memory`), env vars, packaging, generated artifacts, tests
 
 ## Wiki map
@@ -81,6 +83,7 @@ If you are changing the UI, start with the frontend page and then inspect `ui/sr
 - `voly/runner/agent_runner.py` — executor chain, DSPy planning, work reports
 - `voly/evidence/*` — baseline, EvidenceRecord v2, root-cause classification, store
 - `voly/evaluation/*` — versioned EvalPolicy registry and post-run evaluation
+  plus strict golden dataset loading and offline regression replay
 - `voly/ai_gateway/gateway.py` — middleware stack, spend-on-success, upstream delegation
 - `ui/src/lib/components/*` — dashboard sections and panels
 - `tests/` — behavioral and contract tests (including `tests/test_web_auth.py`)

@@ -440,7 +440,7 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSP
 ## Do not commit
 
 ```
-.voly/events/  .voly/dspy/  .voly/reports/  .voly/gateway_cache/
+.voly/events/  .voly/dspy/  .voly/reports/  .voly/eval-runs/  .voly/gateway_cache/
 .venv/  ui/node_modules/  voly/web/static/
 ```
 

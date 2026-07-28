@@ -91,6 +91,7 @@ Do not commit:
 
 - `.voly/events/`
 - `.voly/evidence/`
+- `.voly/eval-runs/`
 - `.voly/gateway_cache/`
 - `.voly/dspy/datasets/`
 - `.voly/dspy/programs/`
@@ -119,6 +120,7 @@ High-signal suites after control-plane changes:
 | Contracts | `tests/test_protocol_contracts.py` (TaskEvent v3 / correlation_id) |
 | Evidence Foundation | `tests/test_evidence_foundation.py` |
 | Eval Engine | `tests/test_evaluation.py` |
+| Golden regression replay | `tests/test_golden_evaluation.py` |
 | CF Containers | `tests/test_cf_containers_executor.py` |
 | Skill seed / scout | `tests/test_skill_seed_path.py`, `tests/test_skill_scout_cf.py` |
 

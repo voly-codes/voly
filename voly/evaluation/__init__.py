@@ -1,6 +1,15 @@
 """Deterministic evaluation public API."""
 
 from voly.evaluation.engine import apply_human_feedback, evaluate_run
+from voly.evaluation.golden import (
+    GOLDEN_REPORT_SCHEMA_VERSION,
+    GOLDEN_SCHEMA_VERSION,
+    GoldenDataset,
+    GoldenDatasetError,
+    load_golden_dataset,
+    run_golden_dataset,
+    save_golden_report,
+)
 from voly.evaluation.judge import (
     evaluate_configured_llm,
     evaluate_with_llm,
@@ -21,6 +30,10 @@ from voly.evaluation.trajectory import evaluate_trajectory
 
 __all__ = [
     "EVAL_SCHEMA_VERSION",
+    "GOLDEN_SCHEMA_VERSION",
+    "GOLDEN_REPORT_SCHEMA_VERSION",
+    "GoldenDataset",
+    "GoldenDatasetError",
     "EvalCheckResult",
     "EvalPolicy",
     "EvalReport",
@@ -38,4 +51,7 @@ __all__ = [
     "evaluate_configured_llm",
     "evaluate_with_llm",
     "rubric_for",
+    "load_golden_dataset",
+    "run_golden_dataset",
+    "save_golden_report",
 ]

@@ -26,6 +26,7 @@ from voly.cli.commands import (  # noqa: E402
     compare,
     config_cmd,
     dspy_cmd,
+    eval_cmd,
     evidence_cmd,
     headroom,
     init,
@@ -108,6 +109,7 @@ main.add_command(catalog)
 main.add_command(cloud)
 main.add_command(dspy_cmd, name="dspy")
 main.add_command(evidence_cmd)
+main.add_command(eval_cmd)
 main.add_command(plan_cmd)
 main.add_command(reuse_cmd)
 main.add_command(repo_cmd)

@@ -198,6 +198,7 @@ voly reuse search|pack|pick|apply|run
 voly repo inspect|analyze|map|license
 voly capability list|show|match|reset
 voly evidence show|feedback
+voly eval validate|run
 voly workflow review-until-clean <task> --cwd <project>
 ```
 
@@ -219,7 +220,7 @@ pytest tests/ -q                          # full run
 ## Do not commit
 
 `.env`, `.voly/events/`, `.voly/evidence/`, `.voly/dspy/datasets/`, `.voly/dspy/programs/`,
-`.voly/reports/`, `.venv/`, `.pytest_cache/`, `.ruff_cache/`,
+`.voly/reports/`, `.voly/eval-runs/`, `.venv/`, `.pytest_cache/`, `.ruff_cache/`,
 `ui/node_modules/`, `voly/web/static/assets/`
 
 ---
