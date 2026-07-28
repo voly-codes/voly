@@ -8,7 +8,14 @@ from voly.config import (
     RTKConfig,
     VOLYConfig,
 )
-from voly.evaluation import evaluate_run, select_policy, validate_markdown_links
+from voly.evaluation import (
+    evaluate_run,
+    is_test_artifact,
+    scan_changed_security,
+    select_policy,
+    validate_markdown_links,
+    validate_test_artifacts,
+)
 from voly.evidence import BaselineCheck, EvidenceStore, RepositoryBaseline
 from voly.executor.base import ExecutorResult
 
@@ -25,7 +32,12 @@ def test_policy_selection_is_deterministic() -> None:
     docs_policy = select_policy("docs")
     assert docs_policy.id == "documentation-basic"
     assert docs_policy.version == "2"
-    assert select_policy("tests").id == "testing-basic"
+    testing_policy = select_policy("tests")
+    assert testing_policy.id == "testing-basic"
+    assert testing_policy.version == "2"
+    security_policy = select_policy("security")
+    assert security_policy.id == "security-basic"
+    assert security_policy.version == "1"
     assert select_policy("backend").id == "executor-basic"
     assert select_policy(None).id == "executor-basic"
 
@@ -92,6 +104,82 @@ def test_markdown_links_fail_for_missing_or_outside_root(tmp_path: Path) -> None
     }
 
 
+def test_test_artifact_detection_uses_common_conventions() -> None:
+    assert is_test_artifact("tests/test_auth.py")
+    assert is_test_artifact("src/auth_test.py")
+    assert is_test_artifact("web/auth.spec.ts")
+    assert is_test_artifact("jest.config.js")
+    assert not is_test_artifact("src/auth.py")
+
+    ok, message, detail = validate_test_artifacts(
+        ["src/auth.py", "tests/test_auth.py"]
+    )
+    assert ok is True
+    assert message == "1 test artifact(s) changed"
+    assert detail["test_artifacts"] == ["tests/test_auth.py"]
+
+
+def test_test_artifact_validation_fails_without_tests() -> None:
+    ok, message, detail = validate_test_artifacts(["src/auth.py"])
+    assert ok is False
+    assert message == "testing task changed no recognized test artifacts"
+    assert detail["test_artifacts"] == []
+
+
+def test_changed_security_scan_is_diff_scoped_and_redacts_values(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "auth.py"
+    source.write_text('password = "supersecret123"\n', encoding="utf-8")
+    (tmp_path / "legacy.py").write_text("eval(user_input)\n", encoding="utf-8")
+
+    status, message, detail = scan_changed_security(
+        str(tmp_path),
+        ["auth.py"],
+    )
+
+    assert status == "failed"
+    assert message == "1 security finding(s) in changed files"
+    assert detail["findings"] == [
+        {
+            "label": "hardcoded_secret",
+            "path": "auth.py",
+            "description": "Possible hardcoded secret",
+        }
+    ]
+    assert "supersecret123" not in repr(detail)
+    assert all(item["path"] != "legacy.py" for item in detail["findings"])
+
+
+def test_changed_security_scan_passes_clean_source_and_rejects_outside_path(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "safe.py").write_text("answer = 42\n", encoding="utf-8")
+    status, _message, detail = scan_changed_security(str(tmp_path), ["safe.py"])
+    assert status == "passed"
+    assert detail["scanned_files"] == ["safe.py"]
+
+    status, _message, detail = scan_changed_security(
+        str(tmp_path),
+        ["../outside.py"],
+    )
+    assert status == "failed"
+    assert detail["findings"][0]["label"] == "outside_repository"
+
+
+def test_changed_security_scan_is_partial_without_supported_source(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "README.md").write_text("# Safe\n", encoding="utf-8")
+    status, message, detail = scan_changed_security(
+        str(tmp_path),
+        ["README.md"],
+    )
+    assert status == "skipped"
+    assert message == "no supported changed source files to scan"
+    assert detail["scanned_files"] == []
+
+
 def test_eval_verified_success_replays_exact_baseline_command(tmp_path: Path) -> None:
     report = evaluate_run(
         select_policy("backend"),
@@ -155,6 +243,58 @@ def test_eval_soft_failure_when_post_check_regresses(tmp_path: Path) -> None:
     assert report.state == "soft_failure"
     assert report.checks[-1].status == "failed"
     assert report.checks[-1].detail["returncode"] == 1
+
+
+def test_testing_policy_requires_changed_test_artifact(tmp_path: Path) -> None:
+    report = evaluate_run(
+        select_policy("testing"),
+        result=ExecutorResult(success=True, output="done"),
+        baseline=_baseline(
+            BaselineCheck(
+                name="tests",
+                command='python -c "raise SystemExit(0)"',
+                status="passed",
+                argv=["python", "-c", "raise SystemExit(0)"],
+            )
+        ),
+        cwd=str(tmp_path),
+        git_before={},
+        git_after={},
+        files_touched=["src/module.py"],
+    )
+
+    assert report.state == "soft_failure"
+    assert report.checks[-1].id == "test_artifacts"
+    assert report.checks[-1].status == "failed"
+
+
+def test_security_policy_scans_diff_and_waits_for_human_review(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "auth.py"
+    source.write_text("answer = 42\n", encoding="utf-8")
+    report = evaluate_run(
+        select_policy("security"),
+        result=ExecutorResult(success=True, output="done"),
+        baseline=_baseline(
+            BaselineCheck(
+                name="tests",
+                command='python -c "raise SystemExit(0)"',
+                status="passed",
+                argv=["python", "-c", "raise SystemExit(0)"],
+            )
+        ),
+        cwd=str(tmp_path),
+        git_before={},
+        git_after={},
+        files_touched=["auth.py"],
+    )
+
+    assert report.state == "partial_success"
+    assert report.checks[-2].id == "security_scan"
+    assert report.checks[-2].status == "passed"
+    assert report.checks[-1].id == "human_review"
+    assert report.checks[-1].status == "pending"
 
 
 def test_eval_stops_without_spending_more_checks_after_executor_failure(

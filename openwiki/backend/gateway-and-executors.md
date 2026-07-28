@@ -68,6 +68,12 @@ rewritten, reverted, rejected, or manually fixed output becomes a soft
 evaluation failure. The feedback history remains separate from automated
 checks.
 
+Testing policy v2 requires a retained conventional test artifact as well as
+successful baseline replay. Security policy v1 performs a bounded, diff-scoped
+scan, keeps matched source and potential secret values out of evidence, and
+waits for explicit human review. Unsupported changed file types produce a
+partial result instead of false verification.
+
 `voly/runner/agent_runner.py` is the file-capable execution path. It resolves executors, optionally refines the task with DSPy, executes the backend, and applies **billing fallback** when an executor signals a billing error.
 
 The fallback chain in code (`BILLING_FALLBACK_CHAIN`) is:

@@ -31,9 +31,20 @@ _POLICIES = {
         ),
         EvalPolicy(
             id="testing-basic",
-            version="1",
+            version="2",
             task_types=("tests", "testing"),
-            requirements=_BASE_REQUIREMENTS,
+            requirements=_BASE_REQUIREMENTS + (
+                EvalRequirement("test_artifacts", "test_artifacts"),
+            ),
+        ),
+        EvalPolicy(
+            id="security-basic",
+            version="1",
+            task_types=("security",),
+            requirements=_BASE_REQUIREMENTS + (
+                EvalRequirement("security_scan", "changed_security_scan"),
+                EvalRequirement("human_review", "human_review"),
+            ),
         ),
     )
 }

@@ -231,7 +231,7 @@ evidence:
 # not yet gate executor results or primary routing.
 evaluation:
   enabled: false
-  policy_id: auto              # auto | executor-basic | documentation-basic | testing-basic
+  policy_id: auto              # auto | executor-basic | documentation-basic | testing-basic | security-basic
   command_timeout_seconds: 120
 
 # VOLY Cloud device link. Login enables authentication/heartbeats, not analytics.

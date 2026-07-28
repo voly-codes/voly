@@ -251,7 +251,10 @@ evaluation:
 Evidence Foundation, selects a versioned policy before execution, and replays
 the exact baseline command vectors after the executor and safety stage. It is
 record-only in this increment and does not change routing or the visible
-executor result. See [evaluation.md](evaluation.md).
+executor result. `auto` selects specialized documentation, testing and security
+policies from deterministic task classification; an explicit `policy_id` can
+select `executor-basic`, `documentation-basic`, `testing-basic`, or
+`security-basic`. See [evaluation.md](evaluation.md).
 
 ### Cloud analytics consent
 

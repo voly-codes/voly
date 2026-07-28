@@ -31,7 +31,8 @@ so it checks the files that will actually remain in the repository.
 | Task type | Policy |
 |---|---|
 | `docs`, `documentation` | `documentation-basic@2` |
-| `tests`, `testing` | `testing-basic@1` |
+| `tests`, `testing` | `testing-basic@2` |
+| `security` | `security-basic@1` |
 | other / unknown | `executor-basic@1` |
 
 Every policy requires:
@@ -46,6 +47,28 @@ Every policy requires:
 5. valid local destinations in changed `.md` / `.mdx` files;
 6. explicit human review.
 
+`testing-basic@2` additionally requires at least one changed test artifact.
+Recognized artifacts include pytest's standard `test_*.py` and `*_test.py`,
+common JavaScript/TypeScript `.test.*` and `.spec.*` files, conventional test,
+fixture and snapshot directories, and common pytest/Jest/Vitest configuration
+files. This structural check complements baseline replay: it proves that a
+testing task retained a test-related change, while replay proves that the
+pre-existing deterministic command still passes.
+
+`security-basic@1` additionally requires:
+
+5. a diff-scoped static scan of changed supported source files;
+6. explicit human review.
+
+The security scan reuses VOLY's bounded risk patterns for hardcoded secrets,
+formatted SQL execution, `eval`, subprocess shell execution and unsafe YAML
+loading. It records only the finding label, repository-relative path and
+generic description; matched code and possible secret values are never stored
+in EvalReport. Unsupported or oversized changes make the scan `skipped` and
+the run `partial_success`. An unreadable or outside-repository source path
+fails closed. Pre-existing findings in unchanged files do not poison a
+diff-based run.
+
 The Markdown evaluator checks inline destinations and reference definitions,
 ignores fenced examples plus external/anchor/site-root URLs, percent-decodes
 relative paths, resolves symlinks and rejects destinations outside the
@@ -53,8 +76,8 @@ repository. It validates file existence, not heading anchors. CommonMark
 destinations with deeply nested parentheses are outside the v1 evaluator
 subset.
 
-Human review begins as `pending`, so an otherwise clean documentation run is
-`partial_success`. Explicit `accepted` feedback passes the requirement. The
+Human review begins as `pending`, so an otherwise clean documentation or
+security run is `partial_success`. Explicit `accepted` feedback passes the requirement. The
 signals `edited`, `major_rewrite`, `reverted`, `pr_rejected`, and `manual_fix`
 fail it and produce `soft_failure`. Later feedback revises the same review
 check, preserving the append-only feedback history.
@@ -124,3 +147,12 @@ python -m pytest tests/test_evidence_foundation.py tests/test_plan_verify.py -q
 LLM judges, visual evaluation, approval blocking, golden datasets,
 capability-score updates, decay and evidence-driven routing remain later Phase
 2/3 work.
+
+## Design references
+
+- [OWASP Secure Code Review Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secure_Code_Review_Cheat_Sheet.html)
+  motivates diff-based review and combining automated findings with human
+  judgment.
+- [pytest good integration practices](https://docs.pytest.org/en/stable/explanation/goodpractices.html)
+  defines the standard Python test discovery names used by the testing
+  evaluator.

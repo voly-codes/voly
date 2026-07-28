@@ -13,6 +13,8 @@ from voly.evaluation.schema import (
     EvalReport,
     EvalRequirement,
 )
+from voly.evaluation.security import scan_changed_security
+from voly.evaluation.testing import validate_test_artifacts
 from voly.plan.types import AcceptanceCheck
 from voly.plan.verify_checks import run_check, run_command_argv
 from voly.plan.verify_types import VerifyContext
@@ -170,6 +172,28 @@ def evaluate_run(
                 _result(
                     requirement,
                     "passed" if ok else "failed",
+                    message,
+                    started=started,
+                    detail=detail,
+                )
+            )
+        elif requirement.evaluator == "test_artifacts":
+            ok, message, detail = validate_test_artifacts(files_touched)
+            checks.append(
+                _result(
+                    requirement,
+                    "passed" if ok else "failed",
+                    message,
+                    started=started,
+                    detail=detail,
+                )
+            )
+        elif requirement.evaluator == "changed_security_scan":
+            status, message, detail = scan_changed_security(cwd, files_touched)
+            checks.append(
+                _result(
+                    requirement,
+                    status,
                     message,
                     started=started,
                     detail=detail,

@@ -317,6 +317,11 @@ Documentation tasks additionally use the project-agnostic Markdown link
 evaluator and a pending human-review requirement. `EvidenceStore` resolves the
 review check atomically when explicit feedback arrives.
 
+Testing tasks require a retained conventional test artifact in addition to
+baseline replay. Security tasks scan only changed supported source files,
+redact matched source values from evidence, and remain pending until explicit
+human review.
+
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 ```

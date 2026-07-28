@@ -10,6 +10,8 @@ from voly.evaluation.schema import (
     EvalReport,
     EvalRequirement,
 )
+from voly.evaluation.security import scan_changed_security
+from voly.evaluation.testing import is_test_artifact, validate_test_artifacts
 
 __all__ = [
     "EVAL_SCHEMA_VERSION",
@@ -23,4 +25,7 @@ __all__ = [
     "list_policies",
     "select_policy",
     "validate_markdown_links",
+    "is_test_artifact",
+    "validate_test_artifacts",
+    "scan_changed_security",
 ]

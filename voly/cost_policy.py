@@ -11,6 +11,15 @@ from voly.config import VOLYConfig
 from voly.router import RouteDecision
 
 TASK_TYPE_PATTERNS: dict[str, list[str]] = {
+    "security": [
+        r"\bsecurity\b",
+        r"\bvulnerab",
+        r"\bcve-\d+",
+        r"\bowasp\b",
+        r"\bsecret(?:s)? scan",
+        r"безопасност",
+        r"уязвим",
+    ],
     "docs": [
         r"document",
         r"readme",

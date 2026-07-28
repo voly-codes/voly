@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from voly.automation import compute_automation_metrics
-from voly.config import VOLYConfig, CostPolicyConfig
+from voly.config import CostPolicyConfig, VOLYConfig
 from voly.cost_policy import (
     apply_cost_policy,
     budget_status,
@@ -26,6 +26,11 @@ def test_detect_task_type_docs() -> None:
 
 def test_detect_task_type_tests() -> None:
     assert detect_task_type("Add pytest tests for auth") == "tests"
+
+
+def test_detect_task_type_security() -> None:
+    assert detect_task_type("Fix OWASP security vulnerability") == "security"
+    assert detect_task_type("Исправь уязвимость авторизации") == "security"
 
 
 def test_detect_task_type_none() -> None:
