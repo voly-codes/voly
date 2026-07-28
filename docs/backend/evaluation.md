@@ -30,26 +30,41 @@ so it checks the files that will actually remain in the repository.
 
 | Task type | Policy |
 |---|---|
-| `docs`, `documentation` | `documentation-basic@1` |
+| `docs`, `documentation` | `documentation-basic@2` |
 | `tests`, `testing` | `testing-basic@1` |
 | other / unknown | `executor-basic@1` |
 
-Each v1 policy requires:
+Every policy requires:
 
 1. executor success;
 2. no hard safety-policy violation;
 3. at least one retained file change;
 4. successful replay of every baseline command that passed before execution.
 
-The separate policy ids intentionally establish versioned lineages even though
-their first deterministic requirement sets are currently identical.
+`documentation-basic@2` additionally requires:
+
+5. valid local destinations in changed `.md` / `.mdx` files;
+6. explicit human review.
+
+The Markdown evaluator checks inline destinations and reference definitions,
+ignores fenced examples plus external/anchor/site-root URLs, percent-decodes
+relative paths, resolves symlinks and rejects destinations outside the
+repository. It validates file existence, not heading anchors. CommonMark
+destinations with deeply nested parentheses are outside the v1 evaluator
+subset.
+
+Human review begins as `pending`, so an otherwise clean documentation run is
+`partial_success`. Explicit `accepted` feedback passes the requirement. The
+signals `edited`, `major_rewrite`, `reverted`, `pr_rejected`, and `manual_fix`
+fail it and produce `soft_failure`. Later feedback revises the same review
+check, preserving the append-only feedback history.
 
 ## Final states
 
 | State | Meaning |
 |---|---|
 | `verified_success` | every required deterministic evaluator passed |
-| `partial_success` | execution succeeded, but required verification was unavailable or skipped |
+| `partial_success` | execution succeeded, but required verification was unavailable, skipped, or pending |
 | `soft_failure` | execution succeeded but a required post-run evaluator failed |
 | root-cause state | executor failed; EvidenceRecord retains `hard_failure`, `environment_failure`, or `policy_violation` from root-cause attribution |
 
@@ -106,6 +121,6 @@ python -m pytest tests/test_evaluation.py -q
 python -m pytest tests/test_evidence_foundation.py tests/test_plan_verify.py -q
 ```
 
-LLM judges, visual evaluation, human-review gates, golden datasets,
+LLM judges, visual evaluation, approval blocking, golden datasets,
 capability-score updates, decay and evidence-driven routing remain later Phase
 2/3 work.

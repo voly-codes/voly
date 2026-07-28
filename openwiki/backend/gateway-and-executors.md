@@ -62,6 +62,12 @@ The EvalReport is stored in EvidenceRecord v2. This rollout is record-only:
 primary routing or capability scores. Canonical detail:
 `docs/backend/evaluation.md`.
 
+Documentation policy v2 also validates repository-local Markdown links and
+waits for explicit human review. `accepted` completes verification; edited,
+rewritten, reverted, rejected, or manually fixed output becomes a soft
+evaluation failure. The feedback history remains separate from automated
+checks.
+
 `voly/runner/agent_runner.py` is the file-capable execution path. It resolves executors, optionally refines the task with DSPy, executes the backend, and applies **billing fallback** when an executor signals a billing error.
 
 The fallback chain in code (`BILLING_FALLBACK_CHAIN`) is:

@@ -106,5 +106,10 @@ class EvidenceStore:
                     recorded_at=datetime.now(timezone.utc).isoformat(),
                 )
             )
+            if record.evaluation is not None:
+                from voly.evaluation import apply_human_feedback
+
+                if apply_human_feedback(record.evaluation, normalized):
+                    record.outcome.state = record.evaluation.state
             self.save(record)
             return record

@@ -141,6 +141,12 @@ process and retains atomic replacement for readers. There is intentionally no
 automatic capability-score update from human feedback yet; calibrated weights
 belong to a later Evidence Foundation increment.
 
+When the selected EvalPolicy contains `human_review`, explicit feedback also
+resolves that check: `accepted` passes it; all edit/rewrite/revert/reject/manual
+fix signals fail it. EvalReport and `EvidenceOutcome.state` are updated in the
+same atomic store operation. The feedback list remains append-only and Cloud
+still excludes comments and evaluator detail.
+
 ## Remote privacy boundary
 
 Local EvidenceRecord files are never suitable for direct upload: baseline

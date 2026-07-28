@@ -22,9 +22,12 @@ _POLICIES = {
         ),
         EvalPolicy(
             id="documentation-basic",
-            version="1",
+            version="2",
             task_types=("docs", "documentation"),
-            requirements=_BASE_REQUIREMENTS,
+            requirements=_BASE_REQUIREMENTS + (
+                EvalRequirement("markdown_links", "markdown_links"),
+                EvalRequirement("human_review", "human_review"),
+            ),
         ),
         EvalPolicy(
             id="testing-basic",

@@ -313,6 +313,10 @@ baseline argv after execution. EvalReport is stored in EvidenceRecord v2 but
 does not yet gate primary routing. Canonical details:
 `docs/backend/evaluation.md`.
 
+Documentation tasks additionally use the project-agnostic Markdown link
+evaluator and a pending human-review requirement. `EvidenceStore` resolves the
+review check atomically when explicit feedback arrives.
+
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 ```

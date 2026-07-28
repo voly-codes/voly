@@ -6,6 +6,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
+from voly.evaluation.markdown import validate_markdown_links
 from voly.evaluation.schema import (
     EvalCheckResult,
     EvalPolicy,
@@ -45,7 +46,9 @@ def _final_state(checks: list[EvalCheckResult]) -> str:
     required = [check for check in checks if check.required]
     if any(check.status in {"failed", "error"} for check in required):
         return "soft_failure"
-    if not required or any(check.status == "skipped" for check in required):
+    if not required or any(
+        check.status in {"pending", "skipped"} for check in required
+    ):
         return "partial_success"
     return "verified_success"
 
@@ -161,6 +164,26 @@ def evaluate_run(
                         detail=verified.detail,
                     )
                 )
+        elif requirement.evaluator == "markdown_links":
+            ok, message, detail = validate_markdown_links(cwd, files_touched)
+            checks.append(
+                _result(
+                    requirement,
+                    "passed" if ok else "failed",
+                    message,
+                    started=started,
+                    detail=detail,
+                )
+            )
+        elif requirement.evaluator == "human_review":
+            checks.append(
+                _result(
+                    requirement,
+                    "pending",
+                    "explicit human review required",
+                    started=started,
+                )
+            )
         else:
             checks.append(
                 _result(
@@ -179,3 +202,20 @@ def evaluate_run(
         completed_at=_now(),
         checks=checks,
     )
+
+
+def apply_human_feedback(report: EvalReport, kind: str) -> bool:
+    """Resolve pending human-review checks from explicit feedback."""
+    review_checks = [
+        check for check in report.checks if check.evaluator == "human_review"
+    ]
+    if not review_checks:
+        return False
+    accepted = kind == "accepted"
+    for check in review_checks:
+        check.status = "passed" if accepted else "failed"
+        check.message = f"explicit human feedback: {kind}"
+        check.detail = {"kind": kind}
+    report.state = _final_state(report.checks)
+    report.completed_at = _now()
+    return True
