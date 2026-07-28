@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from voly.evaluation.schema import EvalPolicy, EvalRequirement
 
+_JUDGE_MODES = frozenset({"off", "shadow", "required"})
+
 _BASE_REQUIREMENTS = (
     EvalRequirement("executor", "executor_success"),
     EvalRequirement("safety", "safety_policy"),
@@ -62,12 +64,43 @@ def get_policy(policy_id: str) -> EvalPolicy:
         raise ValueError(f"unknown eval policy: {policy_id}") from exc
 
 
-def select_policy(task_type: str | None, policy_id: str = "auto") -> EvalPolicy:
+def select_policy(
+    task_type: str | None,
+    policy_id: str = "auto",
+    *,
+    judge_mode: str = "off",
+) -> EvalPolicy:
     requested = (policy_id or "auto").strip()
     if requested != "auto":
-        return get_policy(requested)
-    normalized = (task_type or "unknown").strip().lower()
-    for policy in list_policies():
-        if normalized in policy.task_types:
-            return policy
-    return get_policy("executor-basic")
+        policy = get_policy(requested)
+    else:
+        normalized = (task_type or "unknown").strip().lower()
+        policy = next(
+            (
+                candidate
+                for candidate in list_policies()
+                if normalized in candidate.task_types
+            ),
+            get_policy("executor-basic"),
+        )
+
+    mode = (judge_mode or "off").strip().lower()
+    if mode not in _JUDGE_MODES:
+        raise ValueError(
+            f"invalid llm judge mode: {mode}; expected one of {sorted(_JUDGE_MODES)}"
+        )
+    if mode == "off":
+        return policy
+    return EvalPolicy(
+        id=policy.id,
+        version=f"{policy.version}-judge-{mode}.1",
+        task_types=policy.task_types,
+        requirements=policy.requirements
+        + (
+            EvalRequirement(
+                "llm_judge",
+                "llm_judge",
+                required=mode == "required",
+            ),
+        ),
+    )

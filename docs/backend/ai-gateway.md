@@ -24,6 +24,18 @@ DLP scan → Cache check → Rate limit → Spend limit → Routing → Provider
 5. **Routing** — CF AI Gateway or direct call, then model fallback
 6. **Empty-content guard** — fake success (HTTP 200 with no content) → synthetic error → model fallback
 
+### Evaluation judge calls
+
+The optional Eval Engine LLM judge also uses `AIGateway.chat()` with agent
+identity `llm-judge`, temperature `0`, and provider rerouting disabled at the
+call boundary. The normal cache, DLP, rate-limit, spend-limit and configured
+fallback middleware still apply.
+
+Judge use is an explicit evaluation opt-in because it sends bounded task/result
+text to a model provider. Repository source and file paths are not included.
+Judge tokens and cost are added to the enclosing run evidence; cached responses
+add zero cost.
+
 ### Provider HTTP stall timeout
 
 `ai_gateway.request_timeout_seconds` (default **15**) is the stall/legacy

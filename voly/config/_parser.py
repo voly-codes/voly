@@ -21,6 +21,7 @@ from voly.config._types import (
     ExecutorSafetyConfig,
     HeadroomConfig,
     IntelligenceConfig,
+    LLMJudgeConfig,
     MCPConfig,
     MemoryConfig,
     ModelConfig,
@@ -389,16 +390,38 @@ def _parse_config(raw: dict) -> VOLYConfig:
 
     if "evaluation" in raw:
         evaluation = raw["evaluation"]
+        judge = evaluation.get("llm_judge") or {}
+        judge_mode = str(judge.get("mode") or "off").strip().lower()
+        if judge_mode not in {"off", "shadow", "required"}:
+            judge_mode = "off"
         config.evaluation = EvaluationConfig(
             enabled=_parse_bool(evaluation.get("enabled"), False),
             policy_id=str(evaluation.get("policy_id") or "auto"),
             command_timeout_seconds=float(
                 evaluation.get("command_timeout_seconds", 120.0)
             ),
+            llm_judge=LLMJudgeConfig(
+                mode=judge_mode,
+                model=str(judge.get("model") or ""),
+                provider=str(judge.get("provider") or ""),
+                max_input_chars=max(500, int(judge.get("max_input_chars", 6000))),
+                max_tokens=max(100, int(judge.get("max_tokens", 1200))),
+                threshold=min(
+                    1.0,
+                    max(0.0, float(judge.get("threshold", 0.75))),
+                ),
+            ),
         )
     if "VOLY_EVALUATION_ENABLED" in os.environ:
         config.evaluation.enabled = _parse_bool(
             os.environ.get("VOLY_EVALUATION_ENABLED"), False
+        )
+    if os.environ.get("VOLY_LLM_JUDGE_MODE", "").strip():
+        env_judge_mode = os.environ["VOLY_LLM_JUDGE_MODE"].strip().lower()
+        config.evaluation.llm_judge.mode = (
+            env_judge_mode
+            if env_judge_mode in {"off", "shadow", "required"}
+            else "off"
         )
 
     if "cloud" in raw:

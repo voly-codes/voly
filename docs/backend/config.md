@@ -245,6 +245,13 @@ evaluation:
   enabled: false
   policy_id: auto
   command_timeout_seconds: 120
+  llm_judge:
+    mode: off
+    model: ""
+    provider: ""
+    max_input_chars: 6000
+    max_tokens: 1200
+    threshold: 0.75
 ```
 
 `VOLY_EVALUATION_ENABLED=1|0` overrides `enabled`. Evaluation requires local
@@ -255,6 +262,12 @@ executor result. `auto` selects specialized documentation, testing and security
 policies from deterministic task classification; an explicit `policy_id` can
 select `executor-basic`, `documentation-basic`, `testing-basic`, or
 `security-basic`. See [evaluation.md](evaluation.md).
+
+`llm_judge.mode` is `off`, `shadow`, or `required`. Both active modes send a
+bounded copy of task and executor-output text through `AIGateway.chat()` to the
+configured model/provider; repository source and file paths are not included.
+Because that text may still be sensitive, the default is `off`. Environment
+override: `VOLY_LLM_JUDGE_MODE`.
 
 ### Cloud analytics consent
 

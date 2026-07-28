@@ -102,6 +102,13 @@ to avoid platform-specific command-string reparsing. The result is record-only:
 it sets the EvidenceRecord outcome state but does not yet gate the executor or
 update capability scores. See [evaluation.md](evaluation.md).
 
+When the optional rubric-based LLM judge runs, its policy/rubric version,
+dimension scores, bounded rationale, token/cost accounting and calibration
+agreement are stored locally in EvalReport. Explicit human feedback appends a
+calibration event without replacing the original judge result. Cloud evidence
+continues to omit evaluator messages and detail, so judge rationale and
+calibration detail remain local.
+
 ## Human feedback hook
 
 `EvidenceStore.add_human_feedback()` atomically appends one of:

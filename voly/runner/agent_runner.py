@@ -20,9 +20,6 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-_CHAIN_LOGGER_NAME = "voly.chain"
-_chain_log = logging.getLogger(_CHAIN_LOGGER_NAME)
-
 from voly.automation import compute_automation_metrics
 from voly.config import VOLYConfig
 from voly.cost_policy import budget_status, detect_task_type
@@ -40,6 +37,9 @@ from voly.runner.executor_factory import (
 )
 from voly.runner.work_report import _build_work_report, _extract_summary, _git_porcelain
 from voly.telemetry import TaskEvent, TokenMetrics, emit_event_from_config, new_task_id
+
+_CHAIN_LOGGER_NAME = "voly.chain"
+_chain_log = logging.getLogger(_CHAIN_LOGGER_NAME)
 
 __all__ = [
     "BILLING_FALLBACK_CHAIN",
@@ -169,6 +169,13 @@ class AgentRunner:
                 eval_policy = select_policy(
                     task_type,
                     str(getattr(evaluation_cfg, "policy_id", "auto")),
+                    judge_mode=str(
+                        getattr(
+                            getattr(evaluation_cfg, "llm_judge", None),
+                            "mode",
+                            "off",
+                        )
+                    ),
                 )
             except Exception as exc:  # noqa: BLE001
                 logging.getLogger(_CHAIN_LOGGER_NAME).warning(
@@ -430,6 +437,7 @@ class AgentRunner:
         if eval_policy is not None and baseline is not None:
             try:
                 from voly.evaluation import evaluate_run
+                from voly.evaluation.judge import evaluate_configured_llm
 
                 report_files = []
                 if work_report is not None:
@@ -437,6 +445,20 @@ class AgentRunner:
                         set(work_report.files_changed or [])
                         | set(work_report.files_created or [])
                     )
+                judge_callback = None
+                if any(
+                    requirement.evaluator == "llm_judge"
+                    for requirement in eval_policy.requirements
+                ):
+                    def _judge_callback(judge_result):
+                        return evaluate_configured_llm(
+                            config=self.config,
+                            task=task,
+                            task_type=task_type,
+                            result=judge_result,
+                        )
+
+                    judge_callback = _judge_callback
                 evaluation_report = evaluate_run(
                     eval_policy,
                     result=result,
@@ -452,11 +474,27 @@ class AgentRunner:
                             120.0,
                         )
                     ),
+                    llm_judge=judge_callback,
                 )
                 result.metadata["eval_state"] = evaluation_report.state
                 result.metadata["eval_policy_id"] = evaluation_report.policy_id
                 result.metadata["eval_policy_version"] = (
                     evaluation_report.policy_version
+                )
+                judge_checks = [
+                    check
+                    for check in evaluation_report.checks
+                    if check.evaluator == "llm_judge"
+                ]
+                result.metadata["evaluation_cost_usd"] = round(
+                    sum(float(check.detail.get("cost_usd") or 0.0) for check in judge_checks),
+                    6,
+                )
+                result.metadata["evaluation_input_tokens"] = sum(
+                    int(check.detail.get("input_tokens") or 0) for check in judge_checks
+                )
+                result.metadata["evaluation_output_tokens"] = sum(
+                    int(check.detail.get("output_tokens") or 0) for check in judge_checks
                 )
             except Exception as exc:  # noqa: BLE001
                 logging.getLogger(_CHAIN_LOGGER_NAME).warning(
@@ -469,7 +507,13 @@ class AgentRunner:
 
         # Task totals include abandoned chain attempts — a retried task costs the
         # sum of everything it burned, not just the final executor's attempt.
-        total_cost_usd = round(result.cost_usd + retry_cost_usd, 6)
+        evaluation_cost_usd = float(
+            result.metadata.get("evaluation_cost_usd") or 0.0
+        )
+        total_cost_usd = round(
+            result.cost_usd + retry_cost_usd + evaluation_cost_usd,
+            6,
+        )
 
         status = "failed"
         budget_exceeded = False
@@ -553,8 +597,16 @@ class AgentRunner:
                 status=status,
                 correlation_id=get_correlation_id() or cid,
                 tokens=TokenMetrics(
-                    input=result.input_tokens + retry_tokens_in,
-                    output=result.output_tokens + retry_tokens_out,
+                    input=(
+                        result.input_tokens
+                        + retry_tokens_in
+                        + int(result.metadata.get("evaluation_input_tokens") or 0)
+                    ),
+                    output=(
+                        result.output_tokens
+                        + retry_tokens_out
+                        + int(result.metadata.get("evaluation_output_tokens") or 0)
+                    ),
                 ),
                 cost_usd=total_cost_usd,
                 retry_count=retry_count,

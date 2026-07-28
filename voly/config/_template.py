@@ -233,6 +233,13 @@ evaluation:
   enabled: false
   policy_id: auto              # auto | executor-basic | documentation-basic | testing-basic | security-basic
   command_timeout_seconds: 120
+  llm_judge:
+    mode: off                  # off | shadow | required
+    model: ""                  # model config key; empty = default_model
+    provider: ""               # empty = selected model provider
+    max_input_chars: 6000
+    max_tokens: 1200
+    threshold: 0.75
 
 # VOLY Cloud device link. Login enables authentication/heartbeats, not analytics.
 # Prefer: voly cloud login --url https://cloud.voly.codes (browser confirm).

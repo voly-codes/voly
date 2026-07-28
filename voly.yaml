@@ -222,6 +222,14 @@ evaluation:
   enabled: true
   policy_id: auto
   command_timeout_seconds: 120
+  # Explicit opt-in: sends bounded task/result text to the configured model.
+  llm_judge:
+    mode: off                  # off | shadow | required
+    model: ""
+    provider: ""
+    max_input_chars: 6000
+    max_tokens: 1200
+    threshold: 0.75
 
 # Remote analytics is separate from local telemetry/evidence and requires
 # explicit consent. Sanitized metadata only; never raw prompts/results/paths.

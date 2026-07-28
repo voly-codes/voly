@@ -312,12 +312,25 @@ class EvidenceConfig:
 
 
 @dataclass
+class LLMJudgeConfig:
+    """Optional rubric-based model grader; disabled until explicitly enabled."""
+
+    mode: str = "off"
+    model: str = ""
+    provider: str = ""
+    max_input_chars: int = 6000
+    max_tokens: int = 1200
+    threshold: float = 0.75
+
+
+@dataclass
 class EvaluationConfig:
-    """Deterministic post-run evaluation; record-only during staged rollout."""
+    """Post-run evaluation; record-only during staged rollout."""
 
     enabled: bool = False
     policy_id: str = "auto"
     command_timeout_seconds: float = 120.0
+    llm_judge: LLMJudgeConfig = field(default_factory=LLMJudgeConfig)
 
 
 @dataclass

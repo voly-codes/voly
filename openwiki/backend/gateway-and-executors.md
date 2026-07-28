@@ -70,11 +70,18 @@ rewritten, reverted, rejected, or manually fixed output becomes a soft
 evaluation failure. The feedback history remains separate from automated
 checks.
 
-Testing policy v2 requires a retained conventional test artifact as well as
-successful baseline replay. Security policy v1 performs a bounded, diff-scoped
+Testing policy v3 requires a retained conventional test artifact as well as
+successful baseline replay. Security policy v2 performs a bounded, diff-scoped
 scan, keeps matched source and potential secret values out of evidence, and
 waits for explicit human review. Unsupported changed file types produce a
 partial result instead of false verification.
+
+The optional rubric-based LLM judge runs only in explicit `shadow` or
+`required` mode and always calls through AI Gateway middleware. It receives
+bounded task/result text but no source files or paths. Shadow scores are
+non-gating; required scores participate in EvalReport state. Judge cost/tokens
+are included in run totals, and later human feedback records calibration
+agreement without rewriting the original score.
 
 `voly/runner/agent_runner.py` is the file-capable execution path. It resolves executors, optionally refines the task with DSPy, executes the backend, and applies **billing fallback** when an executor signals a billing error.
 

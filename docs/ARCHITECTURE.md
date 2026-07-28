@@ -324,6 +324,12 @@ baseline replay. Security tasks scan only changed supported source files,
 redact matched source values from evidence, and remain pending until explicit
 human review.
 
+An opt-in rubric judge calls models only through `AIGateway.chat()`. Shadow mode
+records non-gating evidence; required mode extends the policy's success
+definition. Strict parsing, bounded inputs, separate policy versions, total
+cost accounting and human-feedback calibration prevent judge output from
+becoming an unversioned source of truth.
+
 ```python
 BILLING_FALLBACK_CHAIN = ["claude-code", "cursor", "deepseek", "wrangler", "opencode", "zen"]
 ```
@@ -540,7 +546,7 @@ docs/backend/
   intelligence.md           ← Repository Intelligence: admission, license, architecture map
   capability.md             ← Capability Registry: evidence-based executor routing, matcher, scorer
   evidence.md               ← baseline, EvidenceRecord v2, root-cause attribution
-  evaluation.md             ← EvalPolicy v1, deterministic post-run evaluation
+  evaluation.md             ← versioned EvalPolicy and post-run evaluation
   config.md                 ← env vars, voly.yaml, VOLYConfig
   api.md                    ← FastAPI endpoints, SSE events, tech gate, CF Worker endpoints
   spend-protocol.md         ← spend protocol contract (/spend/record, /spend/check)

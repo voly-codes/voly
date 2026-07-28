@@ -80,7 +80,7 @@ If you are changing the UI, start with the frontend page and then inspect `ui/sr
 - `voly/pipeline/core.py` — pipeline orchestration and cache scoping
 - `voly/runner/agent_runner.py` — executor chain, DSPy planning, work reports
 - `voly/evidence/*` — baseline, EvidenceRecord v2, root-cause classification, store
-- `voly/evaluation/*` — EvalPolicy registry and deterministic post-run evaluation
+- `voly/evaluation/*` — versioned EvalPolicy registry and post-run evaluation
 - `voly/ai_gateway/gateway.py` — middleware stack, spend-on-success, upstream delegation
 - `ui/src/lib/components/*` — dashboard sections and panels
 - `tests/` — behavioral and contract tests (including `tests/test_web_auth.py`)

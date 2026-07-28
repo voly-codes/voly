@@ -1,6 +1,11 @@
 """Deterministic evaluation public API."""
 
 from voly.evaluation.engine import apply_human_feedback, evaluate_run
+from voly.evaluation.judge import (
+    evaluate_configured_llm,
+    evaluate_with_llm,
+    rubric_for,
+)
 from voly.evaluation.markdown import validate_markdown_links
 from voly.evaluation.registry import get_policy, list_policies, select_policy
 from voly.evaluation.schema import (
@@ -30,4 +35,7 @@ __all__ = [
     "validate_test_artifacts",
     "scan_changed_security",
     "evaluate_trajectory",
+    "evaluate_configured_llm",
+    "evaluate_with_llm",
+    "rubric_for",
 ]

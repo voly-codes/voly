@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
@@ -66,6 +67,7 @@ def evaluate_run(
     git_after: dict[str, str],
     files_touched: list[str],
     command_timeout_seconds: float = 120.0,
+    llm_judge: Callable[[Any], tuple[str, str, dict[str, Any]]] | None = None,
 ) -> EvalReport:
     """Evaluate one completed executor run without changing its visible result."""
     started_at = _now()
@@ -220,6 +222,34 @@ def evaluate_run(
                     started=started,
                 )
             )
+        elif requirement.evaluator == "llm_judge":
+            if llm_judge is None:
+                checks.append(
+                    _result(
+                        requirement,
+                        "skipped",
+                        "LLM judge is not configured",
+                        started=started,
+                    )
+                )
+                continue
+            try:
+                status, message, detail = llm_judge(result)
+            except Exception:  # noqa: BLE001
+                status, message, detail = (
+                    "skipped",
+                    "LLM judge evaluator failed",
+                    {"failure_kind": "evaluator_exception"},
+                )
+            checks.append(
+                _result(
+                    requirement,
+                    status,
+                    message,
+                    started=started,
+                    detail=detail,
+                )
+            )
         else:
             checks.append(
                 _result(
@@ -237,6 +267,9 @@ def evaluate_run(
         started_at=started_at,
         completed_at=_now(),
         checks=checks,
+        deterministic_only=not any(
+            check.evaluator == "llm_judge" for check in checks
+        ),
     )
 
 
@@ -245,13 +278,30 @@ def apply_human_feedback(report: EvalReport, kind: str) -> bool:
     review_checks = [
         check for check in report.checks if check.evaluator == "human_review"
     ]
-    if not review_checks:
-        return False
     accepted = kind == "accepted"
     for check in review_checks:
         check.status = "passed" if accepted else "failed"
         check.message = f"explicit human feedback: {kind}"
         check.detail = {"kind": kind}
-    report.state = _final_state(report.checks)
-    report.completed_at = _now()
-    return True
+    calibrated = False
+    for check in report.checks:
+        if check.evaluator != "llm_judge" or check.status not in {
+            "passed",
+            "failed",
+        }:
+            continue
+        event = {
+            "human_label": "pass" if accepted else "fail",
+            "judge_label": "pass" if check.status == "passed" else "fail",
+            "agreement": accepted == (check.status == "passed"),
+            "feedback_kind": kind,
+        }
+        events = check.detail.setdefault("calibration_events", [])
+        if isinstance(events, list):
+            events.append(event)
+            calibrated = True
+    changed = bool(review_checks) or calibrated
+    if changed:
+        report.state = _final_state(report.checks)
+        report.completed_at = _now()
+    return changed
