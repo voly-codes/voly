@@ -217,3 +217,17 @@ python -m pytest tests/test_capability_evidence.py -q
 ```
 
 `TaskEvent v3` is unchanged; EvidenceRecord is a separate local contract.
+
+## Planned FinOps join
+
+EvidenceRecord already keeps outcome state and total run cost, while TaskEvent
+keeps operational spend and retry detail. They are intentionally separate
+contracts today: there is no task-tag schema, tag-filtered spend report or
+cost-per-trusted-outcome aggregate yet.
+
+The planned join uses `task_id` to combine normalized repository/project tags,
+TaskEvent spend and evidence-backed outcome states. Only
+`verified_success` counts as a trusted outcome; partial, failed and abandoned
+spend remains visible rather than being folded into the success metric. The
+implementation and privacy checklist is tracked in
+[`docs/proposals/task-tags-and-trusted-outcomes.md`](../proposals/task-tags-and-trusted-outcomes.md).

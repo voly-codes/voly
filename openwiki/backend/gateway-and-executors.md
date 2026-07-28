@@ -64,6 +64,12 @@ EvalReport is stored in EvidenceRecord v2. This rollout is record-only:
 primary routing or capability scores. Canonical detail:
 `docs/backend/evaluation.md`.
 
+Repository/project task tags and cost-per-trusted-outcome reports remain
+planned rather than implemented. The design combines inferred workspace
+identity with explicit operator tags, then joins TaskEvent spend to
+EvidenceOutcome by task id without treating self-reported completion as
+verification. See `docs/proposals/task-tags-and-trusted-outcomes.md`.
+
 Documentation policy v2 also validates repository-local Markdown links and
 waits for explicit human review. `accepted` completes verification; edited,
 rewritten, reverted, rejected, or manually fixed output becomes a soft

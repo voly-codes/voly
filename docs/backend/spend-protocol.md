@@ -68,3 +68,8 @@ Recent records: `{"entries": [ { ... }, ... ]}` — the core only reads the
 - Currency is USD, field `cost_usd`.
 - Retries/idempotency of `record` are not specified (telemetry events are
   the source of truth for reconciliation; see `TaskEvent` in `docs/backend/api.md`).
+- Repository/project tags and outcome-aware aggregation are not part of v1.
+  Their planned versioned rollout is documented in
+  [`docs/proposals/task-tags-and-trusted-outcomes.md`](../proposals/task-tags-and-trusted-outcomes.md);
+  adding them to `/spend/record` requires a protocol-version bump and updated
+  contract tests.

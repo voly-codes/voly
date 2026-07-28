@@ -57,6 +57,9 @@ See [Configuration and operations](config-and-operations.md) and `docs/backend/a
   temporary workspaces with exact argv and no model/provider calls
 - **Judge calibration** — local per-lineage comparison of LLM-judge decisions
   with latest explicit human feedback, without automatic threshold tuning
+- **Planned FinOps lineage** — inferred and explicit repository/project task
+  tags joined with evidence-backed outcome states for cost-per-trusted-outcome
+  reporting; see `docs/proposals/task-tags-and-trusted-outcomes.md`
 - **Configuration and operations** — runtime config (including `memory.backend: agent_memory`), env vars, packaging, generated artifacts, tests
 
 ## Wiki map
