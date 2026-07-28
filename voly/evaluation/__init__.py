@@ -12,6 +12,7 @@ from voly.evaluation.schema import (
 )
 from voly.evaluation.security import scan_changed_security
 from voly.evaluation.testing import is_test_artifact, validate_test_artifacts
+from voly.evaluation.trajectory import evaluate_trajectory
 
 __all__ = [
     "EVAL_SCHEMA_VERSION",
@@ -28,4 +29,5 @@ __all__ = [
     "is_test_artifact",
     "validate_test_artifacts",
     "scan_changed_security",
+    "evaluate_trajectory",
 ]

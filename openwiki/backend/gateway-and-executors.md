@@ -56,8 +56,10 @@ Cloud Analytics allowlist.
 
 With `evaluation.enabled`, AgentRunner selects a built-in versioned EvalPolicy
 before execution. After safety handling, the deterministic Eval Engine verifies
-executor success, retained file changes and exact replay of baseline checks.
-The EvalReport is stored in EvidenceRecord v2. This rollout is record-only:
+executor success, bounded trajectory policy, retained file changes and exact
+replay of baseline checks. Trajectory evidence aggregates retries, fallback
+statuses and rollback counts without storing their error text or paths. The
+EvalReport is stored in EvidenceRecord v2. This rollout is record-only:
 `verified_success`, `partial_success` and `soft_failure` do not yet alter
 primary routing or capability scores. Canonical detail:
 `docs/backend/evaluation.md`.

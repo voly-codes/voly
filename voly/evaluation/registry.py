@@ -7,6 +7,7 @@ from voly.evaluation.schema import EvalPolicy, EvalRequirement
 _BASE_REQUIREMENTS = (
     EvalRequirement("executor", "executor_success"),
     EvalRequirement("safety", "safety_policy"),
+    EvalRequirement("trajectory", "trajectory_policy"),
     EvalRequirement("changes", "file_changes"),
     EvalRequirement("post_checks", "baseline_replay"),
 )
@@ -16,13 +17,13 @@ _POLICIES = {
     for policy in (
         EvalPolicy(
             id="executor-basic",
-            version="1",
+            version="2",
             task_types=("unknown", "backend", "frontend", "refactoring"),
             requirements=_BASE_REQUIREMENTS,
         ),
         EvalPolicy(
             id="documentation-basic",
-            version="2",
+            version="3",
             task_types=("docs", "documentation"),
             requirements=_BASE_REQUIREMENTS + (
                 EvalRequirement("markdown_links", "markdown_links"),
@@ -31,7 +32,7 @@ _POLICIES = {
         ),
         EvalPolicy(
             id="testing-basic",
-            version="2",
+            version="3",
             task_types=("tests", "testing"),
             requirements=_BASE_REQUIREMENTS + (
                 EvalRequirement("test_artifacts", "test_artifacts"),
@@ -39,7 +40,7 @@ _POLICIES = {
         ),
         EvalPolicy(
             id="security-basic",
-            version="1",
+            version="2",
             task_types=("security",),
             requirements=_BASE_REQUIREMENTS + (
                 EvalRequirement("security_scan", "changed_security_scan"),

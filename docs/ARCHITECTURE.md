@@ -308,8 +308,10 @@ Canonical details: `docs/backend/evidence.md`.
 ### `voly/evaluation/` — deterministic Eval Engine
 
 `registry.py` selects a versioned built-in policy before execution;
-`engine.py` evaluates executor/safety/file-change evidence and replays exact
-baseline argv after execution. EvalReport is stored in EvidenceRecord v2 but
+`engine.py` evaluates executor/safety/trajectory/file-change evidence and
+replays exact baseline argv after execution. The bounded trajectory evaluator
+aggregates retries and fallback statuses without copying error text, and fails
+on safety events or rollbacks. EvalReport is stored in EvidenceRecord v2 but
 does not yet gate primary routing. Canonical details:
 `docs/backend/evaluation.md`.
 

@@ -18,10 +18,10 @@ Important patterns in the checked-in template (`voly init` / `voly/config/_templ
 - Evidence Foundation is staged through `evidence.enabled`; baseline command
   discovery and explicit command overrides live under `evidence.*`
 - deterministic post-run evaluation is staged through `evaluation.enabled`;
-  it records EvalReport evidence without gating routing; documentation runs
-  validate local Markdown links and wait for explicit human feedback, testing
-  runs require test artifacts, and security runs combine a diff scan with
-  explicit review
+  it records EvalReport evidence without gating routing; every run checks a
+  bounded, privacy-minimized trajectory, documentation runs validate local
+  Markdown links and wait for explicit human feedback, testing runs require
+  test artifacts, and security runs combine a diff scan with explicit review
 - DSPy can run in shadow or active mode
 - `auth` defaults to **disabled** (localhost-only open API)
 

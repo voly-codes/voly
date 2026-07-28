@@ -10,6 +10,7 @@ from voly.config import (
 )
 from voly.evaluation import (
     evaluate_run,
+    evaluate_trajectory,
     is_test_artifact,
     scan_changed_security,
     select_policy,
@@ -31,14 +32,15 @@ def _baseline(*checks: BaselineCheck) -> RepositoryBaseline:
 def test_policy_selection_is_deterministic() -> None:
     docs_policy = select_policy("docs")
     assert docs_policy.id == "documentation-basic"
-    assert docs_policy.version == "2"
+    assert docs_policy.version == "3"
     testing_policy = select_policy("tests")
     assert testing_policy.id == "testing-basic"
-    assert testing_policy.version == "2"
+    assert testing_policy.version == "3"
     security_policy = select_policy("security")
     assert security_policy.id == "security-basic"
-    assert security_policy.version == "1"
+    assert security_policy.version == "2"
     assert select_policy("backend").id == "executor-basic"
+    assert select_policy("backend").version == "2"
     assert select_policy(None).id == "executor-basic"
 
 
@@ -180,6 +182,50 @@ def test_changed_security_scan_is_partial_without_supported_source(
     assert detail["scanned_files"] == []
 
 
+def test_trajectory_evaluator_records_fallback_without_failing() -> None:
+    result = ExecutorResult(
+        success=True,
+        output="done",
+        metadata={
+            "chain_timelog": [
+                {"executor": "first", "status": "billing_error"},
+                {"executor": "second", "status": "success"},
+            ],
+            "retry_count": 1,
+        },
+    )
+
+    ok, message, detail = evaluate_trajectory(result)
+
+    assert ok is True
+    assert message == "bounded execution trajectory is policy-clean"
+    assert detail["attempt_count"] == 2
+    assert detail["attempt_statuses"] == {"billing_error": 1, "success": 1}
+    assert detail["executor_retry_count"] == 1
+    assert detail["fallback_used"] is True
+    assert detail["tool_trace_available"] is False
+
+
+def test_trajectory_evaluator_fails_on_safety_rollback_without_leaking_paths() -> None:
+    result = ExecutorResult(
+        success=True,
+        output="done",
+        metadata={
+            "safety_violation": "protected path changed: .env",
+            "safety_rolled_back": [".env"],
+            "safety_soft": True,
+        },
+    )
+
+    ok, message, detail = evaluate_trajectory(result)
+
+    assert ok is False
+    assert message == "2 trajectory policy issue(s)"
+    assert detail["issues"] == ["files_rolled_back", "safety_policy_event"]
+    assert detail["rollback_count"] == 1
+    assert ".env" not in repr(detail)
+
+
 def test_eval_verified_success_replays_exact_baseline_command(tmp_path: Path) -> None:
     report = evaluate_run(
         select_policy("backend"),
@@ -200,6 +246,7 @@ def test_eval_verified_success_replays_exact_baseline_command(tmp_path: Path) ->
 
     assert report.state == "verified_success"
     assert [check.status for check in report.checks] == [
+        "passed",
         "passed",
         "passed",
         "passed",
@@ -313,6 +360,32 @@ def test_eval_stops_without_spending_more_checks_after_executor_failure(
     assert report.state == "soft_failure"
     assert len(report.checks) == 1
     assert report.checks[0].id == "executor"
+
+
+def test_eval_soft_fails_when_trajectory_contains_soft_safety_event(
+    tmp_path: Path,
+) -> None:
+    report = evaluate_run(
+        select_policy("backend"),
+        result=ExecutorResult(
+            success=True,
+            output="done",
+            metadata={
+                "safety_violation": "protected path changed",
+                "safety_rolled_back": [".env"],
+                "safety_soft": True,
+            },
+        ),
+        baseline=_baseline(),
+        cwd=str(tmp_path),
+        git_before={},
+        git_after={},
+        files_touched=["module.py"],
+    )
+
+    assert report.state == "soft_failure"
+    trajectory = next(check for check in report.checks if check.id == "trajectory")
+    assert trajectory.status == "failed"
 
 
 class _WritingExecutor:

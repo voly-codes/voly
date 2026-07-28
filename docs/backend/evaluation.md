@@ -30,24 +30,25 @@ so it checks the files that will actually remain in the repository.
 
 | Task type | Policy |
 |---|---|
-| `docs`, `documentation` | `documentation-basic@2` |
-| `tests`, `testing` | `testing-basic@2` |
-| `security` | `security-basic@1` |
-| other / unknown | `executor-basic@1` |
+| `docs`, `documentation` | `documentation-basic@3` |
+| `tests`, `testing` | `testing-basic@3` |
+| `security` | `security-basic@2` |
+| other / unknown | `executor-basic@2` |
 
 Every policy requires:
 
 1. executor success;
 2. no hard safety-policy violation;
-3. at least one retained file change;
-4. successful replay of every baseline command that passed before execution.
+3. a policy-clean bounded execution trajectory;
+4. at least one retained file change;
+5. successful replay of every baseline command that passed before execution.
 
-`documentation-basic@2` additionally requires:
+`documentation-basic@3` additionally requires:
 
-5. valid local destinations in changed `.md` / `.mdx` files;
-6. explicit human review.
+6. valid local destinations in changed `.md` / `.mdx` files;
+7. explicit human review.
 
-`testing-basic@2` additionally requires at least one changed test artifact.
+`testing-basic@3` additionally requires at least one changed test artifact.
 Recognized artifacts include pytest's standard `test_*.py` and `*_test.py`,
 common JavaScript/TypeScript `.test.*` and `.spec.*` files, conventional test,
 fixture and snapshot directories, and common pytest/Jest/Vitest configuration
@@ -55,10 +56,10 @@ files. This structural check complements baseline replay: it proves that a
 testing task retained a test-related change, while replay proves that the
 pre-existing deterministic command still passes.
 
-`security-basic@1` additionally requires:
+`security-basic@2` additionally requires:
 
-5. a diff-scoped static scan of changed supported source files;
-6. explicit human review.
+6. a diff-scoped static scan of changed supported source files;
+7. explicit human review.
 
 The security scan reuses VOLY's bounded risk patterns for hardcoded secrets,
 formatted SQL execution, `eval`, subprocess shell execution and unsafe YAML
@@ -68,6 +69,21 @@ in EvalReport. Unsupported or oversized changes make the scan `skipped` and
 the run `partial_success`. An unreadable or outside-repository source path
 fails closed. Pre-existing findings in unchanged files do not poison a
 diff-based run.
+
+## Trajectory policy
+
+The v1 trajectory evaluator consumes only standardized local runner metadata.
+It aggregates executor attempts, fallback status counts, inner retry count,
+dry-run state, rollback count and whether a tool trace is available. Billing
+or availability fallback is evidence, not an automatic failure. Any safety
+event, rollback, or malformed trajectory metadata fails the requirement.
+
+The evaluator never copies fallback error text, safety paths or tool arguments
+into its detail. Not every executor currently exposes a standardized tool-call
+trace, so `tool_trace_available: false` is recorded explicitly. File access,
+retained changes and bounded side effects remain covered by the separate
+file-change and safety evaluators; full cross-executor tool/permission tracing
+remains future work.
 
 The Markdown evaluator checks inline destinations and reference definitions,
 ignores fenced examples plus external/anchor/site-root URLs, percent-decodes
