@@ -272,8 +272,18 @@ def test_gateway_disabled_bypasses_middleware() -> None:
 
 
 # ─── Empty-content guard wiring (step 2) ─────────────────────────────────────
+def _healthy_checker(monkeypatch) -> None:
+    """Isolate CF-path empty-content tests from missing ANTHROPIC_API_KEY health."""
+    import voly.ai_gateway.health as health_mod
+
+    checker = health_mod.ProviderHealthChecker()
+    monkeypatch.setattr(health_mod, "_checker", checker)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
+
+
 def test_empty_content_triggers_gateway_fallback(monkeypatch) -> None:
     """A fake-success empty response (CF path) rolls over to the next model."""
+    _healthy_checker(monkeypatch)
     gw = AIGateway(account_id="acct", gateway_id="gw")
     gw.cache.enabled = False
     gw.fallback.chain = [{"provider": "anthropic", "model": "claude-b"}]
@@ -294,6 +304,7 @@ def test_empty_content_triggers_gateway_fallback(monkeypatch) -> None:
 
 def test_empty_content_with_terminal_stop_does_not_fallback(monkeypatch) -> None:
     """Empty + max_tokens is a legit completion — must NOT trigger fallback."""
+    _healthy_checker(monkeypatch)
     gw = AIGateway(account_id="acct", gateway_id="gw")
     gw.cache.enabled = False
     gw.fallback.chain = [{"provider": "anthropic", "model": "claude-b"}]
