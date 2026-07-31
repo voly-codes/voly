@@ -200,3 +200,46 @@ def evaluated_activate_ready(
         "cloudflare_deploy_ready": plan.cloudflare_deploy_ready,
         "blockers": plan.blockers,
     }, indent=2))
+
+
+@capability_evaluated.command("render-variant")
+@click.argument("capability_id")
+@click.argument("task")
+@click.option(
+    "--packs-root",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path(".voly/capability/packs"),
+)
+@click.option("--max-instruction-chars", default=16000, type=int)
+@click.pass_context
+def evaluated_render_variant(
+    ctx: click.Context,
+    capability_id: str,
+    task: str,
+    packs_root: Path,
+    max_instruction_chars: int,
+) -> None:
+    """Render a checksum-verified ECC variant prompt with provenance."""
+    from voly.capability import CapabilityInput, render_variant_task
+
+    pack = next(
+        (
+            item for item in _store(ctx).initialize()
+            if item.capability_id == capability_id
+        ),
+        None,
+    )
+    if pack is None:
+        raise click.ClickException(f"capability not found: {capability_id}")
+    variant = render_variant_task(
+        pack,
+        CapabilityInput(task, pack.role),
+        packs_root=packs_root,
+        max_instruction_chars=max_instruction_chars,
+    )
+    click.echo(json.dumps({
+        "capability_id": variant.capability_id,
+        "source_pack_id": variant.source_pack_id,
+        "instruction_hashes": variant.instruction_hashes,
+        "task": variant.task,
+    }, ensure_ascii=False, indent=2))

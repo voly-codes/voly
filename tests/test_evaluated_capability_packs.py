@@ -95,6 +95,7 @@ def test_metrics_track_all_required_outcomes(tmp_path):
     assert metrics.avg_retries == 1
     assert metrics.reviewer_acceptance == 0.5
     assert metrics.held_out_samples == 1
+    assert metrics.cost_samples == 2
 
 
 def test_full_routing_chain_uses_existing_executor_matcher(tmp_path):

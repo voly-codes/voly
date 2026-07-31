@@ -40,6 +40,12 @@ Retirement waits for the minimum sample count, then removes packs with no
 measurable added value or failed completion/testing/rollback/correction/review
 criteria from evaluated routing.
 
+Variant execution uses only instruction sources declared by the evaluated pack
+and listed as `staged` in the immutable pack manifest. VOLY verifies the whole
+pack checksum and component hashes before rendering. The bounded instruction
+text is supplemental untrusted guidance and carries source SHA-256 provenance;
+tampered or quarantined sources are rejected.
+
 ```yaml
 capability:
   evaluated_enabled: false
@@ -51,6 +57,7 @@ voly capability evaluated init
 voly capability evaluated record outcome.json
 voly capability evaluated metrics security-reviewer claude-code
 voly capability evaluated activate security-reviewer
+voly capability evaluated render-variant security-reviewer "review auth"
 voly capability evaluated route "review auth security" --role security
 voly capability evaluated evaluate-retirement security-reviewer claude-code
 ```

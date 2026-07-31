@@ -10,6 +10,8 @@ from voly.capability.evaluated_packs import (
     EvaluatedPackStore,
     EvaluatedRoute,
     PackState,
+    VariantTask,
+    render_variant_task,
 )
 from voly.capability.matcher import ExecutorMatcher, MatchRequest
 from voly.capability.pack_admission import (
@@ -82,6 +84,7 @@ __all__ = [
     "PackSecurityFinding",
     "PackManifest",
     "PackState",
+    "VariantTask",
     "PackStore",
     "PackStoreError",
     "PackVerification",
@@ -94,6 +97,7 @@ __all__ = [
     "hard_exclude",
     "load_suite",
     "probe_routing",
+    "render_variant_task",
     "routing_score",
     "startup_sync",
 ]
