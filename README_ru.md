@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  AI Agent Control Plane · Multi-Agent Orchestration · Billing Fallback Chain · DSPy · FinOps · A2A · AG-UI · Cloudflare AI Gateway
+  AI Agent Control Plane · Evidence-Governed Capabilities · Multi-Agent Orchestration · FinOps · A2A · AG-UI · Cloudflare
 </p>
 
 <p align="center">
@@ -38,6 +38,12 @@ VOLY — не ещё один AI-агент. Это **self-hosted control plane*
 - **переиспользует проверенный код** — `voly reuse`: GitHub search → pack → pick → apply, с опциональным авто-поиском перед каждым запуском executor-а ([docs/backend/reuse.md](docs/backend/reuse.md));
 - **фиксирует tech stack** — выбор версий перед запуском (реестр фреймворков + preflight рантаймов), category picker и greenfield-scaffolding для пустых проектов;
 - **верифицирует** шаги мульти-агента plan-гейтами (shadow/active; scoped pytest когда возможно);
+- **оценивает результаты** детерминированными политиками, golden regression
+  replay, опциональным rubric-based LLM judge, human review и privacy-safe evidence;
+- **безопасно подключает внешние capability** — discovery → scan → quarantine →
+  staging с provenance → paired/held-out evaluation → activation или retirement;
+- **учится консервативно** через research-first shadow, компактную стратегическую
+  память, evidence-gated instincts и ограниченные lifecycle hooks;
 - **собирает telemetry** по каждому запуску (CLI summary по ролям + Web UI);
 - поддерживает **DSPy** как optional optimization layer;
 - остаётся **project-agnostic** — целевой проект передаётся через `--cwd` или `VOLY_PROJECT_CWD`.
@@ -56,6 +62,8 @@ Claude Code, Cursor и Codex — отличные **исполнители**. VO
 | Безопасно ли пускать агента в файлы? | Safety: `--dry-run`, protected paths, soft rollback (остальные файлы остаются), max-files, git-откат |
 | Premium-модель на рутинную правку? | Cost policy + tier routing (Anthropic последним среди платных; exclude через env) |
 | Ключи провайдеров в `.env` на каждой машине? | BYOK: ключи в Cloudflare Secrets Store, gateway подставляет их сам |
+| Стоит ли активировать импортированный скил? | Парные baseline/variant измерения, held-out проверки, лимиты токенов/latency, явная activation или retirement |
+| Может ли система учиться без скрытого изменения промптов? | Shadow research, scoped strategic memory, instincts с ручным approval, allowlisted hooks |
 
 Если нужно только «написать код по промпту» — используй агента напрямую.
 VOLY окупается, когда агенты становятся частью **ежедневного процесса**
@@ -139,6 +147,9 @@ Developer / Web UI / CLI / CI
                        ▼
          chat-роли → AIGateway.chat()
          DLP → Cache → Rate/Spend → Provider → Telemetry
+                       │
+                       ▼
+       Evidence → Evaluation → Capability learning
 ```
 
 Текстовые (не код-генерящие) задачи проходят одиночным вызовом модели через тот же pipeline.
@@ -281,6 +292,45 @@ voly run "implement auth refactor" --executor claude-code --cwd /path/to/target-
 
 CF Worker (`cf-workers/agent/src/infer.ts`) маршрутизирует inference через CF AI Gateway route schema (`CF_ACCOUNT_ID` + `CF_AIG_TOKEN`, `POST /infer`) или `env.AI.run()` fallback.
 
+## Жизненный цикл capability на основе evidence
+
+VOLY рассматривает агентов, скилы, правила, хуки, MCP-конфигурации и legacy
+command shims как **недоверенные capability-кандидаты**, а не как плагины,
+которые становятся активными сразу после копирования:
+
+```text
+discovery → static admission → quarantine/staging → проверка provenance
+          → парный production pilot → held-out validation
+          → activation в пределах quality/token/latency или retirement
+```
+
+- **Eval Engine** выбирает версионированную политику до запуска и записывает
+  детерминированные проверки, bounded trajectory evidence, опциональный
+  rubric-based LLM judge и явный human review. Golden datasets офлайн
+  воспроизводят typical, edge и adversarial cases.
+- **Внешние паки** исследуются без импорта исполняемого кода. Staged-компоненты
+  сохраняют revision источника, лицензию, checksum, compatibility aliases и
+  quarantine decisions; установка никогда не активирует их.
+- **Evaluated packs** участвуют в маршрутизации только после измерений.
+  Встроенный pilot охватывает `security-reviewer`, `tdd-workflow` и
+  `python-reviewer`; native VOLY routing всегда остаётся fallback.
+- **Research, memory и learning** включаются отдельно. Research выдаёт shadow
+  рекомендацию `reuse | adapt | build`, strategic memory подмешивает только
+  ограниченные типизированные записи без удаления сырой истории, а instincts
+  требуют положительного evidence и ручного approval.
+- **Lifecycle hooks** не зависят от harness, выключены по умолчанию и могут
+  запускать только встроенные allowlisted handlers — никакого произвольного
+  импортированного Python или shell-кода.
+- **Cloudflare sync** публикует аутентифицированный immutable snapshot состояния
+  capability в D1 и проверяет точное чтение обратно. Он не активирует промпты
+  удалённо и не меняет routing.
+
+Всё экспериментальное состояние хранится в игнорируемых путях `.voly/`.
+Подробности:
+[evaluation.md](docs/backend/evaluation.md),
+[capability.md](docs/backend/capability.md) и
+[production-validation.md](docs/backend/production-validation.md).
+
 ## Web UI
 
 Svelte 5 SPA с hash-routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` + шторки Cloudflare и Skill Marketplace.
@@ -416,15 +466,27 @@ voly ai-gateway status                 # статус AI Gateway
 voly spend status                      # текущий дневной spend
 voly dspy status                       # DSPy programs + режим
 voly plan list | show <id>             # планы мульти-агента + статус verify
+voly eval validate <dataset.json>       # проверить офлайн golden dataset
+voly eval run <dataset.json>            # детерминированный regression replay
+voly eval calibrate                     # сравнить LLM judge с human feedback
+voly research shadow "<task>" --cwd .   # evidence-first рекомендация reuse/adapt/build
+voly memory compact handoff.json        # импортировать типизированную strategic memory
+voly memory context "<query>" --cwd .   # посмотреть bounded memory retrieval
+voly learning shadow "<task>"           # preview релевантных approved instincts
+voly hooks dispatch <event> <run-id>    # запустить approved constrained lifecycle hooks
+voly capability import ecc --source /path/to/ECC --dry-run
+voly capability pack list               # staged capability packs и их checksum
+voly capability evaluated benchmark     # офлайн routing probe без activation
 voly cloud login --url https://cloud.voly.codes   # подтверждение в браузере; общая история запусков
 voly cloud sync                                 # выгрузить прошлые локальные запуски после привязки
 voly reuse search "<task>"             # GitHub code reuse (также: pack | pick | apply)
 voly reuse run "<task>" --cwd /path/to/project  # полный reuse-pipeline (dry-run apply)
 ```
 
-Остальные группы (`voly --help`): `a2a`, `agui`, `memory`, `rtk`, `headroom`,
-`pxpipe`, `mcp`, `runner`, `telemetry`, `runs`, `catalog`, `skill`, `scan`,
-`compare`, `balance`, `tunnel`, `init`, `setup`, `config`.
+Остальные группы (`voly --help`): `a2a`, `agui`, `capability`, `eval`,
+`evidence`, `research`, `memory`, `learning`, `hooks`, `workflow`, `rtk`,
+`headroom`, `pxpipe`, `mcp`, `runner`, `telemetry`, `runs`, `catalog`, `skill`,
+`scan`, `compare`, `balance`, `tunnel`, `init`, `setup`, `config`.
 
 ## CI и тесты
 
@@ -440,7 +502,8 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 ## Не коммитить
 
 ```
-.voly/events/  .voly/dspy/  .voly/reports/  .voly/gateway_cache/
+.voly/events/  .voly/dspy/  .voly/reports/  .voly/eval-runs/  .voly/gateway_cache/
+.voly/capability/  .voly/research/  .voly/learning/  .voly/hooks/
 .venv/  ui/node_modules/  voly/web/static/
 ```
 
@@ -455,6 +518,14 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, 
 | [docs/backend/executors.md](docs/backend/executors.md) | Executor-ы, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, провайдеры, OmniRoute, persistent cache |
 | [docs/backend/reuse.md](docs/backend/reuse.md) | Code reuse: GitHub search → pack → pick → apply, auto-режим |
+| [docs/backend/evaluation.md](docs/backend/evaluation.md) | Eval policies, golden replay, LLM judge calibration, human review |
+| [docs/backend/capability.md](docs/backend/capability.md) | Capability registry, discovery, quarantine, staged packs, Cloudflare sync |
+| [docs/backend/evaluated-capability-packs.md](docs/backend/evaluated-capability-packs.md) | Evidence-gated routing агентов/скилов и retirement |
+| [docs/backend/production-validation.md](docs/backend/production-validation.md) | Парные pilots, held-out validation, quality/token/latency gates |
+| [docs/backend/research.md](docs/backend/research.md) | Research-first shadow рекомендации |
+| [docs/backend/strategic-memory.md](docs/backend/strategic-memory.md) | Типизированная scoped memory compaction с token budget |
+| [docs/backend/continuous-learning.md](docs/backend/continuous-learning.md) | Evidence-gated instincts и skill candidates |
+| [docs/backend/lifecycle-hooks.md](docs/backend/lifecycle-hooks.md) | Allowlisted lifecycle events, permissions и audit logs |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |

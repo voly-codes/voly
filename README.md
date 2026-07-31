@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  AI Agent Control Plane · Multi-Agent Orchestration · Billing Fallback Chain · DSPy · FinOps · A2A · AG-UI · Cloudflare AI Gateway
+  AI Agent Control Plane · Evidence-Governed Capabilities · Multi-Agent Orchestration · FinOps · A2A · AG-UI · Cloudflare
 </p>
 
 <p align="center">
@@ -38,6 +38,12 @@ VOLY is not another AI agent. It is a **self-hosted control plane** between the 
 - **reuses proven code** — `voly reuse`: GitHub search → pack → pick → apply, with optional auto-search before every executor run ([docs/backend/reuse.md](docs/backend/reuse.md));
 - **pins the tech stack** — pre-run version selection (framework registry + runtime preflight), category picker and greenfield scaffolding for empty projects;
 - **verifies** multi-agent steps with plan gates (shadow/active; scoped pytest when possible);
+- **evaluates outcomes** with deterministic policies, golden regression replay,
+  optional rubric-based LLM judges, human review, and privacy-safe evidence;
+- **adopts external capabilities safely** — discover → scan → quarantine →
+  stage with provenance → paired/held-out evaluation → activate or retire;
+- **learns conservatively** through research-first shadow decisions, compact
+  strategic memory, evidence-gated instincts, and constrained lifecycle hooks;
 - **collects telemetry** per run (CLI role summary + Web UI);
 - supports **DSPy** as an optional optimization layer;
 - stays **project-agnostic** — the target project is passed via `--cwd` or `VOLY_PROJECT_CWD`.
@@ -56,6 +62,8 @@ single CLI cannot answer:
 | Is it safe to let an agent write files? | Safety: `--dry-run`, protected paths, soft rollback (keep other files), max-files, git rollback |
 | A premium model for a routine fix? | Cost policy + tier routing (Anthropic last among paid peers; exclude via env) |
 | Provider keys in `.env` on every machine? | BYOK: keys in Cloudflare Secrets Store, resolved by the gateway per request |
+| Should an imported skill become active? | Paired baseline/variant evidence, held-out checks, token/latency bounds, explicit activation or retirement |
+| Can the system learn without silently rewriting prompts? | Shadow research, scoped strategic memory, manually approved instincts, allowlisted hooks |
 
 If all you need is "write code from a prompt" — use an agent directly. VOLY
 pays off when agents become part of the **daily workflow** and you need
@@ -139,6 +147,9 @@ Developer / Web UI / CLI / CI
                        ▼
          chat roles → AIGateway.chat()
          DLP → Cache → Rate/Spend → Provider → Telemetry
+                       │
+                       ▼
+       Evidence → Evaluation → Capability learning
 ```
 
 Non-code-generating text tasks go through a single model call on the same pipeline path.
@@ -281,6 +292,44 @@ For automatic selection use the Web UI or `voly match`.
 
 The CF Worker (`cf-workers/agent/src/infer.ts`) routes inference through the CF AI Gateway route schema (`CF_ACCOUNT_ID` + `CF_AIG_TOKEN`, `POST /infer`) or `env.AI.run()` fallback.
 
+## Evidence-governed capability lifecycle
+
+VOLY treats agents, skills, rules, hooks, MCP configurations, and legacy
+command shims as **untrusted capability candidates**, not plugins that become
+active when copied:
+
+```text
+discover → static admission → quarantine/stage → verify provenance
+        → paired production pilot → held-out validation
+        → activate within quality/token/latency bounds, or retire
+```
+
+- **Eval Engine** selects a versioned policy before execution and records
+  deterministic checks, bounded trajectory evidence, optional rubric-based LLM
+  judging, and explicit human review. Golden datasets replay typical, edge, and
+  adversarial cases offline.
+- **External packs** are discovered without importing code. Staged components
+  retain source revision, license, checksums, compatibility aliases, and
+  quarantine decisions; installation never activates them.
+- **Evaluated packs** route only after measured evidence. The bundled pilot
+  covers `security-reviewer`, `tdd-workflow`, and `python-reviewer`; native VOLY
+  routing remains the fallback.
+- **Research, memory, and learning** are opt-in. Research produces shadow
+  `reuse | adapt | build` recommendations, strategic memory injects bounded
+  typed records without deleting raw history, and instincts require positive
+  evidence plus manual approval.
+- **Lifecycle hooks** are harness-neutral, disabled by default, and limited to
+  built-in allowlisted handlers—never arbitrary imported Python or shell
+  callbacks.
+- **Cloudflare sync** publishes an authenticated, immutable capability-state
+  snapshot to D1 and verifies an exact read-back. It does not remotely activate
+  prompts or change routing.
+
+All experimental state stays under ignored `.voly/` paths. See
+[evaluation.md](docs/backend/evaluation.md),
+[capability.md](docs/backend/capability.md), and
+[production-validation.md](docs/backend/production-validation.md).
+
 ## Web UI
 
 Svelte 5 SPA with hash routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` plus Cloudflare and Skill Marketplace drawers.
@@ -416,13 +465,25 @@ voly ai-gateway status                 # AI Gateway status
 voly spend status                      # current daily spend
 voly dspy status                       # DSPy programs + mode
 voly plan list | show <id>             # multi-agent plans + verify status
+voly eval validate <dataset.json>       # validate an offline golden dataset
+voly eval run <dataset.json>            # deterministic regression replay
+voly eval calibrate                     # compare LLM-judge decisions with human feedback
+voly research shadow "<task>" --cwd .   # evidence-first reuse/adapt/build recommendation
+voly memory compact handoff.json        # import typed strategic memory
+voly memory context "<query>" --cwd .   # preview bounded memory retrieval
+voly learning shadow "<task>"           # preview relevant approved instincts
+voly hooks dispatch <event> <run-id>    # run approved constrained lifecycle hooks
+voly capability import ecc --source /path/to/ECC --dry-run
+voly capability pack list               # inspect staged, checksummed capability packs
+voly capability evaluated benchmark     # offline routing probe; never activates a pack
 voly cloud login --url https://cloud.voly.codes   # browser confirm; shared run history
 voly cloud sync                                 # upload past local runs after link
 voly reuse search "<task>"             # GitHub code reuse (also: pack | pick | apply)
 voly reuse run "<task>" --cwd /path/to/project  # full reuse pipeline (dry-run apply)
 ```
 
-More groups (`voly --help`): `a2a`, `agui`, `memory`, `rtk`, `headroom`,
+More groups (`voly --help`): `a2a`, `agui`, `capability`, `eval`, `evidence`,
+`research`, `memory`, `learning`, `hooks`, `workflow`, `rtk`, `headroom`,
 `pxpipe`, `mcp`, `runner`, `telemetry`, `runs`, `catalog`, `skill`, `scan`,
 `compare`, `balance`, `tunnel`, `init`, `setup`, `config`.
 
@@ -441,6 +502,7 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSP
 
 ```
 .voly/events/  .voly/dspy/  .voly/reports/  .voly/eval-runs/  .voly/gateway_cache/
+.voly/capability/  .voly/research/  .voly/learning/  .voly/hooks/
 .venv/  ui/node_modules/  voly/web/static/
 ```
 
@@ -455,6 +517,14 @@ GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSP
 | [docs/backend/executors.md](docs/backend/executors.md) | Executors, billing fallback chain, WranglerExecutor |
 | [docs/backend/ai-gateway.md](docs/backend/ai-gateway.md) | AIGateway, providers, OmniRoute, persistent cache |
 | [docs/backend/reuse.md](docs/backend/reuse.md) | Code reuse: GitHub search → pack → pick → apply, auto mode |
+| [docs/backend/evaluation.md](docs/backend/evaluation.md) | Eval policies, golden replay, LLM judge calibration, human review |
+| [docs/backend/capability.md](docs/backend/capability.md) | Capability registry, discovery, quarantine, staged packs, Cloudflare sync |
+| [docs/backend/evaluated-capability-packs.md](docs/backend/evaluated-capability-packs.md) | Evidence-gated agent/skill routing and retirement |
+| [docs/backend/production-validation.md](docs/backend/production-validation.md) | Paired pilots, held-out validation, quality/token/latency gates |
+| [docs/backend/research.md](docs/backend/research.md) | Research-first shadow recommendations |
+| [docs/backend/strategic-memory.md](docs/backend/strategic-memory.md) | Typed, scoped, budgeted memory compaction |
+| [docs/backend/continuous-learning.md](docs/backend/continuous-learning.md) | Evidence-gated instincts and skill candidates |
+| [docs/backend/lifecycle-hooks.md](docs/backend/lifecycle-hooks.md) | Allowlisted lifecycle events, permissions, and audit logs |
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |
