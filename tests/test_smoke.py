@@ -325,6 +325,12 @@ def test_telemetry_cost_estimate() -> None:
     cost = _estimate_cost("claude-sonnet-4-6", 0, 1_000_000)
     assert cost == pytest.approx(15.0, rel=0.01)
 
+    # Current OpenCode Zen pay-per-use prices from the curated roster.
+    assert _estimate_cost("gpt-5.6-luna", 1_000_000, 0) == pytest.approx(0.20)
+    assert _estimate_cost("gpt-5.6-terra", 0, 1_000_000) == pytest.approx(12.0)
+    assert _estimate_cost("deepseek-v4-flash", 1_000_000, 1_000_000) == pytest.approx(0.42)
+    assert _estimate_cost("laguna-s-2.1-free", 1_000_000, 1_000_000) == 0.0
+
     # Unknown model falls back to default rate
     cost = _estimate_cost("unknown-model-xyz", 1000, 500)
     assert cost > 0

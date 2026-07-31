@@ -104,7 +104,10 @@ voly run "review recent changes for security and regressions" \
 | OpenCode GO | `opencode` | `OPENCODE_BASE_URL` | yes, via CLI/API flow |
 | OpenCode Zen | `zen` | `OPENCODE_ZEN_BASE_URL` | yes via CLI (agentic) / no via API (text-only) |
 
-Zen models (via `opencode-zen` provider): `claude-sonnet-4-6`, `claude-opus-4-8`, `claude-haiku-4-5`, `deepseek-v4-flash-free`, `mimo-v2.5-free`.
+Zen models (via `opencode-zen` provider): start with the balance-backed
+`deepseek-v4-flash`; curated paid tiers include `gpt-5.6-luna`,
+`qwen3.6-plus`, `gpt-5.6-terra`, `claude-sonnet-5`, and `gpt-5.6-sol`;
+explicit `*-free` models remain billing fallbacks for non-sensitive work.
 GO models (via `opencode` provider): `deepseek-v4-flash`, `deepseek-v4-pro`, `kimi-k2.6`, `kimi-k2.7-code`, `qwen3.7-plus`, `qwen3.7-max`, `minimax-m3`, `glm-5.2`.
 
 A single key is usually used via `OPENCODE_API_KEY`.

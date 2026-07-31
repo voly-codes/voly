@@ -32,3 +32,6 @@ def test_resolve_model_fallback():
 
 def test_builtin_fallback_non_empty():
     assert len(_builtin_fallback_catalog()) >= 10
+    ids = {model.id for model in _builtin_fallback_catalog()}
+    assert {"gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"} <= ids
+    assert "qwen3.6-plus-free" not in ids

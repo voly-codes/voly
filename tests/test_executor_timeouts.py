@@ -212,6 +212,17 @@ def test_opencode_default_model_is_mimo():
     assert ex._model == "mimo-v2.5-free"
 
 
+def test_zen_prefers_paid_balance_then_current_free_fallbacks():
+    from voly.executor.zen import ZenExecutor
+
+    ex = ZenExecutor()
+    models = ex._models_to_try()
+    assert models[0] == "deepseek-v4-flash"
+    assert "laguna-s-2.1-free" in models
+    assert "ling-3.0-flash-free" in models
+    assert "qwen3.6-plus-free" not in models
+
+
 def test_cli_runner_displays_human_readable_executor_error(monkeypatch, tmp_path):
     from voly.runner import agent_runner as runner_mod
 

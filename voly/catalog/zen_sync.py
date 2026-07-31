@@ -18,8 +18,8 @@ FREE_MODEL_IDS = frozenset({
     "mimo-v2.5-free",
     "nemotron-3-ultra-free",
     "north-mini-code-free",
-    "qwen3.6-plus-free",
-    "minimax-m3-free",
+    "laguna-s-2.1-free",
+    "ling-3.0-flash-free",
 })
 
 CHEAP_MODEL_IDS = frozenset({
@@ -33,6 +33,9 @@ CHEAP_MODEL_IDS = frozenset({
     "minimax-m2.7",
     "kimi-k2.5",
     "kimi-k2.6",
+    "gpt-5.6-luna",
+    "qwen3.6-plus",
+    "minimax-m3",
 })
 
 PREMIUM_MODEL_IDS = frozenset({
@@ -41,6 +44,10 @@ PREMIUM_MODEL_IDS = frozenset({
     "claude-opus-4-6",
     "claude-opus-4-5",
     "claude-fable-5",
+    "claude-opus-5",
+    "claude-sonnet-5",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
     "gpt-5.5-pro",
     "gpt-5.4-pro",
 })
@@ -179,11 +186,13 @@ def fetch_zen_models(
 def _builtin_fallback_catalog() -> list[CatalogModel]:
     """Fallback when API unavailable — matches user's Zen workspace list."""
     ids = [
-        "claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5",
+        "claude-opus-5", "claude-sonnet-5", "claude-fable-5",
+        "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna",
         "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-free",
         "kimi-k2.6", "kimi-k2.5", "kimi-k3", "gpt-5.3-codex", "gpt-5.4-mini",
-        "qwen3.5-plus", "qwen3.6-plus-free", "mimo-v2.5-free",
-        "nemotron-3-ultra-free", "glm-5.2", "minimax-m2.7",
+        "qwen3.6-plus", "qwen3.5-plus", "mimo-v2.5-free",
+        "laguna-s-2.1-free", "ling-3.0-flash-free", "north-mini-code-free",
+        "nemotron-3-ultra-free", "glm-5.2", "minimax-m3",
         "gemini-3.1-pro", "gemini-3.5-flash",
     ]
     return [

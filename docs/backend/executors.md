@@ -268,7 +268,17 @@ future stage-2 watchdog).
 including the fallback chain. Web: `timeout` field in `POST /api/run` (default 300).
 `--model` / `-m` is passed through on both `voly run --executor` and `voly runner`
 to `_build_executor(name, model=...)`. Default free model for `opencode`/`zen` is
-`mimo-v2.5-free` (fallback sequence still includes deprecated models last).
+`deepseek-v4-flash` while Zen balance is available. Billing exhaustion falls
+through to the current free roster: `mimo-v2.5-free`,
+`laguna-s-2.1-free`, `ling-3.0-flash-free`, `nemotron-3-ultra-free`,
+`big-pickle`, `north-mini-code-free`, and `deepseek-v4-flash-free`.
+
+Paid routing should stay tiered rather than sending every task to the most
+expensive model: `gpt-5.6-luna` / `deepseek-v4-flash` for routine work,
+`qwen3.6-plus` / `gpt-5.6-terra` for standard implementation, and
+`claude-sonnet-5` / `gpt-5.6-sol` only for high-complexity work. Free Zen
+models are not appropriate for private source by default because their
+limited free periods may permit request retention or model improvement.
 
 **Failure messages:** `format_executor_failure()` / `executor_failure_details()` in
 `executor/base.py` turn raw `ExecutorResult.error` into a prefixed message plus

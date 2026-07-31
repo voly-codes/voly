@@ -37,15 +37,12 @@ logger = logging.getLogger(__name__)
 _FREE_MODEL_SEQUENCE: tuple[str, ...] = (
     # OpenCode free tier — zero cost
     "mimo-v2.5-free",
-    "qwen3.6-plus-free",
+    "laguna-s-2.1-free",
+    "ling-3.0-flash-free",
     "nemotron-3-ultra-free",
     "big-pickle",
     "north-mini-code-free",
     "deepseek-v4-flash-free",
-    # Other provider APIs — uses user's own keys (OPENAI_API_KEY, DEEPSEEK_API_KEY)
-    # opencode CLI routes these to the respective APIs, separate from Anthropic billing.
-    "openai/gpt-4o-mini",
-    "deepseek/deepseek-chat",
 )
 
 
@@ -57,8 +54,9 @@ class ZenExecutor(Executor):
     until one succeeds or all are exhausted.
     """
 
-    # Start with a free model — claude-sonnet-4-6 routes through Anthropic billing.
-    DEFAULT_MODEL = "mimo-v2.5-free"
+    # Use the cheapest paid Zen coding model while balance is available. A
+    # billing error moves to the free sequence without changing executor state.
+    DEFAULT_MODEL = "deepseek-v4-flash"
 
     def __init__(
         self,

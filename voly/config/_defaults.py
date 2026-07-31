@@ -37,6 +37,13 @@ _DEFAULT_MODELS: dict[str, ModelConfig] = {
     _MIMO_V2_5_PRO:     ModelConfig(provider="opencode", model=_MIMO_V2_5_PRO),
 
     # ── OpenCode Zen (opencode.ai/zen/v1) — pay-per-use curated ──
+    "gpt-5.6-sol":            ModelConfig(provider="opencode-zen", model="gpt-5.6-sol"),
+    "gpt-5.6-terra":          ModelConfig(provider="opencode-zen", model="gpt-5.6-terra"),
+    "gpt-5.6-luna":           ModelConfig(provider="opencode-zen", model="gpt-5.6-luna"),
+    "claude-sonnet-5":        ModelConfig(provider="opencode-zen", model="claude-sonnet-5"),
+    "claude-opus-5":          ModelConfig(provider="opencode-zen", model="claude-opus-5"),
+    "claude-fable-5":         ModelConfig(provider="opencode-zen", model="claude-fable-5"),
+    "qwen3.6-plus":           ModelConfig(provider="opencode-zen", model="qwen3.6-plus"),
     "claude-sonnet-4-6":      ModelConfig(provider="opencode-zen", model="claude-sonnet-4-6"),
     "claude-opus-4-8":        ModelConfig(provider="opencode-zen", model="claude-opus-4-8"),
     "claude-haiku-4-5":       ModelConfig(provider="opencode-zen", model="claude-haiku-4-5"),
@@ -47,6 +54,10 @@ _DEFAULT_MODELS: dict[str, ModelConfig] = {
     "gemini-3.5-flash":       ModelConfig(provider="opencode-zen", model="gemini-3.5-flash"),
     "deepseek-v4-flash-free": ModelConfig(provider="opencode-zen", model="deepseek-v4-flash-free"),
     "mimo-v2.5-free":         ModelConfig(provider="opencode-zen", model="mimo-v2.5-free"),
+    "laguna-s-2.1-free":      ModelConfig(provider="opencode-zen", model="laguna-s-2.1-free"),
+    "ling-3.0-flash-free":    ModelConfig(provider="opencode-zen", model="ling-3.0-flash-free"),
+    "north-mini-code-free":   ModelConfig(provider="opencode-zen", model="north-mini-code-free"),
+    "nemotron-3-ultra-free":  ModelConfig(provider="opencode-zen", model="nemotron-3-ultra-free"),
     "big-pickle":             ModelConfig(provider="opencode-zen", model="big-pickle"),
     "grok-build-0.1":         ModelConfig(provider="opencode-zen", model="grok-build-0.1"),
 }

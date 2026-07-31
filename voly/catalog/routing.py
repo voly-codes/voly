@@ -17,7 +17,7 @@ _MODEL_KIMI_K26 = "kimi-k2.6"
 DEFAULT_MODEL_BY_EXECUTOR: dict[str, str] = {
     "cursor": _MODEL_COMPOSER_25,
     "opencode": _MODEL_KIMI_K26,
-    "zen": "claude-sonnet-4-6",
+    "zen": "deepseek-v4-flash",
     "deepseek": "deepseek-v4-flash",
     "mimo": "mimo-v2.5-free",
 }
@@ -131,7 +131,7 @@ def match_task(
         ex = "opencode"
 
     if ex == "zen":
-        model = FREE_REVIEW_MODEL if re.search(r"\breview\b|\baudit\b|\bchecklist\b", text) else "claude-sonnet-4-6"
+        model = FREE_REVIEW_MODEL if re.search(r"\breview\b|\baudit\b|\bchecklist\b", text) else "deepseek-v4-flash"
     elif ex == "cursor":
         model = _MODEL_COMPOSER_25
     elif "backend" in text:
