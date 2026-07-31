@@ -46,6 +46,13 @@ pack checksum and component hashes before rendering. The bounded instruction
 text is supplemental untrusted guidance and carries source SHA-256 provenance;
 tampered or quarantined sources are rejected.
 
+An evaluated experiment may instead render one compact learned instinct. This
+path does not enable general learning injection: it accepts only a manually
+approved instinct with positive evidence and no unresolved contradictions,
+bounds the action to 1200 characters, and records the instinct ID plus action
+SHA-256 as provenance. Activation still requires the same paired production
+gate.
+
 ```yaml
 capability:
   evaluated_enabled: false
@@ -58,6 +65,7 @@ voly capability evaluated record outcome.json
 voly capability evaluated metrics security-reviewer claude-code
 voly capability evaluated activate security-reviewer
 voly capability evaluated render-variant security-reviewer "review auth"
+voly capability evaluated render-instinct-variant tdd-workflow <instinct-id> "fix regression"
 voly capability evaluated route "review auth security" --role security
 voly capability evaluated evaluate-retirement security-reviewer claude-code
 ```

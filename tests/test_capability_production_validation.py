@@ -15,9 +15,11 @@ from voly.capability import (
     decide_capability,
     load_suite,
     probe_routing,
+    render_instinct_variant_task,
     render_variant_task,
 )
 from voly.capability.pack_store import PackStore, PackStoreError
+from voly.learning import InstinctEvidence, InstinctStore
 
 
 def _record(
@@ -240,4 +242,61 @@ def test_variant_uses_only_verified_admitted_staged_instructions(tmp_path):
             pack,
             SimpleNamespace(task="Review auth", role="security"),
             packs_root=packs_root,
+        )
+
+
+def test_compact_instinct_variant_requires_approval_and_hashes_action(tmp_path):
+    evaluated = EvaluatedPackStore(tmp_path / "evaluated")
+    pack = next(
+        item for item in evaluated.initialize()
+        if item.capability_id == "tdd-workflow"
+    )
+    instincts = InstinctStore(tmp_path / "instincts.json")
+    instinct = instincts.propose(
+        "TDD regression",
+        "Write and run one focused failing test before production code. "
+        "After the intended RED, apply the smallest fix and rerun the same test GREEN.",
+        project_id="voly",
+        evidence=InstinctEvidence("test_passed", "tdd05-heldout", "voly"),
+    )
+    with pytest.raises(ValueError, match="manually approved"):
+        render_instinct_variant_task(
+            pack,
+            SimpleNamespace(task="Fix regression", role="tester"),
+            instinct,
+        )
+
+    approved = instincts.approve(instinct.id)
+    variant = render_instinct_variant_task(
+        pack,
+        SimpleNamespace(task="Fix regression", role="tester"),
+        approved,
+    )
+
+    assert "focused failing test" in variant.task
+    assert variant.source_pack_id == f"instinct:{instinct.id}"
+    assert len(next(iter(variant.instruction_hashes.values()))) == 64
+
+
+def test_compact_instinct_variant_rejects_contradictions(tmp_path):
+    evaluated = EvaluatedPackStore(tmp_path / "evaluated")
+    pack = next(
+        item for item in evaluated.initialize()
+        if item.capability_id == "tdd-workflow"
+    )
+    instincts = InstinctStore(tmp_path / "instincts.json")
+    instinct = instincts.propose(
+        "TDD regression",
+        "Run RED before GREEN.",
+        project_id="voly",
+        evidence=InstinctEvidence("test_passed", "proof", "voly"),
+    )
+    approved = instincts.approve(instinct.id)
+    approved.contradictions.append("rollback-1")
+
+    with pytest.raises(ValueError, match="unresolved contradictions"):
+        render_instinct_variant_task(
+            pack,
+            SimpleNamespace(task="Fix regression", role="tester"),
+            approved,
         )

@@ -243,3 +243,64 @@ def evaluated_render_variant(
         "instruction_hashes": variant.instruction_hashes,
         "task": variant.task,
     }, ensure_ascii=False, indent=2))
+
+
+@capability_evaluated.command("render-instinct-variant")
+@click.argument("capability_id")
+@click.argument("instinct_id")
+@click.argument("task")
+@click.option(
+    "--instincts-path",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=Path(".voly/learning/instincts.json"),
+)
+@click.option("--max-action-chars", default=1200, type=int)
+@click.pass_context
+def evaluated_render_instinct_variant(
+    ctx: click.Context,
+    capability_id: str,
+    instinct_id: str,
+    task: str,
+    instincts_path: Path,
+    max_action_chars: int,
+) -> None:
+    """Render one approved compact instinct for an evaluated run."""
+    from voly.capability import (
+        CapabilityInput,
+        render_instinct_variant_task,
+    )
+    from voly.learning import InstinctStore
+
+    pack = next(
+        (
+            item for item in _store(ctx).initialize()
+            if item.capability_id == capability_id
+        ),
+        None,
+    )
+    if pack is None:
+        raise click.ClickException(f"capability not found: {capability_id}")
+    instinct = next(
+        (
+            item for item in InstinctStore(instincts_path).list()
+            if item.id == instinct_id
+        ),
+        None,
+    )
+    if instinct is None:
+        raise click.ClickException(f"instinct not found: {instinct_id}")
+    try:
+        variant = render_instinct_variant_task(
+            pack,
+            CapabilityInput(task, pack.role),
+            instinct,
+            max_action_chars=max_action_chars,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(json.dumps({
+        "capability_id": variant.capability_id,
+        "source_pack_id": variant.source_pack_id,
+        "instruction_hashes": variant.instruction_hashes,
+        "task": variant.task,
+    }, ensure_ascii=False, indent=2))

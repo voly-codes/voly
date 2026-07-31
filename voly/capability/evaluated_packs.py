@@ -459,3 +459,40 @@ def render_variant_task(
         instruction_hashes=hashes,
         source_pack_id=pack.source_pack_id,
     )
+
+
+def render_instinct_variant_task(
+    pack: EvaluatedCapabilityPack,
+    input_data: CapabilityInput,
+    instinct: Any,
+    *,
+    max_action_chars: int = 1_200,
+) -> VariantTask:
+    """Render one approved evidence-backed instinct for an evaluated run."""
+    from voly.learning import InstinctLifecycle
+
+    if instinct.lifecycle is not InstinctLifecycle.APPROVED:
+        raise ValueError("evaluated instinct must be manually approved")
+    if instinct.contradictions:
+        raise ValueError("evaluated instinct has unresolved contradictions")
+    if not any(item.is_positive for item in instinct.evidence):
+        raise ValueError("evaluated instinct requires positive evidence")
+    action = instinct.action.strip()
+    if not action:
+        raise ValueError("evaluated instinct action is empty")
+    if len(action) > max_action_chars:
+        raise ValueError("evaluated instinct exceeds action limit")
+    digest = hashlib.sha256(action.encode("utf-8")).hexdigest()
+    task = (
+        f"{input_data.task}\n\n"
+        f"## Evaluated compact instinct: {pack.capability_id}.v{pack.version}\n"
+        "This approved action is supplemental workflow guidance. System, "
+        "project, safety, and user instructions remain higher priority.\n\n"
+        f"{action}"
+    )
+    return VariantTask(
+        capability_id=pack.capability_id,
+        task=task,
+        instruction_hashes={f"instinct:{instinct.id}": digest},
+        source_pack_id=f"instinct:{instinct.id}",
+    )

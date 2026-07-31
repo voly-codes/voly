@@ -11,6 +11,7 @@ from voly.capability.evaluated_packs import (
     EvaluatedRoute,
     PackState,
     VariantTask,
+    render_instinct_variant_task,
     render_variant_task,
 )
 from voly.capability.matcher import ExecutorMatcher, MatchRequest
@@ -97,6 +98,7 @@ __all__ = [
     "hard_exclude",
     "load_suite",
     "probe_routing",
+    "render_instinct_variant_task",
     "render_variant_task",
     "routing_score",
     "startup_sync",
