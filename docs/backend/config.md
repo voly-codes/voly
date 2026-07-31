@@ -446,7 +446,11 @@ memory:
   # (token needs Agent Memory permissions; private beta).
   agent_memory_account_id: "${CF_ACCOUNT_ID}"
   agent_memory_namespace: voly
-  agent_memory_profile: default
+    agent_memory_profile: default
+    strategic_compaction: false
+    strategic_path: .voly/strategic-memory.jsonl
+    retrieval_token_budget: 600
+    retrieval_per_class_limit: 3
 
 agents:
   cursor:

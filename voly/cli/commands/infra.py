@@ -1,8 +1,10 @@
 """Infrastructure CLI groups: memory, rtk, headroom, pxpipe, mcp."""
 from __future__ import annotations
 
-import click
+import json
+from pathlib import Path
 
+import click
 
 # ── Memory ────────────────────────────────────────────────────────────────────
 
@@ -105,6 +107,79 @@ def memory_search(ctx: click.Context, query: str, limit: int) -> None:
     store.close()
 
 
+@memory.command("compact")
+@click.argument("handoff", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=Path("."))
+@click.pass_context
+def memory_compact(ctx: click.Context, handoff: Path, cwd: Path) -> None:
+    """Import a typed session handoff into scoped strategic memory."""
+    from voly.memory.strategic import SessionHandoff, StrategicMemoryStore
+
+    config = ctx.obj["config"].memory
+    data = json.loads(handoff.read_text(encoding="utf-8"))
+    contract = SessionHandoff.from_dict(data)
+    path = Path(config.strategic_path)
+    if not path.is_absolute():
+        path = cwd / path
+    added = StrategicMemoryStore(path).compact(contract)
+    click.echo(f"compacted: {len(added)} new items → {path}")
+
+
+@memory.command("context")
+@click.argument("query")
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=Path("."))
+@click.option("--project-id", default="")
+@click.option("--organization-id", default="")
+@click.pass_context
+def memory_context(
+    ctx: click.Context,
+    query: str,
+    cwd: Path,
+    project_id: str,
+    organization_id: str,
+) -> None:
+    """Preview budgeted strategic context for one scope."""
+    from voly.memory.strategic import StrategicMemoryStore, project_scope_id
+
+    config = ctx.obj["config"].memory
+    path = Path(config.strategic_path)
+    if not path.is_absolute():
+        path = cwd / path
+    memories = StrategicMemoryStore(path).retrieve(
+        query,
+        project_id=project_id or project_scope_id(cwd),
+        organization_id=organization_id,
+        token_budget=config.retrieval_token_budget,
+        per_class_limit=config.retrieval_per_class_limit,
+    )
+    for item in memories:
+        marker = " contradiction" if item.contradicts else ""
+        click.echo(
+            f"[{item.memory_class.value}/{item.kind.value}{marker}] "
+            f"{item.title}: {item.content}"
+        )
+
+
+@memory.command("export")
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=Path("."))
+@click.option("--project-id", default="")
+@click.pass_context
+def memory_export(
+    ctx: click.Context, cwd: Path, project_id: str
+) -> None:
+    """Export non-private strategic memories as JSON."""
+    from voly.memory.strategic import StrategicMemoryStore, project_scope_id
+
+    config = ctx.obj["config"].memory
+    path = Path(config.strategic_path)
+    if not path.is_absolute():
+        path = cwd / path
+    payload = StrategicMemoryStore(path).export(
+        project_id=project_id or project_scope_id(cwd)
+    )
+    click.echo(json.dumps(payload, ensure_ascii=False, indent=2))
+
+
 # ── RTK ───────────────────────────────────────────────────────────────────────
 
 @click.group()
@@ -130,6 +205,7 @@ def rtk_install(ctx: click.Context) -> None:
 def rtk_stats(ctx: click.Context) -> None:
     """Show RTK token savings."""
     import json
+
     from voly.rtk.installer import RTKManager
 
     config = ctx.obj["config"]
@@ -155,6 +231,7 @@ def headroom() -> None:
 def headroom_start(ctx: click.Context, port: int) -> None:
     """Start Headroom compression proxy."""
     import time
+
     from voly.headroom.proxy import HeadroomManager
 
     config = ctx.obj["config"]
@@ -204,6 +281,7 @@ def pxpipe() -> None:
 def pxpipe_start(ctx: click.Context, port: int | None) -> None:
     """Start pxpipe for Claude Code compression."""
     import time
+
     from voly.pxpipe.artifacts import inbox_dir
     from voly.pxpipe.proxy import PxpipeManager
 
@@ -270,6 +348,7 @@ def mcp_list(ctx: click.Context) -> None:
 def mcp_config(ctx: click.Context, fmt: str) -> None:
     """Generate MCP config for AI agents."""
     import json
+
     from voly.tools.mcp import MCPManager
 
     mgr = MCPManager()

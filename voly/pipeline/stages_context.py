@@ -10,9 +10,48 @@ from voly.pipeline.types import PipelineStage
 class _ContextStageMixin:
     """Mixin: memory / headroom / RTK / skill suggest+inject stages."""
 
-    def _stage_memory_retrieve(self, task: str) -> list[dict[str, Any]]:
+    def _stage_memory_retrieve(
+        self, task: str, context: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         if not self.config.memory.enabled:  # type: ignore[attr-defined]
             return []
+        memory_config = self.config.memory  # type: ignore[attr-defined]
+        if getattr(memory_config, "strategic_compaction", False):
+            from pathlib import Path
+
+            from voly.memory.strategic import StrategicMemoryStore, project_scope_id
+
+            context = context or {}
+            cwd = str(context.get("cwd") or context.get("project_cwd") or "").strip()
+            if not cwd:
+                return []
+            path = Path(
+                getattr(memory_config, "strategic_path", ".voly/strategic-memory.jsonl")
+            )
+            if not path.is_absolute():
+                path = Path(cwd) / path
+            project_id = str(context.get("project_id") or project_scope_id(cwd))
+            memories = StrategicMemoryStore(path).retrieve(
+                task,
+                project_id=project_id,
+                organization_id=str(context.get("organization_id") or ""),
+                token_budget=getattr(memory_config, "retrieval_token_budget", 600),
+                per_class_limit=getattr(
+                    memory_config, "retrieval_per_class_limit", 3
+                ),
+            )
+            messages = [
+                {
+                    "role": "user",
+                    "content": (
+                        f"[STRATEGIC_MEMORY:{memory.memory_class.value}/"
+                        f"{memory.kind.value}] {memory.title}: {memory.content}"
+                    ),
+                }
+                for memory in memories
+            ]
+            self._fire(PipelineStage.MEMORY_RETRIEVE, hits=memories)  # type: ignore[attr-defined]
+            return messages
         memory_results = self.memory.search(task, limit=5)  # type: ignore[attr-defined]
         messages = [
             {"role": "user", "content": f"[MEMORY: {m.category}] {m.title}: {m.content}"}

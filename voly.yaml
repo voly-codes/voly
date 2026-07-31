@@ -61,6 +61,10 @@ memory:
   backend: hybrid
   remote_url: "${CF_WORKER_MEMORY_URL}"
   db_path: ".voly/memory.db"
+  strategic_compaction: false
+  strategic_path: ".voly/strategic-memory.jsonl"
+  retrieval_token_budget: 600
+  retrieval_per_class_limit: 3
 
 a2a:
   enabled: true

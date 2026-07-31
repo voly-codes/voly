@@ -431,7 +431,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             if spend_result is not None:
                 return spend_result
 
-            memory_messages = self._stage_memory_retrieve(task)
+            memory_messages = self._stage_memory_retrieve(task, context)
             rtk_stats = self._stage_rtk()
             skill_suggestions = self._stage_skill_suggest(task)
             injected_skills, skills_system = self._stage_skill_inject(task, route.agent)

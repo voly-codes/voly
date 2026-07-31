@@ -26,7 +26,7 @@ INIT
   ↓ A2A_DISCOVER      — find external agents (A2A federation)
   ↓ A2A_DELEGATE      — delegate subtasks if needed
   ↓ ROUTE             — AgentRouter.analyze_task() + route()
-  ↓ MEMORY_RETRIEVE   — MemoryStore.search() — relevant context
+  ↓ MEMORY_RETRIEVE   — scoped strategic records or legacy MemoryStore.search()
   ↓ RTK_FILTER        — RTK token filtering of context
   ↓ SKILL_SUGGEST     — non-blocking: query CF marketplace for missing skills
   ↓ SKILL_INJECT      — inject system prompt from Catalog Skills
@@ -42,6 +42,11 @@ INIT
 `RESEARCH_SHADOW` reads only local project files and an existing reuse report.
 It records provenance under `.voly/research/reports/` and cannot change routing.
 See [research.md](research.md).
+
+When `memory.strategic_compaction` is enabled, `MEMORY_RETRIEVE` uses scoped,
+budgeted records instead of raw history. The project must be identified through
+`cwd`, `project_cwd`, or an explicit `project_id`; otherwise no strategic
+memory is injected. See [strategic-memory.md](strategic-memory.md).
 
 ---
 

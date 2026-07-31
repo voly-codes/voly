@@ -92,6 +92,10 @@ class MemoryConfig:
     agent_memory_account_id: str = ""
     agent_memory_namespace: str = "voly"
     agent_memory_profile: str = "default"
+    strategic_compaction: bool = False
+    strategic_path: str = ".voly/strategic-memory.jsonl"
+    retrieval_token_budget: int = 600
+    retrieval_per_class_limit: int = 3
 
 
 @dataclass

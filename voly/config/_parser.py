@@ -142,6 +142,12 @@ def _parse_config(raw: dict) -> VOLYConfig:
             agent_memory_profile=os.path.expandvars(
                 m.get("agent_memory_profile", "default") or "default"
             ),
+            strategic_compaction=_parse_bool(m.get("strategic_compaction"), False),
+            strategic_path=m.get("strategic_path", ".voly/strategic-memory.jsonl"),
+            retrieval_token_budget=int(m.get("retrieval_token_budget", 600) or 600),
+            retrieval_per_class_limit=int(
+                m.get("retrieval_per_class_limit", 3) or 3
+            ),
         )
 
     if not config.memory.remote_url:

@@ -9,5 +9,6 @@ Memory Layer — долгосрочная память агента.
 """
 
 from voly.memory.store import MemoryStore
+from voly.memory.strategic import SessionHandoff, StrategicMemoryStore
 
-__all__ = ["MemoryStore"]
+__all__ = ["MemoryStore", "SessionHandoff", "StrategicMemoryStore"]

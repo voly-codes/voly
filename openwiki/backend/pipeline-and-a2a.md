@@ -18,6 +18,12 @@ recommendation to `.voly/research/reports/`, and does not change routing.
 
 The pipeline exists to assemble context and route the work; it is not the file-writing runtime.
 
+When strategic memory compaction is enabled, `MEMORY_RETRIEVE` injects typed
+decisions, facts, failed attempts, questions, and next actions rather than raw
+session transcripts. Retrieval is isolated by project/organization/global
+scope, bounded by token and per-class budgets, and ignores expired records.
+Private observations are never included by `voly memory export`.
+
 ## Smart dispatch
 
 The web API uses a smart-dispatch rule for `POST /api/run` when `executor=pipeline`:
