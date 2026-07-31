@@ -393,6 +393,14 @@ reuse:
   # Requires GITHUB_TOKEN or GH_TOKEN for search rate limits.
   # CLI: voly reuse search|pack|pick|apply|run
 
+# Offline research-first pilot; shadow output never changes routing.
+research:
+  enabled: false
+  mode: shadow
+  reports_dir: ".voly/research/reports"
+  max_candidates: 8
+  max_duration_ms: 1000
+
 a2a:
   enabled: true
   auto_dispatch: true          # auto multi-agent for complex tasks

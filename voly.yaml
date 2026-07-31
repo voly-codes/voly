@@ -154,6 +154,13 @@ reuse:
   apply_dest: "vendor/reuse"
   auto: true
   auto_max_repos: 3
+
+research:
+  enabled: false
+  mode: shadow
+  reports_dir: .voly/research/reports
+  max_candidates: 8
+  max_duration_ms: 1000
   auto_max_age_seconds: 604800
 
 ai_gateway:

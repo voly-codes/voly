@@ -141,6 +141,14 @@ reuse:
   apply_dest: "vendor/reuse"
   auto: false                  # set true to search GitHub before each executor call
   auto_max_repos: 3
+
+# Offline evidence pass before routing. Shadow mode only records a recommendation.
+research:
+  enabled: false
+  mode: shadow
+  reports_dir: .voly/research/reports
+  max_candidates: 8
+  max_duration_ms: 1000
   auto_max_age_seconds: 604800 # skip only when a fresh *usable* report exists
 
 ai_gateway:

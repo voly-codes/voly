@@ -8,7 +8,11 @@ This page covers the orchestration path for text-only work and the local multi-a
 
 The documented stage order is:
 
-`INIT → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_SUGGEST → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE/ERROR`
+`INIT → RESEARCH_SHADOW (optional) → AGUI_START → A2A_DISCOVER → A2A_DELEGATE → ROUTE → MEMORY_RETRIEVE → RTK_FILTER → SKILL_SUGGEST → SKILL_INJECT → HEADROOM_COMPRESS → DSPY_PROGRAM_CALL → MODEL_CALL → MEMORY_STORE → AGUI_DONE → DONE/ERROR`
+
+`RESEARCH_SHADOW` is a local-only research-first pilot. It reads project
+source/docs and an existing reuse report, writes a typed `reuse | adapt | build`
+recommendation to `.voly/research/reports/`, and does not change routing.
 
 `SKILL_SUGGEST` (non-blocking) queries the marketplace via `SkillScout` for skills relevant to the task that are not installed locally; suggestions land in SSE `done.skill_suggestions`.
 

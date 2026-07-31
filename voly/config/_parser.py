@@ -28,6 +28,7 @@ from voly.config._types import (
     PlanConfig,
     PxpipeConfig,
     RegistryConfig,
+    ResearchConfig,
     ReuseConfig,
     RTKConfig,
     ScannerConfig,
@@ -285,6 +286,16 @@ def _parse_config(raw: dict) -> VOLYConfig:
                 r.get("auto_max_age_seconds", 7 * 24 * 3600) or (7 * 24 * 3600)
             ),
             auto_max_repos=int(r.get("auto_max_repos", 3) or 3),
+        )
+
+    if "research" in raw:
+        research = raw["research"]
+        config.research = ResearchConfig(
+            enabled=_parse_bool(research.get("enabled"), False),
+            mode=str(research.get("mode", "shadow")),
+            reports_dir=str(research.get("reports_dir", ".voly/research/reports")),
+            max_candidates=int(research.get("max_candidates", 8) or 8),
+            max_duration_ms=int(research.get("max_duration_ms", 1000) or 1000),
         )
 
     if "ai_gateway" in raw:

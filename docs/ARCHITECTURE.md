@@ -568,6 +568,7 @@ docs/backend/
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
   plan.md                   ← plan gates (shadow/active, acceptance, CLI)
   reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
+  research.md               ← offline research-first shadow decisions and benchmark
   intelligence.md           ← Repository Intelligence: admission, license, architecture map
   capability.md             ← Capability Registry: evidence-based executor routing, matcher, scorer
   evidence.md               ← baseline, EvidenceRecord v2, root-cause attribution

@@ -352,6 +352,32 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             run_cwd = str(
                 context.get("cwd") or context.get("project_cwd") or ""
             ).strip()
+            research_report = None
+            research_cfg = getattr(self.config, "research", None)
+            research_enabled = bool(
+                context.get("research_first_shadow")
+                or (research_cfg and getattr(research_cfg, "enabled", False))
+            )
+            if run_cwd and research_enabled:
+                from voly.research import run_research, save_report
+
+                research_report = run_research(
+                    task,
+                    run_cwd,
+                    max_candidates=getattr(research_cfg, "max_candidates", 8),
+                    max_duration_ms=getattr(research_cfg, "max_duration_ms", 1000),
+                )
+                reports_dir = Path(
+                    getattr(research_cfg, "reports_dir", ".voly/research/reports")
+                )
+                if not reports_dir.is_absolute():
+                    reports_dir = Path(run_cwd) / reports_dir
+                report_path = save_report(research_report, reports_dir)
+                self._fire(
+                    PipelineStage.RESEARCH_SHADOW,
+                    report=research_report,
+                    report_path=str(report_path),
+                )
             if run_cwd and getattr(getattr(self.config, "reuse", None), "auto", False):
                 try:
                     from voly.reuse.pipeline import auto_reuse
@@ -478,6 +504,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                 event=ev,
                 injected_skills=injected_skills,
                 skill_suggestions=skill_suggestions,
+                research_report=research_report,
                 dspy_mode=self.config.dspy.mode if self.config.dspy.enabled else "",
                 **dspy_fields,
             )

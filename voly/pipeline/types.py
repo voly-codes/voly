@@ -9,6 +9,7 @@ from typing import Any
 
 class PipelineStage(Enum):
     INIT = "init"
+    RESEARCH_SHADOW = "research_shadow"
     REPO_INTELLIGENCE = "repo_intelligence"
     AGUI_START = "agui_start"
     A2A_DISCOVER = "a2a_discover"
@@ -54,6 +55,7 @@ class PipelineResult:
     dspy_compile_id: str | None = None
     dspy_score: float | None = None
     dspy_shadow_delta: float | None = None
+    research_report: Any = None
 
 
 @dataclass

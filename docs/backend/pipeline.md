@@ -20,6 +20,7 @@ For tasks that write files — use `AgentRunner` + executor.
 
 ```
 INIT
+  ↓ RESEARCH_SHADOW   — optional offline reuse/adapt/build recommendation
   ↓ REPO_INTELLIGENCE — optional: analyze external repo when repo_url set
   ↓ AGUI_START        — notify AG-UI of task start (SSE events)
   ↓ A2A_DISCOVER      — find external agents (A2A federation)
@@ -37,6 +38,10 @@ INIT
   ↓ DONE / ERROR
   ↓ emit TaskEvent → telemetry
 ```
+
+`RESEARCH_SHADOW` reads only local project files and an existing reuse report.
+It records provenance under `.voly/research/reports/` and cannot change routing.
+See [research.md](research.md).
 
 ---
 

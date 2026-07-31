@@ -38,6 +38,7 @@ from voly.cli.commands import (  # noqa: E402
     pxpipe,
     registry,
     repo_cmd,
+    research_cmd,
     reuse_cmd,
     rtk,
     run,
@@ -113,6 +114,7 @@ main.add_command(eval_cmd)
 main.add_command(plan_cmd)
 main.add_command(reuse_cmd)
 main.add_command(repo_cmd)
+main.add_command(research_cmd)
 main.add_command(capability_cmd)
 main.add_command(workflow_cmd)
 

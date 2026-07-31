@@ -13,6 +13,7 @@ from .lifecycle import init, setup
 from .plan_cmd import plan_cmd
 from .platform import ai_gateway, match_task, model, registry, scan_project
 from .repo import repo_cmd
+from .research_cmd import research_cmd
 from .reuse_cmd import reuse_cmd
 from .run_cmd import run
 from .runner import runner
@@ -63,6 +64,7 @@ __all__ = [
     "plan_cmd",
     "reuse_cmd",
     "repo_cmd",
+    "research_cmd",
     "capability_cmd",
     "workflow_cmd",
 ]

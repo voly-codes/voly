@@ -195,6 +195,17 @@ class ReuseConfig:
 
 
 @dataclass
+class ResearchConfig:
+    """Offline research-first pilot; shadow mode cannot affect routing."""
+
+    enabled: bool = False
+    mode: str = "shadow"
+    reports_dir: str = ".voly/research/reports"
+    max_candidates: int = 8
+    max_duration_ms: int = 1000
+
+
+@dataclass
 class AIGatewayConfig:
     enabled: bool = True
     provider: str = "cloudflare"
@@ -458,6 +469,7 @@ class VOLYConfig:
     registry: RegistryConfig = field(default_factory=RegistryConfig)
     scanner: ScannerConfig = field(default_factory=ScannerConfig)
     reuse: ReuseConfig = field(default_factory=ReuseConfig)
+    research: ResearchConfig = field(default_factory=ResearchConfig)
     ai_gateway: AIGatewayConfig = field(default_factory=AIGatewayConfig)
     mcp: MCPConfig = field(default_factory=MCPConfig)
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)
