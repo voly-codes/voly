@@ -7,6 +7,7 @@ from pathlib import Path
 
 import click
 
+from voly.cli.commands.capability_evaluated_cmd import capability_evaluated
 from voly.cli.commands.capability_pack_cmd import capability_pack
 
 _DEFAULT_PROFILES_DIR = ".voly/capability/profiles"
@@ -218,3 +219,4 @@ def _profile_to_yaml(data: dict) -> str:
         return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     return yaml.safe_dump(data, allow_unicode=True, sort_keys=False)
 capability_cmd.add_command(capability_pack)
+capability_cmd.add_command(capability_evaluated)

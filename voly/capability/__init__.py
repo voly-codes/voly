@@ -1,5 +1,16 @@
 """Executor capability registry — schema, calibration, and profile storage."""
 
+from voly.capability.evaluated_packs import (
+    CapabilityInput,
+    CapabilityMetrics,
+    CapabilityOutput,
+    CapabilityRunEvidence,
+    EvaluatedCapabilityPack,
+    EvaluatedPackRouter,
+    EvaluatedPackStore,
+    EvaluatedRoute,
+    PackState,
+)
 from voly.capability.matcher import ExecutorMatcher, MatchRequest
 from voly.capability.pack_admission import (
     PackAdmissionReport,
@@ -32,10 +43,18 @@ from voly.capability.sync import startup_sync
 
 __all__ = [
     "CapabilityDomain",
+    "CapabilityInput",
+    "CapabilityMetrics",
+    "CapabilityOutput",
+    "CapabilityRunEvidence",
     "CapabilityMatchResult",
     "CapabilityRegistry",
     "ExecutorCapabilityProfile",
     "ExecutorMatcher",
+    "EvaluatedCapabilityPack",
+    "EvaluatedPackRouter",
+    "EvaluatedPackStore",
+    "EvaluatedRoute",
     "ExternalPackError",
     "MatchRequest",
     "PACK_MANIFEST_SCHEMA_VERSION",
@@ -47,6 +66,7 @@ __all__ = [
     "PackProvenance",
     "PackSecurityFinding",
     "PackManifest",
+    "PackState",
     "PackStore",
     "PackStoreError",
     "PackVerification",

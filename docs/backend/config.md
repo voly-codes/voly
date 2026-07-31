@@ -363,6 +363,8 @@ capability:
   profiles_dir: ".voly/capability/profiles"   # local profile cache
   worker_timeout_s: 5.0           # HTTP timeout for /match and evidence POSTs
   routing_policy: balanced        # balanced | quality_first | budget_first
+  evaluated_enabled: false
+  evaluated_dir: ".voly/capability/evaluated"
 
 # Env overrides (always win over yaml when set):
 #   VOLY_CAPABILITY_ENABLED=1|0

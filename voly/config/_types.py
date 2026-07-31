@@ -467,6 +467,8 @@ class CapabilityConfig:
     worker_timeout_s: float = 5.0
     # balanced | quality_first | budget_first
     routing_policy: str = "balanced"
+    evaluated_enabled: bool = False
+    evaluated_dir: str = ".voly/capability/evaluated"
 
 
 @dataclass

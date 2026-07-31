@@ -579,6 +579,10 @@ def _parse_config(raw: dict) -> VOLYConfig:
             worker_timeout_s=float(c.get("worker_timeout_s", 5.0)),
             routing_policy=str(c.get("routing_policy") or "balanced").strip().lower()
             or "balanced",
+            evaluated_enabled=_parse_bool(c.get("evaluated_enabled"), False),
+            evaluated_dir=str(
+                c.get("evaluated_dir", ".voly/capability/evaluated")
+            ),
         )
     env_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "").strip()
     if env_url:

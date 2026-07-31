@@ -314,6 +314,8 @@ plan:
 capability:
   enabled: false
   worker_url: "${VOLY_CAPABILITY_WORKER_URL}"
+  evaluated_enabled: false
+  evaluated_dir: .voly/capability/evaluated
   profiles_dir: ".voly/capability/profiles"
   worker_timeout_s: 5.0
   routing_policy: balanced   # balanced | quality_first | budget_first

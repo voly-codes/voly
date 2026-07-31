@@ -240,6 +240,14 @@ The worker skips seed upserts for executors that already have learned evidence (
 
 D1 tables for remote sync: `cf-workers/capability/schema.sql` (`roles`, `executor_capability`, `executor_constraints`, `executor_operational`).
 
+## Evaluated agent and skill packs
+
+Phase 8 adds three evidence-gated pilots and the full
+`task → role → capability → executor → model` chain. Evaluated routing is
+opt-in and always falls back to the native VOLY workflow. Activation requires
+measured evidence; retirement is driven by paired value and outcome metrics.
+See [evaluated-capability-packs.md](evaluated-capability-packs.md).
+
 ## Evaluation suites
 
 Phase 9 integration tests exercise the full capability + intelligence pipeline offline (no network; `httpx` patched where needed).

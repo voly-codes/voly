@@ -8,6 +8,12 @@ This page covers the main ways VOLY is started and exposed to users and other se
 
 The CLI is the primary control surface for local development and automation.
 
+Evaluated capability packs add an opt-in route:
+`task → role → capability → executor → model`. Active imported capabilities
+must have measured evidence. Paired experiments change one capability at a
+time and track quality, cost, latency, retries, rollback and corrections.
+Packs without measurable value are retired and fall back to native VOLY.
+
 ### External capability-pack discovery
 
 `voly capability import ecc --source <checkout> --dry-run` inventories supported
