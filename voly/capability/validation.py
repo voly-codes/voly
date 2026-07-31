@@ -184,6 +184,13 @@ def decide_capability(
             failures.append("correction_above_threshold")
         if metrics.reviewer_acceptance < criteria.min_reviewer_acceptance:
             failures.append("reviewer_acceptance_below_threshold")
+        if metrics.avg_latency_delta_ms > criteria.max_avg_latency_delta_ms:
+            failures.append("latency_overhead_above_threshold")
+        if (
+            metrics.token_samples
+            and metrics.avg_token_delta > criteria.max_avg_token_delta
+        ):
+            failures.append("token_overhead_above_threshold")
         if failures:
             decision = ActivationDecision.RETIRE
             reasons = failures

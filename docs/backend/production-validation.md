@@ -44,6 +44,13 @@ including at least two held-out outcomes:
 - `retire`: the complete sample fails value or outcome criteria;
 - `keep-pilot`: evidence or held-out coverage is incomplete.
 
+Activation also applies explicit efficiency bounds to the paired evidence. The
+variant's average latency overhead must not exceed 30 seconds, and its average
+measured token overhead must not exceed 100,000 tokens. Token overhead is
+evaluated only when equivalent usage is available; unknown usage is never
+converted to zero. A capability that improves the quality score but exceeds
+either bound is retired rather than activated.
+
 A falsified value hypothesis can retire early after at least three measured
 pairs when the two held-out outcomes are already present and aggregate paired
 value remains below the pack threshold. Early retirement can only stop a

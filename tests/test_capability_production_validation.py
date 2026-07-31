@@ -161,6 +161,32 @@ def test_negative_measured_value_retires_after_complete_sample(tmp_path):
     assert "no_measurable_added_value" in decision.reasons
 
 
+def test_excessive_measured_overhead_blocks_activation(tmp_path):
+    store = EvaluatedPackStore(tmp_path)
+    store.initialize()
+    for run in range(6):
+        evidence = _record(
+            "tdd-workflow", run, good=True, held_out=run >= 4
+        )
+        store.record(replace(
+            evidence,
+            baseline_latency_ms=500,
+            latency_ms=31_000,
+            baseline_tokens=1_000,
+            variant_tokens=101_001,
+        ))
+
+    decision = decide_capability(
+        store, "tdd-workflow", "claude-code", required_samples=6
+    )
+
+    assert decision.decision is ActivationDecision.RETIRE
+    assert decision.reasons == [
+        "latency_overhead_above_threshold",
+        "token_overhead_above_threshold",
+    ]
+
+
 def test_three_neutral_pairs_with_held_out_retire_early(tmp_path):
     store = EvaluatedPackStore(tmp_path)
     store.initialize()

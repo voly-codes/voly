@@ -47,6 +47,8 @@ class SuccessCriteria:
     max_rollback_rate: float = 0.2
     max_correction_rate: float = 0.3
     min_paired_delta: float = 0.01
+    max_avg_latency_delta_ms: float = 30_000
+    max_avg_token_delta: float = 100_000
     min_samples: int = 3
 
 
@@ -344,6 +346,13 @@ class EvaluatedPackStore:
             reasons.append("correction_above_threshold")
         if metrics.reviewer_acceptance < criteria.min_reviewer_acceptance:
             reasons.append("reviewer_acceptance_below_threshold")
+        if metrics.avg_latency_delta_ms > criteria.max_avg_latency_delta_ms:
+            reasons.append("latency_overhead_above_threshold")
+        if (
+            metrics.token_samples
+            and metrics.avg_token_delta > criteria.max_avg_token_delta
+        ):
+            reasons.append("token_overhead_above_threshold")
         if reasons:
             pack.state = PackState.RETIRED
             self.save_packs(packs)
