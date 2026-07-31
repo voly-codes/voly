@@ -317,7 +317,11 @@ class EvaluatedPackStore:
         return pack
 
     def evaluate_retirement(
-        self, capability_id: str, executor_id: str
+        self,
+        capability_id: str,
+        executor_id: str,
+        *,
+        required_held_out: int = 2,
     ) -> tuple[bool, list[str]]:
         packs = self.load_packs()
         pack = next(item for item in packs if item.capability_id == capability_id)
@@ -325,6 +329,8 @@ class EvaluatedPackStore:
         criteria = pack.success_criteria
         if metrics.samples < criteria.min_samples:
             return False, ["insufficient_samples"]
+        if metrics.held_out_samples < required_held_out:
+            return False, ["insufficient_held_out_evidence"]
         reasons = []
         if metrics.paired_delta < criteria.min_paired_delta:
             reasons.append("no_measurable_added_value")

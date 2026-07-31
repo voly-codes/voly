@@ -140,7 +140,11 @@ def test_retirement_when_paired_variant_has_no_added_value(tmp_path):
     store = EvaluatedPackStore(tmp_path)
     store.initialize()
     for index in range(3):
-        store.record(_evidence(good=False, run_id=f"bad-{index}"))
+        store.record(_evidence(
+            good=False,
+            run_id=f"bad-{index}",
+            held_out=index >= 1,
+        ))
 
     retired, reasons = store.evaluate_retirement(
         "security-reviewer", "claude-code"
@@ -153,6 +157,20 @@ def test_retirement_when_paired_variant_has_no_added_value(tmp_path):
         if item.capability_id == "security-reviewer"
     )
     assert pack.state is PackState.RETIRED
+
+
+def test_retirement_requires_held_out_evidence(tmp_path):
+    store = EvaluatedPackStore(tmp_path)
+    store.initialize()
+    for index in range(3):
+        store.record(_evidence(good=False, run_id=f"bad-{index}"))
+
+    retired, reasons = store.evaluate_retirement(
+        "security-reviewer", "claude-code"
+    )
+
+    assert retired is False
+    assert reasons == ["insufficient_held_out_evidence"]
 
 
 def test_imported_capability_cannot_be_active_without_evidence(tmp_path):
