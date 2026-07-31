@@ -26,7 +26,7 @@
 
 # VOLY — Control Plane для AI-агентов
 
-> **VOLY оборачивает Claude Code, Cursor, Codex, Zen и другие AI-агенты, чтобы запускать их дешевле, безопаснее и с полной измеримостью.**
+> **VOLY оборачивает Claude Code, Cursor, DeepSeek, OpenCode/Zen и другие AI-агенты, чтобы запускать их дешевле, безопаснее и с полной измеримостью.**
 
 VOLY — не ещё один AI-агент. Это **self-hosted control plane** между разработчиком и агентами:
 
@@ -50,7 +50,7 @@ VOLY — не ещё один AI-агент. Это **self-hosted control plane*
 
 ## Почему VOLY, а не просто агент?
 
-Claude Code, Cursor и Codex — отличные **исполнители**. VOLY — слой **над**
+Claude Code, Cursor, DeepSeek и OpenCode — отличные **исполнители**. VOLY — слой **над**
 ними: он нужен, потому что ежедневная работа с агентами ставит вопросы,
 на которые одиночный CLI не отвечает:
 
@@ -69,7 +69,7 @@ Claude Code, Cursor и Codex — отличные **исполнители**. VO
 VOLY окупается, когда агенты становятся частью **ежедневного процесса**
 и нужны экономика, контроль и отчёты.
 
-## Демо за 3 минуты
+## Быстрое демо
 
 ```bash
 voly init                                   # конфиг + хуки
@@ -92,11 +92,12 @@ voly ui                                     # web-дашборд на :7788
 architect/reviewer остаются на chat — в отчёте видно роль / mode / cost /
 файлы / verify.
 
-### Демо: 3D танчики, собрано цепочкой агентов
+### Записанное демо: 3D танчики, собранные цепочкой агентов
 
 Одна задача («сделать 3D танчики») ушла через VOLY в цепочку
-developer → tester → reviewer. Готовая игра с тестами и ревью за
-**5 мин 58 с** и **$0.0130** (без retry).
+developer → tester → reviewer. Запись показывает результат того запуска; это
+демонстрация продукта, а не актуальный benchmark производительности или
+стоимости.
 
 <p align="center">
   <a href="https://github.com/voly-codes/voly/releases/download/demo-voxel-tanks/export-1784466924338-compact.mp4"><img src="docs/assets/video-preview.webp" alt="Смотреть демо" width="900"></a>
@@ -173,31 +174,6 @@ Developer / Web UI / CLI / CI
 5. Merge → `TaskEvent` с `a2a_assignments` (роль / mode / files / verify / cost). CLI печатает краткую сводку ролей; в Web UI — панель «Мульти-агенты».
 
 **Экономия на повторах:** суб-агенты детерминированы (`temperature=0`), gateway-кэш **persistent**. Пропуск провайдера: `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic` (помечается unhealthy до первого chat-вызова).
-
-### Живой прогон multi-agent (greenfield PulseBoard)
-
-На пустом `--cwd` (без заранее созданного проекта). Hybrid: developer / tester / devops пишут файлы через executor; architect / reviewer — chat.
-
-| | |
-|---|---|
-| **Задача** | Спроектировать production PulseBoard API (FastAPI + PostgreSQL + Redis): архитектура, mission CRUD + JWT, pytest integration, security review, Docker Compose + CI для релиза |
-| **Хост** | CPU: Intel Core i5-6200U @ 2.30GHz (4 потока) · RAM: 8 GB · OS: CachyOS Linux (x86_64) · Disk: ~220 GB SSD (`/home`) |
-| **Время (wall)** | **~17.1 мин** (1024 с) |
-| **Стоимость** | **$0.013** (сумма telemetry; usage Cursor executor — оценка) |
-| **Токены** | in 7 032 · out 4 738 · headroom saved 773 |
-| **Результат** | **completed** · scaffold + Compose/CI · **56 pytest passed** · все роли `ok`, plan verify yes |
-
-Агенты в прогоне (event `f65c2bdc`, hybrid):
-
-| Роль | Mode | Runtime | Tier | Файлы | Cost | Wall |
-|---|---|---|---|---:|---:|---:|
-| architect | chat | `cloudflare-dynamic` / `dynamic/ai_route` | standard | — | $0.003 | 56 с |
-| developer | executor | `cursor` | standard | 44 | $0.002 | 151 с |
-| tester | executor | `cursor` | standard | 5 | $0.003 | 161 с |
-| reviewer | chat | `deepseek` / `deepseek-chat` | premium | — | $0.001 | 7 с |
-| devops | executor | `cursor` | cheap | 4 | $0.003 | 622 с |
-
-Ранее на том же хосте (tester/devops ещё только chat): wall **~3.3 мин**, cost **$0.014**, developer 44 файла, **18 pytest passed**, status completed — быстрее, но без записи тестов/CI executor-ролями.
 
 ## Быстрый старт
 
@@ -388,7 +364,7 @@ a2a:
   lead_mode: auto                      # без premium lead-chat на стандартных ролях
   hybrid_code_gen: true                # developer/tester/devops → executor при cwd
   architect_max_tokens: 4096
-  task_timeout_seconds: 900
+  task_timeout_seconds: 600
 
 plan:
   enabled: true
@@ -403,7 +379,7 @@ auth:
     - "http://localhost:5173"
 
 cost_policy:
-  max_task_cost_usd: 2.0
+  max_task_cost_usd: 1.0
 
 dspy:
   enabled: false
@@ -497,7 +473,8 @@ pytest tests/test_web_auth.py               # JWT auth baseline
 pytest tests/ -q                            # полный прогон
 ```
 
-GitHub Actions: base install (Python 3.10–3.14), import smoke без/с DSPy, runtime smoke tests.
+Пакет требует Python 3.10+. GitHub Actions запускает базовый набор на актуальном
+runner `3.x`, а DSPy-набор — на Python 3.11.
 
 ## Не коммитить
 

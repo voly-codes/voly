@@ -26,7 +26,7 @@
 
 # VOLY — Control Plane for AI Agents
 
-> **VOLY wraps Claude Code, Cursor, Codex, Zen and other AI agents so you can run them cheaper, safer, and with full measurability.**
+> **VOLY wraps Claude Code, Cursor, DeepSeek, OpenCode/Zen and other AI agents so you can run them cheaper, safer, and with full measurability.**
 
 VOLY is not another AI agent. It is a **self-hosted control plane** between the developer and the agents:
 
@@ -50,7 +50,7 @@ VOLY is not another AI agent. It is a **self-hosted control plane** between the 
 
 ## Why VOLY, and not just a single agent?
 
-Claude Code, Cursor, and Codex are excellent **executors**. VOLY is the layer
+Claude Code, Cursor, DeepSeek, and OpenCode are excellent **executors**. VOLY is the layer
 **above** them — it exists because running agents daily raises questions a
 single CLI cannot answer:
 
@@ -69,7 +69,7 @@ If all you need is "write code from a prompt" — use an agent directly. VOLY
 pays off when agents become part of the **daily workflow** and you need
 economics, control, and reports.
 
-## 3-minute demo
+## Quick demo
 
 ```bash
 voly init                                   # config + hooks
@@ -92,11 +92,12 @@ automatically (`lead_mode=auto` skips a premium lead chat on standard role
 sets). With `--cwd`, hybrid implement roles write files; architect/reviewer
 stay on chat — the report shows role / mode / cost / files / verify.
 
-### Demo: 3D voxel tanks, built by a multi-agent chain
+### Recorded demo: 3D voxel tanks built by a multi-agent chain
 
 A single task ("build a 3D voxel tank game") dispatched through VOLY to a
-developer → tester → reviewer chain. Full game, tested and reviewed, in
-**5 min 58 s** for **$0.0130** (zero retries).
+developer → tester → reviewer chain. The recording captures the result from
+that run; it is a product demonstration, not a current performance or cost
+benchmark.
 
 <p align="center">
   <a href="https://github.com/voly-codes/voly/releases/download/demo-voxel-tanks/export-1784466924338-compact.mp4"><img src="docs/assets/video-preview.webp" alt="Watch the demo" width="900"></a>
@@ -173,31 +174,6 @@ When a task enters multi-agent mode (`a2a.execution_mode=local`, default):
 5. Merge → `TaskEvent` with `a2a_assignments` (role / mode / files / verify / cost). CLI prints a compact role summary; Web UI shows the Multi-agents panel.
 
 **Repeat savings:** sub-agents are deterministic (`temperature=0`), and the gateway cache is **persistent** (on disk). Skip a provider (e.g. out of credits): `VOLY_A2A_EXCLUDE_PROVIDERS=anthropic` (applied before the first chat call).
-
-### Live multi-agent run (greenfield PulseBoard)
-
-Measured on an empty `--cwd` (no prior project files). Hybrid roles: developer / tester / devops write files via executors; architect / reviewer stay on chat.
-
-| | |
-|---|---|
-| **Task** | Design a production PulseBoard API (FastAPI + PostgreSQL + Redis): architecture, mission CRUD + JWT auth, pytest integration tests, security review, Docker Compose + CI for release |
-| **Host** | CPU: Intel Core i5-6200U @ 2.30GHz (4 threads) · RAM: 8 GB · OS: CachyOS Linux (x86_64) · Disk: ~220 GB SSD (`/home`) |
-| **Wall time** | **~17.1 min** (1024 s) |
-| **Cost** | **$0.013** (telemetry sum; Cursor executor usage is estimated) |
-| **Tokens** | in 7 032 · out 4 738 · headroom saved 773 |
-| **Result** | **completed** · scaffold + Compose/CI · **56 pytest passed** · all roles `ok`, plan verify yes |
-
-Agents that ran (event `f65c2bdc`, hybrid):
-
-| Role | Mode | Runtime | Tier | Files | Cost | Wall |
-|---|---|---|---|---:|---:|---:|
-| architect | chat | `cloudflare-dynamic` / `dynamic/ai_route` | standard | — | $0.003 | 56 s |
-| developer | executor | `cursor` | standard | 44 | $0.002 | 151 s |
-| tester | executor | `cursor` | standard | 5 | $0.003 | 161 s |
-| reviewer | chat | `deepseek` / `deepseek-chat` | premium | — | $0.001 | 7 s |
-| devops | executor | `cursor` | cheap | 4 | $0.003 | 622 s |
-
-Earlier greenfield on the same host (tester/devops still chat-only): wall **~3.3 min**, cost **$0.014**, developer 44 files, **18 pytest passed**, status completed — faster, but no file-writing tester/devops.
 
 ## Quick start
 
@@ -387,7 +363,7 @@ a2a:
   lead_mode: auto                      # skip premium lead chat on standard role sets
   hybrid_code_gen: true                # developer/tester/devops → executors when cwd set
   architect_max_tokens: 4096
-  task_timeout_seconds: 900
+  task_timeout_seconds: 600
 
 plan:
   enabled: true
@@ -402,7 +378,7 @@ auth:
     - "http://localhost:5173"
 
 cost_policy:
-  max_task_cost_usd: 2.0
+  max_task_cost_usd: 1.0
 
 dspy:
   enabled: false
@@ -496,7 +472,8 @@ pytest tests/test_web_auth.py               # JWT auth baseline
 pytest tests/ -q                            # full suite
 ```
 
-GitHub Actions: base install (Python 3.10–3.14), import smoke without/with DSPy, runtime smoke tests.
+The package requires Python 3.10+. GitHub Actions runs the base suite on the
+current `3.x` runner and the DSPy suite on Python 3.11.
 
 ## Do not commit
 
