@@ -40,13 +40,28 @@ from voly.capability.schema import (
 )
 from voly.capability.scorer import hard_exclude, routing_score
 from voly.capability.sync import startup_sync
+from voly.capability.validation import (
+    ActivationDecision,
+    ActivationPlan,
+    BenchmarkTask,
+    CapabilityDecision,
+    SuiteReport,
+    build_activation_plan,
+    decide_capability,
+    load_suite,
+    probe_routing,
+)
 
 __all__ = [
     "CapabilityDomain",
+    "ActivationDecision",
+    "ActivationPlan",
+    "BenchmarkTask",
     "CapabilityInput",
     "CapabilityMetrics",
     "CapabilityOutput",
     "CapabilityRunEvidence",
+    "CapabilityDecision",
     "CapabilityMatchResult",
     "CapabilityRegistry",
     "ExecutorCapabilityProfile",
@@ -71,9 +86,14 @@ __all__ = [
     "PackStoreError",
     "PackVerification",
     "StagedPackComponent",
+    "SuiteReport",
     "admit_external_pack",
+    "build_activation_plan",
+    "decide_capability",
     "discover_ecc_pack",
     "hard_exclude",
+    "load_suite",
+    "probe_routing",
     "routing_score",
     "startup_sync",
 ]

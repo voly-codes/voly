@@ -48,6 +48,10 @@ budgeted records instead of raw history. The project must be identified through
 `cwd`, `project_cwd`, or an explicit `project_id`; otherwise no strategic
 memory is injected. See [strategic-memory.md](strategic-memory.md).
 
+Evaluated capability routing remains outside the active pipeline until the
+Phase 9 measured gate passes. The offline 20-task routing probe cannot enable
+it. See [production-validation.md](production-validation.md).
+
 ---
 
 ## REPO_INTELLIGENCE stage

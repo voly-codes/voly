@@ -575,6 +575,7 @@ docs/backend/
   intelligence.md           ← Repository Intelligence: admission, license, architecture map
   capability.md             ← Capability Registry: evidence-based executor routing, matcher, scorer
   evaluated-capability-packs.md ← measured agent/skill pilots and retirement policy
+  production-validation.md ← 20-task RAT probe and staged activation gate
   evidence.md               ← baseline, EvidenceRecord v2, root-cause attribution
   evaluation.md             ← versioned EvalPolicy and post-run evaluation
   config.md                 ← env vars, voly.yaml, VOLYConfig

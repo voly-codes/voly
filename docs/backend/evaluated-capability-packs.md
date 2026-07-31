@@ -56,3 +56,8 @@ voly capability evaluated evaluate-retirement security-reviewer claude-code
 ```
 
 Experiment state remains ignored under `.voly/capability/`.
+
+The production gate and bundled 20-task suite are documented in
+[production-validation.md](production-validation.md). An offline routing probe
+cannot activate a capability; activation requires real paired outcomes and
+held-out evidence.

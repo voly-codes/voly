@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "tasks": [
+    {"task_id":"sec-01","task":"Review authentication flow for security vulnerabilities","role":"security","expected_capability":"security-reviewer","project_features":["python"]},
+    {"task_id":"sec-02","task":"Scan changed configuration for leaked secrets","role":"security","expected_capability":"security-reviewer"},
+    {"task_id":"sec-03","task":"Create a threat review for the API boundary","role":"security","expected_capability":"security-reviewer"},
+    {"task_id":"sec-04","task":"Audit authorization checks and security controls","role":"security","expected_capability":"security-reviewer"},
+    {"task_id":"sec-05","task":"Find vulnerability risks in token refresh","role":"security","expected_capability":"security-reviewer","held_out":true},
+    {"task_id":"sec-06","task":"Review secret handling in deployment code","role":"security","expected_capability":"security-reviewer","held_out":true},
+    {"task_id":"tdd-01","task":"Use TDD to implement the parser","role":"tester","expected_capability":"tdd-workflow","project_features":["python"]},
+    {"task_id":"tdd-02","task":"Write a failing test before fixing the regression","role":"tester","expected_capability":"tdd-workflow"},
+    {"task_id":"tdd-03","task":"Add pytest coverage for the API regression","role":"tester","expected_capability":"tdd-workflow"},
+    {"task_id":"tdd-04","task":"Follow a test-first workflow for validation","role":"tester","expected_capability":"tdd-workflow"},
+    {"task_id":"tdd-05","task":"Reproduce the regression with pytest first","role":"tester","expected_capability":"tdd-workflow","held_out":true},
+    {"task_id":"tdd-06","task":"Build the feature using TDD acceptance tests","role":"tester","expected_capability":"tdd-workflow","held_out":true},
+    {"task_id":"py-01","task":"Review Python type hints and module design","role":"reviewer","expected_capability":"python-reviewer","project_features":["python"]},
+    {"task_id":"py-02","task":"Review Ruff findings in the Python package","role":"reviewer","expected_capability":"python-reviewer"},
+    {"task_id":"py-03","task":"Audit pyproject configuration and Python conventions","role":"reviewer","expected_capability":"python-reviewer"},
+    {"task_id":"py-04","task":"Review pytest fixtures in this Python change","role":"reviewer","expected_capability":"python-reviewer"},
+    {"task_id":"py-05","task":"Check Python typing regressions","role":"reviewer","expected_capability":"python-reviewer","held_out":true},
+    {"task_id":"py-06","task":"Review pyproject and Ruff configuration","role":"reviewer","expected_capability":"python-reviewer","held_out":true},
+    {"task_id":"native-01","task":"Write product positioning copy","role":"writer","expected_capability":"","held_out":true},
+    {"task_id":"native-02","task":"Design a database migration plan","role":"architect","expected_capability":""}
+  ]
+}

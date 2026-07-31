@@ -14,6 +14,12 @@ must have measured evidence. Paired experiments change one capability at a
 time and track quality, cost, latency, retries, rollback and corrections.
 Packs without measurable value are retired and fall back to native VOLY.
 
+The bundled 20-task offline probe validates only routing and fallback. It is
+explicitly synthetic and cannot activate packs. Production decisions require
+real paired outcomes with held-out coverage. Local activation is separate from
+Cloudflare deployment; deployment readiness stays false while any pilot lacks
+evidence.
+
 ### External capability-pack discovery
 
 `voly capability import ecc --source <checkout> --dry-run` inventories supported

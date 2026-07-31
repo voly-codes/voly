@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import tempfile
+from importlib.resources import files
 from pathlib import Path
 
 import click
@@ -125,3 +127,76 @@ def evaluated_route(
         available_executors=list(executors) or None,
     )
     click.echo(json.dumps(route.__dict__, indent=2))
+
+
+@capability_evaluated.command("benchmark")
+@click.pass_context
+def evaluated_benchmark(ctx: click.Context) -> None:
+    """Run the bundled 20-task offline routing probe (never activates packs)."""
+    from voly.capability import CapabilityRegistry, EvaluatedPackRouter, ExecutorMatcher
+    from voly.capability.validation import load_suite, probe_routing
+
+    suite_path = files("voly.capability").joinpath("benchmark_suite_v1.json")
+    tasks = load_suite(str(suite_path))
+    with tempfile.TemporaryDirectory(prefix="voly-capability-probe-") as temp_dir:
+        probe_store = type(_store(ctx))(temp_dir)
+        packs = probe_store.initialize()
+        for pack in packs:
+            pack.state = type(pack.state).ACTIVE
+            pack.evidence_count = 1
+        probe_store.save_packs(packs)
+        matcher = ExecutorMatcher(
+            CapabilityRegistry(str(Path(temp_dir) / "profiles")),
+            worker_url="",
+        )
+        report = probe_routing(tasks, EvaluatedPackRouter(probe_store, matcher))
+    click.echo(json.dumps(report.to_dict(), indent=2))
+
+
+def _decisions(ctx: click.Context, executor_id: str):
+    from voly.capability.validation import decide_capability
+
+    store = _store(ctx)
+    return [
+        decide_capability(store, pack.capability_id, executor_id, required_samples=6)
+        for pack in store.load_packs()
+    ]
+
+
+@capability_evaluated.command("activation-plan")
+@click.option("--executor", "executor_id", default="claude-code", show_default=True)
+@click.pass_context
+def evaluated_activation_plan(ctx: click.Context, executor_id: str) -> None:
+    """Build decisions from real stored outcomes and report CF readiness."""
+    from voly.capability.validation import build_activation_plan
+
+    plan = build_activation_plan(_decisions(ctx, executor_id))
+    click.echo(json.dumps(plan.to_dict(), indent=2))
+
+
+@capability_evaluated.command("activate-ready")
+@click.option("--executor", "executor_id", default="claude-code", show_default=True)
+@click.option("--yes", is_flag=True, help="Apply locally recomputed activate decisions.")
+@click.pass_context
+def evaluated_activate_ready(
+    ctx: click.Context, executor_id: str, yes: bool
+) -> None:
+    """Activate only locally validated packs; never deploy Cloudflare."""
+    from voly.capability.validation import ActivationDecision, build_activation_plan
+
+    if not yes:
+        raise click.UsageError("--yes is required")
+    decisions = _decisions(ctx, executor_id)
+    plan = build_activation_plan(decisions)
+    store = _store(ctx)
+    activated = []
+    for decision in decisions:
+        if decision.decision is ActivationDecision.ACTIVATE:
+            store.activate(decision.capability_id)
+            activated.append(decision.capability_id)
+    click.echo(json.dumps({
+        "activated": activated,
+        "cloudflare_deployed": False,
+        "cloudflare_deploy_ready": plan.cloudflare_deploy_ready,
+        "blockers": plan.blockers,
+    }, indent=2))
