@@ -146,6 +146,7 @@ def decide_capability(
     *,
     required_samples: int,
     required_held_out: int = 2,
+    early_retire_samples: int = 3,
 ) -> CapabilityDecision:
     pack = next(
         item for item in store.load_packs()
@@ -153,14 +154,23 @@ def decide_capability(
     )
     metrics = store.metrics(capability_id, executor_id)
     reasons = []
-    if metrics.samples < required_samples:
+    criteria = pack.success_criteria
+    early_no_value = (
+        metrics.samples >= early_retire_samples
+        and metrics.samples < required_samples
+        and metrics.held_out_samples >= required_held_out
+        and metrics.paired_delta < criteria.min_paired_delta
+    )
+    if early_no_value:
+        decision = ActivationDecision.RETIRE
+        reasons = ["early_falsification_no_measurable_added_value"]
+    elif metrics.samples < required_samples:
         reasons.append("insufficient_measured_samples")
-    if metrics.held_out_samples < required_held_out:
+    if not early_no_value and metrics.held_out_samples < required_held_out:
         reasons.append("insufficient_held_out_evidence")
-    if reasons:
+    if not early_no_value and reasons:
         decision = ActivationDecision.KEEP_PILOT
-    else:
-        criteria = pack.success_criteria
+    elif not early_no_value:
         failures = []
         if metrics.paired_delta < criteria.min_paired_delta:
             failures.append("no_measurable_added_value")

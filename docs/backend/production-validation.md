@@ -44,6 +44,11 @@ including at least two held-out outcomes:
 - `retire`: the complete sample fails value or outcome criteria;
 - `keep-pilot`: evidence or held-out coverage is incomplete.
 
+A falsified value hypothesis can retire early after at least three measured
+pairs when the two held-out outcomes are already present and aggregate paired
+value remains below the pack threshold. Early retirement can only stop a
+failed pilot; it can never activate one before the full six-sample gate.
+
 The decision is reproducible from the local append-only evidence records:
 
 ```bash

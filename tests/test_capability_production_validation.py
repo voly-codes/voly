@@ -159,6 +159,30 @@ def test_negative_measured_value_retires_after_complete_sample(tmp_path):
     assert "no_measurable_added_value" in decision.reasons
 
 
+def test_three_neutral_pairs_with_held_out_retire_early(tmp_path):
+    store = EvaluatedPackStore(tmp_path)
+    store.initialize()
+    for run in range(3):
+        evidence = _record(
+            "security-reviewer", run, good=True, held_out=run >= 1
+        )
+        store.record(replace(
+            evidence,
+            variant_score=evidence.baseline_score,
+        ))
+
+    decision = decide_capability(
+        store, "security-reviewer", "claude-code", required_samples=6
+    )
+
+    assert decision.decision is ActivationDecision.RETIRE
+    assert decision.samples == 3
+    assert decision.held_out_samples == 2
+    assert decision.reasons == [
+        "early_falsification_no_measurable_added_value"
+    ]
+
+
 def test_cf_ready_only_when_all_decisions_resolved_and_one_activates():
     activate = SimpleNamespace(decision=ActivationDecision.ACTIVATE)
     retire = SimpleNamespace(decision=ActivationDecision.RETIRE)
