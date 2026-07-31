@@ -153,6 +153,13 @@ research:
   reports_dir: .voly/research/reports
   max_candidates: 8
   max_duration_ms: 1000
+
+# Evidence-gated continuous learning. Phase 6 supports shadow selection only.
+learning:
+  enabled: false
+  mode: shadow
+  store_path: .voly/learning/instincts.json
+  min_skill_confidence: 0.7
   auto_max_age_seconds: 604800 # skip only when a fresh *usable* report exists
 
 ai_gateway:

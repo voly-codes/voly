@@ -30,6 +30,7 @@ from voly.cli.commands import (  # noqa: E402
     evidence_cmd,
     headroom,
     init,
+    learning_cmd,
     match_task,
     mcp,
     memory,
@@ -116,6 +117,7 @@ main.add_command(reuse_cmd)
 main.add_command(repo_cmd)
 main.add_command(research_cmd)
 main.add_command(capability_cmd)
+main.add_command(learning_cmd)
 main.add_command(workflow_cmd)
 
 # Core commands

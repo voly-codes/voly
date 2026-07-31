@@ -401,6 +401,13 @@ research:
   max_candidates: 8
   max_duration_ms: 1000
 
+# Evidence-gated instincts; Phase 6 selection is shadow-only.
+learning:
+  enabled: false
+  mode: shadow
+  store_path: ".voly/learning/instincts.json"
+  min_skill_confidence: 0.7
+
 a2a:
   enabled: true
   auto_dispatch: true          # auto multi-agent for complex tasks

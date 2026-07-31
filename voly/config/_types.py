@@ -210,6 +210,16 @@ class ResearchConfig:
 
 
 @dataclass
+class LearningConfig:
+    """Evidence-gated instincts; selection remains shadow-only."""
+
+    enabled: bool = False
+    mode: str = "shadow"
+    store_path: str = ".voly/learning/instincts.json"
+    min_skill_confidence: float = 0.7
+
+
+@dataclass
 class AIGatewayConfig:
     enabled: bool = True
     provider: str = "cloudflare"
@@ -474,6 +484,7 @@ class VOLYConfig:
     scanner: ScannerConfig = field(default_factory=ScannerConfig)
     reuse: ReuseConfig = field(default_factory=ReuseConfig)
     research: ResearchConfig = field(default_factory=ResearchConfig)
+    learning: LearningConfig = field(default_factory=LearningConfig)
     ai_gateway: AIGatewayConfig = field(default_factory=AIGatewayConfig)
     mcp: MCPConfig = field(default_factory=MCPConfig)
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)

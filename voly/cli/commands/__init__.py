@@ -9,6 +9,7 @@ from .dspy_cmd import dspy_cmd
 from .eval_cmd import eval_cmd
 from .evidence_cmd import evidence_cmd
 from .infra import headroom, mcp, memory, pxpipe, rtk
+from .learning_cmd import learning_cmd
 from .lifecycle import init, setup
 from .plan_cmd import plan_cmd
 from .platform import ai_gateway, match_task, model, registry, scan_project
@@ -49,6 +50,7 @@ __all__ = [
     "balance",
     "init",
     "setup",
+    "learning_cmd",
     "serve",
     "run",
     "status",

@@ -21,6 +21,7 @@ from voly.config._types import (
     ExecutorSafetyConfig,
     HeadroomConfig,
     IntelligenceConfig,
+    LearningConfig,
     LLMJudgeConfig,
     MCPConfig,
     MemoryConfig,
@@ -302,6 +303,19 @@ def _parse_config(raw: dict) -> VOLYConfig:
             reports_dir=str(research.get("reports_dir", ".voly/research/reports")),
             max_candidates=int(research.get("max_candidates", 8) or 8),
             max_duration_ms=int(research.get("max_duration_ms", 1000) or 1000),
+        )
+
+    if "learning" in raw:
+        learning = raw["learning"]
+        config.learning = LearningConfig(
+            enabled=_parse_bool(learning.get("enabled"), False),
+            mode=str(learning.get("mode", "shadow")),
+            store_path=str(
+                learning.get("store_path", ".voly/learning/instincts.json")
+            ),
+            min_skill_confidence=float(
+                learning.get("min_skill_confidence", 0.7) or 0.7
+            ),
         )
 
     if "ai_gateway" in raw:

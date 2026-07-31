@@ -24,6 +24,12 @@ session transcripts. Retrieval is isolated by project/organization/global
 scope, bounded by token and per-class budgets, and ignores expired records.
 Private observations are never included by `voly memory export`.
 
+Continuous learning is a separate local shadow loop. Atomic instincts collect
+test, review, retry, rollback and explicit human evidence. Confidence cannot
+increase from an observation alone, approval is manual, and learned actions
+cannot enter active prompts or override policy/security gates. Cross-project
+promotion requires positive evidence from at least two projects.
+
 ## Smart dispatch
 
 The web API uses a smart-dispatch rule for `POST /api/run` when `executor=pipeline`:

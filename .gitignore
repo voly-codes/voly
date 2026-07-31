@@ -51,4 +51,5 @@ docs.zip
 .voly/reuse/reports/
 .voly/research/reports/
 .voly/strategic-memory.jsonl
+.voly/learning/
 launcher*.log
