@@ -183,6 +183,7 @@ def sync_remote_snapshot(
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
+        "User-Agent": "voly-capability-sync/1",
     }
     upload = urllib.request.Request(
         f"{base}/evaluated/snapshots",
@@ -196,7 +197,10 @@ def sync_remote_snapshot(
 
     readback = urllib.request.Request(
         f"{base}/evaluated/snapshots/{snapshot['snapshot_id']}",
-        headers={"Authorization": f"Bearer {token}"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "User-Agent": "voly-capability-sync/1",
+        },
         method="GET",
     )
     remote = _request_json(readback, timeout=timeout)

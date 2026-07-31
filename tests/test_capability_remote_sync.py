@@ -98,6 +98,7 @@ def test_sync_requires_exact_readback_before_writing_receipt(tmp_path, monkeypat
     def urlopen(request, timeout):
         calls.append((request, timeout))
         assert request.headers["Authorization"] == "Bearer secret"
+        assert request.headers["User-agent"] == "voly-capability-sync/1"
         if request.method == "POST":
             return Response({"ok": True, "snapshot_id": snapshot["snapshot_id"]})
         return Response({

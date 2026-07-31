@@ -258,6 +258,11 @@ no instruction bodies, prompts, evidence text, secrets, or repository paths.
 The POST recomputes SHA-256, rejects a mismatched ID, and writes the snapshot
 plus pack-state upserts in one D1 batch.
 
+The Python client identifies itself as `voly-capability-sync/1`; this avoids
+browser-signature rules on the custom domain treating the standard
+`Python-urllib` agent as an automated browser while authentication remains
+enforced by the bearer secret.
+
 The local command uploads and immediately reads the same snapshot back:
 
 ```bash
