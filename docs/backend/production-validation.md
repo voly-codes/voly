@@ -72,7 +72,31 @@ Cloudflare deployment becomes ready only when:
 
 1. at least one capability passes local measured validation;
 2. no capability remains in `keep-pilot`;
-3. activation is still explicitly enabled in configuration/deployment review.
+3. the target Worker implements the evaluated-pack sync contract;
+4. activation is still explicitly enabled in configuration/deployment review.
 
-Until then `cloudflare_deploy_ready=false`. Deployment remains a separate,
-explicit operational phase.
+The current `voly-capability` Worker accepts executor profiles and EMA run
+evidence, but it has no evaluated-pack state or provenance API. Consequently
+the local activation plan reports
+`blockers=["cloudflare_sync_contract_missing"]` and
+`cloudflare_deploy_ready=false`, even after the measured gate passes. A dry-run
+or redeploy of that unchanged Worker cannot publish local evaluated packs.
+Deployment remains a separate, explicit operational phase after the sync
+contract exists.
+
+The target service is `cf-workers/capability` (`voly-capability`,
+`capability.voly.codes`). Its deployment preflight uses the project-pinned
+Wrangler 4 toolchain:
+
+```bash
+cd cf-workers/capability
+npm ci
+npm run typecheck
+npm run deploy:dry-run
+npm run check:startup
+```
+
+The checked-in configuration is the source of truth for the D1
+`CAPABILITY_DB` binding and custom domain. A successful dry-run validates the
+bundle and binding shape but does not satisfy the missing evaluated-pack sync
+contract and must not be interpreted as deployment approval.

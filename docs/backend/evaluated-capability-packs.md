@@ -72,6 +72,13 @@ voly capability evaluated evaluate-retirement security-reviewer claude-code
 
 Experiment state remains ignored under `.voly/capability/`.
 
+Local evaluated-pack activation is deliberately separate from the existing
+Cloudflare capability service. The remote Worker currently models executor
+profiles and EMA evidence only; it cannot store pack state, instruction
+provenance, held-out decisions, or compact-instinct hashes. Until those fields
+have a versioned sync API, the deployment gate remains blocked and redeploying
+the existing Worker does not enable evaluated routing remotely.
+
 The production gate and bundled 20-task suite are documented in
 [production-validation.md](production-validation.md). An offline routing probe
 cannot activate a capability; activation requires real paired outcomes and

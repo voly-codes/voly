@@ -2,7 +2,7 @@
   "name": "voly-capability",
   "main": "src/index.ts",
   "account_id": "50fdb59b7724b696fd809ca810e34278",
-  "compatibility_date": "2025-01-01",
+  "compatibility_date": "2026-07-31",
   "workers_dev": true,
   "routes": [
     { "pattern": "capability.voly.codes", "custom_domain": true }

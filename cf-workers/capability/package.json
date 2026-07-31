@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "typecheck": "tsc --noEmit",
+    "check:startup": "wrangler check startup"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^5.20260731.1",
     "typescript": "^5.7.3",
-    "wrangler": "^3.109.2"
+    "wrangler": "^4.116.0"
   },
   "dependencies": {
     "hono": "^4.7.0"
