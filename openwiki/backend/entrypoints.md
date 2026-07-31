@@ -8,6 +8,19 @@ This page covers the main ways VOLY is started and exposed to users and other se
 
 The CLI is the primary control surface for local development and automation.
 
+### External capability-pack discovery
+
+`voly capability import ecc --source <checkout> --dry-run` inventories supported
+ECC agents, skills, rules, hook manifests, MCP configurations, and legacy
+command shims. `--json-output` returns the same report as a stable JSON object.
+
+This entrypoint is intentionally discovery-only: `--dry-run` is mandatory, no
+source component is copied or activated, imported code is not loaded, hooks and
+commands are not executed, and MCP servers are not started. Resolved component
+paths must remain below the selected source root. The implementation lives in
+`voly/capability/packs.py`; CLI wiring lives in
+`voly/cli/commands/capability_cmd.py`.
+
 ## FastAPI app
 
 `voly/web/server.py` creates the FastAPI app used by `voly ui`. It wires:

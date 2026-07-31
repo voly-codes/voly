@@ -138,6 +138,29 @@ voly capability reset claude-code
 voly capability reset --all
 ```
 
+### External capability-pack discovery
+
+Phase 1 adds read-only discovery for an ECC checkout:
+
+```bash
+voly capability import ecc --source /path/to/ECC --dry-run
+voly capability import ecc --source /path/to/ECC --dry-run --json-output
+```
+
+The adapter inventories agents, skills, rules, hook manifests, MCP
+configurations, and legacy command shims. It also records best-effort package
+and Git provenance. Discovery is deliberately inert:
+
+- `--dry-run` is mandatory;
+- no component is copied or activated;
+- no Python or JavaScript from the source is imported;
+- hooks and commands are not executed;
+- MCP servers are not started;
+- resolved component paths must remain under the selected source root.
+
+Persistent install and activation remain disabled until a versioned pack
+contract and security admission are implemented.
+
 ## Enable (dogfood)
 
 ```bash

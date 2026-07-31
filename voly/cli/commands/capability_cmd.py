@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import click
@@ -133,6 +134,59 @@ def capability_reset(
         raise click.UsageError("executor_id is required unless --all is set")
     reg.reset(executor_id)
     click.echo(f"reset {executor_id}")
+
+
+@capability_cmd.command("import")
+@click.argument("adapter", type=click.Choice(["ecc"], case_sensitive=False))
+@click.option(
+    "--source",
+    type=click.Path(path_type=Path, file_okay=False),
+    required=True,
+    help="Path to an external capability-pack checkout.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Inspect only. Required while external-pack installation is disabled.",
+)
+@click.option("--json-output", is_flag=True, help="Print the report as JSON.")
+def capability_import(
+    adapter: str,
+    source: Path,
+    dry_run: bool,
+    json_output: bool,
+) -> None:
+    """Discover an external capability pack without installing or executing it."""
+    if not dry_run:
+        raise click.UsageError(
+            "--dry-run is required; external capability installation is not enabled"
+        )
+
+    from voly.capability.packs import ExternalPackError, discover_ecc_pack
+
+    try:
+        report = discover_ecc_pack(source)
+    except ExternalPackError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    if json_output:
+        click.echo(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
+        return
+
+    click.echo(f"Pack: {report.pack_id}")
+    click.echo(f"Adapter: {adapter.lower()}")
+    click.echo(f"Source: {report.provenance.source_path}")
+    if report.provenance.repository:
+        click.echo(f"Repository: {report.provenance.repository}")
+    if report.provenance.revision:
+        click.echo(f"Revision: {report.provenance.revision}")
+    if report.provenance.package_version:
+        click.echo(f"Version: {report.provenance.package_version}")
+    click.echo("Mode: dry-run (nothing installed or executed)")
+    for kind, count in report.counts.items():
+        click.echo(f"  {kind}: {count}")
+    for warning in report.warnings:
+        click.echo(f"Warning: {warning}", err=True)
 
 
 def _profile_to_yaml(data: dict) -> str:

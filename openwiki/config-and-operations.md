@@ -73,6 +73,18 @@ Skill and plugin catalog paths fall back to local source data when `CF_WORKER_MA
 
 Treat the local catalog as a fallback; the worker is the canonical marketplace backend when remote publishing/sync matters.
 
+External capability repositories have a separate trust boundary from the
+marketplace and executor profile cache. The current ECC adapter performs
+read-only discovery:
+
+```bash
+voly capability import ecc --source /path/to/ECC --dry-run
+```
+
+It reports package/Git provenance and a deterministic component inventory.
+Installation, activation, hook execution, and MCP startup are not part of this
+phase. Do not treat a successful discovery report as a security approval.
+
 ### Seeding marketplace skills
 
 ```bash
