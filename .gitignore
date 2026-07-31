@@ -52,4 +52,5 @@ docs.zip
 .voly/research/reports/
 .voly/strategic-memory.jsonl
 .voly/learning/
+.voly/hooks/
 launcher*.log

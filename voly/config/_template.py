@@ -160,6 +160,13 @@ learning:
   mode: shadow
   store_path: .voly/learning/instincts.json
   min_skill_confidence: 0.7
+
+hooks:
+  enabled: false
+  registry_path: .voly/hooks/manifests.json
+  state_path: .voly/hooks/idempotency.json
+  evidence_log: .voly/hooks/evidence.jsonl
+  telemetry_log: .voly/hooks/telemetry.jsonl
   auto_max_age_seconds: 604800 # skip only when a fresh *usable* report exists
 
 ai_gateway:

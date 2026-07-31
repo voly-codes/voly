@@ -29,6 +29,7 @@ from voly.cli.commands import (  # noqa: E402
     eval_cmd,
     evidence_cmd,
     headroom,
+    hooks_cmd,
     init,
     learning_cmd,
     match_task,
@@ -91,6 +92,7 @@ main.add_command(agui)
 main.add_command(memory)
 main.add_command(rtk)
 main.add_command(headroom)
+main.add_command(hooks_cmd)
 main.add_command(pxpipe)
 main.add_command(mcp)
 main.add_command(registry)

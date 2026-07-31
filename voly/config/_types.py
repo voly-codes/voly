@@ -220,6 +220,17 @@ class LearningConfig:
 
 
 @dataclass
+class HooksConfig:
+    """Constrained lifecycle hooks; imported manifests start disabled."""
+
+    enabled: bool = False
+    registry_path: str = ".voly/hooks/manifests.json"
+    state_path: str = ".voly/hooks/idempotency.json"
+    evidence_log: str = ".voly/hooks/evidence.jsonl"
+    telemetry_log: str = ".voly/hooks/telemetry.jsonl"
+
+
+@dataclass
 class AIGatewayConfig:
     enabled: bool = True
     provider: str = "cloudflare"
@@ -485,6 +496,7 @@ class VOLYConfig:
     reuse: ReuseConfig = field(default_factory=ReuseConfig)
     research: ResearchConfig = field(default_factory=ResearchConfig)
     learning: LearningConfig = field(default_factory=LearningConfig)
+    hooks: HooksConfig = field(default_factory=HooksConfig)
     ai_gateway: AIGatewayConfig = field(default_factory=AIGatewayConfig)
     mcp: MCPConfig = field(default_factory=MCPConfig)
     cost_policy: CostPolicyConfig = field(default_factory=CostPolicyConfig)

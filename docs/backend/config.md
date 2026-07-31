@@ -408,6 +408,14 @@ learning:
   store_path: ".voly/learning/instincts.json"
   min_skill_confidence: 0.7
 
+# Harness-neutral hooks; imported manifests remain disabled until approved.
+hooks:
+  enabled: false
+  registry_path: ".voly/hooks/manifests.json"
+  state_path: ".voly/hooks/idempotency.json"
+  evidence_log: ".voly/hooks/evidence.jsonl"
+  telemetry_log: ".voly/hooks/telemetry.jsonl"
+
 a2a:
   enabled: true
   auto_dispatch: true          # auto multi-agent for complex tasks

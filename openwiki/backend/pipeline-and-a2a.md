@@ -30,6 +30,12 @@ increase from an observation alone, approval is manual, and learned actions
 cannot enter active prompts or override policy/security gates. Cross-project
 promotion requires positive evidence from at least two projects.
 
+Lifecycle hooks use a harness-neutral event contract and an allowlisted adapter.
+Every manifest declares permissions, timeout, idempotency and fail policy.
+Imported hooks remain disabled until explicit approval. Automatic attempts,
+including failures and duplicates, are mirrored into local evidence and
+telemetry logs without mutating executor run state.
+
 ## Smart dispatch
 
 The web API uses a smart-dispatch rule for `POST /api/run` when `executor=pipeline`:

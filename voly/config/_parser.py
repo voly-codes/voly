@@ -20,6 +20,7 @@ from voly.config._types import (
     EvidenceConfig,
     ExecutorSafetyConfig,
     HeadroomConfig,
+    HooksConfig,
     IntelligenceConfig,
     LearningConfig,
     LLMJudgeConfig,
@@ -316,6 +317,16 @@ def _parse_config(raw: dict) -> VOLYConfig:
             min_skill_confidence=float(
                 learning.get("min_skill_confidence", 0.7) or 0.7
             ),
+        )
+
+    if "hooks" in raw:
+        hooks = raw["hooks"]
+        config.hooks = HooksConfig(
+            enabled=_parse_bool(hooks.get("enabled"), False),
+            registry_path=str(hooks.get("registry_path", ".voly/hooks/manifests.json")),
+            state_path=str(hooks.get("state_path", ".voly/hooks/idempotency.json")),
+            evidence_log=str(hooks.get("evidence_log", ".voly/hooks/evidence.jsonl")),
+            telemetry_log=str(hooks.get("telemetry_log", ".voly/hooks/telemetry.jsonl")),
         )
 
     if "ai_gateway" in raw:
