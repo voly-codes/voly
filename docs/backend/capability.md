@@ -149,7 +149,9 @@ voly capability import ecc --source /path/to/ECC --dry-run --json-output
 
 The adapter inventories agents, skills, rules, hook manifests, MCP
 configurations, and legacy command shims. It also records best-effort package
-and Git provenance. Discovery is deliberately inert:
+and Git provenance. Every discovered component then passes static admission,
+which reports normalized findings, inferred permissions, overall risk, and an
+`allow` or `quarantine` decision. Discovery is deliberately inert:
 
 - `--dry-run` is mandatory;
 - no component is copied or activated;
@@ -158,8 +160,12 @@ and Git provenance. Discovery is deliberately inert:
 - MCP servers are not started;
 - resolved component paths must remain under the selected source root.
 
-Persistent install and activation remain disabled until a versioned pack
-contract and security admission are implemented.
+Risk levels are `low`, `medium`, `high`, and `critical`. High and critical
+findings quarantine the pack by default. Current checks cover instruction
+override and secret-exfiltration language, destructive commands, subprocess,
+network, filesystem and secret access, bounded component size, and MCP JSON
+shape. Findings are evidence for review, not proof that a component is
+malicious; persistent install and activation remain disabled.
 
 ## Enable (dogfood)
 

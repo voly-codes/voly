@@ -58,6 +58,24 @@ Without a remote URL, the stage still fills `task_features` from a local
 | `security_scanner.py` | Pure-Python regex risk patterns (no external tools) |
 | `repo_analyzer.py` | Main orchestrator, cache by SHA |
 
+## External capability admission
+
+External skills, agents, rules, hooks, MCP definitions, and command shims use
+the narrower `voly/capability/pack_admission.py` scanner after read-only pack
+discovery. This boundary is separate from pre-clone repository admission:
+
+- every component path is resolved below the selected source root;
+- text reads are bounded to 512 KB per component;
+- findings use normalized IDs and `low | medium | high | critical` severity;
+- inferred permissions cover subprocess, network, filesystem writes, secrets,
+  and prompt control;
+- MCP JSON is parsed for structure only and servers are never started;
+- high or critical findings produce `decision=quarantine`.
+
+The report is included under `admission` in
+`voly capability import ... --dry-run --json-output`. Static matches require
+human review and do not activate or install external content.
+
 ## AdmissionResult fields
 
 | Field | Type | Description |

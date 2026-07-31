@@ -41,6 +41,15 @@ In-gateway spend accounting is separate from the remote spend protocol: `AIGatew
 
 `memory.backend` in config: `local` (SQLite), `hybrid` (local + CF memory Worker), or `agent_memory` (Cloudflare Agent Memory HTTP — private beta). Client: `voly/memory/agent_memory_client.py`. See `docs/backend/config.md`.
 
+### External capability trust boundary
+
+External capability repositories are untrusted inputs, not executable
+extensions. Discovery inventories supported files and records provenance;
+static admission reads bounded content, infers permissions, validates MCP JSON,
+and quarantines high/critical risk. No discovered agent, skill, hook, command,
+or MCP server is installed or executed by this path. Persistent installation
+requires a later versioned pack contract and explicit activation boundary.
+
 ## Web surface (self-host)
 
 The FastAPI app (`voly ui`) is part of the control plane, not a separate product. Default posture is **localhost-open** (auth off + startup warning). JWT auth, CORS hardening, and login live under `voly/web/auth/` and are documented in entrypoints + `docs/backend/api.md`.

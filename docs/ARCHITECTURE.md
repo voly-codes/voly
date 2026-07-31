@@ -394,7 +394,16 @@ Evidence-based executor routing. Each executor has a measured capability profile
 | `matcher.py` | `ExecutorMatcher` — CF Worker `/match` with local fallback |
 | `evidence.py` | Fire-and-forget run evidence → local EMA + CF Worker `/profiles/evidence` |
 | `fallback.py` | Capability-aware executor fallback (replaces static chain) |
+| `packs.py` | Read-only external capability-pack discovery and provenance |
+| `pack_admission.py` | Bounded static admission, permissions, risk, quarantine |
+| `pack_security_patterns.py` | External prompt/config risk indicators |
 | `seeds/` | Bundled seed profiles for known executors |
+
+External capability repositories are untrusted data. Discovery and admission
+may read supported files but never import source modules, execute hooks or
+commands, start MCP servers, copy components, or activate them. High and
+critical findings quarantine affected components and the pack remains
+non-installable until a separate versioned install contract is implemented.
 
 ### `voly/dspy/` — DSPy optimizer layer
 

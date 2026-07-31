@@ -18,7 +18,11 @@ This entrypoint is intentionally discovery-only: `--dry-run` is mandatory, no
 source component is copied or activated, imported code is not loaded, hooks and
 commands are not executed, and MCP servers are not started. Resolved component
 paths must remain below the selected source root. The implementation lives in
-`voly/capability/packs.py`; CLI wiring lives in
+`voly/capability/packs.py`; static admission in
+`voly/capability/pack_admission.py` adds normalized findings, inferred
+permissions, MCP shape validation, and an `allow | quarantine` decision. High
+and critical risks quarantine the pack, but discovery still never activates
+it. CLI wiring lives in
 `voly/cli/commands/capability_cmd.py`.
 
 ## FastAPI app

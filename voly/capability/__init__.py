@@ -1,6 +1,12 @@
 """Executor capability registry — schema, calibration, and profile storage."""
 
 from voly.capability.matcher import ExecutorMatcher, MatchRequest
+from voly.capability.pack_admission import (
+    PackAdmissionReport,
+    PackPermissionDeclaration,
+    PackSecurityFinding,
+    admit_external_pack,
+)
 from voly.capability.packs import (
     ExternalPackError,
     PackComponent,
@@ -25,9 +31,13 @@ __all__ = [
     "ExecutorMatcher",
     "ExternalPackError",
     "MatchRequest",
+    "PackAdmissionReport",
     "PackComponent",
     "PackDiscoveryReport",
+    "PackPermissionDeclaration",
     "PackProvenance",
+    "PackSecurityFinding",
+    "admit_external_pack",
     "discover_ecc_pack",
     "hard_exclude",
     "routing_score",

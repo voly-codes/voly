@@ -162,15 +162,21 @@ def capability_import(
             "--dry-run is required; external capability installation is not enabled"
         )
 
+    from voly.capability.pack_admission import admit_external_pack
     from voly.capability.packs import ExternalPackError, discover_ecc_pack
 
     try:
         report = discover_ecc_pack(source)
+        admission = admit_external_pack(report)
     except ExternalPackError as exc:
         raise click.ClickException(str(exc)) from exc
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(f"capability admission failed: {exc}") from exc
 
     if json_output:
-        click.echo(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
+        payload = report.to_dict()
+        payload["admission"] = admission.to_dict()
+        click.echo(json.dumps(payload, ensure_ascii=False, indent=2))
         return
 
     click.echo(f"Pack: {report.pack_id}")
@@ -183,8 +189,20 @@ def capability_import(
     if report.provenance.package_version:
         click.echo(f"Version: {report.provenance.package_version}")
     click.echo("Mode: dry-run (nothing installed or executed)")
+    click.echo(
+        f"Admission: {admission.decision}  risk={admission.risk_level}  "
+        f"findings={len(admission.findings)}  "
+        f"quarantined={len(admission.quarantined_components)}"
+    )
     for kind, count in report.counts.items():
         click.echo(f"  {kind}: {count}")
+    for finding in admission.findings[:10]:
+        click.echo(
+            f"  [{finding.severity}] {finding.path}:{finding.line} "
+            f"{finding.finding_id}"
+        )
+    if len(admission.findings) > 10:
+        click.echo(f"  ... {len(admission.findings) - 10} more findings")
     for warning in report.warnings:
         click.echo(f"Warning: {warning}", err=True)
 
