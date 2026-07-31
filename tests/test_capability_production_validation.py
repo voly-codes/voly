@@ -126,6 +126,23 @@ def test_unmeasured_cost_is_not_reported_as_zero_cost_evidence(tmp_path):
     assert metrics.avg_cost_usd == 0
 
 
+def test_unmeasured_tokens_are_not_reported_as_zero_token_evidence(tmp_path):
+    store = EvaluatedPackStore(tmp_path)
+    store.initialize()
+    evidence = _record("tdd-workflow", 1, good=True, held_out=False)
+    store.record(replace(
+        evidence,
+        baseline_tokens=1000,
+        variant_tokens=0,
+        tokens_measured=False,
+    ))
+
+    metrics = store.metrics("tdd-workflow", "claude-code")
+
+    assert metrics.token_samples == 0
+    assert metrics.avg_token_delta == 0
+
+
 def test_negative_measured_value_retires_after_complete_sample(tmp_path):
     store = EvaluatedPackStore(tmp_path)
     store.initialize()

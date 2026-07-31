@@ -112,6 +112,7 @@ class CapabilityRunEvidence:
     baseline_latency_ms: float = 0.0
     baseline_tokens: int = 0
     variant_tokens: int = 0
+    tokens_measured: bool = True
     created_at: float = field(default_factory=time.time)
 
 
@@ -133,6 +134,7 @@ class CapabilityMetrics:
     cost_samples: int
     avg_latency_delta_ms: float
     avg_token_delta: float
+    token_samples: int
 
 
 @dataclass(frozen=True)
@@ -266,10 +268,16 @@ class EvaluatedPackStore:
                 cost_samples=0,
                 avg_latency_delta_ms=0,
                 avg_token_delta=0,
+                token_samples=0,
             )
         def mean(values: list[float]) -> float:
             return sum(values) / count
         measured_costs = [row.cost_usd for row in rows if row.cost_measured]
+        measured_token_deltas = [
+            float(row.variant_tokens - row.baseline_tokens)
+            for row in rows
+            if row.tokens_measured
+        ]
         return CapabilityMetrics(
             capability_id=capability_id,
             executor_id=executor_id,
@@ -290,9 +298,11 @@ class EvaluatedPackStore:
             avg_latency_delta_ms=mean([
                 row.latency_ms - row.baseline_latency_ms for row in rows
             ]),
-            avg_token_delta=mean([
-                float(row.variant_tokens - row.baseline_tokens) for row in rows
-            ]),
+            avg_token_delta=(
+                sum(measured_token_deltas) / len(measured_token_deltas)
+                if measured_token_deltas else 0
+            ),
+            token_samples=len(measured_token_deltas),
         )
 
     def activate(self, capability_id: str) -> EvaluatedCapabilityPack:

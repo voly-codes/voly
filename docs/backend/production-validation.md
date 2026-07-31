@@ -32,8 +32,9 @@ Real baseline and variant runs are imported with
 capability, executor, experiment ID, quality scores, outcome metrics and
 held-out status. Baseline/variant latency and token deltas are retained. Cost
 has an explicit `cost_measured` marker, so unavailable billing cannot become
-false zero-cost evidence. A record declaring multiple changed capabilities is
-rejected.
+false zero-cost evidence. Token counts use the equivalent `tokens_measured`
+marker; an unavailable count is excluded from the token delta rather than
+treated as zero. A record declaring multiple changed capabilities is rejected.
 
 For each pilot, the production gate currently requires six measured outcomes,
 including at least two held-out outcomes:
