@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://voly.codes/schemas/capability-pack-v1.schema.json",
+  "title": "VOLY staged capability pack manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pack_id",
+    "adapter",
+    "installed_at",
+    "state",
+    "provenance",
+    "admission",
+    "components",
+    "compatibility_aliases"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "pack_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "adapter": {"type": "string"},
+    "version": {"type": "string"},
+    "installed_at": {"type": "string", "format": "date-time"},
+    "state": {"const": "staged"},
+    "provenance": {"type": "object"},
+    "admission": {"type": "object"},
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "component_id",
+          "source_path",
+          "sha256",
+          "status"
+        ],
+        "properties": {
+          "kind": {"type": "string"},
+          "component_id": {"type": "string"},
+          "source_path": {"type": "string"},
+          "staged_path": {"type": ["string", "null"]},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "status": {"enum": ["staged", "quarantined"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "compatibility_aliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["alias", "target", "kind"],
+        "properties": {
+          "alias": {"type": "string"},
+          "target": {"type": "string"},
+          "kind": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

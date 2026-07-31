@@ -46,9 +46,10 @@ In-gateway spend accounting is separate from the remote spend protocol: `AIGatew
 External capability repositories are untrusted inputs, not executable
 extensions. Discovery inventories supported files and records provenance;
 static admission reads bounded content, infers permissions, validates MCP JSON,
-and quarantines high/critical risk. No discovered agent, skill, hook, command,
-or MCP server is installed or executed by this path. Persistent installation
-requires a later versioned pack contract and explicit activation boundary.
+and quarantines high/critical risk. The staged store atomically copies admitted
+components under `.voly/capability/packs/`, records hashes and immutable
+provenance, and leaves quarantined content uncopied. No discovered agent, skill,
+hook, command, rule, or MCP server is activated or executed by this path.
 
 ## Web surface (self-host)
 

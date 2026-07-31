@@ -82,8 +82,19 @@ voly capability import ecc --source /path/to/ECC --dry-run
 ```
 
 It reports package/Git provenance and a deterministic component inventory.
-Installation, activation, hook execution, and MCP startup are not part of this
-phase. Do not treat a successful discovery report as a security approval.
+Do not treat a successful discovery report as a security approval.
+
+Admitted content can be placed in the separate staged store:
+
+```bash
+voly capability pack install ecc --source /path/to/ECC
+voly capability pack verify ecc-universal
+```
+
+The default root is `.voly/capability/packs/`. Each pack contains immutable
+`manifest.json`, `manifest.sha256`, and admitted files below `content/`.
+Installing an existing pack ID fails instead of overwriting it. Staged packs
+remain inactive.
 
 ### Seeding marketplace skills
 
@@ -110,6 +121,7 @@ Do not commit:
 - `.voly/reports/`
 - `.voly/wheels/`
 - `.voly/runs/`
+- `.voly/capability/` (profiles and staged external packs)
 - `.venv/`
 - `ui/node_modules/`
 - `voly/web/static/` (built UI assets)

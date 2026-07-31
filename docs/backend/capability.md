@@ -165,7 +165,37 @@ findings quarantine the pack by default. Current checks cover instruction
 override and secret-exfiltration language, destructive commands, subprocess,
 network, filesystem and secret access, bounded component size, and MCP JSON
 shape. Findings are evidence for review, not proof that a component is
-malicious; persistent install and activation remain disabled.
+malicious.
+
+### Staged pack storage
+
+Phase 3 adds an inert, versioned store under
+`.voly/capability/packs/<pack-id>/`:
+
+```bash
+voly capability pack install ecc --source /path/to/ECC
+voly capability pack list
+voly capability pack show ecc-universal
+voly capability pack verify ecc-universal
+voly capability pack remove ecc-universal --yes
+```
+
+The manifest contract is
+`voly/capability/schemas/capability-pack-v1.schema.json`. It records source,
+revision, license, install time, admission summary, component SHA-256 hashes,
+staged/quarantined status, and compatibility aliases. Legacy command shims map
+to referenced staged skills when possible; deprecated skill frontmatter in the
+form `[DEPRECATED - use <skill>]` produces a renamed-skill alias.
+
+Install populates a temporary sibling directory and atomically renames it.
+Existing pack IDs are never overwritten. Admitted components are copied under
+`content/`; quarantined components retain provenance and hashes in the manifest
+but their content is not copied. `manifest.sha256` protects the manifest
+snapshot. `verify` checks manifest/component hashes plus missing and unexpected
+files. `remove` deletes exactly one validated pack ID.
+
+Staged content is not active. No agent, skill, rule, hook, command, or MCP
+server is injected or executed by installation.
 
 ## Enable (dogfood)
 

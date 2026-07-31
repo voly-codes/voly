@@ -397,13 +397,16 @@ Evidence-based executor routing. Each executor has a measured capability profile
 | `packs.py` | Read-only external capability-pack discovery and provenance |
 | `pack_admission.py` | Bounded static admission, permissions, risk, quarantine |
 | `pack_security_patterns.py` | External prompt/config risk indicators |
+| `pack_manifest.py` | Manifest schema v1, provenance, aliases, component hashes |
+| `pack_store.py` | Atomic staged install, verification, listing, and removal |
 | `seeds/` | Bundled seed profiles for known executors |
 
 External capability repositories are untrusted data. Discovery and admission
 may read supported files but never import source modules, execute hooks or
 commands, start MCP servers, copy components, or activate them. High and
-critical findings quarantine affected components and the pack remains
-non-installable until a separate versioned install contract is implemented.
+critical findings quarantine affected components. The staged store copies only
+admitted components and remains disconnected from runtime skill injection and
+executor routing; staging is not activation.
 
 ### `voly/dspy/` — DSPy optimizer layer
 

@@ -7,6 +7,13 @@ from voly.capability.pack_admission import (
     PackSecurityFinding,
     admit_external_pack,
 )
+from voly.capability.pack_manifest import (
+    PACK_MANIFEST_SCHEMA_VERSION,
+    CompatibilityAlias,
+    PackManifest,
+    StagedPackComponent,
+)
+from voly.capability.pack_store import PackStore, PackStoreError, PackVerification
 from voly.capability.packs import (
     ExternalPackError,
     PackComponent,
@@ -31,12 +38,19 @@ __all__ = [
     "ExecutorMatcher",
     "ExternalPackError",
     "MatchRequest",
+    "PACK_MANIFEST_SCHEMA_VERSION",
+    "CompatibilityAlias",
     "PackAdmissionReport",
     "PackComponent",
     "PackDiscoveryReport",
     "PackPermissionDeclaration",
     "PackProvenance",
     "PackSecurityFinding",
+    "PackManifest",
+    "PackStore",
+    "PackStoreError",
+    "PackVerification",
+    "StagedPackComponent",
     "admit_external_pack",
     "discover_ecc_pack",
     "hard_exclude",

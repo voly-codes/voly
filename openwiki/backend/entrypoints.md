@@ -25,6 +25,16 @@ and critical risks quarantine the pack, but discovery still never activates
 it. CLI wiring lives in
 `voly/cli/commands/capability_cmd.py`.
 
+`voly capability pack` manages inert staged copies:
+
+- `install ecc --source <checkout>` — admission plus atomic staging;
+- `list` / `show` — inspect installed manifests;
+- `verify <pack-id>` — check manifest and component hashes;
+- `remove <pack-id> [--yes]` — delete exactly one staged pack.
+
+Staging copies only admitted components. Quarantined content remains represented
+by provenance and hashes but is not copied. No component is activated.
+
 ## FastAPI app
 
 `voly/web/server.py` creates the FastAPI app used by `voly ui`. It wires:

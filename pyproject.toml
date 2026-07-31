@@ -101,7 +101,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
-"voly.capability" = ["seeds/*.yaml"]
+"voly.capability" = ["seeds/*.yaml", "schemas/*.json"]
 
 [tool.ruff]
 target-version = "py310"
