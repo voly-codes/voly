@@ -73,16 +73,15 @@ Cloudflare deployment becomes ready only when:
 1. at least one capability passes local measured validation;
 2. no capability remains in `keep-pilot`;
 3. the target Worker implements the evaluated-pack sync contract;
-4. activation is still explicitly enabled in configuration/deployment review.
+4. the current local state has an exact verified remote-sync receipt;
+5. activation is still explicitly enabled in configuration/deployment review.
 
-The current `voly-capability` Worker accepts executor profiles and EMA run
-evidence, but it has no evaluated-pack state or provenance API. Consequently
-the local activation plan reports
-`blockers=["cloudflare_sync_contract_missing"]` and
-`cloudflare_deploy_ready=false`, even after the measured gate passes. A dry-run
-or redeploy of that unchanged Worker cannot publish local evaluated packs.
-Deployment remains a separate, explicit operational phase after the sync
-contract exists.
+Before a verified sync, the local activation plan reports
+`blockers=["cloudflare_sync_unverified"]` and
+`cloudflare_deploy_ready=false`. `voly capability evaluated sync` publishes a
+bounded v1 snapshot, verifies it through authenticated read-back, and writes an
+ignored receipt. The receipt becomes stale as soon as packs or evidence change.
+Only a current receipt satisfies the sync part of deployment readiness.
 
 The target service is `cf-workers/capability` (`voly-capability`,
 `capability.voly.codes`). Its deployment preflight uses the project-pinned
@@ -97,6 +96,6 @@ npm run check:startup
 ```
 
 The checked-in configuration is the source of truth for the D1
-`CAPABILITY_DB` binding and custom domain. A successful dry-run validates the
-bundle and binding shape but does not satisfy the missing evaluated-pack sync
-contract and must not be interpreted as deployment approval.
+`CAPABILITY_DB` binding, required `EVALUATED_SYNC_TOKEN` secret and custom
+domain. A successful dry-run validates the bundle and binding shape; it does
+not replace remote migration, authenticated sync, or read-back verification.

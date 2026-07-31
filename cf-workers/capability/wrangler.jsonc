@@ -4,6 +4,9 @@
   "account_id": "50fdb59b7724b696fd809ca810e34278",
   "compatibility_date": "2026-07-31",
   "workers_dev": true,
+  "secrets": {
+    "required": ["EVALUATED_SYNC_TOKEN"]
+  },
   "routes": [
     { "pattern": "capability.voly.codes", "custom_domain": true }
   ],
@@ -11,7 +14,8 @@
     {
       "binding": "CAPABILITY_DB",
       "database_name": "voly-capability",
-      "database_id": "52103c13-d1fe-4a1e-b025-9ca687e67dbd"
+      "database_id": "52103c13-d1fe-4a1e-b025-9ca687e67dbd",
+      "migrations_dir": "migrations"
     }
   ]
 }

@@ -69,12 +69,21 @@ CF_WORKER_MEMORY_TOKEN=<worker API_TOKEN secret> # must match wrangler secret AP
 
 # A2A federation — cf-workers/a2a/
 CF_WORKER_A2A_URL=https://a2a.voly.codes
+
+# Explicit evaluated-pack snapshot sync — cf-workers/capability/
+VOLY_CAPABILITY_WORKER_URL=https://capability.voly.codes
+VOLY_CAPABILITY_SYNC_TOKEN=<worker EVALUATED_SYNC_TOKEN secret>
 ```
 
 > **Token setup**: each worker reads `API_TOKEN` from its own wrangler secrets
 > (Dashboard → Worker → Settings → Variables & Secrets, or `wrangler secret put API_TOKEN`).
 > The value in `.env` must match. Never reuse `CLOUDFLARE_API_TOKEN` for worker auth —
 > that is the account-level token with broad permissions.
+
+The capability sync token is separate from startup profile synchronization.
+It is read only for the explicit `voly capability evaluated sync` command and
+must match the Worker's `EVALUATED_SYNC_TOKEN` secret. It is never written to
+the snapshot, receipt, logs, `voly.yaml`, or D1.
 
 ### GitHub (reuse pipeline)
 

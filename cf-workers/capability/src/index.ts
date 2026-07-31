@@ -14,6 +14,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { leaderboardRoutes } from "./routes/leaderboard";
+import { evaluatedRoutes } from "./routes/evaluated";
 import { matchRoutes } from "./routes/match";
 import { profilesRoutes } from "./routes/profiles";
 import { rolesRoutes } from "./routes/roles";
@@ -31,6 +32,7 @@ app.route("/roles", rolesRoutes);
 app.route("/profiles", profilesRoutes);
 app.route("/match", matchRoutes);
 app.route("/leaderboard", leaderboardRoutes);
+app.route("/evaluated", evaluatedRoutes);
 
 export default app;
 export type { Env } from "./types";

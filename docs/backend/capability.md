@@ -238,7 +238,40 @@ The worker skips seed upserts for executors that already have learned evidence (
 
 ## Cloud schema
 
-D1 tables for remote sync: `cf-workers/capability/schema.sql` (`roles`, `executor_capability`, `executor_constraints`, `executor_operational`).
+D1 tables for remote sync: `cf-workers/capability/schema.sql` (`roles`,
+`executor_capability`, `executor_constraints`, `executor_operational`,
+`evaluated_snapshots`, `evaluated_pack_state`). Versioned changes are applied
+from `cf-workers/capability/migrations/`.
+
+### Evaluated snapshot API
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/evaluated/snapshots` | Idempotently store a canonical v1 snapshot and current pack states |
+| `GET` | `/evaluated/snapshots/:id` | Read back one immutable snapshot for exact verification |
+
+Both endpoints require
+`Authorization: Bearer <EVALUATED_SYNC_TOKEN>`. The Worker config declares the
+secret as required, so Wrangler blocks deployment when it is missing. The
+snapshot is bounded to 32 packs and 64 provenance hashes per pack and contains
+no instruction bodies, prompts, evidence text, secrets, or repository paths.
+The POST recomputes SHA-256, rejects a mismatched ID, and writes the snapshot
+plus pack-state upserts in one D1 batch.
+
+The local command uploads and immediately reads the same snapshot back:
+
+```bash
+VOLY_CAPABILITY_SYNC_TOKEN=... \
+voly capability evaluated sync \
+  --executor codex \
+  --provenance-hash \
+  tdd-workflow:instinct:244d650e0923af34be22e99c5bb862b0f13fd9060d2950783c90a081f94b261b=8fc03dbe808e422873830daa2af253392d4309df16ee7dd56d534f1f7ca2c692
+```
+
+An ignored receipt is written under the evaluated store only after exact
+read-back. New local pack state or evidence invalidates it automatically.
+This phase synchronizes control-plane state only; remote evaluated routing
+remains disabled.
 
 ## Evaluated agent and skill packs
 

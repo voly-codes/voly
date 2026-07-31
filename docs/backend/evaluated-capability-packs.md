@@ -72,12 +72,15 @@ voly capability evaluated evaluate-retirement security-reviewer claude-code
 
 Experiment state remains ignored under `.voly/capability/`.
 
-Local evaluated-pack activation is deliberately separate from the existing
-Cloudflare capability service. The remote Worker currently models executor
-profiles and EMA evidence only; it cannot store pack state, instruction
-provenance, held-out decisions, or compact-instinct hashes. Until those fields
-have a versioned sync API, the deployment gate remains blocked and redeploying
-the existing Worker does not enable evaluated routing remotely.
+Local evaluated-pack activation is deliberately separate from remote routing.
+The capability Worker exposes an authenticated v1 snapshot API for pack state,
+decisions, metrics and SHA-256 provenance. `voly capability evaluated sync`
+uses an immutable content hash as the snapshot ID, uploads idempotently, reads
+the snapshot back and writes a local receipt only after an exact match. Receipt
+validity is tied to the local packs and evidence files.
+
+Remote sync is control-plane publication, not remote activation. The Worker
+does not inject instructions or change `/match` behavior in this phase.
 
 The production gate and bundled 20-task suite are documented in
 [production-validation.md](production-validation.md). An offline routing probe

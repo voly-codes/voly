@@ -36,6 +36,12 @@ from voly.capability.packs import (
     discover_ecc_pack,
 )
 from voly.capability.registry import CapabilityRegistry
+from voly.capability.remote_sync import (
+    RemoteSyncReceipt,
+    build_remote_snapshot,
+    has_current_verified_receipt,
+    sync_remote_snapshot,
+)
 from voly.capability.schema import (
     CapabilityDomain,
     CapabilityMatchResult,
@@ -89,17 +95,21 @@ __all__ = [
     "PackStore",
     "PackStoreError",
     "PackVerification",
+    "RemoteSyncReceipt",
     "StagedPackComponent",
     "SuiteReport",
     "admit_external_pack",
     "build_activation_plan",
+    "build_remote_snapshot",
     "decide_capability",
     "discover_ecc_pack",
     "hard_exclude",
+    "has_current_verified_receipt",
     "load_suite",
     "probe_routing",
     "render_instinct_variant_task",
     "render_variant_task",
     "routing_score",
     "startup_sync",
+    "sync_remote_snapshot",
 ]

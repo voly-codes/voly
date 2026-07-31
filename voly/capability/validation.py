@@ -211,7 +211,7 @@ def decide_capability(
 def build_activation_plan(
     decisions: list[CapabilityDecision],
     *,
-    remote_sync_supported: bool = False,
+    remote_sync_verified: bool = False,
 ) -> ActivationPlan:
     activated = [
         item for item in decisions if item.decision is ActivationDecision.ACTIVATE
@@ -221,13 +221,13 @@ def build_activation_plan(
         blockers.append("no_capability_passed_local_measured_validation")
     if any(item.decision is ActivationDecision.KEEP_PILOT for item in decisions):
         blockers.append("pilot_evidence_incomplete")
-    if activated and not remote_sync_supported:
-        blockers.append("cloudflare_sync_contract_missing")
+    if activated and not remote_sync_verified:
+        blockers.append("cloudflare_sync_unverified")
     return ActivationPlan(
         decisions=decisions,
         local_activation_ready=bool(activated),
         cloudflare_deploy_ready=(
-            bool(activated) and remote_sync_supported and not blockers
+            bool(activated) and remote_sync_verified and not blockers
         ),
         blockers=blockers,
     )

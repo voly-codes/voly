@@ -219,13 +219,13 @@ def test_cf_ready_only_when_all_decisions_resolved_and_one_activates():
     local_only = build_activation_plan([activate, retire])
     ready = build_activation_plan(
         [activate, retire],
-        remote_sync_supported=True,
+        remote_sync_verified=True,
     )
     blocked = build_activation_plan([activate, keep])
 
     assert local_only.local_activation_ready is True
     assert local_only.cloudflare_deploy_ready is False
-    assert "cloudflare_sync_contract_missing" in local_only.blockers
+    assert "cloudflare_sync_unverified" in local_only.blockers
     assert ready.cloudflare_deploy_ready is True
     assert blocked.cloudflare_deploy_ready is False
     assert "pilot_evidence_incomplete" in blocked.blockers

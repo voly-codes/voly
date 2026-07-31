@@ -1,5 +1,27 @@
 export interface Env {
   CAPABILITY_DB: D1Database;
+  EVALUATED_SYNC_TOKEN: string;
+}
+
+export interface EvaluatedPackSnapshotItem {
+  capability_id: string;
+  version: number;
+  state: "pilot" | "active" | "retired";
+  definition_hash: string;
+  definition: Record<string, unknown>;
+  provenance: {
+    source_pack_id: string;
+    instruction_hashes: Record<string, string>;
+  };
+  decision: Record<string, unknown>;
+  metrics: Record<string, unknown>;
+}
+
+export interface EvaluatedPackSnapshot {
+  snapshot_id: string;
+  schema_version: 1;
+  executor_id: string;
+  packs: EvaluatedPackSnapshotItem[];
 }
 
 export interface RolePayload {

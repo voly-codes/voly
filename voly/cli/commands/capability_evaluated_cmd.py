@@ -24,6 +24,21 @@ def _store(ctx: click.Context):
     return EvaluatedPackStore(root)
 
 
+def _sync_receipt_path(ctx: click.Context) -> Path:
+    return _store(ctx).root / "remote-sync-receipt.json"
+
+
+def _remote_sync_verified(ctx: click.Context, executor_id: str) -> bool:
+    from voly.capability import has_current_verified_receipt
+
+    store = _store(ctx)
+    return has_current_verified_receipt(
+        store,
+        executor_id,
+        _sync_receipt_path(ctx),
+    )
+
+
 @capability_evaluated.command("init")
 @click.pass_context
 def evaluated_init(ctx: click.Context) -> None:
@@ -170,7 +185,10 @@ def evaluated_activation_plan(ctx: click.Context, executor_id: str) -> None:
     """Build decisions from real stored outcomes and report CF readiness."""
     from voly.capability.validation import build_activation_plan
 
-    plan = build_activation_plan(_decisions(ctx, executor_id))
+    plan = build_activation_plan(
+        _decisions(ctx, executor_id),
+        remote_sync_verified=_remote_sync_verified(ctx, executor_id),
+    )
     click.echo(json.dumps(plan.to_dict(), indent=2))
 
 
@@ -187,7 +205,10 @@ def evaluated_activate_ready(
     if not yes:
         raise click.UsageError("--yes is required")
     decisions = _decisions(ctx, executor_id)
-    plan = build_activation_plan(decisions)
+    plan = build_activation_plan(
+        decisions,
+        remote_sync_verified=_remote_sync_verified(ctx, executor_id),
+    )
     store = _store(ctx)
     activated = []
     for decision in decisions:
@@ -199,6 +220,84 @@ def evaluated_activate_ready(
         "cloudflare_deployed": False,
         "cloudflare_deploy_ready": plan.cloudflare_deploy_ready,
         "blockers": plan.blockers,
+    }, indent=2))
+
+
+def _parse_provenance_hashes(
+    values: tuple[str, ...],
+) -> dict[str, dict[str, str]]:
+    parsed: dict[str, dict[str, str]] = {}
+    for value in values:
+        try:
+            capability_id, assignment = value.split(":", 1)
+            name, digest = assignment.rsplit("=", 1)
+        except ValueError as exc:
+            raise click.BadParameter(
+                "expected CAPABILITY:NAME=SHA256",
+                param_hint="--provenance-hash",
+            ) from exc
+        parsed.setdefault(capability_id, {})[name] = digest
+    return parsed
+
+
+@capability_evaluated.command("sync")
+@click.option("--executor", "executor_id", default="claude-code", show_default=True)
+@click.option("--worker-url", default="", help="Override capability Worker URL.")
+@click.option(
+    "--packs-root",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path(".voly/capability/packs"),
+)
+@click.option(
+    "--provenance-hash",
+    multiple=True,
+    help="Additional CAPABILITY:NAME=SHA256 provenance.",
+)
+@click.option("--timeout", default=15.0, type=float, show_default=True)
+@click.pass_context
+def evaluated_sync(
+    ctx: click.Context,
+    executor_id: str,
+    worker_url: str,
+    packs_root: Path,
+    provenance_hash: tuple[str, ...],
+    timeout: float,
+) -> None:
+    """Upload and read back one authenticated evaluated-pack snapshot."""
+    from voly.capability import build_remote_snapshot, sync_remote_snapshot
+    from voly.capability.remote_sync import sync_token_from_env
+    from voly.capability.validation import ActivationDecision
+
+    decisions = _decisions(ctx, executor_id)
+    if any(item.decision is ActivationDecision.KEEP_PILOT for item in decisions):
+        raise click.ClickException("cannot sync while a pilot is incomplete")
+    if not any(item.decision is ActivationDecision.ACTIVATE for item in decisions):
+        raise click.ClickException("cannot sync without an activated capability")
+    store = _store(ctx)
+    snapshot = build_remote_snapshot(
+        store,
+        executor_id,
+        packs_root=packs_root,
+        additional_hashes=_parse_provenance_hashes(provenance_hash),
+    )
+    url = worker_url or ctx.obj["config"].capability.worker_url
+    try:
+        receipt = sync_remote_snapshot(
+            store,
+            snapshot,
+            worker_url=url,
+            token=sync_token_from_env(),
+            receipt_path=_sync_receipt_path(ctx),
+            timeout=timeout,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(json.dumps({
+        "synced": True,
+        "verified": receipt.verified,
+        "snapshot_id": receipt.snapshot_id,
+        "packs": len(snapshot["packs"]),
+        "cloudflare_deploy_ready": True,
     }, indent=2))
 
 
