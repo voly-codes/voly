@@ -47,9 +47,11 @@ is currently the production adapter for `PipelineEnv`.
 `SolverJudgeEnv` requires exactly a solver and judge. The judge request receives
 the solver trace, diff artifacts, acceptance criteria and only the declared
 read-only operations (`list_files`, `read_file`, `search_text`, `git_diff`).
-Production activation is gated on normalizing provider tool-call responses in
-`AIGateway`; provider adapters currently discard returned tool calls, so VOLY
-must not claim an interactive agentic judge until that transport gap is closed.
+Provider tool definitions and returned calls are normalized by `AIGateway` for
+Anthropic, OpenAI and Google. When `evaluation.llm_judge.mode` is `shadow` or
+`required`, the local A2A pipeline appends an interactive judge trace to the
+episode. `shadow` records the verdict without changing task status; `required`
+turns a non-pass or judge failure into a failed/partial pipeline result.
 
 Role metric ids are stable: `architecture_usefulness`,
 `implementation_correctness`, `test_coverage`, `reviewer_precision`, and

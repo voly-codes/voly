@@ -18,6 +18,7 @@ from voly.a2a.episode import (
     TraceToolCall,
     utc_now,
 )
+from voly.telemetry import _estimate_cost
 
 JudgeChat = Callable[..., dict[str, Any]]
 
@@ -176,6 +177,17 @@ class AgenticJudgeAgent:
             if response.get("error"):
                 trace.error = str(response["error"])
                 break
+            usage = response.get("usage") or {}
+            input_tokens = int(usage.get("input_tokens") or 0)
+            output_tokens = int(usage.get("output_tokens") or 0)
+            trace.input_tokens += input_tokens
+            trace.output_tokens += output_tokens
+            if not response.get("cache_hit"):
+                trace.cost_usd += _estimate_cost(
+                    str(response.get("model") or self.model),
+                    input_tokens,
+                    output_tokens,
+                )
             final_content = str(response.get("content") or "")
             trace.messages.append(TraceMessage(role="assistant", content=final_content))
             calls = response.get("tool_calls") or []

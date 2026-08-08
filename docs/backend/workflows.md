@@ -11,7 +11,7 @@ recovery and product-level stop conditions.
 Implementation order is intentionally constrained:
 
 1. collect stable `AgentTrace` / `MultiAgentEpisode` records;
-2. activate `SolverJudgeEnv` after AIGateway has a normalized tool-call loop;
+2. activate and observe `SolverJudgeEnv` through the normalized AIGateway tool-call loop;
 3. calibrate role metrics against deterministic evidence and human feedback;
 4. only then evaluate self-play, proposer-solver training or policy learning.
 

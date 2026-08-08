@@ -86,6 +86,13 @@ to a versioned `MultiAgentEpisode` and atomically writes it under
 lineage for messages, executor attempts, artifacts, decisions, dependencies,
 metrics and costs without changing the frozen remote analytics allowlist.
 
+If the existing `evaluation.llm_judge.mode` is `shadow` or `required` and a
+project cwd is available, the pipeline then runs a bounded agentic judge. It
+receives the complete solver episode and decomposed subtask criteria, can only
+list/read/search files and inspect `git diff`, and appends its own trace plus
+five role metrics. Judge token/cost usage is included in the parent A2A totals.
+Only `required` mode can downgrade the pipeline result.
+
 **`a2a.execution_mode` (default `"local"`):**
 
 - **`local`** — `_run_multiagent_local`:

@@ -93,9 +93,11 @@ trace content is excluded from remote analytics.
 `voly/a2a/environments.py` separates interaction patterns from roles. Pipeline,
 solver-judge, parallel-solutions, debate and iterative-repair environments share
 one episode output contract. Production currently uses the dependency-wave
-pipeline adapter. The next gate is normalized provider tool-call transport,
-then a read-only agentic judge, role-metric calibration, and only afterward any
-self-play or training work.
+pipeline adapter. The optional read-only agentic judge is enabled through the
+existing `evaluation.llm_judge.mode` (`shadow` or `required`) and appends its
+trace and five role metrics to the episode. The next gate is metric calibration
+against deterministic evidence and human feedback; only afterward should VOLY
+consider self-play or training work.
 
 ---
 

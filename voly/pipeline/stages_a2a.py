@@ -342,7 +342,59 @@ class _A2AStageMixin:
             task_id=task_id,
             task=task,
             assignments=assignments,
+            acceptance_criteria=[str(a.description) for a in assignments],
         )
+        agentic_judge_required_failed = False
+        judge_cfg = getattr(getattr(self.config, "evaluation", None), "llm_judge", None)  # type: ignore[attr-defined]
+        judge_mode = str(getattr(judge_cfg, "mode", "off") or "off").lower()
+        if judge_mode in {"shadow", "required"} and cwd:
+            try:
+                import asyncio
+
+                from voly.a2a.agentic_judge import AgenticJudgeAgent
+                from voly.a2a.environments import AgentRequest, READ_ONLY_JUDGE_TOOLS
+
+                judge_name = str(getattr(judge_cfg, "model", "") or self.config.default_model)  # type: ignore[attr-defined]
+                judge_model_cfg = self.config.get_model_config(judge_name)  # type: ignore[attr-defined]
+                judge_model = str(judge_model_cfg.model or judge_name)
+                judge_provider = str(getattr(judge_cfg, "provider", "") or judge_model_cfg.provider or "anthropic")
+                judge = AgenticJudgeAgent(
+                    chat=self.gateway.chat,  # type: ignore[attr-defined]
+                    cwd=cwd,
+                    model=judge_model,
+                    provider=judge_provider,
+                    max_tokens=int(getattr(judge_cfg, "max_tokens", 1200) or 1200),
+                )
+                judge_trace = asyncio.run(judge.run(AgentRequest(
+                    task="Independently evaluate the multi-agent implementation",
+                    acceptance_criteria=tuple(episode.acceptance_criteria),
+                    context={"original_task": task, "solver_trace": episode.to_dict()},
+                    parent_trace_ids=tuple(trace.trace_id for trace in episode.traces),
+                    read_only=True,
+                    allowed_tools=READ_ONLY_JUDGE_TOOLS,
+                )))
+                episode.traces.append(judge_trace)
+                episode.metrics.extend(judge_trace.metrics)
+                episode.decisions.extend(judge_trace.decisions)
+                verdict = str(judge_trace.metadata.get("verdict") or "uncertain")
+                agentic_judge_required_failed = (
+                    judge_mode == "required"
+                    and (judge_trace.status != "completed" or verdict != "pass")
+                )
+                episode.metadata["agentic_judge"] = {
+                    "mode": judge_mode,
+                    "verdict": verdict,
+                    "trace_id": judge_trace.trace_id,
+                }
+            except Exception as exc:  # noqa: BLE001
+                episode.metadata["agentic_judge"] = {
+                    "mode": judge_mode,
+                    "verdict": "error",
+                    "error": str(exc)[:500],
+                }
+                agentic_judge_required_failed = judge_mode == "required"
+        if agentic_judge_required_failed:
+            episode.status = "failed"
         try:
             EpisodeStore(os.path.join(cwd or ".", ".voly", "episodes")).save(episode)
         except Exception:  # noqa: BLE001
@@ -356,15 +408,18 @@ class _A2AStageMixin:
         ma_success, ma_status = evaluate_multiagent_outcome(
             assignments, requires_code_gen=requires_code_gen,
         )
+        if agentic_judge_required_failed:
+            ma_success = False
+            ma_status = "partial" if any(a.ok for a in assignments) else "failed"
         duration_ms = (_time.monotonic() - started) * 1000
-        total_in = sum(a.input_tokens for a in assignments)
-        total_out = sum(a.output_tokens for a in assignments)
-        total_cost = sum(a.cost_usd for a in assignments)
+        total_in = sum(trace.input_tokens for trace in episode.traces)
+        total_out = sum(trace.output_tokens for trace in episode.traces)
+        total_cost = sum(trace.cost_usd for trace in episode.traces)
         total_saved = sum(a.saved_tokens for a in assignments)
         cache_hits = sum(1 for a in assignments if a.cache_hit)
         mem_hits = sum(a.mem_hits for a in assignments)
         skill_ids = sorted({s for a in assignments for s in a.skills})
-        agents_used = [a.role for a in assignments]
+        agents_used = [trace.role for trace in episode.traces]
         # Multi-agent path previously skipped RTK stats → saved_rtk always 0.
         rtk_stats = self._stage_rtk()
         saved_rtk = int(

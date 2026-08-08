@@ -37,7 +37,8 @@ async def test_agentic_judge_uses_tool_then_returns_role_metrics(tmp_path) -> No
                     "reviewer_precision": 0.9,
                     "cost_adjusted_contribution": 0.7,
                 },
-            })
+            }),
+            "usage": {"input_tokens": 20, "output_tokens": 10},
         },
     ]
 
@@ -59,6 +60,8 @@ async def test_agentic_judge_uses_tool_then_returns_role_metrics(tmp_path) -> No
     assert trace.status == "completed"
     assert trace.metadata["verdict"] == "pass"
     assert trace.tool_calls[0].result == "answer = 42\n"
+    assert trace.input_tokens == 20
+    assert trace.output_tokens == 10
     assert {metric.name for metric in trace.metrics} == {
         "architecture_usefulness",
         "implementation_correctness",
