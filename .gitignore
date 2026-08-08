@@ -30,6 +30,7 @@ dist/
 .voly/dspy/programs/
 .voly/reports/
 .voly/wheels/
+.voly/release-assets/
 
 # External repos (use git submodule if needed)
 # headroom/
