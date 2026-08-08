@@ -80,6 +80,12 @@ and the task is complex/multi-component (≥ `a2a.min_flags_for_dispatch` flags 
 `requires_code_gen/review/testing/deployment`, or `complexity == "high"`), the task
 goes to the multi-agent path `_stage_a2a_auto` instead of a single `MODEL_CALL`.
 
+After the local dependency waves finish, the pipeline converts all assignments
+to a versioned `MultiAgentEpisode` and atomically writes it under
+`.voly/episodes/`. This gives later judges and offline evaluation one unified
+lineage for messages, executor attempts, artifacts, decisions, dependencies,
+metrics and costs without changing the frozen remote analytics allowlist.
+
 **`a2a.execution_mode` (default `"local"`):**
 
 - **`local`** — `_run_multiagent_local`:

@@ -23,6 +23,39 @@ parallel subtask execution, and result merging.
 | `lead.py` | Lead orchestrator (tier + skills; `lead_mode` auto/llm/deterministic) |
 | `merger.py` | `ResultMerger` — combine subtask outputs |
 | `report.py` | `A2AReport` + `merge_report` for local multi-agent |
+| `episode.py` | Versioned `AgentTrace` / `MultiAgentEpisode`, role metrics, atomic local store |
+| `environments.py` | Role-independent interaction patterns (`PipelineEnv`, `SolverJudgeEnv`, parallel solutions, debate, iterative repair) |
+
+## Episodes and programmable environments
+
+Every local multi-agent run is adapted into one `MultiAgentEpisode` and stored
+at `<project>/.voly/episodes/<task_id>.json`. An episode is the orchestration
+record; it does not replace executor `EvidenceRecord` or `EvalReport`.
+
+Each `AgentTrace` contains the role messages, normalized executor attempts,
+file artifacts, routing decisions, token/cost data, dependency trace ids and
+role metrics. `Assignment.to_event_dict()` exposes only the trace id and role
+metric summaries. The complete episode remains local; the Cloud analytics
+allowlist still excludes prompts, outputs, repository paths and A2A payloads.
+
+`MultiAgentEnvironment` separates the interaction pattern from agent roles and
+uses the asynchronous contract `run(task, agents) -> MultiAgentEpisode`.
+Built-ins are `PipelineEnv`, `SolverJudgeEnv`, `ParallelSolutionsEnv`,
+`DebateEnv`, and `IterativeRepairEnv`. The existing dependency-wave scheduler
+is currently the production adapter for `PipelineEnv`.
+
+`SolverJudgeEnv` requires exactly a solver and judge. The judge request receives
+the solver trace, diff artifacts, acceptance criteria and only the declared
+read-only operations (`list_files`, `read_file`, `search_text`, `git_diff`).
+Production activation is gated on normalizing provider tool-call responses in
+`AIGateway`; provider adapters currently discard returned tool calls, so VOLY
+must not claim an interactive agentic judge until that transport gap is closed.
+
+Role metric ids are stable: `architecture_usefulness`,
+`implementation_correctness`, `test_coverage`, `reviewer_precision`, and
+`cost_adjusted_contribution`. Runtime currently records only the last metric as
+an explicitly labelled proxy. Quality metrics must come from deterministic
+checks or an independent judge, never from the role scoring itself.
 | `cwd_lock.py` | Cross-process executor lock on shared `--cwd` |
 | `federation.py` | HTTP client for `cf-workers/a2a` (D1 + Queues) |
 

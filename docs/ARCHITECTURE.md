@@ -82,6 +82,21 @@ uses `AIGateway.chat()`, and blocking findings reactivate the runner until a
 clean verdict or an explicit round/deadline/spend/failure guardrail stops the
 loop. See [`docs/backend/workflows.md`](backend/workflows.md).
 
+### Multi-agent episode layer
+
+`voly/a2a/episode.py` defines the versioned orchestration lineage:
+`MultiAgentEpisode -> AgentTrace -> messages/tool calls/artifacts/decisions/metrics`.
+The layer links to, rather than replaces, Evidence Foundation and Eval Engine.
+Local A2A runs persist episodes under `.voly/episodes/<task_id>.json`; private
+trace content is excluded from remote analytics.
+
+`voly/a2a/environments.py` separates interaction patterns from roles. Pipeline,
+solver-judge, parallel-solutions, debate and iterative-repair environments share
+one episode output contract. Production currently uses the dependency-wave
+pipeline adapter. The next gate is normalized provider tool-call transport,
+then a read-only agentic judge, role-metric calibration, and only afterward any
+self-play or training work.
+
 ---
 
 ## Layers A/B — make vs delegate

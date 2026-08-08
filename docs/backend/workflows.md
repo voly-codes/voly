@@ -3,6 +3,22 @@
 VOLY workflows are narrow product scenarios composed from existing execution
 primitives. They are not a general-purpose workflow engine.
 
+The A2A `MultiAgentEnvironment` API is the programmable interaction layer used
+inside an episode. It does not replace durable bounded workflows: environments
+decide how agents interact, while workflows own deadlines, persistence,
+recovery and product-level stop conditions.
+
+Implementation order is intentionally constrained:
+
+1. collect stable `AgentTrace` / `MultiAgentEpisode` records;
+2. activate `SolverJudgeEnv` after AIGateway has a normalized tool-call loop;
+3. calibrate role metrics against deterministic evidence and human feedback;
+4. only then evaluate self-play, proposer-solver training or policy learning.
+
+Self-play and training are out of scope until episode quality and judge
+calibration are measurable. Generated episodes are evidence, not automatically
+training data.
+
 ## Review until clean
 
 `voly.workflow.review_until_clean.ReviewUntilClean` runs a bounded repair loop:
