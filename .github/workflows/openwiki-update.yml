@@ -37,6 +37,7 @@ jobs:
         run: |
           git config user.name "Maksim Lanies"
           git config user.email "dev@voly.codes"
+          git fetch origin openwiki/update:refs/remotes/origin/openwiki/update || true
           git checkout -B openwiki/update
           git add -- openwiki AGENTS.md CLAUDE.md .github/workflows/openwiki-update.yml
           if git diff --cached --quiet; then
