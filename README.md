@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/voly-codes/voly/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/voly-codes/voly/ci.yml?branch=main&style=for-the-badge"></a>
+  <a href="https://pypi.org/project/voly/"><img alt="PyPI" src="https://img.shields.io/pypi/v/voly?style=for-the-badge&logo=pypi&logoColor=white"></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img alt="Multi-Agent" src="https://img.shields.io/badge/Multi--Agent-A2A-6366F1?style=for-the-badge">
   <img alt="DSPy" src="https://img.shields.io/badge/DSPy-Optional-22C55E?style=for-the-badge">
@@ -72,7 +73,7 @@ economics, control, and reports.
 ## Quick demo
 
 ```bash
-uvx --from . voly quickstart --check --cwd ~/my-project
+uvx --from voly==0.1.0 voly quickstart --check --cwd ~/my-project
 # → offline, read-only preflight: repository, config, local executors, safe next command
 
 voly init                                   # config + hooks
@@ -184,6 +185,25 @@ When a task enters multi-agent mode (`a2a.execution_mode=local`, default):
 
 ## Quick start
 
+Install the published package (Python 3.10+):
+
+```bash
+python -m pip install voly
+voly --version
+voly quickstart --check --cwd ~/my-project
+```
+
+For a one-off run without a persistent installation:
+
+```bash
+uvx --from voly voly quickstart --check --cwd ~/my-project
+```
+
+The universal Python wheel works on Windows, macOS, and Linux. Verified release
+artifacts and checksums are available on [GitHub Releases](https://github.com/voly-codes/voly/releases/latest); the package of record is on [PyPI](https://pypi.org/project/voly/).
+
+### Development installation
+
 ```bash
 git clone https://github.com/voly-codes/voly.git
 cd voly
@@ -219,7 +239,8 @@ voly serve
 DSPy (optional):
 
 ```bash
-pip install -e ".[dspy,dev]"
+python -m pip install "voly[dspy]"
+# Source checkout: pip install -e ".[dspy,dev]"
 voly dspy status
 ```
 
@@ -479,8 +500,9 @@ pytest tests/test_web_auth.py               # JWT auth baseline
 pytest tests/ -q                            # full suite
 ```
 
-The package requires Python 3.10+. GitHub Actions runs the base suite on the
-current `3.x` runner and the DSPy suite on Python 3.11.
+The package requires Python 3.10+. CI runs the base suite on the current Python
+runner, the DSPy suite on Python 3.11, and clean-wheel installation checks on
+Windows, macOS, and Linux with Python 3.13.
 
 ## Do not commit
 

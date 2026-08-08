@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/voly-codes/voly/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/voly-codes/voly/ci.yml?branch=main&style=for-the-badge"></a>
+  <a href="https://pypi.org/project/voly/"><img alt="PyPI" src="https://img.shields.io/pypi/v/voly?style=for-the-badge&logo=pypi&logoColor=white"></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img alt="Multi-Agent" src="https://img.shields.io/badge/Multi--Agent-A2A-6366F1?style=for-the-badge">
   <img alt="DSPy" src="https://img.shields.io/badge/DSPy-Optional-22C55E?style=for-the-badge">
@@ -72,7 +73,7 @@ VOLY окупается, когда агенты становятся часть
 ## Быстрое демо
 
 ```bash
-uvx --from . voly quickstart --check --cwd ~/my-project
+uvx --from voly==0.1.0 voly quickstart --check --cwd ~/my-project
 # → офлайн-проверка без записи: репозиторий, конфиг, локальные executors и безопасная следующая команда
 
 voly init                                   # конфиг + хуки
@@ -184,6 +185,25 @@ Developer / Web UI / CLI / CI
 
 ## Быстрый старт
 
+Установите опубликованный пакет (Python 3.10+):
+
+```bash
+python -m pip install voly
+voly --version
+voly quickstart --check --cwd ~/my-project
+```
+
+Одноразовый запуск без постоянной установки:
+
+```bash
+uvx --from voly voly quickstart --check --cwd ~/my-project
+```
+
+Универсальный Python wheel работает на Windows, macOS и Linux. Проверенные
+артефакты и контрольные суммы доступны в [GitHub Releases](https://github.com/voly-codes/voly/releases/latest), а основной пакет — в [PyPI](https://pypi.org/project/voly/).
+
+### Установка для разработки
+
 ```bash
 git clone https://github.com/voly-codes/voly.git
 cd voly
@@ -219,7 +239,8 @@ voly serve
 DSPy (опционально):
 
 ```bash
-pip install -e ".[dspy,dev]"
+python -m pip install "voly[dspy]"
+# Из исходников: pip install -e ".[dspy,dev]"
 voly dspy status
 ```
 
@@ -480,8 +501,9 @@ pytest tests/test_web_auth.py               # JWT auth baseline
 pytest tests/ -q                            # полный прогон
 ```
 
-Пакет требует Python 3.10+. GitHub Actions запускает базовый набор на актуальном
-runner `3.x`, а DSPy-набор — на Python 3.11.
+Пакет требует Python 3.10+. CI запускает базовый набор на актуальном Python,
+DSPy-набор на Python 3.11 и проверку чистой установки wheel на Windows, macOS
+и Linux с Python 3.13.
 
 ## Не коммитить
 
