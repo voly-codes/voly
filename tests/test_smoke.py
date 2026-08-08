@@ -226,6 +226,7 @@ def test_all_submodules_importable() -> None:
         "voly.web.routes",
         "voly.spend",
         "voly.runner",
+        "voly.workflow",
     ]
     import importlib
 
@@ -258,11 +259,10 @@ def test_setuptools_packages_include_core() -> None:
         "voly.web.routes",
         "voly.spend",
         "voly.runner",
+        "voly.workflow",
     }
     missing = required - packages
     assert not missing, f"setuptools packages missing core modules: {sorted(missing)}"
-    assert "voly.workflow" not in packages, "voly.workflow has no source; should not be packaged"
-
     for pkg in required:
         path = root.joinpath(*pkg.split("."))
         assert path.is_dir(), f"{pkg} declared but directory missing: {path}"

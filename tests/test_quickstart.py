@@ -17,16 +17,21 @@ def _disable_executors(monkeypatch) -> None:
     monkeypatch.delenv("CURSOR_API_KEY", raising=False)
 
 
+def _enable_cli_executor(monkeypatch, *binary_names: str) -> None:
+    names = set(binary_names)
+    monkeypatch.setattr(
+        "voly.environment.shutil.which",
+        lambda name: f"/test/bin/{name}" if name in names else None,
+    )
+    monkeypatch.setattr("voly.environment._local_cli_candidates", lambda _name: [])
+    monkeypatch.delenv("CURSOR_API_KEY", raising=False)
+
+
 def test_quickstart_check_is_read_only_and_reports_ready(tmp_path: Path, monkeypatch) -> None:
     repo = tmp_path / "repo with spaces"
     repo.mkdir()
     (repo / ".git").mkdir()
-    monkeypatch.setattr(
-        "voly.environment.shutil.which",
-        lambda name: "C:/tools/claude.cmd" if name == "claude.cmd" else None,
-    )
-    monkeypatch.setattr("voly.environment._local_cli_candidates", lambda _name: [])
-    monkeypatch.delenv("CURSOR_API_KEY", raising=False)
+    _enable_cli_executor(monkeypatch, "claude", "claude.cmd")
 
     result = CliRunner().invoke(
         quickstart,
@@ -67,12 +72,7 @@ def test_quickstart_yes_creates_config_without_overwrite(tmp_path: Path, monkeyp
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / ".git").mkdir()
-    monkeypatch.setattr(
-        "voly.environment.shutil.which",
-        lambda name: "C:/tools/opencode.cmd" if name == "opencode.cmd" else None,
-    )
-    monkeypatch.setattr("voly.environment._local_cli_candidates", lambda _name: [])
-    monkeypatch.delenv("CURSOR_API_KEY", raising=False)
+    _enable_cli_executor(monkeypatch, "opencode", "opencode.cmd")
 
     created = CliRunner().invoke(
         quickstart,
@@ -100,11 +100,7 @@ def test_main_quickstart_skips_capability_startup_sync(tmp_path: Path, monkeypat
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / ".git").mkdir()
-    monkeypatch.setattr(
-        "voly.environment.shutil.which",
-        lambda name: "C:/tools/claude.cmd" if name == "claude.cmd" else None,
-    )
-    monkeypatch.setattr("voly.environment._local_cli_candidates", lambda _name: [])
+    _enable_cli_executor(monkeypatch, "claude", "claude.cmd")
     sync_calls: list[str] = []
     main_module = importlib.import_module("voly.cli.main")
     monkeypatch.setattr(main_module, "startup_sync", sync_calls.append)
