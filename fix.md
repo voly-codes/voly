@@ -76,3 +76,4 @@ commit hash and an English description.
 d18639e — Added an offline, read-only `voly quickstart --check` path with deterministic executor discovery, safe configuration creation, JSON output, and no capability-registry startup sync.
 f54acdb — Fixed the wheel manifest so clean installs include intelligence, reuse, workflow, and capability seed packages; added a regression check for future package omissions.
 fc446a9 — Declared the capability schemas namespace explicitly, removing ambiguous setuptools packaging before PyPI release.
+87a8ba6 — Made quickstart executor mocks cross-platform and aligned the setuptools smoke test with the packaged workflow module.
