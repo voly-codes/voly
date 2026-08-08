@@ -53,6 +53,25 @@ class _GatewayProvidersMixin:
 
     # ── Format adapters ─────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _anthropic_tools(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        converted = []
+        for tool in tools:
+            function = tool.get("function") if tool.get("type") == "function" else tool
+            converted.append({
+                "name": function.get("name", ""),
+                "description": function.get("description", ""),
+                "input_schema": function.get("parameters") or function.get("input_schema") or {"type": "object", "properties": {}},
+            })
+        return converted
+
+    @staticmethod
+    def _google_tools(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            dict(tool.get("function") or tool)
+            for tool in tools
+        ]
+
     def _call_anthropic(
         self, url: str, messages: list, model: str, max_tokens: int,
         temperature: float, system: str | None, headers: dict,
@@ -65,7 +84,7 @@ class _GatewayProvidersMixin:
         if system:
             body["system"] = system
         if tools:
-            body["tools"] = tools
+            body["tools"] = self._anthropic_tools(tools)
         req = urllib.request.Request(
             f"{url}/v1/messages", data=json.dumps(body).encode(), headers=headers, method="POST"
         )
@@ -86,6 +105,15 @@ class _GatewayProvidersMixin:
             # Propagated so AIGateway can tell a fake-success empty from a legit
             # terminal stop (max_tokens / tool_use) — see is_empty_content_response.
             "stop_reason": data.get("stop_reason", ""),
+            "tool_calls": [
+                {
+                    "id": block.get("id", ""),
+                    "name": block.get("name", ""),
+                    "arguments": block.get("input") or {},
+                }
+                for block in data.get("content", [])
+                if block.get("type") == "tool_use"
+            ],
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("input_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("output_tokens", 0),
@@ -121,10 +149,25 @@ class _GatewayProvidersMixin:
                 msg = body_text
             raise RuntimeError(f"OpenAI {e.code}: {msg}") from e
         choice = data["choices"][0]
+        tool_calls = []
+        for call in choice["message"].get("tool_calls") or []:
+            function = call.get("function") or {}
+            arguments = function.get("arguments") or {}
+            if isinstance(arguments, str):
+                try:
+                    arguments = json.loads(arguments)
+                except json.JSONDecodeError:
+                    arguments = {}
+            tool_calls.append({
+                "id": call.get("id", ""),
+                "name": function.get("name", ""),
+                "arguments": arguments if isinstance(arguments, dict) else {},
+            })
         return {
             "content": choice["message"].get("content", ""),
             "model": data.get("model", model),
             "stop_reason": choice.get("finish_reason", ""),
+            "tool_calls": tool_calls,
             "usage": {
                 "input_tokens":  data.get("usage", {}).get("prompt_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("completion_tokens", 0),
@@ -149,7 +192,7 @@ class _GatewayProvidersMixin:
         if system:
             body["systemInstruction"] = {"parts": [{"text": system}]}
         if tools:
-            body["tools"] = [{"functionDeclarations": tools}]
+            body["tools"] = [{"functionDeclarations": self._google_tools(tools)}]
         req = urllib.request.Request(
             f"{url}/v1beta/models/{model}:generateContent",
             data=json.dumps(body).encode(), headers=headers, method="POST"
@@ -166,11 +209,21 @@ class _GatewayProvidersMixin:
         candidates = data.get("candidates", [{}])
         parts = candidates[0].get("content", {}).get("parts", [{"text": ""}])
         text = "".join(p.get("text", "") for p in parts)
+        tool_calls = [
+            {
+                "id": "",
+                "name": part.get("functionCall", {}).get("name", ""),
+                "arguments": part.get("functionCall", {}).get("args") or {},
+            }
+            for part in parts
+            if isinstance(part.get("functionCall"), dict)
+        ]
         meta = data.get("usageMetadata", {})
         return {
             "content": text,
             "model": model,
             "stop_reason": candidates[0].get("finishReason", ""),
+            "tool_calls": tool_calls,
             "usage": {
                 "input_tokens":  meta.get("promptTokenCount", 0),
                 "output_tokens": meta.get("candidatesTokenCount", 0),

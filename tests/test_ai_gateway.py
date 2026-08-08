@@ -29,6 +29,20 @@ def test_cache_config_get_set() -> None:
     assert cache.stats()["active"] == 2
 
 
+def test_gateway_converts_canonical_tool_specs_for_providers() -> None:
+    tool = {
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "description": "Read a file",
+            "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+        },
+    }
+
+    assert AIGateway._anthropic_tools([tool])[0]["input_schema"] == tool["function"]["parameters"]
+    assert AIGateway._google_tools([tool])[0]["name"] == "read_file"
+
+
 def test_cache_config_expiry() -> None:
     cache = CacheConfig(ttl_seconds=0)
     cache.set("key1", "value1")
