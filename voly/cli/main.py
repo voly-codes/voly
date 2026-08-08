@@ -38,6 +38,7 @@ from voly.cli.commands import (  # noqa: E402
     model,
     plan_cmd,
     pxpipe,
+    quickstart,
     registry,
     repo_cmd,
     research_cmd,
@@ -82,7 +83,7 @@ def main(ctx: click.Context, config: str | None, verbose: bool) -> None:
     ctx.obj["config_path"] = config
     cfg = load_config(config)
     ctx.obj["config"] = cfg
-    if cfg.capability.worker_url:
+    if cfg.capability.worker_url and ctx.invoked_subcommand != "quickstart":
         startup_sync(cfg.capability.worker_url)
 
 
@@ -125,6 +126,7 @@ main.add_command(workflow_cmd)
 # Core commands
 main.add_command(init)
 main.add_command(setup)
+main.add_command(quickstart)
 main.add_command(serve)
 main.add_command(ui)
 main.add_command(run)

@@ -535,11 +535,21 @@ See `docs/proposals/hybrid-multiagent-executor.md` and `docs/backend/pipeline.md
 ## Initialization
 
 ```bash
+voly quickstart --check --cwd /path/to/repo  # offline, read-only readiness probe
+voly quickstart --cwd /path/to/repo          # optionally create missing voly.yaml
+voly quickstart --yes --cwd /path/to/repo    # non-interactive config creation
 voly init              # interactively creates voly.yaml
 voly setup             # checks all required keys
 voly config            # shows current config
 voly status            # health check of all components
 ```
+
+`voly quickstart` is the preferred first-run path. It validates the repository,
+inspects an existing config, detects local file-capable executors, and prints an
+exact first `voly run ... --dry-run` command. `--check` and `--json` are
+deterministic diagnostics: they do not write files, install packages, launch an
+executor, or contact the capability registry. A missing config is not a blocker;
+an invalid existing config and the absence of every supported executor are blockers.
 
 ---
 

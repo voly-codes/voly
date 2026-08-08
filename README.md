@@ -72,6 +72,9 @@ economics, control, and reports.
 ## Quick demo
 
 ```bash
+uvx --from . voly quickstart --check --cwd ~/my-project
+# → offline, read-only preflight: repository, config, local executors, safe next command
+
 voly init                                   # config + hooks
 voly run "fix the auth redirect bug" \
     --executor claude-code --cwd ~/my-project
@@ -86,6 +89,10 @@ voly run "refactor the config loader" \
 
 voly ui                                     # web dashboard on :7788
 ```
+
+For an installed package, use `voly quickstart --cwd ~/my-project`. Add `--yes`
+to create a missing `voly.yaml` without prompting. Quickstart never installs or
+launches a third-party agent; its suggested first run uses `--dry-run`.
 
 A complex request ("redesign auth, add tests, review it") goes multi-agent
 automatically (`lead_mode=auto` skips a premium lead chat on standard role

@@ -14,6 +14,7 @@ from .learning_cmd import learning_cmd
 from .lifecycle import init, setup
 from .plan_cmd import plan_cmd
 from .platform import ai_gateway, match_task, model, registry, scan_project
+from .quickstart import quickstart
 from .repo import repo_cmd
 from .research_cmd import research_cmd
 from .reuse_cmd import reuse_cmd
@@ -52,6 +53,7 @@ __all__ = [
     "balance",
     "init",
     "setup",
+    "quickstart",
     "learning_cmd",
     "serve",
     "run",

@@ -183,6 +183,7 @@ CLAUDE.md           voly.yaml    README.md
 
 ```
 voly run <task>    voly match <task>    voly compare <task>
+voly quickstart [--check] [--cwd PATH]
 voly savings       voly status          voly scan
 voly registry agents        voly registry skills       voly skill list
 voly model list             voly ai-gateway status     voly catalog sync
