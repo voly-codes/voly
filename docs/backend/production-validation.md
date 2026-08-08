@@ -4,6 +4,39 @@ Phase 9 is a RAT probe for the assumption that imported capability mechanics
 improve real VOLY outcomes rather than merely adding latency and orchestration.
 The probe separates routing correctness from value evidence.
 
+## Deterministic product-proof suite
+
+`tests/test_product_proof.py` is a small, offline proof surface for claims that
+appear in product communication. It is intentionally narrower than the full
+regression suite and separates verified behavior from roadmap contracts.
+
+```bash
+python -m pytest tests/test_product_proof.py -vv -rxX
+```
+
+The suite currently proves that:
+
+- one `MultiAgentEpisode` preserves role costs, dependency lineage, fallback
+  attempts and file artifacts;
+- `SolverJudgeEnv` links the judge to the solver trace and grants only the
+  bounded read-only repository tools;
+- a completed executor cost can be classified as `budget_exceeded` once its
+  final cost is known.
+
+The suite also contains one strict expected-failure contract for atomic
+parent/child budget inheritance before child dispatch. That behavior is not
+implemented: `max_task_cost_usd` is currently evaluated after executor cost is
+known. The expected failure is a claim boundary, not a passing capability. Do
+not describe VOLY as enforcing a shared tree-wide pre-dispatch budget until the
+contract passes without `xfail`.
+
+Screenshots under `docs/assets/product-proof/` are presentation artifacts. The
+test source and command above remain the reproducible evidence.
+
+![VOLY deterministic product proof test summary](../assets/product-proof/product-proof-tests.png)
+
+![VOLY verified claims and claim boundary](../assets/product-proof/product-proof-matrix.png)
+
 ## Versioned suite
 
 `voly/capability/benchmark_suite_v1.json` contains exactly 20 representative
