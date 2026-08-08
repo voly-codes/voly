@@ -71,6 +71,7 @@ packages = [
     "voly.ai_gateway",
     "voly.catalog",
     "voly.capability",
+    "voly.capability.seeds",
     "voly.cli",
     "voly.cli.commands",
     "voly.cloudflare",
@@ -83,6 +84,7 @@ packages = [
     "voly.headroom",
     "voly.hooks",
     "voly.inference",
+    "voly.intelligence",
     "voly.learning",
     "voly.memory",
     "voly.models",
@@ -91,6 +93,7 @@ packages = [
     "voly.pxpipe",
     "voly.registry",
     "voly.research",
+    "voly.reuse",
     "voly.rtk",
     "voly.runner",
     "voly.runtime",
@@ -99,7 +102,7 @@ packages = [
     "voly.tools",
     "voly.web",
     "voly.web.routes",
-    # voly.workflow removed: package has no source files (only stale __pycache__)
+    "voly.workflow",
     # voly.web.auth removed: authentication is a closed Team-tier feature (voly-cloud)
 ]
 

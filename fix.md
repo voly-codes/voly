@@ -73,3 +73,4 @@ commit hash and an English description.
 - `dcc6a6c` — Detect Windows npm executor shims and repo-local Wrangler installations instead of requiring a POSIX-style binary on PATH.
 
 - `642ce3f` — Create a stable root task before execution, merge live RunRecords into the normal task list, and replace the separate In progress cards with one continuously updated task and Agent Atlas.
+d18639e — Added an offline, read-only `voly quickstart --check` path with deterministic executor discovery, safe configuration creation, JSON output, and no capability-registry startup sync.
