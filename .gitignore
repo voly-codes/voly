@@ -24,6 +24,7 @@ dist/
 # VOLY runtime state
 .voly/events/
 .voly/evidence/
+.voly/episodes/
 .voly/eval-runs/
 .voly/dspy/datasets/
 .voly/dspy/programs/
