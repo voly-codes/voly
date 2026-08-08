@@ -33,7 +33,9 @@ contract passes without `xfail`.
 Screenshots under `docs/assets/product-proof/` are presentation artifacts. The
 test source and command above remain the reproducible evidence.
 
-![VOLY deterministic product proof test summary](../assets/product-proof/product-proof-tests.png)
+![Terminal output for the VOLY deterministic product proof suite](../assets/product-proof/terminal-product-proof.png)
+
+![Terminal output for the related A2A, judge and cost-policy tests](../assets/product-proof/terminal-related-suite.png)
 
 ![VOLY verified claims and claim boundary](../assets/product-proof/product-proof-matrix.png)
 
