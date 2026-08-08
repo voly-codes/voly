@@ -243,7 +243,7 @@ Deferred: Docker self-hosted distribution, native signed applications, automatic
 ## Verification checklist
 
 - [ ] Observe five first-time users before expanding the build.
-- [ ] Test `--check` on clean Windows, macOS, and Linux environments.
+- [x] Gate every change with a clean wheel install and `--check` smoke test on Windows, macOS, and Linux CI runners.
 - [ ] Verify zero writes and zero network calls in check mode.
 - [ ] Confirm every requirement traces to the focused setup Job.
 - [ ] Revisit native packaging only if runtime installation remains a measured blocker.
