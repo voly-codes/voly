@@ -5,9 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "voly"
 version = "0.1.0"
-description = "VOLY — централизованная платформа управления AI-агентами для разработки ПО"
+description = "Open-source control plane for routing, orchestrating, budgeting, and verifying AI coding agents"
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 license = "Apache-2.0"
+authors = [
+    { name = "Maksim Lanies", email = "dev@voly.codes" },
+]
 keywords = ["ai", "agent", "orchestration", "llm", "context", "optimization"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -28,6 +32,13 @@ dependencies = [
     "pyyaml>=6.0",
     "pydantic>=2.0.0",
 ]
+
+[project.urls]
+Homepage = "https://voly.codes"
+Documentation = "https://github.com/voly-codes/voly#readme"
+Repository = "https://github.com/voly-codes/voly"
+Issues = "https://github.com/voly-codes/voly/issues"
+Changelog = "https://github.com/voly-codes/voly/releases"
 
 [project.optional-dependencies]
 proxy = [
@@ -71,6 +82,7 @@ packages = [
     "voly.ai_gateway",
     "voly.catalog",
     "voly.capability",
+    "voly.capability.schemas",
     "voly.capability.seeds",
     "voly.cli",
     "voly.cli.commands",
