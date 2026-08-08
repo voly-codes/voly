@@ -334,6 +334,24 @@ class _A2AStageMixin:
             ) if cap_cfg else 3.0,
         )
 
+        # Persist the complete local orchestration record. Remote analytics keeps
+        # excluding prompts, outputs and repository paths via its allowlist.
+        from voly.a2a.episode import EpisodeStore, episode_from_assignments
+
+        episode = episode_from_assignments(
+            task_id=task_id,
+            task=task,
+            assignments=assignments,
+        )
+        try:
+            EpisodeStore(os.path.join(cwd or ".", ".voly", "episodes")).save(episode)
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(_PIPELINE_LOGGER_NAME).warning(
+                "A2A episode save failed", exc_info=True,
+            )
+
         merged = merge_report(task, assignments)
         ma_success, ma_status = evaluate_multiagent_outcome(
             assignments, requires_code_gen=requires_code_gen,

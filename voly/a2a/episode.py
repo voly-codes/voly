@@ -184,3 +184,101 @@ class EpisodeStore:
         if not path.is_file():
             return None
         return MultiAgentEpisode.from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+
+def episode_from_assignments(
+    *,
+    task_id: str,
+    task: str,
+    assignments: list[Any],
+    acceptance_criteria: list[str] | None = None,
+) -> MultiAgentEpisode:
+    """Adapt the existing dependency-wave runtime to the Episode contract."""
+    episode = MultiAgentEpisode.create(
+        task_id=task_id,
+        task=task,
+        environment="pipeline",
+        acceptance_criteria=list(acceptance_criteria or []),
+    )
+    trace_ids = {
+        int(item.idx): f"trace-{uuid.uuid4().hex}"
+        for item in assignments
+    }
+    total_cost = sum(float(getattr(item, "cost_usd", 0.0) or 0.0) for item in assignments)
+    for assignment in assignments:
+        assignment.trace_id = trace_ids[int(assignment.idx)]
+        ok = bool(getattr(assignment, "ok", False))
+        cost = float(getattr(assignment, "cost_usd", 0.0) or 0.0)
+        contribution = 0.0 if not ok else 1.0 / (1.0 + (cost / max(total_cost, 0.000001)))
+        cost_metric = RoleMetric(
+            name="cost_adjusted_contribution",
+            score=round(contribution, 4),
+            source="runtime_proxy",
+            evidence="Successful role outcome adjusted by its share of episode cost",
+        )
+        assignment.role_metrics = [asdict(cost_metric)]
+        trace = AgentTrace(
+            trace_id=assignment.trace_id,
+            agent_id=f"agent-{assignment.idx}",
+            role=str(assignment.role),
+            task=str(assignment.description),
+            status="completed" if ok else "failed",
+            completed_at=utc_now(),
+            model=str(getattr(assignment, "model", "") or ""),
+            provider=str(getattr(assignment, "provider", "") or ""),
+            executor=str(getattr(assignment, "executor", "") or ""),
+            parent_trace_ids=[
+                trace_ids[index]
+                for index in (getattr(assignment, "depends_on", None) or [])
+                if index in trace_ids
+            ],
+            messages=[
+                TraceMessage(role="user", content=str(assignment.description)),
+                TraceMessage(role="assistant", content=str(getattr(assignment, "content", "") or "")),
+            ],
+            tool_calls=[
+                TraceToolCall(
+                    name="executor_attempt",
+                    arguments={"executor": item.get("executor"), "model": item.get("model")},
+                    result=str(item.get("status") or ""),
+                    ok=item.get("status") == "success",
+                    duration_ms=float(item.get("duration_ms") or 0.0),
+                    metadata={key: value for key, value in item.items() if key not in {"executor", "model", "status", "duration_ms"}},
+                )
+                for item in (getattr(assignment, "chain_timelog", None) or [])
+                if isinstance(item, dict)
+            ],
+            artifacts=[
+                TraceArtifact(kind="file", uri=str(path))
+                for path in (getattr(assignment, "files_touched", None) or [])
+            ],
+            decisions=[
+                TraceDecision(
+                    kind="execution_route",
+                    summary=f"Use {getattr(assignment, 'mode', 'chat')} mode",
+                    rationale=str(getattr(assignment, "mode_reason", "") or ""),
+                    metadata={"tier": getattr(assignment, "tier", ""), "skills": list(getattr(assignment, "skills", None) or [])},
+                )
+            ],
+            metrics=[cost_metric],
+            input_tokens=int(getattr(assignment, "input_tokens", 0) or 0),
+            output_tokens=int(getattr(assignment, "output_tokens", 0) or 0),
+            cost_usd=cost,
+            duration_ms=float(getattr(assignment, "duration_ms", 0.0) or 0.0),
+            error=str(getattr(assignment, "error", "") or ""),
+            metadata={
+                "plan_status": getattr(assignment, "plan_status", ""),
+                "plan_verify_ok": getattr(assignment, "plan_verify_ok", None),
+                "cache_hit": bool(getattr(assignment, "cache_hit", False)),
+            },
+        )
+        episode.traces.append(trace)
+        episode.metrics.append(cost_metric)
+    episode.status = (
+        "completed" if episode.traces and all(item.status == "completed" for item in episode.traces)
+        else "partial" if any(item.status == "completed" for item in episode.traces)
+        else "failed"
+    )
+    episode.completed_at = utc_now()
+    episode.artifacts = [artifact for trace in episode.traces for artifact in trace.artifacts]
+    return episode

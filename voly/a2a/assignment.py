@@ -161,6 +161,8 @@ class Assignment:
     # call) — mirrors ExecutorResult.metadata["chain_timelog"], only present
     # when this role's executor call actually had to fall back.
     chain_timelog: list[dict[str, Any]] = field(default_factory=list)
+    trace_id: str = ""
+    role_metrics: list[dict[str, Any]] = field(default_factory=list)
 
     def to_event_dict(self) -> dict[str, Any]:
         return {
@@ -184,6 +186,8 @@ class Assignment:
             "plan_status": self.plan_status or None,
             "plan_verify_ok": self.plan_verify_ok,
             "chain_timelog": list(self.chain_timelog),
+            "trace_id": self.trace_id or None,
+            "role_metrics": list(self.role_metrics),
         }
 
 

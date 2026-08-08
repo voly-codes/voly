@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from voly.a2a.assignment import Assignment
 from voly.a2a.episode import (
     AgentTrace,
     EpisodeStore,
@@ -9,6 +10,7 @@ from voly.a2a.episode import (
     TraceDecision,
     TraceMessage,
     TraceToolCall,
+    episode_from_assignments,
 )
 
 
@@ -57,3 +59,30 @@ def test_role_metrics_are_bounded_and_named() -> None:
             pass
         else:
             raise AssertionError("invalid role metric must be rejected")
+
+
+def test_assignment_adapter_links_dependency_traces_and_artifacts() -> None:
+    architect = Assignment(0, "architect", "Plan", [], "strong", "m1", "p1", content="plan", ok=True)
+    developer = Assignment(
+        1,
+        "developer",
+        "Build",
+        [0],
+        "strong",
+        "m2",
+        "p2",
+        content="done",
+        ok=True,
+        mode="executor",
+        files_touched=["src/app.py"],
+        cost_usd=0.1,
+        chain_timelog=[{"executor": "cursor", "status": "success", "duration_ms": 12}],
+    )
+
+    episode = episode_from_assignments(task_id="t", task="Build", assignments=[architect, developer])
+
+    assert developer.trace_id
+    assert episode.traces[1].parent_trace_ids == [architect.trace_id]
+    assert episode.traces[1].artifacts[0].uri == "src/app.py"
+    assert episode.traces[1].tool_calls[0].name == "executor_attempt"
+    assert developer.to_event_dict()["role_metrics"][0]["name"] == "cost_adjusted_contribution"
