@@ -75,3 +75,4 @@ commit hash and an English description.
 - `642ce3f` — Create a stable root task before execution, merge live RunRecords into the normal task list, and replace the separate In progress cards with one continuously updated task and Agent Atlas.
 d18639e — Added an offline, read-only `voly quickstart --check` path with deterministic executor discovery, safe configuration creation, JSON output, and no capability-registry startup sync.
 f54acdb — Fixed the wheel manifest so clean installs include intelligence, reuse, workflow, and capability seed packages; added a regression check for future package omissions.
+fc446a9 — Declared the capability schemas namespace explicitly, removing ambiguous setuptools packaging before PyPI release.
