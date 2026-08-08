@@ -3,14 +3,17 @@ name: Release Python package
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Build and verify distributions
+  prepare:
+    name: Resolve version release
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     permissions:
-      contents: read
+      contents: write
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v7.0.1
@@ -19,8 +22,50 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Resolve and validate release tag
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG="v$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+            python scripts/check_release_version.py "$TAG"
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              echo "Release $TAG already exists; increment [project].version first." >&2
+              exit 1
+            fi
+            gh release create "$TAG" \
+              --target "$GITHUB_SHA" \
+              --title "VOLY $TAG" \
+              --generate-notes \
+              --latest
+          else
+            TAG="$EVENT_TAG"
+            python scripts/check_release_version.py "$TAG"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build and verify distributions
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.13"
+
       - name: Require release tag to match package version
-        run: python scripts/check_release_version.py "${{ github.event.release.tag_name }}"
+        run: python scripts/check_release_version.py "${{ needs.prepare.outputs.tag }}"
 
       - name: Build distributions
         run: |
@@ -42,7 +87,7 @@ jobs:
 
   github-release-assets:
     name: Attach verified distributions
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -61,7 +106,7 @@ jobs:
       - name: Attach verified files to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/* --clobber
+        run: gh release upload "${{ needs.prepare.outputs.tag }}" dist/* --clobber
 
   publish:
     name: Publish to PyPI
