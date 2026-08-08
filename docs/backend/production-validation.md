@@ -95,6 +95,15 @@ The decision is reproducible from the local append-only evidence records:
 voly capability evaluated activation-plan --executor claude-code
 ```
 
+An example measured activation plan retained two capabilities and retired one:
+
+![Evidence-gated capability activation result](../assets/product-proof/capability-activation.png)
+
+This screenshot was published in the [2026-07-31 evidence-gated activation
+post](https://x.com/MaksimLanies/status/2083152281176793326). It is a visual
+summary, not the source of truth; the activation command and underlying paired
+records remain the reproducible evidence.
+
 ## Staged activation and Cloudflare
 
 `activate-ready --yes` recomputes decisions and locally activates only packs
