@@ -3,6 +3,13 @@ type: Operations Guide
 title: Entrypoints, configuration, and safety
 description: Operational map for VOLY's CLI, FastAPI/Svelte UI, configuration, local runtime artifacts, security posture, and verification workflow.
 tags: [voly, operations, cli, api, ui, configuration, testing]
+openwiki:
+  roles: [operations, repository]
+  change_kinds: [entrypoints, configuration, documentation-automation]
+  source_paths: [pyproject.toml, voly/cli/main.py, voly/web/server.py, .github/workflows/openwiki-update.yml]
+  test_paths: [tests/test_cli_*.py, tests/test_web_api.py, tests/test_web_registry.py]
+  invariants: [The generated wiki is optional just-in-time context; source code and tests remain authoritative.]
+  validation_commands: [pytest tests/test_web_api.py -q]
 ---
 
 # Entrypoints, configuration, and safety
@@ -14,7 +21,7 @@ VOLY’s operational surfaces submit work to the pipeline or executor architectu
 - **CLI:** `pyproject.toml` exposes `voly = voly.cli.main:main`. The Click command group registers task execution, setup, status, UI/server, catalog/registry, telemetry, and capability command families. `voly run` is the primary local automation surface.
 - **Web/API:** `voly/web/server.py:create_app()` creates the optional FastAPI application used by `voly ui`. It wires route modules for run/tasks/runs, telemetry, gateway, evidence, marketplace, capability, and related services; it also supplies correlation middleware and a watchdog for stale run records.
 - **Dashboard:** `ui/` is a Svelte 5/Vite app. `App.svelte` starts task refresh/SSE streaming and presents run, gateway, telemetry, DSPy, Cloudflare, marketplace, and plugin drawers. Built assets can be served by FastAPI.
-- **Automation:** `.github/workflows/openwiki-update.yml` is a scheduled/manual documentation updater. Its current uncommitted change switches the configured OpenRouter model and enables LangSmith tracing; it does not alter VOLY runtime behavior.
+- **Documentation automation:** `.github/workflows/openwiki-update.yml` runs daily at 08:00 UTC or on manual dispatch. It installs OpenWiki, runs `openwiki code --update --print`, and creates or force-updates the `openwiki/update` pull-request branch when the staged changes include `openwiki/`, `AGENTS.md`, `CLAUDE.md`, or the workflow itself. The generated wiki is optional just-in-time context; source code and tests remain authoritative.
 
 CLI/API callers supply `cwd` to identify the target project. For complex work, those entrypoints can initiate the [pipeline and A2A orchestration](../orchestration/a2a-and-pipeline.md) flow; simple file work reaches `AgentRunner` directly.
 

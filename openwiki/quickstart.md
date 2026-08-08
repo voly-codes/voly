@@ -18,13 +18,13 @@ The product distinction is two execution paths:
 
 ## Start here by task
 
-| If you need to… | Start with | Then inspect |
-|---|---|---|
-| Understand product boundaries, telemetry, or model versus filesystem work | [Architecture overview](architecture/overview.md) | `docs/ARCHITECTURE.md`, `README.md` |
-| Change task decomposition, A2A, hybrid roles, or the agentic judge | [Pipeline and A2A orchestration](orchestration/a2a-and-pipeline.md) | `voly/pipeline/stages_a2a.py`, `voly/a2a/`, `tests/test_a2a_*.py` |
-| Change model middleware, provider behavior, spending, or executor fallback | [Architecture overview](architecture/overview.md) | `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py`, `docs/backend/{ai-gateway,executors}.md` |
-| Import, evaluate, activate, or publish capability packs | [Capability governance](governance/capabilities.md) | `voly/capability/`, `tests/test_capability_*.py` |
-| Change CLI/API/UI/configuration or run verification | [Operations, entrypoints, and safety](operations/entrypoints-and-safety.md) | `voly/cli/`, `voly/web/`, `ui/`, `voly.yaml`, `tests/` |
+| Change area or user intent | Relevant wiki page | Exact source entry points | Important symbols or types | Focused tests | Minimal validation command |
+|---|---|---|---|---|---|
+| Understand product boundaries, telemetry, or model versus filesystem work | [Architecture overview](architecture/overview.md) | `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py`, `voly/telemetry.py` | `AIGateway.chat()`, `AgentRunner`, `TaskEvent` | `tests/test_ai_gateway.py`, `tests/test_executor_safety.py` | `pytest tests/test_ai_gateway.py -q` |
+| Change task decomposition, A2A, hybrid roles, or the agentic judge | [Pipeline and A2A orchestration](orchestration/a2a-and-pipeline.md) | `voly/pipeline/stages_a2a.py`, `voly/a2a/multiagent_run.py`, `voly/a2a/agentic_judge.py` | `Pipeline.run()`, `LeadOrchestrator`, `A2AOrchestrator.dispatch_parallel()` | `tests/test_a2a_p0.py`, `tests/test_hybrid_a2a.py`, `tests/test_agentic_judge.py` | `pytest tests/test_a2a_p0.py -q` |
+| Change model middleware, provider behavior, spending, or executor fallback | [Architecture overview](architecture/overview.md) | `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py` | `AIGateway.chat()`, `AgentRunner` | `tests/test_ai_gateway.py`, `tests/test_gateway_provider_health.py`, `tests/test_executor_cwd_and_a2a_call.py` | `pytest tests/test_ai_gateway.py -q` |
+| Import, evaluate, activate, or publish capability packs | [Capability governance](governance/capabilities.md) | `voly/capability/evaluated_packs.py`, `voly/capability/pack_admission.py`, `voly/capability/remote_sync.py` | `ExecutorMatcher`, evaluated router | `tests/test_capability_pack_import.py`, `tests/test_evaluated_capability_packs.py`, `tests/test_capability_remote_sync.py` | `pytest tests/test_capability_pack_import.py -q` |
+| Change CLI/API/UI/configuration or run verification | [Operations, entrypoints, and safety](operations/entrypoints-and-safety.md) | `voly/cli/main.py`, `voly/web/server.py`, `ui/src/App.svelte`, `voly/config/` | `main`, `create_app()` | `tests/test_cli_contracts.py`, `tests/test_web_api.py` | `pytest tests/test_web_api.py -q` |
 
 ## Repository map
 
