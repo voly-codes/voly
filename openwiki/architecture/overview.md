@@ -1,81 +1,52 @@
-# Architecture overview
+---
+type: Architecture Overview
+title: VOLY control-plane architecture
+description: Explains VOLY's project-agnostic execution split, control boundaries, durable records, and model-versus-executor responsibilities.
+tags: [voly, architecture, gateway, executors, telemetry]
+---
 
-VOLY is a project-agnostic control plane for AI agents. It sits between a developer and the execution backends, and it is designed to keep orchestration logic separate from the target project that agents modify.
+# VOLY control-plane architecture
 
-## Core architectural split
+VOLY sits between an operator and agents that reason about or modify another repository. The target project is passed at runtime, so VOLY can enforce common routing, economics, safety, and observability rules without embedding product-specific behavior. `README.md` and `docs/ARCHITECTURE.md` are the primary product and system references.
 
-The repository consistently describes two layers:
+## Two paths, one control plane
 
-- **Layer A — model gateway / routing / fallback**: model-provider routing, caching, DLP, rate limits, spend limits, and upstream delegation. This is intentionally treated as a mature integration boundary rather than the product's primary differentiator.
-- **Layer B — orchestration of file-capable CLI agents**: agent execution, billing fallback across executors, multi-agent task decomposition, and project-level telemetry. This is the main product surface.
+| Path | Primary implementation | Responsibility |
+|---|---|---|
+| Pipeline / inference | `voly/pipeline/core.py` | Route text work; compose memory, skills, token handling, optional DSPy, and model inference. |
+| Executor / file work | `voly/runner/agent_runner.py` | Run a file-capable agent against `cwd`, manage billing fallback, capture a work report, and emit run records. |
 
-The canonical explanation lives in `docs/ARCHITECTURE.md`, and the implementation follows that split in `voly/ai_gateway/gateway.py` and `voly/runner/agent_runner.py`.
+The [pipeline and A2A orchestration](../orchestration/a2a-and-pipeline.md) page describes how a complex pipeline task can dispatch dependency-linked roles, including hybrid roles that use the executor path. This is not a general license for arbitrary writes: executor behavior remains bound to the supplied target project and the runner's safety/evidence policies.
 
-## The two execution paths
+## Gateway boundary
 
-### 1) Pipeline path
-The pipeline handles text-only reasoning and orchestration steps. In `voly/pipeline/core.py`, it coordinates stages such as routing, memory retrieval, RTK filtering, skill injection, optional DSPy, and the final `AIGateway.chat()` call.
+`AIGateway.chat()` is the canonical boundary for chat-model calls. Its enabled path checks DLP, derives a scope-aware cache key, checks rate and spend limits, invokes either a Cloudflare provider path or delegated/direct adapter, marks provider health on failures, and records spend only after a successful result. It can delegate a request to a configured upstream gateway and then fall back to the original direct adapter when that upstream fails.
 
-### 2) Executor path
-The executor path is for tasks that must write files. `voly/runner/agent_runner.py`
-resolves an executor, optionally captures a repository baseline, refines the
-task with DSPy, executes the chosen backend, applies billing fallback, and
-writes a local EvidenceRecord before normal telemetry.
+The gateway therefore **shares cost and safety infrastructure with** A2A chat roles, DSPy, and ordinary pipeline inference. File-capable executors remain a separate mechanism, even when a hybrid A2A role invokes them. Preserve that distinction when adding providers or fallback: a text-only provider should not silently become an executor.
 
-## Public contracts
+## Durable records and contracts
 
-The repo treats several interfaces as versioned contracts and protects them with tests. The high-signal ones are:
+VOLY keeps related but distinct records:
 
-- **`TaskEvent` telemetry** — `schema_version: 3` with `correlation_id` (`voly/telemetry.py`, `voly/correlation.py`, `docs/backend/api.md`)
-- **`EvidenceRecord`** — independent local `schema_version: 2`; baseline,
-  execution identity, root cause, deterministic evaluation and human feedback
-  (`voly/evidence/`, `voly/evaluation/`, `docs/backend/evidence.md`)
-- **Spend protocol** — HTTP spend record/check (`docs/backend/spend-protocol.md`)
-- **A2A federation** — task create/complete/callback contracts
+- **`TaskEvent`** telemetry describes a run for CLI/API/UI visibility. `docs/ARCHITECTURE.md` identifies it as a versioned schema contract and ties it to `correlation_id` propagation.
+- **Evidence and evaluation records** describe repository baseline, execution bundle, root-cause attribution, deterministic checks, and optional human feedback. `AgentRunner` creates this evidence around file-capable runs when enabled; it must not be conflated with telemetry.
+- **A2A episodes** capture multi-agent lineage—traces, artifacts, decisions, metrics, and costs—under `<cwd>/.voly/episodes/`. They **link orchestration to** evidence/evaluation without replacing those schemas; see [pipeline and A2A orchestration](../orchestration/a2a-and-pipeline.md).
+- **Capability-pack evidence and snapshots** are governance records used to decide whether an optional variant has measured value. They are not normal routing telemetry; see [capability governance](../governance/capabilities.md).
 
-`correlation_id` links open-core API/SSE, hosted control plane, and Cloudflare Worker logs (`X-Correlation-ID`). Set `VOLY_JSON_LOGS=1` for JSON logs that include it.
+These record boundaries exist so operational visibility, evaluation evidence, agent lineage, and capability experiments can evolve without silently changing each other’s semantics.
 
-In-gateway spend accounting is separate from the remote spend protocol: `AIGateway.chat()` records daily budget usage **only on successful** model calls.
+## Runtime and deployment edges
 
-### Memory backends
+The Python package exposes a Click CLI (`voly.cli.main:main`) and optional FastAPI UI/API extras. The Svelte dashboard is a separate Vite application under `ui/`; when its assets are built, FastAPI can serve them. Cloudflare workers provide remote boundaries such as capability snapshots and A2A federation, not replacements for local runtime source of truth.
 
-`memory.backend` in config: `local` (SQLite), `hybrid` (local + CF memory Worker), or `agent_memory` (Cloudflare Agent Memory HTTP — private beta). Client: `voly/memory/agent_memory_client.py`. See `docs/backend/config.md`.
+[Operations, entrypoints, and safety](../operations/entrypoints-and-safety.md) explains how these surfaces are configured and checked. That page is also the canonical place for local-runtime artifacts and test guidance.
 
-### External capability trust boundary
+## Change checklist
 
-External capability repositories are untrusted inputs, not executable
-extensions. Discovery inventories supported files and records provenance;
-static admission reads bounded content, infers permissions, validates MCP JSON,
-and quarantines high/critical risk. The staged store atomically copies admitted
-components under `.voly/capability/packs/`, records hashes and immutable
-provenance, and leaves quarantined content uncopied. No discovered agent, skill,
-hook, command, rule, or MCP server is activated or executed by this path.
+- Keep model calls behind `AIGateway.chat()` unless a source-backed exception is intentionally designed.
+- Preserve spend-on-success accounting; failures must not inflate daily usage.
+- Update versioned protocol tests and documentation when event, evidence, or worker payload shapes change.
+- Treat `cwd` isolation and file-executor safety as architecture, not convenience.
+- For orchestration changes, verify local and federation modes separately; for capability changes, preserve native fallback and the separate measured-validation gate.
 
-## Web surface (self-host)
-
-The FastAPI app (`voly ui`) is part of the control plane, not a separate product. Default posture is **localhost-open** (auth off + startup warning). JWT auth, CORS hardening, and login live under `voly/web/auth/` and are documented in entrypoints + `docs/backend/api.md`.
-
-## Packaging
-
-Wheel/sdist must include core packages (`voly.pipeline`, `voly.config`, `voly.cloudflare`, `voly.web.auth`, `voly.web.routes`, …) via `pyproject.toml` — editable installs hide packaging holes. See [Configuration and operations](../config-and-operations.md).
-
-## What to watch when changing architecture
-
-- Keep VOLY project-agnostic; avoid hardcoding target-project behavior into `voly/`.
-- Route model calls through `AIGateway.chat()` so caching, DLP, limits, and telemetry stay centralized.
-- Do not charge spend on failed provider responses.
-- Treat changes to telemetry or protocol shapes as versioned contract changes.
-- Update `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`, `docs/backend/ai-gateway.md`, and `docs/backend/api.md` alongside code changes.
-
-## Useful source files
-
-- `docs/ARCHITECTURE.md`
-- `voly/pipeline/core.py`
-- `voly/runner/agent_runner.py`
-- `voly/evidence/*`
-- `voly/ai_gateway/gateway.py`
-- `voly/web/server.py`
-- `voly/web/auth/*`
-- `voly/telemetry.py`
-- `voly/correlation.py`
-- `voly/memory/agent_memory_client.py`
+**Useful sources:** `docs/ARCHITECTURE.md`, `README.md`, `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py`, `voly/telemetry.py`, `voly/evidence/`, `tests/test_protocol_contracts.py`.

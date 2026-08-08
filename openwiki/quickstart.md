@@ -1,94 +1,50 @@
-# OpenWiki quickstart
+---
+type: Project Guide
+title: VOLY OpenWiki quickstart
+description: Entry point for understanding VOLY, a self-hosted AI-agent control plane for project-agnostic execution, orchestration, governance, and observability.
+tags: [voly, control-plane, ai-agents, openwiki]
+---
 
-VOLY is a Python-based **self-hosted** AI control plane for routing tasks to file-capable CLI agents, coordinating multi-agent workflows, enforcing spend and rate limits, and recording telemetry for a web UI and API. The repository also includes Cloudflare Workers, a Svelte frontend, CLI tooling, and an optional DSPy optimization layer.
+# VOLY OpenWiki quickstart
 
-Start with these source files:
+VOLY is a Python **control plane for AI coding agents**, rather than another agent. A caller supplies a task and target project (`--cwd` or configuration); VOLY chooses and coordinates model or file-capable execution, applies safety and cost controls, and emits run evidence and telemetry. The open-core repository includes the CLI, FastAPI API, Svelte UI, Cloudflare-worker integrations, and tests.
 
-- `README.md` — product overview (English primary)
-- `README_ru.md` — Russian overview
-- `CLAUDE.md` — project rules that guide future changes
-- `pyproject.toml` — package structure and optional dependencies (`voly[ui]` includes PyJWT)
-- `voly.yaml` and `codeops.yaml` — runtime configuration defaults
-- `voly/cli/main.py` — CLI entrypoint
-- `voly/web/server.py` — FastAPI app (CORS + optional JWT middleware)
-- `voly/pipeline/core.py` — main orchestration path
-- `voly/runner/agent_runner.py` — file-writing executor runs
-- `voly/ai_gateway/gateway.py` — model routing, caching, spend, and fallback
+The product distinction is two execution paths:
 
-## What this repository does
+- The **pipeline path** assembles context and handles inference through `AIGateway.chat()`.
+- The **executor path** uses `AgentRunner` and a file-capable backend to modify the supplied target project. Its fallback behavior, repository baseline, and work report are distinct from model-gateway routing.
 
-VOLY has two main execution paths:
+[Architecture overview](architecture/overview.md) explains why this split exists and which contracts hold the pieces together. Complex pipeline tasks can become local or federated multi-agent work; [pipeline and A2A orchestration](orchestration/a2a-and-pipeline.md) explains that lifecycle. Capability selection and external-pack governance are deliberately separate from normal routing and live in [capability governance](governance/capabilities.md). [Operations, entrypoints, and safety](operations/entrypoints-and-safety.md) maps the commands, web surface, configuration, local state, and checks.
 
-1. **Pipeline path** — text-only reasoning, routing, memory lookup, skill injection, optional DSPy, and final LLM calls through `AIGateway.chat()`.
-2. **Executor path** — file-capable agents that actually modify a target project, with billing fallback across executors when one provider runs out of budget:
+## Start here by task
 
-   `claude-code → wrangler → opencode → zen`
+| If you need to… | Start with | Then inspect |
+|---|---|---|
+| Understand product boundaries, telemetry, or model versus filesystem work | [Architecture overview](architecture/overview.md) | `docs/ARCHITECTURE.md`, `README.md` |
+| Change task decomposition, A2A, hybrid roles, or the agentic judge | [Pipeline and A2A orchestration](orchestration/a2a-and-pipeline.md) | `voly/pipeline/stages_a2a.py`, `voly/a2a/`, `tests/test_a2a_*.py` |
+| Change model middleware, provider behavior, spending, or executor fallback | [Architecture overview](architecture/overview.md) | `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py`, `docs/backend/{ai-gateway,executors}.md` |
+| Import, evaluate, activate, or publish capability packs | [Capability governance](governance/capabilities.md) | `voly/capability/`, `tests/test_capability_*.py` |
+| Change CLI/API/UI/configuration or run verification | [Operations, entrypoints, and safety](operations/entrypoints-and-safety.md) | `voly/cli/`, `voly/web/`, `ui/`, `voly.yaml`, `tests/` |
 
-   Opt-in cloud path: `--executor cf-containers` (Cloudflare Containers / sandbox Worker).
+## Repository map
 
-   With `evidence.enabled`, this path captures repository health before edits
-   and writes a versioned local EvidenceRecord after execution.
+- `voly/` — Python package: pipeline, A2A, gateway, executors, capability system, CLI, web API, telemetry, and supporting domains.
+- `ui/` — Svelte 5/Vite dashboard, bundled by the FastAPI server when build assets exist.
+- `cf-workers/` — Cloudflare workers, including the capability service and A2A integration boundary.
+- `docs/` — primary detailed engineering documentation. In particular, `docs/ARCHITECTURE.md` and `docs/backend/` are authoritative companions to this synthesis.
+- `tests/` — pytest behavior and contract suite; source of truth for many compatibility guarantees.
+- `.voly/` — ignored runtime output such as runs, events, evidence, episodes, caches, evaluated-pack state, and reports. It is not source.
 
-The project is intentionally **project-agnostic**: the target codebase is supplied at runtime through `--cwd` or configuration, rather than being hardcoded into the source tree.
+## Ground rules for changes
 
-## Security model (self-host)
+1. Keep VOLY project-agnostic: target repository behavior belongs behind runtime `cwd`, not in product-specific logic under `voly/`.
+2. Preserve `AIGateway.chat()` as the model-call boundary; file-capable executors are intentionally separate.
+3. Treat public event, evidence, federation, and snapshot formats as contracts. Change docs and tests with shape changes.
+4. Treat imported capabilities as untrusted inputs. Discovery/staging, measured activation, and remote publication are separate controls.
+5. Do not read or commit live secrets. Use `.env.example` and configuration docs only for placeholder-based setup.
 
-By default the Web UI API is **open on localhost** (auth disabled) and logs a startup warning. Before exposing the UI/API on a network, enable JWT:
+## Backlog
 
-```bash
-export VOLY_AUTH_ENABLED=true
-export VOLY_JWT_SECRET='long-random-secret-at-least-32-chars'
-export VOLY_AUTH_USERS='admin:change-me'
-```
-
-See [Configuration and operations](config-and-operations.md) and `docs/backend/api.md`.
-
-## Major domains
-
-- **Architecture and control flow** — pipeline, A2A orchestration, and executor path
-- **Gateway and cost control** — routing, caching, DLP, spend (success-only recording), upstream delegation
-- **CLI and web entrypoints** — command surface and HTTP API (optional JWT)
-- **UI** — Svelte app for runs, gateway, telemetry, DSPy, marketplace
-- **Marketplace and catalog** — skills/plugins with local fallback when the remote worker is down; `voly skill seed --path` for CF draft skills; `SKILL_SUGGEST` via SkillScout
-- **Observability** — `correlation_id` on TaskEvent v3 / SSE / CF Workers
-- **Evidence Foundation** — pre-run baseline, execution-bundle versioning,
-  root-cause attribution, local atomic evidence and human-feedback hooks
-- **Golden regression evaluation** — versioned curated datasets replayed in
-  temporary workspaces with exact argv and no model/provider calls
-- **Judge calibration** — local per-lineage comparison of LLM-judge decisions
-  with latest explicit human feedback, without automatic threshold tuning
-- **Planned FinOps lineage** — inferred and explicit repository/project task
-  tags joined with evidence-backed outcome states for cost-per-trusted-outcome
-  reporting; see `docs/proposals/task-tags-and-trusted-outcomes.md`
-- **Configuration and operations** — runtime config (including `memory.backend: agent_memory`), env vars, packaging, generated artifacts, tests
-
-## Wiki map
-
-- [Architecture overview](architecture/overview.md)
-- [Backend entrypoints](backend/entrypoints.md)
-- [Gateway and executors](backend/gateway-and-executors.md)
-- [Pipeline and A2A](backend/pipeline-and-a2a.md)
-- [Frontend UI](frontend/ui.md)
-- [Configuration and operations](config-and-operations.md)
-
-## Where to go next
-
-If you are changing orchestration behavior, read the architecture and pipeline pages first.  
-If you are changing model routing, spend, or fallback, read the gateway and executors page.  
-If you are changing the API, CLI, or auth surface, read the entrypoints page.  
-If you are changing the UI, start with the frontend page and then inspect `ui/src/lib/components/*`.
-
-## Source map
-
-- `voly/cli/main.py` — CLI command registration
-- `voly/web/server.py` — FastAPI app, CORS, JWT middleware wiring
-- `voly/web/auth/*` — JWT create/verify, middleware, login dependencies
-- `voly/web/routes/*` — API routes (including `auth.py`)
-- `voly/pipeline/core.py` — pipeline orchestration and cache scoping
-- `voly/runner/agent_runner.py` — executor chain, DSPy planning, work reports
-- `voly/evidence/*` — baseline, EvidenceRecord v2, root-cause classification, store
-- `voly/evaluation/*` — versioned EvalPolicy registry and post-run evaluation
-  plus strict golden dataset loading and offline regression replay
-- `voly/ai_gateway/gateway.py` — middleware stack, spend-on-success, upstream delegation
-- `ui/src/lib/components/*` — dashboard sections and panels
-- `tests/` — behavioral and contract tests (including `tests/test_web_auth.py`)
+- **Memory, DSPy, research, reuse, and learning** — `voly/{memory,dspy,research,reuse,learning}/`; deferred because their independent behaviors exceed this initial map's five-page scope.
+- **Cloudflare-worker internals** — `cf-workers/`; deferred beyond the A2A and capability boundaries documented here because worker-specific deployment and storage designs need their own focused pass.
+- **Detailed frontend component/API map** — `ui/src/` and `voly/web/routes/`; deferred because the initial operations page documents the integration boundary rather than each dashboard feature.
