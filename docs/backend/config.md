@@ -136,6 +136,13 @@ VOLY_RUN_POOL_WORKERS=16
 VOLY_JSON_LOGS=1
 # JSON-lines logs with correlation_id (web server). See docs/backend/api.md.
 
+VOLY_EVENTS_DIR=/path/to/project/.voly/events
+# Which events directory `voly mcp serve` reads runs and tasks from. Unset, it
+# resolves the first existing .voly/events in cwd, then ~/.voly/events — the
+# same order the web server uses. Set it when the MCP server is started from a
+# different directory than the project it should report on.
+# See docs/backend/mcp.md.
+
 VOLY_ROLES=architect,developer,tester,reviewer
 VOLY_MODELS=shared-model-a,shared-model-b
 VOLY_MODELS_PIPELINE=claude-sonnet-4-6,gpt-4o
