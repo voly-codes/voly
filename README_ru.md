@@ -350,6 +350,32 @@ Svelte 5 SPA с hash-routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` + 
 | `DSPyPage` | DSPy программы и lifecycle |
 | `CFPage` / `MarketplacePage` | Cloudflare воркеры + spend · каталог скилов |
 
+## MCP-сервер — VOLY внутри любого MCP-хоста
+
+`voly mcp serve` отдаёт оркестратор наружу девятью MCP-инструментами, так что
+Cloudflare OS, Claude Desktop или IDE могут запускать задачи и следить за ними
+без собственного UI VOLY.
+
+```bash
+pip install -e ".[mcp]"
+voly mcp serve --port 7799                  # → http://127.0.0.1:7799/mcp
+```
+
+| Инструменты | Как их трактует хост |
+|---|---|
+| `voly_list_runs` · `voly_get_run` · `voly_list_tasks` · `voly_get_task` · `voly_get_stats` · `voly_health` | Только чтение — выполняются сразу, пишутся как наблюдения |
+| `voly_start_run` · `voly_cancel_run` · `voly_submit_feedback` | Запись — уходят в очередь подтверждения человеком |
+
+`voly_start_run` помечен destructive и не-идемпотентным, поэтому хост всегда
+спрашивает человека перед тем, как тратить деньги и писать файлы — авто-апрув
+для него невозможен ни в одной конфигурации. Он сразу возвращает `task_id`, а
+запуск продолжается в фоне: дальше опрашивают `voly_get_run`, результат читают
+через `voly_get_task`.
+
+Ключи провайдеров в обмен не входят. У хоста свои доступы к моделям, у VOLY
+свои, и ни одна сторона не отдаёт другой сырые токены — через границу ходят
+только задачи и результаты. Подробности: [docs/backend/mcp.md](docs/backend/mcp.md).
+
 ## DSPy — optional optimization layer
 
 | Mode | Поведение |
@@ -463,6 +489,7 @@ voly status                            # статус компонентов
 voly savings                           # отчёт об экономии
 voly ui                                # web dashboard (FastAPI + Svelte) :7788
 voly serve                             # pipeline HTTP-раннер :9202
+voly mcp serve                         # VOLY как MCP-сервер для MCP-хостов :7799
 
 voly registry agents | skills          # реестр агентов / скилов
 voly model list                        # модели и цены
@@ -535,6 +562,7 @@ DSPy-набор на Python 3.11 и проверку чистой установ
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |
+| [docs/backend/mcp.md](docs/backend/mcp.md) | MCP-фасад: девять инструментов, аннотации, подключение хоста |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 стек, структура ui/, dev/build |
 | [docs/frontend/components.md](docs/frontend/components.md) | UI-компоненты, props, pre-run гейты |
 | [docs/frontend/api-client.md](docs/frontend/api-client.md) | API-вызовы из UI, SSE-события, fallback |

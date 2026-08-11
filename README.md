@@ -349,6 +349,30 @@ Svelte 5 SPA with hash routing: `#/tasks`, `#/gateway`, `#/telemetry`, `#/dspy` 
 | `DSPyPage` | DSPy programs and lifecycle |
 | `CFPage` / `MarketplacePage` | Cloudflare workers + spend · skill catalog |
 
+## MCP server — VOLY inside any MCP host
+
+`voly mcp serve` exposes the orchestrator as nine MCP tools, so Cloudflare OS,
+Claude Desktop, or an IDE can start and follow runs without VOLY's own UI.
+
+```bash
+pip install -e ".[mcp]"
+voly mcp serve --port 7799                  # → http://127.0.0.1:7799/mcp
+```
+
+| Tools | How a host treats them |
+|---|---|
+| `voly_list_runs` · `voly_get_run` · `voly_list_tasks` · `voly_get_task` · `voly_get_stats` · `voly_health` | Read-only — run immediately, recorded as observations |
+| `voly_start_run` · `voly_cancel_run` · `voly_submit_feedback` | Writes — queued for human approval |
+
+`voly_start_run` is annotated destructive and non-idempotent, so a host asks a
+human before it spends money and writes files — no deployment can auto-approve
+it. It returns a `task_id` immediately and the run continues in the background:
+callers poll `voly_get_run`, then read the outcome with `voly_get_task`.
+
+Provider keys are not part of the deal. The host has its own model credentials,
+VOLY has its own, and neither side hands the other raw tokens — only tasks and
+results cross the boundary. See [docs/backend/mcp.md](docs/backend/mcp.md).
+
 ## DSPy — optional optimization layer
 
 | Mode | Behavior |
@@ -462,6 +486,7 @@ voly status                            # component health
 voly savings                           # savings report
 voly ui                                # web dashboard (FastAPI + Svelte) :7788
 voly serve                             # pipeline HTTP runner :9202
+voly mcp serve                         # VOLY as an MCP server for MCP hosts :7799
 
 voly registry agents | skills          # agent / skill registry
 voly model list                        # models and pricing
@@ -534,6 +559,7 @@ Windows, macOS, and Linux with Python 3.13.
 | [docs/backend/dspy.md](docs/backend/dspy.md) | DSPy programs, TaskPlanner, adapter, datasets |
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |
+| [docs/backend/mcp.md](docs/backend/mcp.md) | MCP facade: the nine tools, annotations, connecting a host |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 stack, ui/ layout, dev/build |
 | [docs/frontend/components.md](docs/frontend/components.md) | UI components, props, pre-run gates |
 | [docs/frontend/api-client.md](docs/frontend/api-client.md) | UI API calls, SSE events, fallback handling |
