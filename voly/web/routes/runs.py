@@ -4,28 +4,23 @@
 multi-agent chain is working, its progress lives in ``.voly/runs/`` RunRecords
 (heartbeat every ~10s). These endpoints let the UI show tasks that are still
 running — including ones launched from the CLI — and drill into their state.
+
+The reading and cancelling live in ``voly.web.service`` so the MCP facade
+answers from exactly the same records.
 """
 from __future__ import annotations
 
-from dataclasses import asdict
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
+from voly.web import service
+
 router = APIRouter()
 
 
-def _runs_dir(request: Request) -> str:
-    # Sibling of the events dir: <project>/.voly/events → <project>/.voly/runs.
-    ev_dir = request.app.state.app.ev_dir
-    return str(ev_dir.parent / "runs")
-
-
-def _to_dict(rec: Any) -> dict[str, Any]:
-    d = asdict(rec)
-    d["age_seconds"] = round(rec.age_seconds, 1)
-    d["elapsed_seconds"] = round(rec.elapsed_seconds, 1)
-    return d
+def _ev_dir(request: Request):
+    return request.app.state.app.ev_dir
 
 
 @router.get("/api/runs")
@@ -35,27 +30,20 @@ def list_runs(
     include_children: bool = False,
     limit: int = 50,
 ) -> dict[str, Any]:
-    from voly.runtime.runs import RUNNING, RunTracker
-
-    records = RunTracker(_runs_dir(request)).list()
-    if not include_children:
-        records = [r for r in records if not r.parent_task_id]
-    if active:
-        records = [r for r in records if r.status == RUNNING]
-    return {
-        "runs": [_to_dict(r) for r in records[: max(1, min(limit, 200))]],
-        "active": sum(1 for r in records if r.status == RUNNING),
-    }
+    return service.list_runs(
+        _ev_dir(request),
+        active=active,
+        include_children=include_children,
+        limit=limit,
+    )
 
 
 @router.get("/api/runs/{task_id}", responses={404: {"description": "No run record for this task_id"}})
 def get_run(request: Request, task_id: str) -> dict[str, Any]:
-    from voly.runtime.runs import RunTracker
-
-    rec = RunTracker(_runs_dir(request)).load(task_id)
+    rec = service.get_run(_ev_dir(request), task_id)
     if rec is None:
         raise HTTPException(status_code=404, detail=f"no run record for {task_id}")
-    return _to_dict(rec)
+    return rec
 
 
 @router.post(
@@ -64,10 +52,7 @@ def get_run(request: Request, task_id: str) -> dict[str, Any]:
 )
 def cancel_run(request: Request, task_id: str) -> dict[str, Any]:
     """Request cooperative stop before the workflow's next blocking turn."""
-    from voly.runtime.runs import RunTracker
-
-    accepted = RunTracker(_runs_dir(request)).request_cancel(task_id)
-    if not accepted:
+    if not service.cancel_run(_ev_dir(request), task_id):
         raise HTTPException(status_code=409, detail="run is missing or no longer active")
     return {
         "task_id": task_id,
