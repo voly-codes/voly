@@ -14,6 +14,16 @@ the hosted control plane are commercial **Team-tier** features that live in
 the closed **voly-cloud** distribution, not in this open-core repo. Do not add
 auth/SSO or other commercial code here — see `CONTRIBUTING.md`.
 
+## Two transports, one service layer
+
+HTTP is not the only way in. `voly/mcp/` serves the same data as nine MCP tools
+(`voly mcp serve`), so an MCP host — Cloudflare OS, Claude Desktop — can start
+and follow runs. Both transports call `voly/web/service.py`; the route handlers
+in `routes/tasks.py` and `routes/runs.py` are thin delegates over it.
+
+Read/write classification, why `voly_start_run` returns a `task_id` instead of a
+stream, and how to connect a host: **[`mcp.md`](mcp.md)**.
+
 ## POST /api/run
 
 ### Bounded review workflow

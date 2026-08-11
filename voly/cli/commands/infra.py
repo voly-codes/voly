@@ -360,3 +360,31 @@ def mcp_config(ctx: click.Context, fmt: str) -> None:
 
     config = mgr.generate_claude_config() if fmt == "claude" else mgr.generate_opencode_config()
     click.echo(json.dumps(config, indent=2))
+
+
+@mcp.command("serve")
+@click.option("--host", default="127.0.0.1", help="Bind address (0.0.0.0 to expose)")
+@click.option("--port", "-p", default=7799, type=int, help="Port (default 7799)")
+@click.option(
+    "--transport",
+    default="streamable-http",
+    type=click.Choice(["streamable-http", "sse", "stdio"]),
+    help="MCP transport (default streamable-http)",
+)
+@click.pass_context
+def mcp_serve(ctx: click.Context, host: str, port: int, transport: str) -> None:
+    """Serve VOLY itself as an MCP server (the other direction from `list`/`config`).
+
+    Lets Cloudflare OS, Claude Desktop, or any MCP host start and follow VOLY
+    runs. Requires the `mcp` extra: pip install -e ".[mcp]"
+    """
+    try:
+        from voly.mcp.server import build_server, serve
+    except ImportError as exc:
+        raise click.ClickException(
+            f"MCP SDK not installed ({exc}). Install it with: pip install -e \".[mcp]\""
+        ) from exc
+
+    if transport != "stdio":
+        click.echo(f"VOLY MCP server → http://{host}:{port}/mcp")
+    serve(build_server(), transport=transport, host=host, port=port)

@@ -58,6 +58,13 @@ ui = [
     "uvicorn>=0.27.0",
     "httpx>=0.27.0",
 ]
+# Serve VOLY as an MCP server (`voly mcp serve`) so MCP hosts — Cloudflare OS,
+# Claude Desktop — can start and follow runs. Pulls in `ui` because starting a
+# run reuses the dispatch path in voly/web/routes/run.py.
+mcp = [
+    "voly[ui]",
+    "mcp>=2.0.0",
+]
 dev = [
     "fastapi>=0.110.0",
     "httpx>=0.27.0",
@@ -68,7 +75,7 @@ dev = [
     "mypy>=1.0.0",
 ]
 all = [
-    "voly[proxy,semantic,cursor,dspy,ui,dev]",
+    "voly[proxy,semantic,cursor,dspy,ui,mcp,dev]",
 ]
 
 [project.scripts]
@@ -98,6 +105,7 @@ packages = [
     "voly.inference",
     "voly.intelligence",
     "voly.learning",
+    "voly.mcp",
     "voly.memory",
     "voly.models",
     "voly.pipeline",

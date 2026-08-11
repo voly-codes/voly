@@ -496,160 +496,199 @@ def _would_dispatch_a2a(task: str, config: Any) -> bool:
 
 # ── Main endpoint ─────────────────────────────────────────────────────────────
 
+async def prepare_run(
+    req: RunRequest, config: Any, runs_dir: str
+) -> tuple[RunRequest, dict[str, Any], str]:
+    """Resolve smart dispatch and open the RunRecord for a new run.
+
+    Shared by the SSE route and the MCP facade (`voly.web.service`), so both make
+    the same dispatch decision and register the same kind of run. Returns the
+    possibly-promoted request, the `start` payload describing what was chosen,
+    and the new run id.
+    """
+    loop = asyncio.get_event_loop()
+
+    # Smart dispatch: pipeline + code task → promote to file-writing executor
+    # so the billing fallback chain can kick in; complex tasks stay multi-agent.
+    effective_req = req
+    start_payload: dict[str, Any] = {
+        "task": req.task,
+        "executor": req.executor,
+        "cwd": req.cwd or "",
+        "correlation_id": ensure_correlation_id(),
+    }
+    if req.workflow:
+        start_payload.update({
+            "workflow": req.workflow,
+            "executor": req.executor if req.executor != "pipeline" else "claude-code",
+            "max_rounds": req.max_rounds,
+            "deadline_seconds": req.deadline_seconds,
+        })
+    elif req.executor == "pipeline":
+        effective_cwd = (
+            req.cwd
+            or getattr(config, "default_cwd", "")
+            or os.environ.get("VOLY_PROJECT_CWD", "")
+            or ""
+        )
+        try:
+            multiagent = await loop.run_in_executor(
+                _THREAD_POOL, _would_dispatch_a2a, req.task, config
+            )
+            needs_exec = await loop.run_in_executor(
+                _THREAD_POOL, _needs_executor, req.task, config
+            )
+            if multiagent:
+                if effective_cwd and not req.cwd:
+                    effective_req = req.model_copy(update={"cwd": effective_cwd})
+                a2a_cfg = getattr(config, "a2a", None) if config is not None else None
+                cwd_eff = (effective_req.cwd or effective_cwd or "").strip()
+                hybrid_on = bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and bool(cwd_eff)
+                _log.info(
+                    "[DISPATCH] pipeline → multi-agent (A2A local)  task=%r  "
+                    "hybrid=%s cwd=%r reason=complex_multi_capability",
+                    req.task[:60], hybrid_on, cwd_eff[:80] or "(empty)",
+                )
+                start_payload = {
+                    "task": effective_req.task,
+                    "executor": "pipeline",
+                    "a2a": True,
+                    "hybrid": hybrid_on,
+                    "cwd": cwd_eff,
+                }
+                if bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and not cwd_eff:
+                    start_payload["hybrid_warning"] = "hybrid_skipped_no_cwd"
+            elif needs_exec:
+                effective_req = req.model_copy(update={
+                    "executor": "claude-code",
+                    "cwd": effective_cwd,
+                })
+                _log.info(
+                    "[DISPATCH] pipeline → claude-code  task=%r  cwd=%r  "
+                    "(set VOLY_PROJECT_CWD or cwd field to target project)",
+                    req.task[:60], effective_cwd or "(empty — will use server cwd)",
+                )
+                start_payload = {
+                    "task": effective_req.task,
+                    "executor": "claude-code",
+                    "cwd": effective_cwd,
+                }
+            else:
+                _log.info(
+                    "[DISPATCH] pipeline (text-only)  task=%r  reason=no_code_gen_needed",
+                    req.task[:60],
+                )
+                start_payload = {
+                    "task": effective_req.task,
+                    "executor": "pipeline",
+                    "cwd": effective_cwd,
+                }
+        except Exception as exc:
+            _log.debug("[DISPATCH] auto-promote check failed: %s", exc)
+
+    from voly.runtime.runs import RunTracker
+    from voly.telemetry import new_task_id
+
+    run_id = new_task_id()
+    tracker = RunTracker(runs_dir)
+    initial_roles = (
+        ["developer", "reviewer"]
+        if effective_req.workflow == "review-until-clean"
+        else [str(start_payload.get("executor") or effective_req.executor or "pipeline")]
+    )
+    rec = tracker.start(
+        run_id,
+        effective_req.task,
+        initial_roles,
+        graph_nodes=[{
+            "id": "dispatch",
+            "role": "dispatch",
+            "status": "running",
+            "skills": [],
+        }],
+    )
+    start_payload.update({
+        "task_id": run_id,
+        "status": rec.status,
+        "started_at": rec.started_at,
+        "heartbeat_at": rec.heartbeat_at,
+        "elapsed_seconds": 0,
+        "age_seconds": 0,
+        "roles": rec.roles,
+        "total_roles": rec.total_roles,
+        "done_roles": 0,
+        "current_role": rec.current_role,
+        "graph_nodes": rec.graph_nodes,
+        "graph_edges": rec.graph_edges,
+    })
+    start_payload["correlation_id"] = ensure_correlation_id()
+    return effective_req, start_payload, run_id
+
+
+def launch_run(
+    effective_req: RunRequest, config: Any, runs_dir: str, run_id: str
+) -> asyncio.Future[dict[str, Any]]:
+    """Schedule the blocking pipeline/executor call on the shared thread pool.
+
+    Returns the future rather than awaiting it: the SSE route needs it to
+    interleave heartbeats, the MCP facade just awaits it in the background.
+    """
+    loop = asyncio.get_event_loop()
+    if effective_req.workflow == "review-until-clean":
+        return loop.run_in_executor(
+            _THREAD_POOL,
+            _review_workflow_run,
+            effective_req,
+            config,
+            runs_dir,
+            run_id,
+        )
+    fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
+    return loop.run_in_executor(_THREAD_POOL, fn, effective_req, config, run_id)
+
+
+def finish_run(runs_dir: str, run_id: str, result: Any) -> Any:
+    """Close the RunRecord and stamp the result with its run and correlation ids.
+
+    A non-dict result is passed through untouched — only the dict shape carries
+    the success flag the RunRecord status is derived from.
+    """
+    from voly.runtime.runs import COMPLETED, FAILED, RunTracker
+
+    if not isinstance(result, dict):
+        return result
+    enriched = {
+        **result,
+        "task_id": run_id,
+        "correlation_id": ensure_correlation_id(),
+    }
+    RunTracker(runs_dir).finish(
+        run_id,
+        status=COMPLETED if enriched.get("success") else FAILED,
+        error=str(enriched.get("error") or ""),
+    )
+    return enriched
+
+
 @router.post("/api/run")
 async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
     config = request.app.state.app.config
+    runs_dir = str(request.app.state.app.ev_dir.parent / "runs")
 
     async def generate():
-        loop = asyncio.get_event_loop()
+        try:
+            effective_req, start_payload, run_id = await prepare_run(req, config, runs_dir)
+        except Exception as exc:
+            yield _sse("error", {"error": str(exc)})
+            return
 
-        # Smart dispatch: pipeline + code task → promote to file-writing executor
-        # so the billing fallback chain can kick in; complex tasks stay multi-agent.
-        effective_req = req
-        start_payload: dict[str, Any] = {
-            "task": req.task,
-            "executor": req.executor,
-            "cwd": req.cwd or "",
-            "correlation_id": ensure_correlation_id(),
-        }
-        if req.workflow:
-            start_payload.update({
-                "workflow": req.workflow,
-                "executor": req.executor if req.executor != "pipeline" else "claude-code",
-                "max_rounds": req.max_rounds,
-                "deadline_seconds": req.deadline_seconds,
-            })
-        elif req.executor == "pipeline":
-            effective_cwd = (
-                req.cwd
-                or getattr(config, "default_cwd", "")
-                or os.environ.get("VOLY_PROJECT_CWD", "")
-                or ""
-            )
-            try:
-                multiagent = await loop.run_in_executor(
-                    _THREAD_POOL, _would_dispatch_a2a, req.task, config
-                )
-                needs_exec = await loop.run_in_executor(
-                    _THREAD_POOL, _needs_executor, req.task, config
-                )
-                if multiagent:
-                    if effective_cwd and not req.cwd:
-                        effective_req = req.model_copy(update={"cwd": effective_cwd})
-                    a2a_cfg = getattr(config, "a2a", None) if config is not None else None
-                    cwd_eff = (effective_req.cwd or effective_cwd or "").strip()
-                    hybrid_on = bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and bool(cwd_eff)
-                    _log.info(
-                        "[DISPATCH] pipeline → multi-agent (A2A local)  task=%r  "
-                        "hybrid=%s cwd=%r reason=complex_multi_capability",
-                        req.task[:60], hybrid_on, cwd_eff[:80] or "(empty)",
-                    )
-                    start_payload = {
-                        "task": effective_req.task,
-                        "executor": "pipeline",
-                        "a2a": True,
-                        "hybrid": hybrid_on,
-                        "cwd": cwd_eff,
-                    }
-                    if bool(getattr(a2a_cfg, "hybrid_code_gen", True)) and not cwd_eff:
-                        start_payload["hybrid_warning"] = "hybrid_skipped_no_cwd"
-                elif needs_exec:
-                    effective_req = req.model_copy(update={
-                        "executor": "claude-code",
-                        "cwd": effective_cwd,
-                    })
-                    _log.info(
-                        "[DISPATCH] pipeline → claude-code  task=%r  cwd=%r  "
-                        "(set VOLY_PROJECT_CWD or cwd field to target project)",
-                        req.task[:60], effective_cwd or "(empty — will use server cwd)",
-                    )
-                    start_payload = {
-                        "task": effective_req.task,
-                        "executor": "claude-code",
-                        "cwd": effective_cwd,
-                    }
-                else:
-                    _log.info(
-                        "[DISPATCH] pipeline (text-only)  task=%r  reason=no_code_gen_needed",
-                        req.task[:60],
-                    )
-                    start_payload = {
-                        "task": effective_req.task,
-                        "executor": "pipeline",
-                        "cwd": effective_cwd,
-                    }
-            except Exception as exc:
-                _log.debug("[DISPATCH] auto-promote check failed: %s", exc)
-
-        from voly.runtime.runs import COMPLETED, FAILED, RunTracker
-        from voly.telemetry import new_task_id
-
-        run_id = new_task_id()
-        runs_dir = str(request.app.state.app.ev_dir.parent / "runs")
-        tracker = RunTracker(runs_dir)
-        initial_roles = (
-            ["developer", "reviewer"]
-            if effective_req.workflow == "review-until-clean"
-            else [str(start_payload.get("executor") or effective_req.executor or "pipeline")]
-        )
-        rec = tracker.start(
-            run_id,
-            effective_req.task,
-            initial_roles,
-            graph_nodes=[{
-                "id": "dispatch",
-                "role": "dispatch",
-                "status": "running",
-                "skills": [],
-            }],
-        )
-        start_payload.update({
-            "task_id": run_id,
-            "status": rec.status,
-            "started_at": rec.started_at,
-            "heartbeat_at": rec.heartbeat_at,
-            "elapsed_seconds": 0,
-            "age_seconds": 0,
-            "roles": rec.roles,
-            "total_roles": rec.total_roles,
-            "done_roles": 0,
-            "current_role": rec.current_role,
-            "graph_nodes": rec.graph_nodes,
-            "graph_edges": rec.graph_edges,
-        })
-        start_payload["correlation_id"] = ensure_correlation_id()
         yield _sse("start", start_payload)
         try:
-            if effective_req.workflow == "review-until-clean":
-                future = loop.run_in_executor(
-                    _THREAD_POOL,
-                    _review_workflow_run,
-                    effective_req,
-                    config,
-                    runs_dir,
-                    run_id,
-                )
-            else:
-                fn = _pipeline_run if effective_req.executor == "pipeline" else _executor_run
-                future = loop.run_in_executor(
-                    _THREAD_POOL, fn, effective_req, config, run_id,
-                )
+            future = launch_run(effective_req, config, runs_dir, run_id)
             while True:
                 done, _pending = await asyncio.wait({future}, timeout=_RUN_HEARTBEAT_SECONDS)
                 if future in done:
-                    result = future.result()
-                    if isinstance(result, dict):
-                        result = {
-                            **result,
-                            "task_id": run_id,
-                            "correlation_id": ensure_correlation_id(),
-                        }
-                        tracker.finish(
-                            run_id,
-                            status=COMPLETED if result.get("success") else FAILED,
-                            error=str(result.get("error") or ""),
-                        )
-                    yield _sse("done", result)
+                    yield _sse("done", finish_run(runs_dir, run_id, future.result()))
                     break
                 if await request.is_disconnected():
                     # Python can't force-cancel a blocking subprocess.run() in
@@ -661,7 +700,9 @@ async def run_task(req: RunRequest, request: Request) -> StreamingResponse:
                     return
                 yield _sse("heartbeat", {})
         except Exception as exc:
-            tracker.finish(run_id, status=FAILED, error=str(exc))
+            from voly.runtime.runs import FAILED, RunTracker
+
+            RunTracker(runs_dir).finish(run_id, status=FAILED, error=str(exc))
             yield _sse("error", {"error": str(exc)})
 
     return StreamingResponse(
