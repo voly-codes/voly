@@ -76,6 +76,20 @@ receives the original `task` (graceful fallback).
 | `generate-docs` | documenter | task + source → title + overview + usage |
 | `bug-analysis` | bugfixer | task + code + stacktrace → root_cause + patch |
 | `task-routing` | router | task → agent + complexity + confidence |
+| `signal-analyst` | analyst | versioned Signal JSON → bounded `Option[]` JSON |
+
+### Signal analyst (`voly/dspy/programs/analyst.py`)
+
+The experimental Layer C sensing loop uses the normal `DSPyRunner` with the
+`analyst` route. The program treats Signal payloads as untrusted quoted data
+and returns a JSON array of at most five options. `SignalInterpreter` validates
+the closed `urgency` and `action_kind` vocabularies before atomically writing
+`<signal_id>.options.json` beside the Signal.
+
+Interpretation currently runs only when all three gates are true:
+`sensing.enabled`, `sensing.mode: shadow`, and `dspy.enabled`. It never creates
+a Plan or invokes an Executor. Invalid JSON and out-of-contract options fail
+closed and are not persisted.
 
 ---
 

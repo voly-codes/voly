@@ -36,6 +36,9 @@ class SignalStore:
     def path(self, signal: Signal) -> Path:
         return self.store_dir / self._date_for(signal) / f"{signal.signal_id}.json"
 
+    def options_path(self, signal: Signal) -> Path:
+        return self.store_dir / self._date_for(signal) / f"{signal.signal_id}.options.json"
+
     @staticmethod
     def _atomic_json(path: Path, data: object) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -85,6 +88,22 @@ class SignalStore:
             if self.save(signal):
                 stored.append(signal)
         return stored
+
+    def save_options(self, signal: Signal, options: Iterable[object]) -> Path:
+        """Atomically store the interpretation artifact beside its Signal."""
+        serialized = []
+        for option in options:
+            to_dict = getattr(option, "to_dict", None)
+            if not callable(to_dict):
+                raise TypeError("options must provide to_dict()")
+            serialized.append(to_dict())
+        target = self.options_path(signal)
+        self._atomic_json(target, {
+            "schema_version": 1,
+            "signal_id": signal.signal_id,
+            "options": serialized,
+        })
+        return target
 
     def list(self) -> list[Signal]:
         signals: list[Signal] = []

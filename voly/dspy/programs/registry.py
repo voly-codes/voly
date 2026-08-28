@@ -104,6 +104,7 @@ def _load_builtins() -> None:
         "voly.dspy.programs.documenter",
         "voly.dspy.programs.bugfixer",
         "voly.dspy.programs.router",
+        "voly.dspy.programs.analyst",
     ]
 
     for module_path in builtin_modules:

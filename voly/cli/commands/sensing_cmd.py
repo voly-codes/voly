@@ -41,13 +41,30 @@ def sensing_poll(ctx: click.Context, connector_name: str, json_out: bool) -> Non
     connector = RSSConnector(connector_config.feeds)
     try:
         observed = connector.poll()
-        stored = _store(ctx).save_many(observed)
+        store = _store(ctx)
+        stored = store.save_many(observed)
+        interpreted = 0
+        interpretation_errors = 0
+        if config.mode == "shadow" and ctx.obj["config"].dspy.enabled:
+            from voly.sensing.interpret import SignalInterpreter
+
+            interpreter = SignalInterpreter(ctx.obj["config"])
+            for signal in stored:
+                outcome = interpreter.interpret(signal, store=store)
+                if outcome.options:
+                    interpreted += 1
+                elif outcome.error:
+                    interpretation_errors += 1
     except Exception as exc:
         raise click.ClickException(str(exc)) from exc
     if json_out:
         click.echo(json.dumps([item.to_dict() for item in stored], ensure_ascii=False, indent=2))
         return
-    click.echo(f"observed={len(observed)} stored={len(stored)} duplicates={len(observed) - len(stored)}")
+    click.echo(
+        f"observed={len(observed)} stored={len(stored)} "
+        f"duplicates={len(observed) - len(stored)} "
+        f"interpreted={interpreted} interpretation_errors={interpretation_errors}"
+    )
 
 
 @sensing_cmd.command("list")

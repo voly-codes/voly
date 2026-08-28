@@ -226,6 +226,8 @@ Only explicit CLI polling ships in the connector phase:
 `voly sensing poll --connector rss` and `voly sensing list`. There is no
 background scheduler. RSS responses are bounded to 2 MiB and use a 15-second
 timeout; duplicate entries are rejected by a persisted connector-derived hash.
+When `dspy.enabled: true`, shadow polling also runs the registered
+`signal-analyst` program and stores validated `<signal_id>.options.json` files.
 `active` is accepted as staged configuration but does not create Decisions
 until the Decision phase lands.
 

@@ -349,7 +349,7 @@ class DSPyRunner:
 
         for attr in ("suggested_patch", "patch", "architecture", "proposed_design",
                      "usage", "limitations", "agent", "complexity", "confidence",
-                     "reason", "test_suggestion"):
+                     "reason", "test_suggestion", "options_json"):
             val = getattr(prediction, attr, None)
             if val is not None:
                 structured[attr] = val
