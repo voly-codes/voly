@@ -173,3 +173,60 @@ def test_calibration_report_save_and_cli(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert json.loads(result.output)["labeled_decisions"] == 1
     assert cli_output.exists()
+
+
+def test_calibration_reports_business_decisions_without_tuning(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    plans = tmp_path / "plans"
+    _write(evidence, "one", _record("one", judge="pass", human="pass"))
+    _write(plans, "approved", {
+        "metadata": {
+            "kind": "business_decision",
+            "decision": "approved",
+            "execution": "completed",
+            "urgency": "high",
+        }
+    })
+    _write(plans, "rejected", {
+        "metadata": {
+            "kind": "business_decision",
+            "decision": "rejected",
+            "execution": "pending",
+            "urgency": "high",
+        }
+    })
+    _write(plans, "unrelated", {"metadata": {"kind": "coding_plan"}})
+
+    report = build_calibration_report(evidence, min_samples=1, plans_dir=plans)
+
+    assert report["business_decisions"] == {
+        "records_scanned": 2,
+        "invalid": 0,
+        "counts": {"pending": 0, "approved": 1, "rejected": 1},
+        "execution": {"pending": 1, "running": 0, "completed": 1, "failed": 0},
+        "approval_rate": 0.5,
+        "by_urgency": {"high": {"total": 2, "approved": 1, "rejected": 1}},
+    }
+    assert report["policy"]["automatic_threshold_changes"] is False
+
+
+def test_calibration_cli_accepts_business_plans_dir(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    plans = tmp_path / "plans"
+    _write(evidence, "one", _record("one", judge="pass", human="pass"))
+    _write(plans, "pending", {
+        "metadata": {
+            "kind": "business_decision",
+            "decision": "pending",
+            "execution": "pending",
+        }
+    })
+    output = tmp_path / "calibration.json"
+
+    result = CliRunner().invoke(eval_cmd, [
+        "calibrate", "--evidence-dir", str(evidence), "--plans-dir", str(plans),
+        "--min-samples", "1", "--output", str(output),
+    ])
+
+    assert result.exit_code == 0
+    assert json.loads(output.read_text(encoding="utf-8"))["business_decisions"]["records_scanned"] == 1

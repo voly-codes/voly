@@ -30,6 +30,7 @@ mode in this phase.
 
 - `TaskEvent` outcomes and retries;
 - `EvidenceRecord` evaluation and human feedback;
+- business Decision approval/rejection and downstream execution outcomes;
 - explicit test, review, rollback, retry, contradiction, and user-correction
   signals through `voly learning evidence`.
 
@@ -37,6 +38,12 @@ Use `voly learning ingest-evidence` to classify an existing EvidenceRecord.
 Human feedback such as `reverted`, `major_rewrite`, `manual_fix`, or
 `pr_rejected` becomes a `user_correction` penalty. Accepted feedback and passed
 evaluation are positive evidence.
+
+When learning is enabled, `DecisionService` records an approved business
+option as `user_accepted`, a rejection as `user_correction`, and successful
+execution as `verified_outcome`. These events update a candidate's evidence
+and confidence only. They never approve or activate an instinct; manual
+`voly learning approve` remains mandatory.
 
 ## Workflow
 

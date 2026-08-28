@@ -48,6 +48,7 @@ def test_plan_metadata_round_trip(tmp_path) -> None:
 
 def test_decision_api_approve_and_conflict(tmp_path) -> None:
     from fastapi.testclient import TestClient
+
     from voly.config import VOLYConfig
     from voly.web.server import create_app
 
@@ -64,10 +65,9 @@ def test_decision_api_approve_and_conflict(tmp_path) -> None:
 
 
 def test_approved_action_executes_once_and_writes_evidence(tmp_path) -> None:
-    from types import SimpleNamespace
     from voly.config import VOLYConfig
-    from voly.executor.base import ExecutorResult
     from voly.evidence.store import EvidenceStore
+    from voly.executor.base import ExecutorResult
 
     config = VOLYConfig()
     config.evidence.store_dir = str(tmp_path / "evidence")
@@ -93,3 +93,31 @@ def test_approved_action_executes_once_and_writes_evidence(tmp_path) -> None:
     assert len(calls) == 1
     evidence = EvidenceStore(config.evidence.store_dir).load("opt-action")
     assert evidence.action_report["result"] == "HTTP 200"
+
+
+def test_decision_and_execution_feed_enabled_learning_store(tmp_path) -> None:
+    from voly.config import VOLYConfig
+    from voly.executor.base import ExecutorResult
+    from voly.learning import InstinctLifecycle, InstinctStore
+
+    config = VOLYConfig()
+    config.learning.enabled = True
+    config.learning.store_path = str(tmp_path / "learning" / "instincts.json")
+    service = DecisionService(PlanStore(str(tmp_path / "plans")), config=config)
+    option = Option(
+        "opt-learning", "rss-1", "Update deal", "Approved change", "high", "Revenue", "business",
+        {"kind": "notify", "url": "https://hooks.example.com/business", "body": {}},
+    )
+    service.create(_signal(), option)
+    service.decide(option.option_id, "approve")
+
+    class FakeExecutor:
+        def run(self, task):
+            return ExecutorResult(True, metadata={"action_report": {"result": "HTTP 200"}})
+
+    service.execute(option.option_id, executor=FakeExecutor())
+
+    instincts = InstinctStore(config.learning.store_path).list()
+    assert len(instincts) == 1
+    assert [item.kind for item in instincts[0].evidence] == ["user_accepted", "verified_outcome"]
+    assert instincts[0].lifecycle is InstinctLifecycle.CANDIDATE

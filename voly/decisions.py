@@ -9,8 +9,14 @@ from dataclasses import dataclass
 from voly.plan.engine import PlanEngine
 from voly.plan.store import PlanStore
 from voly.plan.types import (
-    FAILED, PENDING, VERIFIED, VERIFYING, AcceptanceCheck, Plan, PlanStep,
+    FAILED,
     MODE_BUSINESS,
+    PENDING,
+    VERIFIED,
+    VERIFYING,
+    AcceptanceCheck,
+    Plan,
+    PlanStep,
 )
 from voly.sensing.schema import Option, Signal
 
@@ -92,6 +98,7 @@ class DecisionService:
         if decision == "reject":
             plan.status = "failed"
         self.store.save(plan)
+        self._learn(plan)
         return DecisionResult(plan, desired, True)
 
     def list(self) -> list[Plan]:
@@ -139,11 +146,24 @@ class DecisionService:
         self.store.save(plan)
         if self.config is not None:
             self._save_evidence(plan, result)
+        self._learn(plan)
         return plan
+
+    def _learn(self, plan: Plan) -> None:
+        if self.config is None or not self.config.learning.enabled:
+            return
+        from voly.learning.instincts import InstinctStore
+        InstinctStore(self.config.learning.store_path).ingest_business_decision(plan)
 
     def _save_evidence(self, plan: Plan, result) -> None:  # type: ignore[no-untyped-def]
         from datetime import datetime, timezone
-        from voly.evidence.schema import EvidenceOutcome, EvidenceRecord, ExecutionBundle, RepositoryBaseline
+
+        from voly.evidence.schema import (
+            EvidenceOutcome,
+            EvidenceRecord,
+            ExecutionBundle,
+            RepositoryBaseline,
+        )
         from voly.evidence.store import EvidenceStore
 
         EvidenceStore(self.config.evidence.store_dir).save(EvidenceRecord(

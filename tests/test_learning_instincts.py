@@ -166,3 +166,32 @@ def test_stable_instincts_cluster_into_versioned_skill_candidates(tmp_path):
 
     assert candidates[0]["skill_id"] == "learned-pytest-v1"
     assert candidates[0]["status"] == "candidate"
+
+
+@pytest.mark.parametrize(
+    ("decision", "execution", "kind", "confidence", "outcome"),
+    [
+        ("approved", "pending", "user_accepted", 0.40, "approved"),
+        ("rejected", "pending", "user_correction", 0.05, "rejected"),
+        ("approved", "completed", "verified_outcome", 0.40, "completed"),
+    ],
+)
+def test_business_decision_ingestion_is_evidence_only(
+    tmp_path, decision, execution, kind, confidence, outcome
+):
+    plan = SimpleNamespace(
+        plan_id="option-1",
+        task="Review pricing",
+        metadata={
+            "signal_id": "signal-1",
+            "decision": decision,
+            "execution": execution,
+        },
+    )
+
+    instinct = _store(tmp_path).ingest_business_decision(plan)
+
+    assert instinct.evidence[0].kind == kind
+    assert instinct.evidence[0].outcome == outcome
+    assert instinct.confidence == pytest.approx(confidence)
+    assert instinct.lifecycle is InstinctLifecycle.CANDIDATE

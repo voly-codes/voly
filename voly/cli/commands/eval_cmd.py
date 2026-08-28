@@ -98,16 +98,17 @@ def eval_run(dataset: Path, case_ids: tuple[str, ...], output: Path | None) -> N
     show_default=True,
 )
 @click.option("--min-samples", type=click.IntRange(min=1), default=DEFAULT_MIN_SAMPLES)
+@click.option("--plans-dir", type=click.Path(file_okay=False, path_type=Path), default=Path(".voly/plans"), show_default=True)
 @click.option(
     "--output",
     type=click.Path(dir_okay=False, path_type=Path),
     default=Path(".voly/reports/llm-judge-calibration.json"),
     show_default=True,
 )
-def eval_calibrate(evidence_dir: Path, min_samples: int, output: Path) -> None:
+def eval_calibrate(evidence_dir: Path, min_samples: int, plans_dir: Path, output: Path) -> None:
     """Compare completed LLM-judge decisions with explicit human labels."""
     try:
-        report = build_calibration_report(evidence_dir, min_samples=min_samples)
+        report = build_calibration_report(evidence_dir, min_samples=min_samples, plans_dir=plans_dir)
         save_calibration_report(report, output)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc

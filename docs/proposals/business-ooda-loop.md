@@ -446,7 +446,7 @@ rows alongside existing judge-calibration rows; reports stay observational
 [x] PR2  voly/dspy/programs/analyst.py + voly/sensing/interpret.py + tests
 [x] PR3  two-step business Plan + human_review/action_succeeded checks + decisions API/CLI/UI
 [x] PR4  HTTP + webhook notify orchestration, EvidenceRecord v3, `business_action` seeds
-[ ] PR5  instincts.py / calibration.py extended to business Decisions
+[x] PR5  instincts.py / calibration.py extended to business Decisions
 [ ] PR6  TaskEvent schema bump + contract tests + docs
 ```
 

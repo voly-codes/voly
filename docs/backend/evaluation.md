@@ -152,7 +152,8 @@ Aggregate those local events with:
 
 ```bash
 voly eval calibrate
-voly eval calibrate --evidence-dir .voly/evidence --min-samples 20 \
+voly eval calibrate --evidence-dir .voly/evidence --plans-dir .voly/plans \
+  --min-samples 20 \
   --output .voly/reports/llm-judge-calibration.json
 ```
 
@@ -161,6 +162,12 @@ or unlabeled records, and uses only the latest explicit feedback event for each
 completed judge decision so repeated feedback does not overweight one run. It
 keeps separate lineages for policy ID/version, rubric, actual model, provider,
 and threshold.
+
+The same report includes an observational `business_decisions` section read
+from business Plans in `--plans-dir`: pending/approved/rejected totals,
+execution states, approval rate, and counts by urgency. Non-business Plans are
+ignored. These aggregates do not change analyst thresholds, Plan state,
+learning approval, routing, or source files.
 
 Each lineage reports a pass/fail confusion matrix, agreement rate with a 95%
 Wilson interval, false-pass rate, false-fail rate, pass precision/recall, and

@@ -113,6 +113,7 @@ def build_calibration_report(
     evidence_dir: str | Path,
     *,
     min_samples: int = DEFAULT_MIN_SAMPLES,
+    plans_dir: str | Path | None = None,
 ) -> dict[str, Any]:
     """Aggregate latest explicit labels without rewriting source evidence."""
     # Lazy import avoids evidence.schema → evaluation.schema → evaluation.__init__
@@ -160,6 +161,7 @@ def build_calibration_report(
         _group_metrics(lineages[key], groups[key], min_samples)
         for key in sorted(groups)
     ]
+    business = _business_decision_metrics(plans_dir)
     return {
         "schema_version": CALIBRATION_REPORT_SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -172,11 +174,55 @@ def build_calibration_report(
             "min_samples": min_samples,
         },
         "groups": results,
+        "business_decisions": business,
         "policy": {
             "latest_feedback_per_judge_decision": True,
             "automatic_threshold_changes": False,
             "automatic_routing_changes": False,
         },
+    }
+
+
+def _business_decision_metrics(plans_dir: str | Path | None) -> dict[str, Any]:
+    """Aggregate business Plans without changing thresholds or source state."""
+    counts = {"pending": 0, "approved": 0, "rejected": 0}
+    execution = {"pending": 0, "running": 0, "completed": 0, "failed": 0}
+    urgency: dict[str, dict[str, int]] = defaultdict(lambda: {"total": 0, "approved": 0, "rejected": 0})
+    invalid = 0
+    if plans_dir is None:
+        return {"records_scanned": 0, "invalid": 0, "counts": counts, "execution": execution, "approval_rate": None, "by_urgency": {}}
+    root = Path(plans_dir)
+    for path in sorted(root.glob("*.json")) if root.is_dir() else []:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                raise ValueError("plan must be an object")
+            meta = data.get("metadata") or {}
+            if not isinstance(meta, dict):
+                raise ValueError("plan metadata must be an object")
+            if meta.get("kind") != "business_decision":
+                continue
+            decision = str(meta.get("decision") or "pending")
+            execution_state = str(meta.get("execution") or "pending")
+            level = str(meta.get("urgency") or "unknown")
+            if decision not in counts or execution_state not in execution:
+                raise ValueError("invalid business decision state")
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            invalid += 1
+            continue
+        counts[decision] += 1
+        execution[execution_state] += 1
+        urgency[level]["total"] += 1
+        if decision in {"approved", "rejected"}:
+            urgency[level][decision] += 1
+    decided = counts["approved"] + counts["rejected"]
+    return {
+        "records_scanned": sum(counts.values()),
+        "invalid": invalid,
+        "counts": counts,
+        "execution": execution,
+        "approval_rate": _ratio(counts["approved"], decided),
+        "by_urgency": dict(sorted(urgency.items())),
     }
 
 

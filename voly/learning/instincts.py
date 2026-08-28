@@ -292,3 +292,21 @@ class InstinctStore:
             kind = "observation"
         evidence = InstinctEvidence(kind, record.task_id, project_id, record.outcome.state)
         return self.propose(trigger, action, project_id=project_id, evidence=evidence)
+
+    def ingest_business_decision(self, plan: Any, *, project_id: str = "business") -> Instinct:
+        """Ingest explicit Decision/outcome evidence without auto-approving it."""
+        meta = getattr(plan, "metadata", {}) or {}
+        decision = str(meta.get("decision") or "pending")
+        execution = str(meta.get("execution") or "pending")
+        if decision == "rejected":
+            kind, outcome = "user_correction", "rejected"
+        elif execution == "completed":
+            kind, outcome = "verified_outcome", "completed"
+        elif decision == "approved":
+            kind, outcome = "user_accepted", "approved"
+        else:
+            kind, outcome = "observation", "pending"
+        evidence = InstinctEvidence(kind, f"{plan.plan_id}:{outcome}", project_id, outcome)
+        trigger = f"business signal {meta.get('signal_id') or 'unknown'}"
+        action = str(getattr(plan, "task", "") or meta.get("action_kind") or "review business option")
+        return self.propose(trigger, action, project_id=project_id, evidence=evidence)
