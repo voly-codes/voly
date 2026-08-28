@@ -36,6 +36,7 @@ from voly.config._types import (
     ScannerConfig,
     SensingConfig,
     SensingConnectorConfig,
+    BusinessExecutorsConfig,
     SpendConfig,
     TelemetryConfig,
     VOLYConfig,
@@ -642,5 +643,21 @@ def _parse_config(raw: dict) -> VOLYConfig:
     env_sensing_mode = os.environ.get("VOLY_SENSING_MODE", "").strip().lower()
     if env_sensing_mode in SensingConfig.VALID_MODES:
         config.sensing.mode = env_sensing_mode
+
+    if "business_executors" in raw:
+        business = raw["business_executors"] or {}
+        http = business.get("http") or {}
+        config.business_executors = BusinessExecutorsConfig(
+            enabled=_parse_bool(business.get("enabled"), False),
+            allow=[str(x) for x in (business.get("allow") or [])],
+            http_allowed_hosts=[str(x).strip().lower() for x in (http.get("allowed_hosts") or []) if str(x).strip()],
+            http_allowed_methods=[str(x).strip().upper() for x in (http.get("allowed_methods") or ["POST", "PATCH"])],
+            http_timeout_seconds=float(http.get("timeout_seconds", 15.0)),
+            http_max_response_bytes=int(http.get("max_response_bytes", 1_048_576)),
+        )
+    if "VOLY_BUSINESS_EXECUTORS_ENABLED" in os.environ:
+        config.business_executors.enabled = _parse_bool(
+            os.environ.get("VOLY_BUSINESS_EXECUTORS_ENABLED"), False
+        )
 
     return config

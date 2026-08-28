@@ -506,6 +506,16 @@ class SensingConfig:
 
 
 @dataclass
+class BusinessExecutorsConfig:
+    enabled: bool = False
+    allow: list[str] = field(default_factory=list)
+    http_allowed_hosts: list[str] = field(default_factory=list)
+    http_allowed_methods: list[str] = field(default_factory=lambda: ["POST", "PATCH"])
+    http_timeout_seconds: float = 15.0
+    http_max_response_bytes: int = 1_048_576
+
+
+@dataclass
 class VOLYConfig:
     models: dict[str, ModelConfig] = field(default_factory=dict)
     agents: dict[str, AgentConfig] = field(default_factory=dict)
@@ -536,6 +546,7 @@ class VOLYConfig:
     capability: CapabilityConfig = field(default_factory=CapabilityConfig)
     intelligence: IntelligenceConfig = field(default_factory=IntelligenceConfig)
     sensing: SensingConfig = field(default_factory=SensingConfig)
+    business_executors: BusinessExecutorsConfig = field(default_factory=BusinessExecutorsConfig)
     default_model: str = "kimi-k3"
     default_agent: str = "kimi"
     default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd

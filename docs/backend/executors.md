@@ -78,6 +78,16 @@ run — `[CHAIN:BILLING_FALLBACK]` should follow capability rank, not static ord
 | `zen` | yes — opencode CLI | free / opencode subscription | 6th (last resort) |
 | `cf-containers` | remote — CF Container / Sandbox | Cloudflare Containers | standalone (PoC) |
 | `mimo` | no — text only | MiMo API | NOT in chain |
+| `http-action` | external HTTPS action | target system | standalone; never in code fallback |
+
+## HttpActionExecutor (Layer C, PR4a)
+
+`voly/executor/http_action.py` executes only a structured, already-approved
+JSON action spec. It is disabled by default and is deliberately absent from
+`AgentRunner` and the code billing fallback chain. It requires HTTPS, exact
+host and method allowlists, an idempotency key, public DNS results, no redirects,
+a bounded response and timeout. Evidence summaries omit query strings, bodies
+and headers. PR4b wires approved Plan actions to this executor and EvidenceRecord.
 
 ---
 

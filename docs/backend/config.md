@@ -231,6 +231,23 @@ When `dspy.enabled: true`, shadow polling also runs the registered
 `active` is accepted as staged configuration but does not create Decisions
 until the Decision phase lands.
 
+### Business executors
+
+```yaml
+business_executors:
+  enabled: false
+  allow: [http_call]
+  http:
+    allowed_hosts: [api.partner.example]
+    allowed_methods: [POST, PATCH]
+    timeout_seconds: 15
+    max_response_bytes: 1048576
+```
+
+`VOLY_BUSINESS_EXECUTORS_ENABLED` overrides the master switch. Empty host or
+action allowlists deny every request. The HTTP executor accepts only explicit
+JSON action specs with HTTPS, an allowlisted host/method and an idempotency key.
+
 ### `voly cloud` — device link CLI
 
 ```bash
