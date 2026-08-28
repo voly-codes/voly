@@ -81,9 +81,9 @@ def test_interpreter_rejects_invalid_model_output(tmp_path) -> None:
     assert not store.options_path(_signal()).exists()
 
 
-def test_interpreter_is_inert_outside_shadow_mode(tmp_path) -> None:
+def test_interpreter_is_inert_when_sensing_is_off(tmp_path) -> None:
     config = _config()
-    config.sensing.mode = "active"
+    config.sensing.mode = "off"
     store = SignalStore(str(tmp_path / "signals"))
     result = SignalInterpreter(config, runner=_Runner("[]")).interpret(_signal(), store=store)
 

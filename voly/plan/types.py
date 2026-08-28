@@ -55,7 +55,8 @@ PLAN_STATUSES = frozenset({
 # Step modes (execution path; wiring in later PRs)
 MODE_CHAT = "chat"
 MODE_EXECUTOR = "executor"
-STEP_MODES = frozenset({MODE_CHAT, MODE_EXECUTOR})
+MODE_BUSINESS = "business"
+STEP_MODES = frozenset({MODE_CHAT, MODE_EXECUTOR, MODE_BUSINESS})
 
 SCHEMA_VERSION = 1
 
@@ -235,6 +236,7 @@ class Plan:
     created_at: float = 0.0
     updated_at: float = 0.0
     error: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def step_map(self) -> dict[str, PlanStep]:
         return {s.id: s for s in self.steps}
@@ -256,6 +258,7 @@ class Plan:
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "error": self.error,
+            "metadata": dict(self.metadata),
             "steps": [s.to_dict() for s in self.steps],
         }
 
@@ -277,6 +280,7 @@ class Plan:
             created_at=float(data.get("created_at") or 0.0),
             updated_at=float(data.get("updated_at") or 0.0),
             error=str(data.get("error") or ""),
+            metadata=dict(data.get("metadata") or {}),
         )
 
 

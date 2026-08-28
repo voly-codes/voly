@@ -4,6 +4,7 @@ import gateway from './gateway.js'
 import telemetry from './telemetry.js'
 import dspy from './dspy.js'
 import cf from './cf.js'
+import decisions from './decisions.js'
 
 /** @type {Record<string, string | string[]>} */
 export default {
@@ -13,4 +14,5 @@ export default {
   ...telemetry,
   ...dspy,
   ...cf,
+  ...decisions,
 }

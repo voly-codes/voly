@@ -2,6 +2,13 @@
 
 The UI talks to the backend via SSE (Server-Sent Events) and REST.
 
+## Business Decisions
+
+`fetchDecisions()` calls `GET /api/decisions`. `submitDecision(planId,
+decision, comment)` posts explicit approval or rejection to
+`/api/decisions/{planId}/feedback`. HTTP 409 means a conflicting decision was
+already recorded; the UI surfaces the server error and does not overwrite it.
+
 ---
 
 ## POST /api/run — SSE stream

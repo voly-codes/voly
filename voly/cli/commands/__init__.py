@@ -6,6 +6,7 @@ from .catalog import catalog
 from .cloud_cmd import cloud
 from .config_cmd import config_cmd
 from .dspy_cmd import dspy_cmd
+from .decide_cmd import decide_cmd
 from .eval_cmd import eval_cmd
 from .evidence_cmd import evidence_cmd
 from .hooks_cmd import hooks_cmd
@@ -66,6 +67,7 @@ __all__ = [
     "catalog",
     "cloud",
     "dspy_cmd",
+    "decide_cmd",
     "evidence_cmd",
     "eval_cmd",
     "ui",

@@ -80,6 +80,8 @@ ui/
           DSPyPage.svelte
         telemetry/
           TelemetryPage.svelte
+        decisions/
+          DecisionsPage.svelte             # #/decisions human approval checkpoint
 ```
 
 ---

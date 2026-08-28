@@ -109,6 +109,18 @@ voly plan show auth-refactor
 
 Unknown types **fail closed**.
 
+### Business Decision plans
+
+Active business sensing reuses this FSM as a two-step Plan. `approve-option`
+waits in `verifying` for explicit human feedback; its dependent
+`execute-action` stays `pending` and cannot start. Approval performs the legal
+`verifying → verified` transition. Rejection performs `verifying → failed` and
+keeps the action blocked. Identical repeated feedback is idempotent and a
+conflicting decision fails closed.
+
+The business action itself is not executed in PR3; that remains the business
+executor phase. CLI: `voly decide list|approve|reject`.
+
 Command checks are platform-neutral, but the command itself must name an
 executable available on the target OS. Tests and generated examples should use
 the active Python interpreter rather than Unix-only utilities such as `true`,

@@ -444,7 +444,7 @@ rows alongside existing judge-calibration rows; reports stay observational
 [x] PR0  docs/proposals/business-ooda-loop.md + ARCHITECTURE pointer + importable contracts
 [x] PR1  voly/sensing/{schema,store,connectors/{base,rss}}.py + config/CLI/tests
 [x] PR2  voly/dspy/programs/analyst.py + voly/sensing/interpret.py + tests
-[ ] PR3  two-step business Plan + human_review/action_succeeded checks + decisions API/CLI/UI
+[x] PR3  two-step business Plan + human_review/action_succeeded checks + decisions API/CLI/UI
 [ ] PR4  voly/executor/{http_action,notify}.py + capability BUSINESS_ACTION domain
 [ ] PR5  instincts.py / calibration.py extended to business Decisions
 [ ] PR6  TaskEvent schema bump + contract tests + docs

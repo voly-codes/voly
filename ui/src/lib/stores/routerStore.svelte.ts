@@ -4,7 +4,7 @@ function parseHash(): void {
   const raw = typeof window !== 'undefined' ? window.location.hash : ''
   const path = raw.startsWith('#/') ? raw.slice(2) : ''
   const [page = 'tasks', taskId = null] = path.split('/')
-  const valid = ['tasks', 'gateway', 'telemetry', 'dspy']
+  const valid = ['tasks', 'decisions', 'gateway', 'telemetry', 'dspy']
   current = { page: valid.includes(page) ? page : 'tasks', taskId: taskId || null }
 }
 

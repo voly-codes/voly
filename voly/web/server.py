@@ -137,6 +137,7 @@ def create_app(
         capability_api,
         cf,
         dspy,
+        decisions,
         environment,
         evidence,
         gateway,
@@ -184,6 +185,7 @@ def create_app(
     app.include_router(marketplace.router)
     app.include_router(cf.router)
     app.include_router(dspy.router)
+    app.include_router(decisions.router)
     app.include_router(evidence.router)
     app.include_router(gateway.router)
     app.include_router(telemetry.router)

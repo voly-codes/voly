@@ -278,6 +278,12 @@ PR5: `compile_success_criteria()` drafts acceptance from free text (always
 `review_required`); `voly plan criteria` / `suggest`; loader fills empty
 `acceptance` from step `success_criteria`; scanner can suggest `tester_command`.
 
+Layer C business Decisions reuse the same Plan FSM as two steps:
+`approve-option` waits in `verifying`, while dependent `execute-action` remains
+blocked in `pending`. Explicit approve/reject is persisted through
+`DecisionService`; approval opens the dependency gate but does not itself run
+the external action. UI route: `#/decisions`; API: `/api/decisions`.
+
 ### `voly/pipeline/` — central orchestrator (text path)
 
 `Pipeline.run()` → stage methods via `_PipelineStageMixin` (`stages.py`), composed from:

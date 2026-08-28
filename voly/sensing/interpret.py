@@ -20,6 +20,7 @@ class InterpretationResult:
     options: list[Option]
     dspy_used: bool
     error: str = ""
+    plan_ids: tuple[str, ...] = ()
 
 
 def _parse_options(signal: Signal, raw: Any) -> list[Option]:
@@ -105,8 +106,8 @@ class SignalInterpreter:
         return gateway
 
     def interpret(self, signal: Signal, *, store: SignalStore | None = None) -> InterpretationResult:
-        if not self.config.sensing.enabled or self.config.sensing.mode != "shadow":
-            return InterpretationResult(signal.signal_id, [], False, "sensing shadow mode is not enabled")
+        if not self.config.sensing.enabled or self.config.sensing.mode not in {"shadow", "active"}:
+            return InterpretationResult(signal.signal_id, [], False, "sensing is not enabled")
         if not self.config.dspy.enabled or self.config.dspy.mode == "off":
             return InterpretationResult(signal.signal_id, [], False, "DSPy is not enabled")
 
@@ -139,4 +140,15 @@ class SignalInterpreter:
         except (SensingValidationError, ValueError) as exc:
             return InterpretationResult(signal.signal_id, [], True, str(exc))
         (store or SignalStore(self.config.sensing.store_dir)).save_options(signal, options)
-        return InterpretationResult(signal.signal_id, options, True)
+        plan_ids: list[str] = []
+        if self.config.sensing.mode == "active":
+            from voly.decisions import DecisionService
+            from voly.plan.store import PlanStore
+
+            rank = {"low": 0, "medium": 1, "high": 2}
+            threshold = rank[self.config.sensing.min_urgency_for_decision]
+            service = DecisionService(PlanStore(self.config.plan.store_dir))
+            for option in options:
+                if option.action_kind != "ignore" and rank[option.urgency] >= threshold:
+                    plan_ids.append(service.create(signal, option).plan_id)
+        return InterpretationResult(signal.signal_id, options, True, plan_ids=tuple(plan_ids))

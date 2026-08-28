@@ -45,7 +45,7 @@ def sensing_poll(ctx: click.Context, connector_name: str, json_out: bool) -> Non
         stored = store.save_many(observed)
         interpreted = 0
         interpretation_errors = 0
-        if config.mode == "shadow" and ctx.obj["config"].dspy.enabled:
+        if config.mode in {"shadow", "active"} and ctx.obj["config"].dspy.enabled:
             from voly.sensing.interpret import SignalInterpreter
 
             interpreter = SignalInterpreter(ctx.obj["config"])

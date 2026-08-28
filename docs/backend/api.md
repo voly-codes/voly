@@ -26,6 +26,21 @@ stream, and how to connect a host: **[`mcp.md`](mcp.md)**.
 
 ## POST /api/run
 
+## Business Decisions
+
+Business Decisions are stored as ordinary two-step Plans under the configured
+`plan.store_dir`.
+
+- `GET /api/decisions` — list business Decision plans.
+- `GET /api/decisions/{plan_id}` — read one Decision.
+- `POST /api/decisions/{plan_id}/feedback` with
+  `{ "decision": "approve" | "reject", "comment": "..." }` — resolve the
+  human gate. Repeating the same decision is idempotent; conflicting feedback
+  returns HTTP 409.
+
+Approval only unblocks the pending action step. It never executes an external
+action inside the request.
+
 ### Bounded review workflow
 
 The normal request also accepts these optional fields:

@@ -161,3 +161,8 @@ export async function taskStream() {
 // Telemetry
 export const fetchTelemetry = (days = 30) => get(`/api/telemetry/summary?days=${days}`)
 export const fetchProviderHealth = () => get('/api/providers/health')
+
+// Business Decisions (existing Plan FSM + explicit human gate)
+export const fetchDecisions = () => get('/api/decisions')
+export const submitDecision = (planId, decision, comment = '') =>
+  post(`/api/decisions/${encodeURIComponent(planId)}/feedback`, { decision, comment }).then(r => r.json())
