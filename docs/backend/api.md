@@ -41,6 +41,11 @@ Business Decisions are stored as ordinary two-step Plans under the configured
 Approval only unblocks the pending action step. It never executes an external
 action inside the request.
 
+`POST /api/decisions/{plan_id}/execute` explicitly runs an approved structured
+action. HTTP 409 is returned unless approval is verified and execution is
+pending. State is persisted as `running` before network I/O; completed calls
+are idempotent and do not issue the action again.
+
 ### Bounded review workflow
 
 The normal request also accepts these optional fields:

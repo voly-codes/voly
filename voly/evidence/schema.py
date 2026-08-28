@@ -7,7 +7,7 @@ from typing import Any
 
 from voly.evaluation.schema import EvalReport
 
-EVIDENCE_SCHEMA_VERSION = 2
+EVIDENCE_SCHEMA_VERSION = 3
 
 
 @dataclass
@@ -92,6 +92,7 @@ class EvidenceRecord:
     outcome: EvidenceOutcome
     evaluation: EvalReport | None = None
     human_feedback: list[HumanFeedback] = field(default_factory=list)
+    action_report: dict[str, Any] | None = None
     schema_version: int = EVIDENCE_SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
@@ -125,5 +126,6 @@ class EvidenceRecord:
                 else None
             ),
             human_feedback=feedback,
+            action_report=(dict(data["action_report"]) if isinstance(data.get("action_report"), dict) else None),
             schema_version=int(data.get("schema_version") or EVIDENCE_SCHEMA_VERSION),
         )

@@ -69,6 +69,7 @@ class Option:
     urgency: str
     estimated_impact: str
     action_kind: str
+    action_spec: dict[str, Any] = field(default_factory=dict)
     schema_version: int = OPTION_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -90,6 +91,7 @@ class Option:
             urgency=str(data["urgency"]),
             estimated_impact=str(data.get("estimated_impact") or ""),
             action_kind=str(data["action_kind"]),
+            action_spec=dict(data.get("action_spec") or {}),
             schema_version=int(data.get("schema_version") or OPTION_SCHEMA_VERSION),
         )
 

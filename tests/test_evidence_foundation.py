@@ -153,7 +153,7 @@ def test_agent_runner_writes_versioned_evidence(monkeypatch, tmp_path) -> None:
 
     record = EvidenceStore(store_dir).load(result.task_id)
     assert record is not None
-    assert record.schema_version == 2
+    assert record.schema_version == 3
     assert record.task_fingerprint != "fix backend"
     assert record.execution.executor == "zen"
     assert record.outcome.failure_class == "agent_failure"

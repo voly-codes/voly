@@ -7,7 +7,9 @@
 Top-level `#/decisions` page for business Decision plans. It calls the Decision
 REST API, renders urgency/rationale/estimated impact, and exposes approve or
 reject only while `metadata.decision == "pending"`. Submitting disables both
-actions until the list has been read back from the server.
+actions until the list has been read back from the server. The card displays
+the exact HTTP method and target before approval; after approval a separate
+Execute button calls the action endpoint only while execution is pending.
 
 `PixelGoose.svelte` is the reusable, CSS-token-colored brand mark used by the app header and agent graphs. Graph canvases use a crisp 16 px pixel grid, 3 px square frames, and hard offset shadows derived from `--voly-orange` and `--voly-ink`; keep these surfaces square and respect reduced-motion preferences.
 

@@ -40,8 +40,10 @@ Records are JSON files under `evidence.store_dir` (default
 - human feedback as a separate list from automated evidence;
 - optional versioned EvalReport with underlying deterministic check results.
 
-`schema_version` is currently `2`; v2 adds exact baseline `argv` and the
-optional evaluation report. Change the schema version when removing a
+`schema_version` is currently `3`; v2 added exact baseline `argv` and the
+optional evaluation report. v3 adds an optional local-only `action_report` for
+Layer C business actions. The Evidence Cloud allowlist remains v2 and omits
+this field. Change the schema version when removing a
 field or changing field semantics. Additive readers should continue tolerating
 older records when migrations are introduced.
 

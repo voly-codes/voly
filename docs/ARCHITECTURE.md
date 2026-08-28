@@ -127,6 +127,7 @@ open versioned interfaces — they are frozen by contract tests
 |---|---|---|
 | `TaskEvent` (task telemetry) | `schema_version: 3` | `voly/telemetry.py`, `docs/backend/api.md` |
 | Cloud analytics allowlist | `schema_version: 1` | `voly/telemetry.py`, `docs/backend/api.md` |
+| EvidenceRecord (local) | `schema_version: 3` | `voly/evidence/schema.py`, `docs/backend/evidence.md` |
 | Evidence Cloud allowlist | `schema_version: 2` | `voly/evidence/privacy.py`, `docs/backend/evidence.md` |
 | Spend protocol (`/spend/record`, `/spend/check`, …) | v1 | `docs/backend/spend-protocol.md` |
 | A2A federation | — | `cf-workers/a2a/`, `docs/backend/api.md` |

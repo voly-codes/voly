@@ -10,4 +10,5 @@ export default {
   'decisions.rejected': 'отклонено',
   'decisions.impact': 'Ожидаемый эффект',
   'decisions.refresh': 'Обновить',
+  'decisions.execute': 'Выполнить одобренное действие',
 }

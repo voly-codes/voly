@@ -166,3 +166,5 @@ export const fetchProviderHealth = () => get('/api/providers/health')
 export const fetchDecisions = () => get('/api/decisions')
 export const submitDecision = (planId, decision, comment = '') =>
   post(`/api/decisions/${encodeURIComponent(planId)}/feedback`, { decision, comment }).then(r => r.json())
+export const executeDecision = planId =>
+  post(`/api/decisions/${encodeURIComponent(planId)}/execute`, {}).then(r => r.json())

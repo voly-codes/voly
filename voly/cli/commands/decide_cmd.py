@@ -14,7 +14,7 @@ def _service(ctx: click.Context):
     from voly.decisions import DecisionService
     from voly.plan.store import PlanStore
 
-    return DecisionService(PlanStore(ctx.obj["config"].plan.store_dir))
+    return DecisionService(PlanStore(ctx.obj["config"].plan.store_dir), config=ctx.obj["config"])
 
 
 @decide_cmd.command("list")
@@ -56,3 +56,14 @@ def decide_approve(ctx: click.Context, plan_id: str, comment: str) -> None:
 @click.pass_context
 def decide_reject(ctx: click.Context, plan_id: str, comment: str) -> None:
     _record(ctx, plan_id, "reject", comment)
+
+
+@decide_cmd.command("execute")
+@click.argument("plan_id")
+@click.pass_context
+def decide_execute(ctx: click.Context, plan_id: str) -> None:
+    try:
+        plan = _service(ctx).execute(plan_id)
+    except (FileNotFoundError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"{plan_id}: {plan.metadata.get('execution')}")

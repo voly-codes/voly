@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { fetchDecisions, submitDecision } from '../../api/client.js'
+  import { executeDecision, fetchDecisions, submitDecision } from '../../api/client.js'
   import { t } from '../../i18n/localeStore.svelte.ts'
   import Spinner from '../shared/Spinner.svelte'
 
@@ -25,6 +25,14 @@
     finally { submitting = '' }
   }
 
+  async function execute(planId: string) {
+    submitting = planId
+    error = ''
+    try { await executeDecision(planId); await refresh() }
+    catch (e: any) { error = e?.message ?? String(e) }
+    finally { submitting = '' }
+  }
+
   onMount(refresh)
 </script>
 
@@ -43,9 +51,12 @@
         <div class="top"><span class="urgency">{meta.urgency}</span><span class:pending={meta.decision === 'pending'}>{t(`decisions.${meta.decision ?? 'pending'}`)}</span></div>
         <h2>{plan.task}</h2><p>{meta.rationale}</p>
         {#if meta.estimated_impact}<dl><dt>{t('decisions.impact')}</dt><dd>{meta.estimated_impact}</dd></dl>{/if}
+        {#if meta.action_spec?.url}<div class="action-spec"><strong>{meta.action_spec.method}</strong> <code>{meta.action_spec.url}</code>{#if meta.action_spec.body}<pre>{JSON.stringify(meta.action_spec.body, null, 2)}</pre>{/if}</div>{/if}
         {#if meta.decision === 'pending'}<div class="actions">
           <button class="reject" disabled={submitting === plan.plan_id} onclick={() => decide(plan.plan_id, 'reject')}>{t('decisions.reject')}</button>
           <button class="approve" disabled={submitting === plan.plan_id} onclick={() => decide(plan.plan_id, 'approve')}>{t('decisions.approve')}</button>
+        </div>{:else if meta.decision === 'approved' && meta.execution === 'pending'}<div class="actions">
+          <button class="approve" disabled={submitting === plan.plan_id} onclick={() => execute(plan.plan_id)}>{t('decisions.execute')}</button>
         </div>{/if}
       </article>
     {/each}
@@ -64,5 +75,7 @@
   .top, .actions { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; text-transform: uppercase; }
   .urgency, .pending { color: var(--voly-orange); } dl { font-size: 12px; } dt { color: var(--text-muted); } dd { margin: 3px 0; }
   .actions { justify-content: flex-end; margin-top: 14px; } .approve { background: var(--accent-green); color: var(--bg-primary); } .reject { color: var(--accent-red); }
+  .action-spec { margin-top: 10px; padding: 8px; background: var(--bg-inset); font-size: 11px; overflow-wrap: anywhere; }
+  pre { margin: 7px 0 0; white-space: pre-wrap; color: var(--text-muted); }
   .empty, .error { padding: 24px; color: var(--text-muted); display: flex; gap: 8px; justify-content: center; } .error { color: var(--accent-red); }
 </style>

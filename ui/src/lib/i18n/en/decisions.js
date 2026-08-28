@@ -10,4 +10,5 @@ export default {
   'decisions.rejected': 'rejected',
   'decisions.impact': 'Estimated impact',
   'decisions.refresh': 'Refresh',
+  'decisions.execute': 'Execute approved action',
 }

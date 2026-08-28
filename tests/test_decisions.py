@@ -61,3 +61,35 @@ def test_decision_api_approve_and_conflict(tmp_path) -> None:
     assert approved.status_code == 200
     assert approved.json()["plan"]["metadata"]["decision"] == "approved"
     assert client.post("/api/decisions/opt-1/feedback", json={"decision": "reject"}).status_code == 409
+
+
+def test_approved_action_executes_once_and_writes_evidence(tmp_path) -> None:
+    from types import SimpleNamespace
+    from voly.config import VOLYConfig
+    from voly.executor.base import ExecutorResult
+    from voly.evidence.store import EvidenceStore
+
+    config = VOLYConfig()
+    config.evidence.store_dir = str(tmp_path / "evidence")
+    service = DecisionService(PlanStore(str(tmp_path / "plans")), config=config)
+    option = Option(
+        "opt-action", "rss-1", "Update deal", "Approved change", "high", "Revenue", "business",
+        {"kind": "http_call", "method": "PATCH", "url": "https://api.example.com/deal/1", "body": {}, "idempotency_key": "opt-action"},
+    )
+    service.create(_signal(), option)
+    service.decide("opt-action", "approve")
+    calls = []
+
+    class FakeExecutor:
+        def run(self, task):
+            calls.append(task)
+            return ExecutorResult(True, metadata={"action_report": {"action_kind": "http_call", "target": "https://api.example.com/deal/1", "result": "HTTP 200"}})
+
+    completed = service.execute("opt-action", executor=FakeExecutor())
+    assert completed.metadata["execution"] == "completed"
+    assert completed.get_step("execute-action").status == "verified"
+    assert len(calls) == 1
+    service.execute("opt-action", executor=FakeExecutor())
+    assert len(calls) == 1
+    evidence = EvidenceStore(config.evidence.store_dir).load("opt-action")
+    assert evidence.action_report["result"] == "HTTP 200"

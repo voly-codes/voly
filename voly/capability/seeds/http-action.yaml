@@ -1,0 +1,21 @@
+id: http-action
+kind: executor
+provider: business-http
+model: ""
+capabilities:
+  business_action:
+    score: 0.90
+    confidence: 0.50
+    strengths: [https, idempotency, allowlist]
+    weaknesses: [no_redirects, http_only]
+constraints:
+  context_window: 0
+  file_tools: false
+  browser_tools: false
+  image_input: false
+  max_output_tokens: 0
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 1000
+  completion_rate: 1.0

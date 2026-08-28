@@ -57,6 +57,7 @@ def _parse_options(signal: Signal, raw: Any) -> list[Option]:
             urgency=str(item.get("urgency") or "").strip().lower(),
             estimated_impact=str(item.get("estimated_impact") or "").strip(),
             action_kind=str(item.get("action_kind") or "").strip().lower(),
+            action_spec=dict(item.get("action_spec") or {}),
         ))
         if not options[-1].title:
             raise SensingValidationError("analyst option title is required")

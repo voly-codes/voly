@@ -87,7 +87,9 @@ JSON action spec. It is disabled by default and is deliberately absent from
 `AgentRunner` and the code billing fallback chain. It requires HTTPS, exact
 host and method allowlists, an idempotency key, public DNS results, no redirects,
 a bounded response and timeout. Evidence summaries omit query strings, bodies
-and headers. PR4b wires approved Plan actions to this executor and EvidenceRecord.
+and headers. `voly decide execute <plan-id>` explicitly runs an approved action;
+the Plan is marked running before network I/O and EvidenceRecord v3 stores its
+local-only redacted `action_report`.
 
 ---
 

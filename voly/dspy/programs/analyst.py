@@ -28,6 +28,8 @@ def _build_analyst_signature() -> type:
                 "A JSON array of 1-5 objects with option_id, title, rationale, "
                 "urgency (low|medium|high), estimated_impact, and action_kind "
                 "(business|code|ignore). No markdown or additional keys."
+                " For executable business options include action_spec with kind=http_call, "
+                "method, url, body, and a stable idempotency_key."
             )
         )
 

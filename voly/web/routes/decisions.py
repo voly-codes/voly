@@ -19,7 +19,7 @@ class DecisionFeedback(BaseModel):
 def _service(request: Request) -> DecisionService:
     config = request.app.state.app.config
     path = config.plan.store_dir if config else ".voly/plans"
-    return DecisionService(PlanStore(path))
+    return DecisionService(PlanStore(path), config=config)
 
 
 @router.get("")
@@ -44,3 +44,14 @@ def decide(plan_id: str, body: DecisionFeedback, request: Request) -> dict:
     except DecisionConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"decision": result.decision, "changed": result.changed, "plan": result.plan.to_dict()}
+
+
+@router.post("/{plan_id}/execute")
+def execute_decision(plan_id: str, request: Request) -> dict:
+    try:
+        plan = _service(request).execute(plan_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="decision not found") from exc
+    except (DecisionConflictError, ValueError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return plan.to_dict()
