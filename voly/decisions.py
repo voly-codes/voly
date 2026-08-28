@@ -109,8 +109,8 @@ class DecisionService:
         if state != "pending":
             raise DecisionConflictError(f"action execution already {state}")
         action = dict(plan.metadata.get("action_spec") or {})
-        if action.get("kind") != "http_call":
-            raise ValueError("approved action_spec.kind must be http_call")
+        if action.get("kind") not in {"http_call", "notify"}:
+            raise ValueError("approved action_spec.kind must be http_call or notify")
         if self.config is None and executor is None:
             raise ValueError("business executor config is required")
         step = plan.get_step("execute-action")
@@ -118,8 +118,12 @@ class DecisionService:
         plan.metadata["execution"] = "running"
         self.store.save(plan)
         if executor is None:
-            from voly.executor.http_action import HttpActionExecutor
-            executor = HttpActionExecutor(self.config)
+            if action["kind"] == "notify":
+                from voly.executor.notify import NotifyExecutor
+                executor = NotifyExecutor(self.config)
+            else:
+                from voly.executor.http_action import HttpActionExecutor
+                executor = HttpActionExecutor(self.config)
         result = executor.run(json.dumps({k: v for k, v in action.items() if k != "kind"}))
         if result.success:
             self.engine.transition(plan, step.id, "done")
@@ -148,7 +152,7 @@ class DecisionService:
             task_type="business_action",
             task_fingerprint=str(plan.metadata.get("option_id") or plan.plan_id),
             baseline=RepositoryBaseline(captured_at=datetime.now(timezone.utc).isoformat(), health="not_applicable"),
-            execution=ExecutionBundle(agent="operator", executor="http-action"),
+            execution=ExecutionBundle(agent="operator", executor=str((plan.metadata.get("action_spec") or {}).get("kind") or "business-action")),
             outcome=EvidenceOutcome(success=result.success, state="passed" if result.success else "failed", error_class="" if result.success else "business_action"),
             action_report=dict(result.metadata.get("action_report") or {}),
         ))

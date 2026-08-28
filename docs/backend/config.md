@@ -236,7 +236,7 @@ until the Decision phase lands.
 ```yaml
 business_executors:
   enabled: false
-  allow: [http_call]
+  allow: [http_call, notify]
   http:
     allowed_hosts: [api.partner.example]
     allowed_methods: [POST, PATCH]
@@ -247,6 +247,8 @@ business_executors:
 `VOLY_BUSINESS_EXECUTORS_ENABLED` overrides the master switch. Empty host or
 action allowlists deny every request. The HTTP executor accepts only explicit
 JSON action specs with HTTPS, an allowlisted host/method and an idempotency key.
+`notify` is the single v1 notification transport: an HTTPS webhook using the
+same host allowlist, timeout, response bound, SSRF checks and idempotency rule.
 
 ### `voly cloud` — device link CLI
 

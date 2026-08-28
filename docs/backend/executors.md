@@ -79,6 +79,7 @@ run — `[CHAIN:BILLING_FALLBACK]` should follow capability rank, not static ord
 | `cf-containers` | remote — CF Container / Sandbox | Cloudflare Containers | standalone (PoC) |
 | `mimo` | no — text only | MiMo API | NOT in chain |
 | `http-action` | external HTTPS action | target system | standalone; never in code fallback |
+| `notify` | allowlisted HTTPS webhook | target system | standalone; never in code fallback |
 
 ## HttpActionExecutor (Layer C, PR4a)
 
@@ -90,6 +91,14 @@ a bounded response and timeout. Evidence summaries omit query strings, bodies
 and headers. `voly decide execute <plan-id>` explicitly runs an approved action;
 the Plan is marked running before network I/O and EvidenceRecord v3 stores its
 local-only redacted `action_report`.
+
+## NotifyExecutor (Layer C)
+
+`voly/executor/notify.py` is the single v1 notification transport. It converts
+an approved `{url, message, idempotency_key}` spec into a POST webhook and
+delegates all network enforcement to `HttpActionExecutor`. Message length is
+bounded to 10,000 characters. Email and provider-specific Slack SDKs remain out
+of scope.
 
 ---
 

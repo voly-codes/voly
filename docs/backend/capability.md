@@ -77,7 +77,8 @@ Returns `None` when the profile passes all active gates.
 ## Profile lifecycle
 
 The `http-action` seed uses the `business_action` capability key and
-`file_tools: false`. It is not eligible for the code executor fallback chain.
+`file_tools: false`; the `notify` seed represents the webhook transport under
+the same domain. Neither is eligible for the code executor fallback chain.
 
 ```
 seed (voly/capability/seeds/) → materialized copy (.voly/capability/profiles/) → EMA updates from runs

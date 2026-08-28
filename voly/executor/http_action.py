@@ -33,10 +33,13 @@ def _public_addresses(host: str, resolver: Callable[..., list] = socket.getaddri
 
 
 class HttpActionExecutor(Executor):
-    def __init__(self, config, *, resolver=socket.getaddrinfo, opener=None) -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, config, *, resolver=socket.getaddrinfo, opener=None,
+                 action_permission: str = "http_call", report_kind: str = "http_call") -> None:  # type: ignore[no-untyped-def]
         self.config = config
         self.resolver = resolver
         self.opener = opener or urllib.request.build_opener(_NoRedirect())
+        self.action_permission = action_permission
+        self.report_kind = report_kind
 
     @property
     def name(self) -> str:
@@ -46,8 +49,8 @@ class HttpActionExecutor(Executor):
             max_turns: int = 30, timeout: int = 300) -> ExecutorResult:
         del cwd, allowed_tools, max_turns
         cfg = self.config.business_executors
-        if not cfg.enabled or "http_call" not in cfg.allow:
-            return ExecutorResult(False, error="http_call business executor is disabled")
+        if not cfg.enabled or self.action_permission not in cfg.allow:
+            return ExecutorResult(False, error=f"{self.action_permission} business executor is disabled")
         try:
             action = json.loads(task)
             if not isinstance(action, dict):
@@ -76,7 +79,7 @@ class HttpActionExecutor(Executor):
                     raise ValueError("HTTP action response exceeds configured limit")
                 status = int(response.status)
             report = ActionReport(
-                action_kind="http_call", target=f"https://{host}{parsed.path}",
+                action_kind=self.report_kind, target=f"https://{host}{parsed.path}",
                 request_summary=f"{method} {parsed.path or '/'}", result=f"HTTP {status}",
                 metadata={"idempotency_key": idempotency_key},
             )

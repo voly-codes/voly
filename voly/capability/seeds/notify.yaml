@@ -1,0 +1,21 @@
+id: notify
+kind: executor
+provider: business-webhook
+model: ""
+capabilities:
+  business_action:
+    score: 0.85
+    confidence: 0.50
+    strengths: [webhook, idempotency, allowlist]
+    weaknesses: [single_transport]
+constraints:
+  context_window: 0
+  file_tools: false
+  browser_tools: false
+  image_input: false
+  max_output_tokens: 0
+evidence:
+  internal_runs: 0
+operational:
+  avg_latency_ms: 1000
+  completion_rate: 1.0
