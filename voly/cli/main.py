@@ -50,6 +50,7 @@ from voly.cli.commands import (  # noqa: E402
     savings,
     scan_project,
     serve,
+    sensing_cmd,
     setup,
     skill,
     spend,
@@ -122,6 +123,7 @@ main.add_command(research_cmd)
 main.add_command(capability_cmd)
 main.add_command(learning_cmd)
 main.add_command(workflow_cmd)
+main.add_command(sensing_cmd)
 
 # Core commands
 main.add_command(init)

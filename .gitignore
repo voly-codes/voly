@@ -49,6 +49,7 @@ docs.zip
 .voly/catalog/
 .voly/capability/
 .voly/plans/
+.voly/signals/
 .voly/reuse/cache/
 .voly/reuse/reports/
 .voly/research/reports/

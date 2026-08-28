@@ -22,6 +22,7 @@ from .run_cmd import run
 from .runner import runner
 from .runs_cmd import runs
 from .serve_cmd import serve
+from .sensing_cmd import sensing_cmd
 from .skill import skill
 from .spend import spend
 from .status_cmd import status
@@ -56,6 +57,7 @@ __all__ = [
     "quickstart",
     "learning_cmd",
     "serve",
+    "sensing_cmd",
     "run",
     "status",
     "config_cmd",

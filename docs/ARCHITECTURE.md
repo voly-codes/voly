@@ -605,4 +605,6 @@ docs/frontend/
 docs/catalog-supervisor.md  ← Catalog, model metadata, Supervisor planning
 docs/skills.md              ← SkillRegistry, sources, auto-generation
 docs/project-scanner.md     ← ProjectScanner, ProjectProfile (core utility: voly scan, project skills, Pipeline.scan_project)
+docs/proposals/
+  business-ooda-loop.md     ← draft Layer C business-signal loop and phased delivery contracts
 ```

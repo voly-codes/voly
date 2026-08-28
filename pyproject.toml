@@ -118,6 +118,8 @@ packages = [
     "voly.runner",
     "voly.runtime",
     "voly.scanner",
+    "voly.sensing",
+    "voly.sensing.connectors",
     "voly.spend",
     "voly.tools",
     "voly.web",

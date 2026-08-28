@@ -34,6 +34,8 @@ from voly.config._types import (
     ReuseConfig,
     RTKConfig,
     ScannerConfig,
+    SensingConfig,
+    SensingConnectorConfig,
     SpendConfig,
     TelemetryConfig,
     VOLYConfig,
@@ -606,5 +608,39 @@ def _parse_config(raw: dict) -> VOLYConfig:
         )
     if os.getenv("VOLY_INTELLIGENCE_AUTO", "").strip().lower() in ("1", "true", "yes"):
         config.intelligence.auto = True
+
+    if "sensing" in raw:
+        sensing = raw["sensing"] or {}
+        mode = str(sensing.get("mode") or "shadow").strip().lower()
+        if mode not in SensingConfig.VALID_MODES:
+            mode = "shadow"
+        urgency = str(
+            sensing.get("min_urgency_for_decision") or "medium"
+        ).strip().lower()
+        if urgency not in SensingConfig.VALID_URGENCIES:
+            urgency = "medium"
+        connectors: list[SensingConnectorConfig] = []
+        for item in sensing.get("connectors") or []:
+            if not isinstance(item, dict) or not str(item.get("name") or "").strip():
+                continue
+            connectors.append(SensingConnectorConfig(
+                name=str(item["name"]).strip().lower(),
+                feeds=[str(feed).strip() for feed in (item.get("feeds") or []) if str(feed).strip()],
+                poll_interval_seconds=max(1, int(item.get("poll_interval_seconds", 900))),
+            ))
+        config.sensing = SensingConfig(
+            enabled=_parse_bool(sensing.get("enabled"), False),
+            mode=mode,
+            store_dir=str(sensing.get("store_dir") or ".voly/signals"),
+            connectors=connectors,
+            min_urgency_for_decision=urgency,
+        )
+    if "VOLY_SENSING_ENABLED" in os.environ:
+        config.sensing.enabled = _parse_bool(
+            os.environ.get("VOLY_SENSING_ENABLED"), False
+        )
+    env_sensing_mode = os.environ.get("VOLY_SENSING_MODE", "").strip().lower()
+    if env_sensing_mode in SensingConfig.VALID_MODES:
+        config.sensing.mode = env_sensing_mode
 
     return config

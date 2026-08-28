@@ -483,6 +483,29 @@ class IntelligenceConfig:
 
 
 @dataclass
+class SensingConnectorConfig:
+    """One polling connector configured for the opt-in sensing loop."""
+
+    name: str
+    feeds: list[str] = field(default_factory=list)
+    poll_interval_seconds: int = 900
+
+
+@dataclass
+class SensingConfig:
+    """External signal ingestion. Disabled and side-effect free by default."""
+
+    enabled: bool = False
+    mode: str = "shadow"
+    store_dir: str = ".voly/signals"
+    connectors: list[SensingConnectorConfig] = field(default_factory=list)
+    min_urgency_for_decision: str = "medium"
+
+    VALID_MODES = frozenset({"off", "shadow", "active"})
+    VALID_URGENCIES = frozenset({"low", "medium", "high"})
+
+
+@dataclass
 class VOLYConfig:
     models: dict[str, ModelConfig] = field(default_factory=dict)
     agents: dict[str, AgentConfig] = field(default_factory=dict)
@@ -512,6 +535,7 @@ class VOLYConfig:
     plan: PlanConfig = field(default_factory=PlanConfig)
     capability: CapabilityConfig = field(default_factory=CapabilityConfig)
     intelligence: IntelligenceConfig = field(default_factory=IntelligenceConfig)
+    sensing: SensingConfig = field(default_factory=SensingConfig)
     default_model: str = "kimi-k3"
     default_agent: str = "kimi"
     default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd

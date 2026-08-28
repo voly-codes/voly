@@ -128,6 +128,11 @@ VOLY_PLAN_ENABLED=true
 VOLY_PLAN_MODE=active
 # Plan gates (Rung B). CLI: voly plan run plan.yaml
 
+VOLY_SENSING_ENABLED=false
+VOLY_SENSING_MODE=shadow
+# Layer C business-signal polling. Disabled by default. In shadow mode,
+# `voly sensing poll` stores Signals only and never creates a Plan or runs an Executor.
+
 VOLY_RUN_POOL_WORKERS=16
 # Thread pool size for POST /api/run (web/routes/run.py). Executor calls are
 # I/O-bound subprocess waits, not CPU-bound, so a larger pool is cheap and
@@ -202,6 +207,27 @@ VOLY_PXPIPE_OVERRIDE_BASE_URL=false
 # `voly pxpipe start` also enables local PNG dumps; task artifacts are stored
 # under .voly/pxpipe/images/<task_id>/ and surfaced in the UI.
 ```
+
+### Business-signal sensing (experimental)
+
+```yaml
+sensing:
+  enabled: false
+  mode: shadow                 # off | shadow | active
+  store_dir: .voly/signals
+  min_urgency_for_decision: medium
+  connectors:
+    - name: rss
+      feeds: ["https://example.com/feed.xml"]
+      poll_interval_seconds: 900
+```
+
+Only explicit CLI polling ships in the connector phase:
+`voly sensing poll --connector rss` and `voly sensing list`. There is no
+background scheduler. RSS responses are bounded to 2 MiB and use a 15-second
+timeout; duplicate entries are rejected by a persisted connector-derived hash.
+`active` is accepted as staged configuration but does not create Decisions
+until the Decision phase lands.
 
 ### `voly cloud` — device link CLI
 
