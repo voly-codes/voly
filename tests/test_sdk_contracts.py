@@ -163,6 +163,28 @@ def test_workflow_has_sync_and_async_entry_points() -> None:
     assert inspect.iscoroutinefunction(Workflow.arun)
 
 
+# Frozen Workflow.run()/arun() contract — Phase 3 added timeout_seconds.
+_WORKFLOW_RUN_PARAMS = {"task", "cwd", "resume", "mode", "timeout_seconds"}
+
+
+def test_workflow_run_contract_is_frozen() -> None:
+    for fn in (Workflow.run, Workflow.arun):
+        params = set(inspect.signature(fn).parameters) - {"self"}
+        assert params == _WORKFLOW_RUN_PARAMS, (
+            f"{fn.__name__}() params changed: added={params - _WORKFLOW_RUN_PARAMS} "
+            f"removed={_WORKFLOW_RUN_PARAMS - params}"
+        )
+
+
+def test_workflow_has_resume_and_cancel_entry_points() -> None:
+    """Phase 3: the practical alternative to run(resume=True), which cannot
+    identify which prior Plan to resume from task text alone."""
+    assert callable(Workflow.resume)
+    assert callable(Workflow.cancel)
+    resume_params = set(inspect.signature(Workflow.resume).parameters) - {"self"}
+    assert resume_params == {"plan_id", "mode", "timeout_seconds"}
+
+
 def test_workflow_never_reports_success_when_a_required_node_is_pending_or_failed() -> None:
     """Guards the proposal's explicit result-contract invariant at the type
     level: WorkflowResult.success must be a plain bool derived from Plan

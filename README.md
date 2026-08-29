@@ -110,8 +110,11 @@ print(result.success, result.cost_usd, result.node("review").output)
 
 `Workflow.add(..., approval=True)` gates a node behind human sign-off — the
 run pauses (never "fails") until `voly.plan.approval.decide()` approves it.
-See [docs/backend/sdk.md](docs/backend/sdk.md) for the full contract; bounded
-parallel execution, durable resume and topology presets are the next phases
+Independent nodes run in bounded concurrent waves
+(`workflow_sdk.max_parallel_nodes`); a run survives a process restart via
+`workflow.resume(plan_id)`, and `workflow.cancel(plan_id)` stops one in
+flight from elsewhere. See [docs/backend/sdk.md](docs/backend/sdk.md) for
+the full contract — topology presets are the next phase
 (`docs/proposals/agent-workflow-sdk.md`).
 
 For an installed package, use `voly quickstart --cwd ~/my-project`. Add `--yes`

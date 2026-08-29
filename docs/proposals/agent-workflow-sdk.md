@@ -1,7 +1,7 @@
 # Proposal: Public Agent and Workflow SDK
 
-**Status:** PR0 + PR1 + PR2 landed (see `docs/backend/sdk.md` for what's
-actually implemented vs. this plan)  
+**Status:** PR0 + PR1 + PR2 + PR3 landed (see `docs/backend/sdk.md` for
+what's actually implemented vs. this plan)  
 **Complexity:** complex  
 **Recommended agent:** Codex  
 **Related:** `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`,
@@ -442,7 +442,7 @@ Generated OpenWiki pages are not edited manually.
 [x] PR0  freeze SDK/Plan compatibility contracts and architecture decision
 [x] PR1  minimal public Agent + AgentResult facade
 [x] PR2  Workflow builder compiles to Plan and runs through PlanRunner
-[ ] PR3  bounded chat waves, checkpoints, recovery and resume
+[x] PR3  bounded chat waves, checkpoints, recovery and resume
 [ ] PR4  six graph-factory presets with bounds and tests
 [ ] PR5  CLI/API/AG-UI lifecycle and read-only workflow graph UI
 [ ] PR6  ten runnable examples, offline fixtures and product-proof benchmark
@@ -514,6 +514,32 @@ Generated OpenWiki pages are not edited manually.
   "enforce workflow-level timeout," and wiring a partial version now would
   have meant `Workflow` (a "builder, not an executor" per this proposal)
   reaching into `PlanRunner`'s execution/scheduling internals prematurely.
+- v0.5 — PR3 landed: `PlanRunner` schedules independent `mode: chat` nodes
+  in bounded concurrent waves (new `workflow_sdk.*` config —
+  `max_parallel_nodes`, `stale_running_seconds`; `checkpoint` reserved,
+  since persistence-after-every-step was already unconditional).
+  `mode: executor` nodes still always serialize (shared Plan `cwd`); only
+  the network-call phase runs in a worker thread (mirroring the split-phase
+  pattern `voly.a2a.multiagent_run` already uses), every `Plan`/`PlanStep`
+  mutation happens back on the calling thread, so no lock is needed and
+  `node_results` stay in declared order regardless of completion order.
+  `PlanStep` gained a `started_at` field (set by `PlanEngine.transition()`
+  on entry to `running`) so `PlanRunner._recover_stale_running_steps()` can
+  detect and recover a step whose process crashed mid-execution before
+  `run()`/`resume()` continues. `PlanRunner.cancel(plan_id)` marks a Plan
+  aborted; the run loop re-checks persisted status before every post-step
+  save so an external cancel landing mid-step is adopted instead of
+  silently clobbered by the runner's own next save (a real race caught
+  while writing the concurrency tests, not merely theoretical — see
+  `tests/test_plan_concurrency.py::test_cancel_stops_a_run_in_flight_from_another_thread`).
+  `run(timeout_seconds=...)` bounds the whole call and leaves a resumable
+  (not failed) Plan on expiry. `Workflow.resume(plan_id)`/`Workflow.cancel(plan_id)`
+  wrap the above; `Workflow.run(resume=True)` still raises
+  `NotImplementedError` for the reason recorded in v0.4 — an explicit
+  `plan_id` remains the only way to identify which prior Plan to continue.
+  `WorkflowNode.timeout_seconds` (per-node) is still unenforced — distinct
+  from `run()`'s new workflow-level timeout, and still not owned by any
+  landed phase.
 
 ## Recommended execution model
 

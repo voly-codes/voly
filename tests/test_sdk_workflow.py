@@ -251,3 +251,76 @@ def test_workflow_result_node_lookup(tmp_path) -> None:
 def test_workflow_name_rejects_path_separators() -> None:
     with pytest.raises(WorkflowError):
         Workflow("bad/name")
+
+
+def test_workflow_resume_continues_a_prior_run_by_plan_id(tmp_path) -> None:
+    """The practical alternative to run(resume=True) — see its
+    NotImplementedError message and docs/backend/sdk.md."""
+    config = _config(tmp_path)
+    config.workflow_sdk.max_parallel_nodes = 1
+    workflow = Workflow("resumable", config=config)
+    workflow.add("a", agent=Agent("x", config=config))
+    workflow.add("b", agent=Agent("y", config=config), depends_on=["a"])
+    workflow.add("c", agent=Agent("z", config=config), depends_on=["b"])
+
+    def slow_chat(self, **kwargs):
+        import time
+
+        time.sleep(0.15)
+        return {"content": "ok", "model": "x", "usage": {}}
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", slow_chat):
+        first = workflow.run("task", timeout_seconds=0.25)
+
+    assert first.success is False
+    assert first.status == "running"
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", _fake_chat()):
+        resumed = workflow.resume(first.plan.plan_id)
+
+    assert resumed.success is True
+    assert resumed.status == "completed"
+
+
+def test_workflow_cancel_stops_an_in_flight_run(tmp_path) -> None:
+    import threading
+    import time
+
+    config = _config(tmp_path)
+    config.workflow_sdk.max_parallel_nodes = 1
+    workflow = Workflow("cancellable", config=config)
+    for i in range(4):
+        dep = [f"n{i - 1}"] if i else []
+        workflow.add(f"n{i}", agent=Agent(f"a{i}", config=config), depends_on=dep)
+
+    def slow_chat(self, **kwargs):
+        time.sleep(0.2)
+        return {"content": "ok", "model": "x", "usage": {}}
+
+    holder: dict[str, WorkflowResult] = {}
+
+    def do_run():
+        with patch("voly.ai_gateway.gateway.AIGateway.chat", slow_chat):
+            holder["result"] = workflow.run("task")
+
+    thread = threading.Thread(target=do_run)
+    thread.start()
+    time.sleep(0.3)
+    workflow.cancel(_plan_id_for(config, "cancellable"), error="stop")
+    thread.join(timeout=10)
+
+    result = holder["result"]
+    assert result.success is False
+    assert result.status == "aborted"
+
+
+def _plan_id_for(config, workflow_name: str) -> str:
+    """Test helper: the running workflow's plan_id isn't known to the
+    canceller ahead of time in this test (compile() mints a fresh one each
+    run), so find it by scanning the store — a real caller would instead
+    hold onto WorkflowResult.plan.plan_id from a previous call."""
+    store = PlanStore(config.plan.store_dir)
+    for plan in store.list():
+        if plan.metadata.get("workflow_name") == workflow_name:
+            return plan.plan_id
+    raise AssertionError(f"no persisted plan found for workflow {workflow_name!r}")

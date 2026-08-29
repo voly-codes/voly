@@ -3,9 +3,11 @@
 Proposal: `docs/proposals/agent-workflow-sdk.md`. This doc tracks what is
 actually implemented; the proposal tracks the full multi-phase plan.
 
-**Status: Phase 0, Phase 1 and Phase 2 landed.** `Workflow` compiles to a
-normal `Plan` and runs through the existing `PlanRunner`/`PlanStore`. Phase 3
-(parallel chat waves, durable resume, workflow-level timeout) is not started.
+**Status: Phase 0, Phase 1, Phase 2 and Phase 3 landed.** `Workflow` compiles
+to a normal `Plan` and runs through `PlanRunner`, which now schedules
+independent `mode: chat` nodes in bounded parallel waves and supports
+durable resume, cross-process cancellation and a workflow-level timeout.
+Phase 4 (topology presets) is not started.
 
 ## Architecture decision: the SDK is a facade
 
@@ -44,7 +46,7 @@ freezes that invariant by scanning the package's imports.
 | node `depends_on` | `depends_on` | validated by `PlanEngine.validate()` (dup ids, unknown deps, cycles) — `Workflow` does not reimplement graph validation, it re-raises `PlanValidationError` as `WorkflowError` |
 | node `acceptance` | `acceptance` | extra `AcceptanceCheck`s beyond the approval gate below |
 | node `approval=True` | appends `AcceptanceCheck(type=CHECK_HUMAN_REVIEW)` to `acceptance` | see "Approval nodes" below |
-| node `timeout_seconds` | *(not wired)* | accepted on `Workflow.add()` for forward compatibility with Phase 3 ("enforce workflow-level timeout") but currently a no-op — `PlanStep` has no per-step timeout field and `PlanRunner` does not read one |
+| node `timeout_seconds` | *(still not wired)* | accepted on `Workflow.add()` but currently a no-op — this is a *per-node* timeout, distinct from Phase 3's *workflow-level* `run(timeout_seconds=...)` (below), which bounds the whole call, not one node. No phase currently owns per-node enforcement; `PlanStep` has no per-step timeout field |
 | `agent.tools`, `agent.output_schema` | *(not representable)* | `Agent.__init__` already raises `NotImplementedError` if either is set, so a node's agent can never reach compilation with them |
 
 ## Schema-version policy
@@ -188,15 +190,27 @@ workflow.add(
 ) -> Workflow                   # chainable
 
 workflow.compile(task: str = "", *, cwd: str | None = None) -> Plan
-workflow.run(task: str = "", *, cwd=None, resume: bool = False, mode: str | None = None) -> WorkflowResult
+workflow.run(
+    task: str = "", *, cwd=None, resume: bool = False,
+    mode: str | None = None, timeout_seconds: float | None = None,
+) -> WorkflowResult
 workflow.arun(...) -> WorkflowResult   # asyncio.to_thread(self.run, ...), same reasoning as Agent.arun()
+
+# Phase 3 — see "Resuming/cancelling a workflow" below
+workflow.resume(plan_id: str, *, mode=None, timeout_seconds=None) -> WorkflowResult
+workflow.cancel(plan_id: str, *, error: str = "cancelled") -> None
 ```
 
 `compile()`/`run()` raise `WorkflowError` for a duplicate node id, an unknown
 `depends_on` target, a dependency cycle, or an empty workflow (all detected
 by `PlanEngine.validate()` and re-raised with the SDK's own exception type).
-`run(resume=True)` raises `NotImplementedError` today — see "Resuming a
-paused workflow" below for the real, working alternative.
+`run(resume=True)` raises `NotImplementedError` — see "Resuming/cancelling a
+workflow" below for `Workflow.resume(plan_id)`, the real, working
+alternative.
+
+`timeout_seconds` bounds `run()`'s whole call, not any one node — on expiry
+the Plan is left resumable (`status="running"`, not failed/aborted); see
+below.
 
 `mode` defaults to `"active"` (hard gate — a failed/pending-approval node
 blocks its dependents) regardless of the global `plan.mode` config value,
@@ -229,14 +243,14 @@ section above for the underlying mechanism;
 `tests/test_sdk_workflow.py::test_approval_blocks_downstream_execution` is
 the full compile → run → pause → approve → resume round trip.
 
-### Resuming a paused workflow
+### Resuming/cancelling a workflow
 
 `Workflow.run(resume=True)` is not implemented — `Workflow` has no way to
 identify *which* prior Plan to resume from `task` text alone (compilation
 deliberately gives every `compile()`/`run()` call a fresh `plan_id`; only the
 node *topology* is guaranteed deterministic, see the proposal's compilation
-note). Until Phase 3 defines how a caller addresses a specific prior run,
-resume the underlying Plan directly — this is fully supported today:
+note). `Workflow.resume(plan_id)` is the real, working alternative — the
+caller supplies the `plan_id` from a prior `WorkflowResult.plan.plan_id`:
 
 ```python
 result = workflow.run("Should we proceed?")   # pauses on an approval node
@@ -244,12 +258,19 @@ result = workflow.run("Should we proceed?")   # pauses on an approval node
 
 from voly.plan.approval import decide as decide_human_review
 from voly.plan.store import PlanStore
-from voly.plan.runner import PlanRunner
 
-store = PlanStore(config.plan.store_dir)
-decide_human_review(store, result.plan.plan_id, "decide", "approve")
-resumed = PlanRunner(config).resume(result.plan.plan_id)
+decide_human_review(PlanStore(config.plan.store_dir), result.plan.plan_id, "decide", "approve")
+resumed = workflow.resume(result.plan.plan_id)
 ```
+
+`resume()` also recovers a step stuck in `running` past
+`workflow_sdk.stale_running_seconds` before continuing — that only happens
+if the process that produced `result` crashed mid-step, since a live run
+never revisits a `running` step itself. `Workflow.cancel(plan_id)` marks the
+Plan aborted; safe to call from another thread/process while a
+`run()`/`resume()` for the same `plan_id` is in flight elsewhere — see
+`docs/backend/plan.md` for how the run loop avoids clobbering a cancel that
+lands mid-step.
 
 ## Output handoff between nodes
 
@@ -259,6 +280,33 @@ stored `output` as plain context before the node's own task at execution
 time (see `docs/backend/plan.md`). This is a `PlanRunner` behavior, not
 something `Workflow` does at compile time, so it benefits every Plan, not
 only SDK-built ones.
+
+## Bounded parallel chat waves (Phase 3)
+
+A `Workflow` with independent nodes (no `depends_on` between them) runs
+them concurrently, bounded by `workflow_sdk.max_parallel_nodes`:
+
+```python
+workflow = Workflow("market-scan")
+workflow.add("us", agent=Agent("us-analyst"))
+workflow.add("eu", agent=Agent("eu-analyst"))
+workflow.add("apac", agent=Agent("apac-analyst"))
+workflow.add(
+    "synthesize", agent=Agent("lead"), depends_on=["us", "eu", "apac"],
+)
+result = workflow.run("Compare regional demand")
+```
+
+With the default `max_parallel_nodes=3`, the three analyst nodes' chat calls
+run at the same time (each sees the others' output only once all three are
+`verified` and `synthesize` becomes runnable — see output handoff above);
+`synthesize` still waits for all three regardless of concurrency.
+`mode="executor"` nodes are never part of a wave — see
+`docs/backend/plan.md` for why (they share the Plan's one `cwd`) and for the
+concurrency-safety design (only network calls run in worker threads; every
+`Plan`/`PlanStep` mutation happens back on the calling thread). Set
+`workflow_sdk.max_parallel_nodes: 1` (or `workflow_sdk.enabled: false`) to
+force today's original one-step-at-a-time behavior unconditionally.
 
 ## Bug fixed alongside PR1: `PlanRunner`'s default chat path was ungoverned
 
@@ -285,23 +333,28 @@ them at the same factory.
 ```bash
 python -m pytest tests/test_sdk_contracts.py tests/test_sdk_agent.py \
   tests/test_sdk_workflow.py tests/test_plan_runner.py \
-  tests/test_plan_approval.py tests/test_protocol_contracts.py -q
-ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py
+  tests/test_plan_approval.py tests/test_plan_concurrency.py \
+  tests/test_protocol_contracts.py -q
+ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py voly/plan/runner.py
 ```
+
+`tests/test_plan_concurrency.py` covers real wall-clock concurrency timing
+(not mocked-out), bounded wave size, executor-node serialization, stale
+recovery, resume-does-not-rerun-verified-nodes, cross-thread cancellation
+and workflow-level timeout — the specific test categories Phase 3's proposal
+calls for.
 
 ## Not yet implemented
 
-Everything from Phase 3 onward in `docs/proposals/agent-workflow-sdk.md`:
-bounded parallel chat waves, `workflow_sdk.*` config, real durable resume
-(`Workflow.run(resume=True)` — see above for the working manual alternative),
-workflow-level timeout/cancellation, the six topology presets, CLI/API/UI
-surfaces, and the `examples/workflows/` catalog.
+Phase 4 onward in `docs/proposals/agent-workflow-sdk.md`: the six topology
+presets, CLI/API/UI surfaces, and the `examples/workflows/` catalog.
 
 Within what's landed: `Agent(tools=...)` / `Agent(output_schema=...)` are
 accepted on the constructor (frozen contract) but raise `NotImplementedError`
 if actually set — a node built from such an `Agent` can therefore never
-reach compilation with them either. `WorkflowNode.timeout_seconds` is
-accepted and stored but not enforced (no `PlanStep` field, no `PlanRunner`
-timeout logic — that's explicitly Phase 3's "enforce workflow-level
-timeout"). `PlanRunner.resume()` is a minimal version — it does not
-implement Phase 3's stale-running recovery policy.
+reach compilation with them either. `WorkflowNode.timeout_seconds` (a
+*per-node* hint) is still accepted and stored but not enforced — distinct
+from the *workflow-level* `run(timeout_seconds=...)`, which is enforced; no
+phase currently owns per-node timeout enforcement specifically.
+`Workflow.run(resume=True)` still raises `NotImplementedError` —
+`Workflow.resume(plan_id)` (an explicit plan_id) is the real mechanism.

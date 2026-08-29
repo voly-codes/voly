@@ -310,7 +310,8 @@ Guide: [`docs/backend/sdk.md`](backend/sdk.md).
 | PR0 | **landed** — frozen contracts, ADR | `tests/test_sdk_contracts.py`, `docs/backend/sdk.md` |
 | PR1 | **landed** — `Agent`/`AgentResult` facade | `voly/sdk/agent.py`, exported as `voly.Agent` |
 | PR2 | **landed** — `Workflow` compiles to `Plan`, runs via `PlanRunner` | `voly/sdk/workflow.py`, exported as `voly.Workflow` |
-| PR3+ | not started | parallel chat waves, durable resume, presets, CLI/API/UI, examples |
+| PR3 | **landed** — bounded parallel chat waves, durable resume, cancellation, workflow-level timeout | `voly/plan/runner.py` (`_run_chat_wave`, `resume()`, `cancel()`), `workflow_sdk.*` config |
+| PR4+ | not started | topology presets, CLI/API/UI, examples |
 
 `voly.Agent` is a facade, not a second runtime: chat mode calls
 `AIGateway.chat()` (via the shared `voly.ai_gateway.gateway_from_config`
@@ -319,7 +320,9 @@ apply unchanged); executor mode calls `AgentRunner.run()` unchanged. No
 provider client is ever constructed under `voly/sdk/`. `voly.Workflow`
 compiles declared nodes to `PlanStep`s and hands the resulting `Plan` to the
 existing `PlanEngine`/`PlanRunner`/`PlanStore` — no second state machine, no
-per-node scheduler.
+per-node scheduler of its own. `PlanRunner` schedules independent
+`mode: chat` nodes in bounded concurrent waves (`workflow_sdk.max_parallel_nodes`);
+`mode: executor` nodes always serialize — they share the Plan's one `cwd`.
 
 ```python
 from voly import Agent, Workflow
@@ -664,5 +667,5 @@ docs/skills.md              ← SkillRegistry, sources, auto-generation
 docs/project-scanner.md     ← ProjectScanner, ProjectProfile (core utility: voly scan, project skills, Pipeline.scan_project)
 docs/proposals/
   business-ooda-loop.md     ← draft Layer C business-signal loop and phased delivery contracts
-  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR2 landed)
+  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR3 landed)
 ```

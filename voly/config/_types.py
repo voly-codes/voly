@@ -412,6 +412,31 @@ class PlanConfig:
 
 
 @dataclass
+class WorkflowSDKConfig:
+    """Bounded parallel chat waves + durable resume for PlanRunner (Phase 3,
+    docs/proposals/agent-workflow-sdk.md). See docs/backend/sdk.md."""
+
+    # False forces PlanRunner back to today's strict single-step-at-a-time
+    # execution regardless of Plan shape — an escape hatch, not a feature
+    # switch a caller needs to flip on: max_parallel_nodes already gates
+    # whether concurrency is ever attempted.
+    enabled: bool = True
+    # A wave only ever contains independent, simultaneously-runnable
+    # mode=chat steps (never mode=executor, which shares the Plan's single
+    # cwd and must stay serialized). 1 disables concurrency without
+    # disabling the rest of this config (stale recovery, cancellation).
+    max_parallel_nodes: int = 3
+    # Reserved: PlanRunner already persists after every transition/node
+    # result unconditionally (durable resume depends on it) — this exists
+    # for schema completeness, not to make checkpointing optional.
+    checkpoint: bool = True
+    # A step stuck in `running` longer than this (process crash mid-step)
+    # is recovered to `failed` on the next run()/resume() so normal
+    # on_fail retry policy applies. <=0 disables recovery.
+    stale_running_seconds: int = 900
+
+
+@dataclass
 class DSPyConfig:
     """DSPy optimizer layer — sits between Headroom and AIGateway.chat()."""
 
@@ -543,6 +568,7 @@ class VOLYConfig:
     cloud_analytics: CloudAnalyticsConfig = field(default_factory=CloudAnalyticsConfig)
     dspy: DSPyConfig = field(default_factory=DSPyConfig)
     plan: PlanConfig = field(default_factory=PlanConfig)
+    workflow_sdk: WorkflowSDKConfig = field(default_factory=WorkflowSDKConfig)
     capability: CapabilityConfig = field(default_factory=CapabilityConfig)
     intelligence: IntelligenceConfig = field(default_factory=IntelligenceConfig)
     sensing: SensingConfig = field(default_factory=SensingConfig)

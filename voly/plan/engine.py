@@ -5,6 +5,7 @@ No agent I/O and no verifiers here — pure structure + status rules.
 
 from __future__ import annotations
 
+import time
 from collections import deque
 from typing import Iterable
 
@@ -211,6 +212,8 @@ class PlanEngine:
             )
 
         step.status = to_status
+        if to_status == RUNNING:
+            step.started_at = time.time()
         if to_status == FAILED:
             step.error = (error or step.error or "failed")[:2000]
         elif error:

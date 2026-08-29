@@ -9,7 +9,7 @@ Public API — all names importable as `from voly.config import <name>`:
     SpendConfig, RegistryConfig, ScannerConfig, ReuseConfig,
     AIGatewayConfig, MCPConfig, TelemetryConfig, EvidenceConfig, CloudConfig,
     CloudAnalyticsConfig, DSPyConfig, EvaluationConfig, LLMJudgeConfig, PlanConfig,
-    CostPolicyConfig, ExecutorSafetyConfig
+    WorkflowSDKConfig, CostPolicyConfig, ExecutorSafetyConfig
 
   Functions:
     load_config, create_default_config
@@ -31,6 +31,7 @@ from voly.config._types import (
     AgentConfig,
     AGUIConfig,
     AIGatewayConfig,
+    BusinessExecutorsConfig,
     CloudAnalyticsConfig,
     CloudConfig,
     CostPolicyConfig,
@@ -54,10 +55,10 @@ from voly.config._types import (
     ScannerConfig,
     SensingConfig,
     SensingConnectorConfig,
-    BusinessExecutorsConfig,
     SpendConfig,
     TelemetryConfig,
     VOLYConfig,
+    WorkflowSDKConfig,
 )
 
 __all__ = [
@@ -91,6 +92,7 @@ __all__ = [
     "CloudAnalyticsConfig",
     "DSPyConfig",
     "PlanConfig",
+    "WorkflowSDKConfig",
     "CostPolicyConfig",
     "ExecutorSafetyConfig",
     # functions

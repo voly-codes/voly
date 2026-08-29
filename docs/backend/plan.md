@@ -114,6 +114,60 @@ unrelated sibling steps' output never leaks in.
 
 ---
 
+## Parallel chat waves, resume, cancellation and stale recovery
+
+Config: `workflow_sdk.*` (`voly.yaml`, `VOLY_WORKFLOW_SDK_*`) — see
+`docs/backend/config.md`. This is a `PlanRunner` capability, not something
+`Workflow` (`docs/backend/sdk.md`) implements itself, so any Plan benefits —
+hand-authored `plan.yaml`, A2A-bridged, or SDK-built.
+
+**Waves.** Each iteration of `run()`'s loop looks at every currently
+runnable step (`PlanEngine.runnable_steps()` — by construction, steps that
+are simultaneously runnable never depend on each other). If two or more are
+`mode: chat`, up to `workflow_sdk.max_parallel_nodes` of them run
+concurrently in a `ThreadPoolExecutor`; `mode: executor` steps always run
+one at a time regardless — they share the Plan's single `cwd`, so two must
+never write concurrently. Chat steps never touch the filesystem, so mixing
+one executor step's turn with a chat wave is unnecessary to reason about:
+the scheduler simply never puts more than one executor step in flight.
+
+Only the network call phase runs in a worker thread (`_run_chat_step_body`,
+mutating only that step's own `output`/`cost_usd`/`duration_ms`); every
+`Plan`-level mutation (`engine.transition`, `_verify`) happens back in the
+calling thread, one step at a time, once every worker in the wave has
+returned — mirroring the split-phase pattern `voly.a2a.multiagent_run`
+already uses for the same reason (a worker thread must never touch shared
+Plan/PlanStep state that another thread could be mutating at the same time).
+`node_results`/wave-member processing order is always the wave's declared
+order, never completion order.
+
+**Resume.** `PlanRunner.resume(plan_id)` reloads the persisted Plan and
+calls `run()` again — no separate "paused" state exists to restore. Before
+resuming, `run()` recovers any step stuck in `running` for longer than
+`workflow_sdk.stale_running_seconds` (transitioned to `failed`, so the
+normal `default_on_verify_fail` policy decides what happens to it) — that
+only happens if the process that started it crashed mid-step, since a live
+`run()` never revisits a step already `running`.
+
+**Cancellation.** `PlanRunner.cancel(plan_id)` loads the Plan, calls
+`PlanEngine.abort()`, and saves — safe to call from another thread or
+process while a `run()` for the same `plan_id` is in flight. The run loop
+re-reads the persisted status before it would otherwise overwrite it with
+its own progress (after every step/wave, and after a retry attempt) and
+adopts an external abort it finds there; this closes the window where the
+runner's own next save would otherwise silently clobber a `cancel()` that
+landed while a step was mid-flight. It does not interrupt a network/executor
+call already in progress — cancellation is cooperative, checked between
+steps/waves, not preemptive.
+
+**Workflow-level timeout.** `run(..., timeout_seconds=...)` bounds the whole
+call's wall-clock time. On expiry the Plan is left **resumable**, not
+failed or aborted: whatever completed stays `verified`, and anything
+mid-flight is picked up by stale-running recovery on the next
+`run()`/`resume()` once `stale_running_seconds` elapses.
+
+---
+
 ## Acceptance check types
 
 | `type` | Pass when |

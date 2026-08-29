@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from voly.config import PlanConfig, VOLYConfig
+from voly.config import PlanConfig, VOLYConfig, WorkflowSDKConfig
 from voly.plan.engine import PlanEngine
 from voly.plan.loader import plan_summary
 from voly.plan.store import PlanStore
@@ -114,6 +114,9 @@ class PlanRunner:
     ) -> None:
         self.config = config
         self.plan_cfg: PlanConfig = getattr(config, "plan", None) or PlanConfig()
+        self.workflow_sdk_cfg: WorkflowSDKConfig = (
+            getattr(config, "workflow_sdk", None) or WorkflowSDKConfig()
+        )
         self.store = store or PlanStore(self.plan_cfg.store_dir)
         self.engine = engine or PlanEngine()
         self.chat_fn = chat_fn
@@ -126,8 +129,16 @@ class PlanRunner:
         *,
         mode: str | None = None,
         cwd: str | None = None,
+        timeout_seconds: float | None = None,
     ) -> PlanRunResult:
-        """Execute all steps until completed, failed, or aborted."""
+        """Execute all steps until completed, failed, or aborted.
+
+        ``timeout_seconds`` bounds this call's wall-clock time (Phase 3's
+        "workflow-level timeout") — on expiry the run stops but the Plan is
+        left resumable (not failed): whatever completed stays ``verified``,
+        anything mid-flight is recovered by stale-running detection on the
+        next ``run()``/``resume()``.
+        """
         t0 = time.monotonic()
         run_mode = (mode or self.plan_cfg.mode or "shadow").lower()
         if run_mode == "off":
@@ -142,16 +153,28 @@ class PlanRunner:
             plan.task_id = new_task_id()
 
         self.engine.validate(plan)
+        self._recover_stale_running_steps(plan)
         plan.status = PLAN_RUNNING
         self.store.save(plan)
 
         max_retries = max(0, int(self.plan_cfg.max_step_retries))
         retries: dict[str, int] = {s.id: 0 for s in plan.steps}
         on_fail = (self.plan_cfg.default_on_verify_fail or "stop").lower()
+        max_parallel = (
+            max(1, int(self.workflow_sdk_cfg.max_parallel_nodes or 1))
+            if self.workflow_sdk_cfg.enabled
+            else 1
+        )
+        timed_out = False
 
         try:
             while True:
                 if plan.status == PLAN_ABORTED:
+                    break
+                if self._external_abort_requested(plan):
+                    break
+                if timeout_seconds is not None and (time.monotonic() - t0) > timeout_seconds:
+                    timed_out = True
                     break
 
                 runnable = self.engine.runnable_steps(plan)
@@ -177,61 +200,55 @@ class PlanRunner:
                         self.engine.recompute_plan_status(plan)
                     break
 
-                # Sequential in topo order (first runnable). Parallel later.
+                chat_ids = [
+                    sid for sid in runnable
+                    if (plan.get_step(sid).mode or MODE_CHAT).lower() == MODE_CHAT
+                ]
+                if len(chat_ids) > 1 and max_parallel > 1:
+                    wave = chat_ids[:max_parallel]
+                    outcomes = self._run_chat_wave(plan, wave, run_mode=run_mode)
+                    # Re-check for an external abort landed *during* the wave
+                    # before persisting our own progress — otherwise this
+                    # save would silently clobber a cancel() that happened
+                    # while these steps were in flight (our in-memory plan
+                    # doesn't know about it yet).
+                    aborted = self._external_abort_requested(plan)
+                    self.store.save(plan)
+                    if aborted:
+                        break
+                    stop = False
+                    for step_id in wave:  # deterministic order, not completion order
+                        if not self._handle_step_outcome(
+                            plan, step_id, outcomes[step_id], run_mode=run_mode,
+                            retries=retries, max_retries=max_retries, on_fail=on_fail,
+                        ):
+                            stop = True
+                            break
+                    if stop:
+                        break
+                    continue
+
+                # Sequential (executor-mode steps always take this path —
+                # they share the Plan's one cwd and must never run
+                # concurrently with each other).
                 step_id = runnable[0]
                 ok = self._run_one_step(plan, step_id, run_mode=run_mode)
+                aborted = self._external_abort_requested(plan)
                 self.store.save(plan)
-
-                if ok:
-                    continue
-
-                step = plan.get_step(step_id)
-                if step.status != FAILED:
-                    continue
-
-                # Retry policy
-                if on_fail == "retry" and retries[step_id] < max_retries:
-                    retries[step_id] += 1
-                    _log.info(
-                        "plan %s step %s retry %d/%d",
-                        plan.plan_id, step_id, retries[step_id], max_retries,
-                    )
-                    self.engine.transition(plan, step_id, RUNNING)
-                    # fall through: next loop iteration will not re-pick if running
-                    # Actually status is RUNNING but can_start only pending/failed —
-                    # so we need to re-execute immediately without waiting for runnable.
-                    ok2 = self._run_one_step(
-                        plan, step_id, run_mode=run_mode, already_running=True
-                    )
-                    self.store.save(plan)
-                    if ok2:
-                        continue
-
-                if on_fail == "continue" or run_mode == "shadow":
-                    # Soft: skip remaining enforcement for this branch — open gate
-                    # only if we force-verify; for execution fail, leave failed.
-                    if step.status == FAILED and step.verify_log:
-                        # verify failed under shadow → already handled in _verify
-                        pass
-                    if on_fail == "continue" and step.status == FAILED:
-                        # Allow dependents? only if we skip or force verify.
-                        # Policy continue: mark skipped so topo can proceed? No —
-                        # dependents need verified. Soft-open: force verified.
-                        self.engine.transition(
-                            plan, step_id, VERIFIED, force=True
-                        )
-                        step.error = (step.error or "continue after fail")[:2000]
-                        self.store.save(plan)
-                        continue
-
-                # stop (default active)
-                plan.status = PLAN_FAILED
-                plan.error = step.error or f"step {step_id} failed"
-                break
+                if aborted:
+                    break
+                if not self._handle_step_outcome(
+                    plan, step_id, ok, run_mode=run_mode,
+                    retries=retries, max_retries=max_retries, on_fail=on_fail,
+                ):
+                    break
         except Exception as exc:  # noqa: BLE001
             plan.status = PLAN_FAILED
             plan.error = str(exc)[:2000]
             _log.exception("plan %s crashed: %s", plan.plan_id, exc)
+
+        if timed_out and plan.status not in (PLAN_COMPLETED, PLAN_FAILED, PLAN_ABORTED):
+            plan.error = f"workflow-level timeout after {timeout_seconds}s"
 
         self.engine.recompute_plan_status(plan)
         if plan.status not in (PLAN_COMPLETED, PLAN_FAILED, PLAN_ABORTED):
@@ -259,20 +276,222 @@ class PlanRunner:
             summary=summary,
         )
 
-    def resume(self, plan_id: str, *, mode: str | None = None) -> PlanRunResult:
+    def resume(
+        self, plan_id: str, *, mode: str | None = None, timeout_seconds: float | None = None
+    ) -> PlanRunResult:
         """Reload a persisted Plan and continue running it.
 
         No special "paused" state to restore: run() always recomputes
-        runnable steps from whatever status is currently persisted. This
-        exists so a step parked in `verifying` by an externally-resolved
-        acceptance check (human_review/action_succeeded — see _verify()) has
-        a documented way back in once voly.plan.approval.decide() (or a
-        business Executor result) has moved it to verified/failed.
+        runnable steps from whatever status is currently persisted (after
+        first recovering any step stuck in `running` past
+        ``workflow_sdk.stale_running_seconds`` — see
+        ``_recover_stale_running_steps``). This exists so a step parked in
+        `verifying` by an externally-resolved acceptance check
+        (human_review/action_succeeded — see _verify()) has a documented way
+        back in once voly.plan.approval.decide() (or a business Executor
+        result) has moved it to verified/failed.
         """
         plan = self.store.load(plan_id)
         if plan is None:
             raise FileNotFoundError(plan_id)
-        return self.run(plan, mode=mode, cwd=plan.cwd or None)
+        return self.run(plan, mode=mode, cwd=plan.cwd or None, timeout_seconds=timeout_seconds)
+
+    def cancel(self, plan_id: str, *, error: str = "cancelled") -> Plan:
+        """Mark a persisted Plan aborted.
+
+        Safe to call from another thread/process while a ``run()`` for the
+        same ``plan_id`` is in flight: the run loop reloads persisted status
+        between waves/steps (``_external_abort_requested``) and stops
+        cooperatively — it does not interrupt a network/executor call
+        already underway when ``cancel()`` is called.
+        """
+        plan = self.store.load(plan_id)
+        if plan is None:
+            raise FileNotFoundError(plan_id)
+        self.engine.abort(plan, error)
+        self.store.save(plan)
+        return plan
+
+    def _recover_stale_running_steps(self, plan: Plan) -> None:
+        """Recover a step stuck in `running` past ``stale_running_seconds``.
+
+        That only happens if the process that started it crashed mid-step —
+        this ``run()``/``resume()`` call is necessarily a different attempt,
+        since a live run() never revisits a step already `running`. Recovered
+        to `failed` so the normal on_fail retry policy decides what happens
+        next, rather than leaving it stuck forever (``can_start()`` never
+        picks up a `running` step, so it would otherwise block its
+        dependents indefinitely).
+        """
+        threshold = float(self.workflow_sdk_cfg.stale_running_seconds or 0)
+        if threshold <= 0:
+            return
+        now = time.time()
+        for step in plan.steps:
+            if step.status == RUNNING and step.started_at and (now - step.started_at) > threshold:
+                stuck_for = int(now - step.started_at)
+                _log.warning(
+                    "plan %s step %s stale in running for %ds — recovering to failed",
+                    plan.plan_id, step.id, stuck_for,
+                )
+                self.engine.transition(
+                    plan, step.id, FAILED,
+                    error=f"stale: stuck in running for over {stuck_for}s (process likely crashed)",
+                )
+
+    def _external_abort_requested(self, plan: Plan) -> bool:
+        """Cross-process cancellation: reload just the persisted status to
+        see whether something else (e.g. another PlanRunner's cancel())
+        aborted this Plan while we were mid-wave. Only the abort signal is
+        adopted — our in-memory copy is always at least as fresh for
+        everything else, so we never overwrite our own progress with a
+        stale on-disk snapshot.
+        """
+        try:
+            fresh = self.store.load(plan.plan_id)
+        except Exception:  # noqa: BLE001
+            return False
+        if fresh is not None and fresh.status == PLAN_ABORTED:
+            plan.status = PLAN_ABORTED
+            plan.error = fresh.error or plan.error
+            return True
+        return False
+
+    def _handle_step_outcome(
+        self,
+        plan: Plan,
+        step_id: str,
+        ok: bool,
+        *,
+        run_mode: str,
+        retries: dict[str, int],
+        max_retries: int,
+        on_fail: str,
+    ) -> bool:
+        """Apply retry/soft-fail/stop policy after one step's attempt.
+
+        Returns True if the run loop should keep going, False if this step
+        triggered a hard stop (``plan.status`` is already ``PLAN_FAILED``).
+        Shared by the sequential path and each member of a chat wave so
+        retry/on_fail policy behaves identically either way.
+        """
+        if ok:
+            return True
+
+        step = plan.get_step(step_id)
+        if step.status != FAILED:
+            return True  # e.g. parked in `verifying` (human_review) — not a failure
+
+        if on_fail == "retry" and retries[step_id] < max_retries:
+            retries[step_id] += 1
+            _log.info(
+                "plan %s step %s retry %d/%d",
+                plan.plan_id, step_id, retries[step_id], max_retries,
+            )
+            self.engine.transition(plan, step_id, RUNNING)
+            ok2 = self._run_one_step(plan, step_id, run_mode=run_mode, already_running=True)
+            aborted = self._external_abort_requested(plan)
+            self.store.save(plan)
+            if aborted:
+                return False
+            if ok2:
+                return True
+            step = plan.get_step(step_id)
+
+        if on_fail == "continue" and step.status == FAILED:
+            # Dependents need `verified` — soft-open by forcing it.
+            self.engine.transition(plan, step_id, VERIFIED, force=True)
+            step.error = (step.error or "continue after fail")[:2000]
+            self.store.save(plan)
+            return True
+
+        plan.status = PLAN_FAILED
+        plan.error = step.error or f"step {step_id} failed"
+        return False
+
+    def _run_chat_wave(
+        self, plan: Plan, step_ids: list[str], *, run_mode: str
+    ) -> dict[str, bool]:
+        """Run independent chat-mode steps concurrently.
+
+        Each worker thread only touches its own PlanStep's fields (output,
+        cost_usd, duration_ms — see ``_run_chat_step_body``) — never
+        ``plan.status`` or another step — so no lock is needed. All
+        Plan-level mutation (``engine.transition``, ``_verify``) happens
+        back in this thread, one step at a time, after every worker has
+        returned — mirroring the split-phase pattern
+        ``voly.a2a.multiagent_run`` already uses for the same reason
+        (``chat_call`` in a worker thread, ``finalize_chat`` in the caller).
+        """
+        from concurrent.futures import ThreadPoolExecutor
+
+        for step_id in step_ids:
+            self.engine.transition(plan, step_id, RUNNING)
+        self.store.save(plan)
+
+        bodies: dict[str, tuple[bool, str, str]] = {}
+        with ThreadPoolExecutor(
+            max_workers=len(step_ids), thread_name_prefix="voly-plan-wave"
+        ) as pool:
+            futures = {
+                pool.submit(self._run_chat_step_body, plan, plan.get_step(sid)): sid
+                for sid in step_ids
+            }
+            for future, sid in futures.items():
+                try:
+                    bodies[sid] = future.result()
+                except Exception as exc:  # noqa: BLE001
+                    bodies[sid] = (False, "", str(exc))
+
+        outcomes: dict[str, bool] = {}
+        for step_id in step_ids:  # deterministic order, not completion order
+            success, _output, error = bodies[step_id]
+            outcomes[step_id] = self._finalize_chat_step(
+                plan, step_id, success, error, run_mode=run_mode
+            )
+        return outcomes
+
+    def _run_chat_step_body(self, plan: Plan, step: PlanStep) -> tuple[bool, str, str]:
+        """Safe to call from a worker thread: mutates only this step's own
+        fields (``output`` here; ``cost_usd``/``duration_ms`` inside
+        ``_exec_chat``) — never ``plan.status`` or another PlanStep.
+        Dependencies are read-only here and already `verified` (hence no
+        longer mutated by anyone) by the time this step is runnable.
+        """
+        instruction = (step.task or plan.task or "").strip()
+        if not instruction:
+            instruction = f"Perform role={step.role} for plan {plan.plan_id}"
+        instruction = _with_dependency_context(plan, step, instruction)
+        try:
+            success, output, error = self._exec_chat(step, plan, instruction)
+        except Exception as exc:  # noqa: BLE001
+            success, output, error = False, "", str(exc)
+        step.output = (output or "")[:50_000]
+        return success, output, error
+
+    def _finalize_chat_step(
+        self, plan: Plan, step_id: str, success: bool, error: str, *, run_mode: str
+    ) -> bool:
+        """Main-thread-only tail shared by every wave member — mirrors the
+        second half of ``_run_one_step`` for a chat step. No git diffing:
+        chat mode never writes files, so ``files_touched`` is always empty
+        (unlike the sequential path, which still git-diffs a chat step for
+        parity with pre-wave behavior when it isn't part of a wave).
+        """
+        step = plan.get_step(step_id)
+        if not success:
+            self.engine.transition(plan, step_id, FAILED, error=error or "step execution failed")
+            return False
+        self.engine.mark_execution_finished(
+            plan, step_id, success=True, output=step.output, files_touched=[]
+        )
+        self.engine.advance_after_done(plan, step_id)
+        step = plan.get_step(step_id)
+        if step.status == VERIFIED:
+            return True
+        if step.status == VERIFYING:
+            return self._verify(plan, step_id, run_mode=run_mode, git_before={}, git_after={})
+        return step.status in (VERIFIED, SKIPPED)
 
     def _run_one_step(
         self,

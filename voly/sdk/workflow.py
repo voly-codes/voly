@@ -178,15 +178,16 @@ class Workflow:
         cwd: str | None = None,
         resume: bool = False,
         mode: str | None = None,
+        timeout_seconds: float | None = None,
     ) -> WorkflowResult:
         if resume:
             raise NotImplementedError(
-                "Workflow.run(resume=True) is not implemented yet — durable "
-                "resume needs Phase 3's checkpoint/plan-identification "
-                "policy. A paused node (e.g. approval=True) can already be "
-                "unblocked with voly.plan.approval.decide() and continued "
-                "via voly.plan.runner.PlanRunner.resume(plan_id); see "
-                "docs/backend/sdk.md."
+                "Workflow.run(resume=True) is not implemented — it cannot "
+                "identify which prior Plan to resume from task text alone "
+                "(plan_id is a fresh id every compile() call; only node "
+                "topology is deterministic). Use Workflow.resume(plan_id) "
+                "with the plan_id from a prior WorkflowResult.plan.plan_id "
+                "instead; see docs/backend/sdk.md."
             )
 
         plan = self.compile(task, cwd=cwd)
@@ -195,7 +196,7 @@ class Workflow:
 
         runner = PlanRunner(self.config, emit_event=False)
         run_mode = mode or "active"
-        plan_result = runner.run(plan, mode=run_mode, cwd=cwd)
+        plan_result = runner.run(plan, mode=run_mode, cwd=cwd, timeout_seconds=timeout_seconds)
         return self._build_result(plan_result)
 
     async def arun(
@@ -205,8 +206,38 @@ class Workflow:
         cwd: str | None = None,
         resume: bool = False,
         mode: str | None = None,
+        timeout_seconds: float | None = None,
     ) -> WorkflowResult:
-        return await asyncio.to_thread(self.run, task, cwd=cwd, resume=resume, mode=mode)
+        return await asyncio.to_thread(
+            self.run, task, cwd=cwd, resume=resume, mode=mode, timeout_seconds=timeout_seconds
+        )
+
+    def resume(
+        self,
+        plan_id: str,
+        *,
+        mode: str | None = None,
+        timeout_seconds: float | None = None,
+    ) -> WorkflowResult:
+        """Continue a previously compiled Plan by its ``plan_id`` (e.g. from
+        a prior ``WorkflowResult.plan.plan_id``) — the practical alternative
+        to ``run(resume=True)``, which cannot identify which Plan to resume
+        from task text alone. Recovers any step stuck in ``running`` past
+        ``workflow_sdk.stale_running_seconds`` before continuing.
+        """
+        from voly.plan.runner import PlanRunner
+
+        runner = PlanRunner(self.config, emit_event=False)
+        plan_result = runner.resume(plan_id, mode=mode, timeout_seconds=timeout_seconds)
+        return self._build_result(plan_result)
+
+    def cancel(self, plan_id: str, *, error: str = "cancelled") -> None:
+        """Mark a persisted Plan aborted. Safe to call while a run()/resume()
+        for the same plan_id is in flight elsewhere (another thread/process)
+        — it stops cooperatively between waves/steps, not mid-call."""
+        from voly.plan.runner import PlanRunner
+
+        PlanRunner(self.config, emit_event=False).cancel(plan_id, error=error)
 
     def _build_result(self, plan_result: Any) -> WorkflowResult:
         from voly.plan.types import VERIFIED

@@ -128,6 +128,12 @@ VOLY_PLAN_ENABLED=true
 VOLY_PLAN_MODE=active
 # Plan gates (Rung B). CLI: voly plan run plan.yaml
 
+VOLY_WORKFLOW_SDK_ENABLED=true
+VOLY_WORKFLOW_SDK_MAX_PARALLEL_NODES=3
+# Bounded parallel chat waves for PlanRunner/Workflow (Phase 3 of
+# docs/proposals/agent-workflow-sdk.md). Executor-mode steps always run
+# one at a time regardless of this setting — they share the Plan's cwd.
+
 VOLY_SENSING_ENABLED=false
 VOLY_SENSING_MODE=shadow
 # Layer C business-signal polling. Disabled by default. In shadow mode,
@@ -418,6 +424,18 @@ plan:
   # Extra basenames / path prefixes to skip in file_line_limit checks, on top of
   # built-in exclusions (package-lock.json, poetry.lock, node_modules/, …).
   file_line_limit_exclude_patterns: []
+
+# Bounded parallel chat waves + durable resume for PlanRunner (Phase 3 of
+# docs/proposals/agent-workflow-sdk.md; see docs/backend/sdk.md).
+workflow_sdk:
+  enabled: true              # false forces strict single-step-at-a-time regardless of Plan shape
+  max_parallel_nodes: 3      # a wave is bounded to this many concurrent mode=chat steps; 1 = sequential
+  checkpoint: true           # reserved — PlanRunner always persists after every step/wave already
+  stale_running_seconds: 900 # a step stuck in `running` this long is recovered to `failed` on resume()
+
+# Env overrides:
+#   VOLY_WORKFLOW_SDK_ENABLED=1|0
+#   VOLY_WORKFLOW_SDK_MAX_PARALLEL_NODES=<int>
 
 # Capability Registry (executor routing + EMA scores; see docs/backend/capability.md)
 capability:

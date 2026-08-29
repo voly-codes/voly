@@ -40,6 +40,7 @@ from voly.config._types import (
     SpendConfig,
     TelemetryConfig,
     VOLYConfig,
+    WorkflowSDKConfig,
 )
 
 
@@ -568,6 +569,27 @@ def _parse_config(raw: dict) -> VOLYConfig:
         m = os.environ["VOLY_PLAN_MODE"].strip().lower()
         if m in PlanConfig.VALID_MODES:
             config.plan.mode = m
+
+    if "workflow_sdk" in raw:
+        w = raw["workflow_sdk"]
+        config.workflow_sdk = WorkflowSDKConfig(
+            enabled=_parse_bool(w.get("enabled"), True),
+            max_parallel_nodes=max(1, int(w.get("max_parallel_nodes", 3) or 3)),
+            checkpoint=_parse_bool(w.get("checkpoint"), True),
+            stale_running_seconds=int(w.get("stale_running_seconds", 900) or 900),
+        )
+
+    if os.environ.get("VOLY_WORKFLOW_SDK_ENABLED", "").strip():
+        config.workflow_sdk.enabled = (
+            os.environ["VOLY_WORKFLOW_SDK_ENABLED"].strip().lower() in ("1", "true", "yes")
+        )
+    if os.environ.get("VOLY_WORKFLOW_SDK_MAX_PARALLEL_NODES", "").strip():
+        try:
+            config.workflow_sdk.max_parallel_nodes = max(
+                1, int(os.environ["VOLY_WORKFLOW_SDK_MAX_PARALLEL_NODES"].strip())
+            )
+        except ValueError:
+            pass
 
     if "capability" in raw:
         c = raw["capability"]

@@ -163,6 +163,12 @@ class PlanStep:
     # shape and leaves these at 0.0). See WorkflowResult.cost_usd.
     cost_usd: float = 0.0
     duration_ms: float = 0.0
+    # Set by PlanEngine.transition() on entry to `running` (wall-clock
+    # time.time(), not monotonic — persisted across process restarts).
+    # 0.0 means "never started" or predates this field. Used only for
+    # stale-running recovery on resume (PlanRunner._recover_stale_running_steps);
+    # not used for any duration display (that's PlanStep.duration_ms).
+    started_at: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -184,6 +190,7 @@ class PlanStep:
             "tier": self.tier,
             "cost_usd": self.cost_usd,
             "duration_ms": self.duration_ms,
+            "started_at": self.started_at,
         }
 
     @classmethod
@@ -230,6 +237,7 @@ class PlanStep:
             tier=str(data.get("tier") or ""),
             cost_usd=float(data.get("cost_usd") or 0.0),
             duration_ms=float(data.get("duration_ms") or 0.0),
+            started_at=float(data.get("started_at") or 0.0),
         )
 
 
