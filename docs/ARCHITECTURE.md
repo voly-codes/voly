@@ -300,6 +300,30 @@ RSS Signal → analyst Option → Decision Plan → human approval
 Backend guides: [`sensing.md`](backend/sensing.md) and
 [`decisions.md`](backend/decisions.md).
 
+## Public Agent/Workflow SDK
+
+Design: [`docs/proposals/agent-workflow-sdk.md`](proposals/agent-workflow-sdk.md).
+Guide: [`docs/backend/sdk.md`](backend/sdk.md).
+
+| Phase | Status | Module |
+|---|---|---|
+| PR0 | **landed** — frozen contracts, ADR | `tests/test_sdk_contracts.py`, `docs/backend/sdk.md` |
+| PR1 | **landed** — `Agent`/`AgentResult` facade | `voly/sdk/agent.py`, exported as `voly.Agent` |
+| PR2+ | not started | `Workflow`/`WorkflowResult` compiling to `Plan` |
+
+`voly.Agent` is a facade, not a second runtime: chat mode calls
+`AIGateway.chat()` (via the shared `voly.ai_gateway.gateway_from_config`
+wiring — the same one `Pipeline.gateway` builds, so DLP/spend/cache/fallback
+apply unchanged); executor mode calls `AgentRunner.run()` unchanged. No
+provider client is ever constructed under `voly/sdk/`.
+
+```python
+from voly import Agent
+
+researcher = Agent("researcher", instructions="Find verifiable facts")
+result = researcher.run("Compare two markets")
+```
+
 ### `voly/pipeline/` — central orchestrator (text path)
 
 `Pipeline.run()` → stage methods via `_PipelineStageMixin` (`stages.py`), composed from:
@@ -606,6 +630,7 @@ docs/backend/
   ai-gateway.md             ← AIGateway middleware, CF route schema, providers
   dspy.md                   ← DSPy programs, TaskPlanner, adapter, datasets
   plan.md                   ← plan gates (shadow/active, acceptance, CLI)
+  sdk.md                    ← public Agent/Workflow SDK facade over AIGateway/AgentRunner/Plan
   reuse.md                  ← voly reuse: GitHub search → pack → pick → apply
   research.md               ← offline research-first shadow decisions and benchmark
   strategic-memory.md       ← scoped compact handoffs, retrieval budgets, safe export
@@ -629,4 +654,5 @@ docs/skills.md              ← SkillRegistry, sources, auto-generation
 docs/project-scanner.md     ← ProjectScanner, ProjectProfile (core utility: voly scan, project skills, Pipeline.scan_project)
 docs/proposals/
   business-ooda-loop.md     ← draft Layer C business-signal loop and phased delivery contracts
+  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR1 landed)
 ```

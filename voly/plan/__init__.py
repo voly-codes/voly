@@ -9,6 +9,12 @@ PR5: criteria compiler + scanner suggestions + user guide.
 See ``docs/proposals/plan-gate-verification.md`` and ``docs/backend/plan.md``.
 """
 
+from voly.plan.approval import (
+    ApprovalConflictError,
+    ApprovalError,
+    ApprovalResult,
+)
+from voly.plan.approval import decide as decide_human_review
 from voly.plan.bridge import (
     assignment_step_id,
     assignments_to_plan,
@@ -59,6 +65,10 @@ from voly.plan.verify import (
 
 __all__ = [
     "AcceptanceCheck",
+    "ApprovalConflictError",
+    "ApprovalError",
+    "ApprovalResult",
+    "decide_human_review",
     "DONE",
     "FAILED",
     "IllegalTransition",

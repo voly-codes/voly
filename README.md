@@ -91,6 +91,21 @@ voly run "refactor the config loader" \
 voly ui                                     # web dashboard on :7788
 ```
 
+Or from Python — a governed chat call in under ten lines, no provider client
+involved (DLP/spend/cache/fallback apply exactly as they do for `voly run`):
+
+```python
+from voly import Agent
+
+researcher = Agent("researcher", instructions="Find verifiable facts")
+result = researcher.run("Compare two markets")
+print(result.content, result.cost_usd)
+```
+
+See [docs/backend/sdk.md](docs/backend/sdk.md) — file-writing `mode="executor"`
+agents and the `Workflow` graph builder (`docs/proposals/agent-workflow-sdk.md`)
+are the next phases.
+
 For an installed package, use `voly quickstart --cwd ~/my-project`. Add `--yes`
 to create a missing `voly.yaml` without prompting. Quickstart never installs or
 launches a third-party agent; its suggested first run uses `--dry-run`.
@@ -560,6 +575,7 @@ Windows, macOS, and Linux with Python 3.13.
 | [docs/backend/config.md](docs/backend/config.md) | voly.yaml, env vars, VOLYConfig |
 | [docs/backend/api.md](docs/backend/api.md) | FastAPI endpoints, SSE, JWT auth, CF Worker /infer |
 | [docs/backend/mcp.md](docs/backend/mcp.md) | MCP facade: the nine tools, annotations, connecting a host |
+| [docs/backend/sdk.md](docs/backend/sdk.md) | Public `Agent`/`Workflow` SDK facade over AIGateway/AgentRunner/Plan |
 | [docs/frontend/overview.md](docs/frontend/overview.md) | Svelte 5 stack, ui/ layout, dev/build |
 | [docs/frontend/components.md](docs/frontend/components.md) | UI components, props, pre-run gates |
 | [docs/frontend/api-client.md](docs/frontend/api-client.md) | UI API calls, SSE events, fallback handling |

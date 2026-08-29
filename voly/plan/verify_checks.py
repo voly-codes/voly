@@ -455,17 +455,24 @@ def _check_file_line_limit(check: AcceptanceCheck, ctx: VerifyContext) -> Verify
 
 
 def _check_human_review(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:  # noqa: ARG001
-    """Business `approve-option` steps are resolved out-of-band by
-    voly.decisions.DecisionService via POST /api/decisions/{plan_id}/feedback,
-    which transitions the step directly. Generic synchronous verification
-    (this dispatch) has no way to observe that external decision, so it fails
-    closed rather than guessing — matching the mandatory-human-checkpoint
-    invariant instead of raising an opaque "unknown check type" error.
+    """A `human_review` step is resolved out-of-band by an explicit decision —
+    voly.plan.approval.decide() for a general Plan, or
+    voly.decisions.DecisionService (business Decisions) via
+    POST /api/decisions/{plan_id}/feedback — either way something transitions
+    the step directly. Generic synchronous verification (this dispatch) has
+    no way to observe that external decision, so it fails closed rather than
+    guessing — matching the mandatory-human-checkpoint invariant instead of
+    raising an opaque "unknown check type" error. PlanRunner._verify() never
+    even reaches this for a step it itself parks in `verifying` — this
+    handler exists so any other generic caller of run_check()/verify_step()
+    gets a clear message instead of "unknown check type".
     """
     return VerifyResult(
         CHECK_HUMAN_REVIEW,
         False,
-        "human_review is resolved by DecisionService.decide(), not generic verification",
+        "human_review is resolved by an explicit decision "
+        "(voly.plan.approval.decide or voly.decisions.DecisionService), "
+        "not generic verification",
     )
 
 

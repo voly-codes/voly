@@ -106,10 +106,42 @@ voly plan show auth-refactor
 | `file_line_limit` | every changed text file is within `max_lines`; binary and generated/lock files are skipped (plus `exclude_patterns`) |
 | `output_nonempty` | agent output non-empty |
 | `output_regex` | agent output matches `pattern` |
-| `human_review` | never passes through this dispatch (see below) |
-| `action_succeeded` | never passes through this dispatch (see below) |
+| `human_review` | never passes/fails through this dispatch — resolved out-of-band (see below) |
+| `action_succeeded` | never passes/fails through this dispatch — resolved out-of-band (see below) |
 
 Unknown types **fail closed**.
+
+### General approval gates (any Plan)
+
+A step whose acceptance includes `human_review` is a pause point, not a
+synchronous check — `voly/plan/approval.py::decide(store, plan_id, step_id,
+decision, *, comment="")` is the generic primitive that resolves it, on any
+Plan (not only business Decisions): idempotent on a repeated identical
+decision, fails closed (`ApprovalConflictError`) on a conflicting one or on a
+step that hasn't reached `verifying` yet.
+
+`PlanRunner` cooperates specifically so this stays a pause instead of a
+failure:
+
+- `_verify()` special-cases `human_review`/`action_succeeded` — it never
+  routes them through `complete_verification()` (which would fail the step),
+  and critically **`mode: shadow`'s soft-open never applies to them either**:
+  shadow mode force-verifies an ordinary failed quality check, but a
+  human/action gate is not a quality signal to wave through. The step stays
+  parked in `verifying` either way.
+- `run()`'s "nothing runnable" branch distinguishes a step legitimately
+  parked in `running`/`done`/`verifying` (pause — `plan.status` stays
+  `running`) from an actual dependency deadlock (`pending` steps with no
+  in-flight work anywhere — real failure, `plan.status = failed`).
+- `resume(plan_id)` reloads the Plan from `PlanStore` and calls `run()`
+  again — no separate "paused" state to restore; once `approval.decide()`
+  moves the step to `verified`, its dependents are runnable on the next call.
+
+A step pre-seeded at `status: verifying` (an approval gate has no task of its
+own to execute — the same convention `DecisionService` uses for
+`approve-option`) is never picked up by `runnable_steps()` at all, so it hits
+the "nothing runnable" pause path immediately rather than `_verify()`; both
+paths are covered in `tests/test_plan_approval.py`.
 
 ### Business Decision plans
 
@@ -122,18 +154,16 @@ is idempotent and a conflicting decision fails closed.
 
 `human_review` and `action_succeeded` are registered `KNOWN_CHECK_TYPES` (so a
 generic caller of `run_check`/`verify_step` gets a clear message instead of
-"unknown check type"), but both are resolved out-of-band by
-`voly.decisions.DecisionService` — `decide()` transitions `approve-option`
+"unknown check type" — see the general section above for why the generic
+dispatch always reports `ok=False` for both). Business Decisions resolve them
+via `voly.decisions.DecisionService` specifically, not the generic
+`voly.plan.approval` primitive: `decide()` transitions `approve-option`
 directly from an explicit `POST /api/decisions/{plan_id}/feedback`, and
 `execute()` transitions `execute-action` directly from a real business
-Executor's result. Neither goes through `PlanRunner`/`complete_verification`,
-so the generic handlers for these two types always report `ok=False`: there is
-no synchronous evidence (`VerifyContext` has no notion of "a human approved
-this" or "the HTTP call returned 200") from which the generic dispatch could
-honestly say otherwise. `PlanRunner.run()` itself refuses `mode: business`
-steps outright (fails the step immediately, runs neither chat nor executor)
-rather than misinterpreting a business step as a chat prompt or generic
-executor task — business Plans are driven exclusively by `DecisionService`.
+Executor's result. Business Plans never run through `PlanRunner` at all —
+`PlanRunner.run()` refuses `mode: business` steps outright (fails the step
+immediately, runs neither chat nor executor) rather than misinterpreting one
+as a chat prompt or generic executor task.
 
 CLI: `voly decide list|approve|reject|execute`.
 

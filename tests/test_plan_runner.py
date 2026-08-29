@@ -248,6 +248,38 @@ def test_shadow_verify_fail_opens_gate(cfg: VOLYConfig, tmp_path: Path) -> None:
     assert result.plan.get_step("write").verify_log[0]["ok"] is False
 
 
+def test_default_chat_path_builds_a_governed_gateway(cfg: VOLYConfig, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression: PlanRunner's default _exec_chat (no injected chat_fn) used to
+    call AIGateway(self.config) directly. AIGateway.__init__ takes bare
+    constructor args (account_id/gateway_id/api_token), not a VOLYConfig — so
+    that call silently produced a gateway with self.config sitting in the
+    unrelated `provider` slot and every DLP/spend/cache/fallback setting at
+    its bare dataclass default, regardless of what the user configured. Any
+    SDK-built Workflow chat node that hits this path (no explicit chat_fn)
+    would have run fully ungoverned.
+    """
+    cfg.ai_gateway.dlp_enabled = True
+    cfg.ai_gateway.spend_limits_enabled = True
+    cfg.ai_gateway.spend_daily_budget_usd = 0.01
+
+    seen = {}
+
+    def fake_chat(self, **kwargs):
+        seen["dlp_enabled"] = self.dlp.enabled
+        seen["spend_daily_budget_usd"] = self.spend_limit.daily_budget_usd
+        return {"content": "ok"}
+
+    monkeypatch.setattr("voly.ai_gateway.gateway.AIGateway.chat", fake_chat)
+
+    plan = create_plan("chat-only", [PlanStep(id="only", mode=MODE_CHAT, task="say hi")])
+    runner = PlanRunner(cfg, emit_event=False)
+    result = runner.run(plan, mode="active")
+
+    assert result.success
+    assert seen["dlp_enabled"] is True
+    assert seen["spend_daily_budget_usd"] == 0.01
+
+
 def test_plan_config_from_yaml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     yml = tmp_path / "voly.yaml"
     yml.write_text(

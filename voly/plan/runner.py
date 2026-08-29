@@ -16,6 +16,7 @@ from voly.plan.engine import PlanEngine
 from voly.plan.loader import plan_summary
 from voly.plan.store import PlanStore
 from voly.plan.types import (
+    DONE,
     FAILED,
     MODE_BUSINESS,
     MODE_CHAT,
@@ -37,10 +38,21 @@ from voly.plan.verify import (
     all_passed,
     complete_verification,
     git_porcelain,
+    verify_step,
 )
+from voly.plan.verify_types import CHECK_ACTION_SUCCEEDED, CHECK_HUMAN_REVIEW
 from voly.telemetry import TaskEvent, emit_event_from_config, new_task_id
 
 _log = logging.getLogger("voly.plan.runner")
+
+# Acceptance types resolved out-of-band (human_review by an explicit decision
+# API call, action_succeeded by a business Executor result) — see
+# voly/plan/verify_checks.py. The synchronous dispatch these run through
+# always fails them closed, and shadow mode's soft-open must not apply to a
+# human/action gate the way it does to a quality/regression check — so
+# PlanRunner special-cases them: park the step in `verifying` rather than
+# transitioning it to `failed`, and never force it `verified`.
+_EXTERNALLY_RESOLVED_CHECK_TYPES = frozenset({CHECK_HUMAN_REVIEW, CHECK_ACTION_SUCCEEDED})
 
 # Optional injectables for tests / alternate runtimes.
 ChatFn = Callable[[PlanStep, Plan, str], tuple[bool, str, str]]
@@ -116,8 +128,17 @@ class PlanRunner:
 
                 runnable = self.engine.runnable_steps(plan)
                 if not runnable:
-                    # Done, blocked on failed deps, or stuck.
+                    # Done, blocked on failed deps, paused on an in-flight
+                    # step, or stuck.
                     if self.engine.all_steps_terminal(plan):
+                        self.engine.recompute_plan_status(plan)
+                        break
+                    if any(s.status in (RUNNING, DONE, VERIFYING) for s in plan.steps):
+                        # A step is still in flight — most notably one parked
+                        # in `verifying` awaiting an out-of-band decision
+                        # (human_review/action_succeeded, see _verify()). Not
+                        # a failure: nothing new can start right now, but a
+                        # later resume() continues once that step resolves.
                         self.engine.recompute_plan_status(plan)
                         break
                     # Pending steps with failed deps → plan failed
@@ -209,6 +230,21 @@ class PlanRunner:
             error=plan.error,
             summary=summary,
         )
+
+    def resume(self, plan_id: str, *, mode: str | None = None) -> PlanRunResult:
+        """Reload a persisted Plan and continue running it.
+
+        No special "paused" state to restore: run() always recomputes
+        runnable steps from whatever status is currently persisted. This
+        exists so a step parked in `verifying` by an externally-resolved
+        acceptance check (human_review/action_succeeded — see _verify()) has
+        a documented way back in once voly.plan.approval.decide() (or a
+        business Executor result) has moved it to verified/failed.
+        """
+        plan = self.store.load(plan_id)
+        if plan is None:
+            raise FileNotFoundError(plan_id)
+        return self.run(plan, mode=mode, cwd=plan.cwd or None)
 
     def _run_one_step(
         self,
@@ -304,14 +340,26 @@ class PlanRunner:
         git_before: dict[str, str],
         git_after: dict[str, str],
     ) -> bool:
+        step = plan.get_step(step_id)
         ctx = VerifyContext(
             cwd=plan.cwd,
-            output=plan.get_step(step_id).output,
-            files_touched=list(plan.get_step(step_id).files_touched),
+            output=step.output,
+            files_touched=list(step.files_touched),
             git_before=git_before,
             git_after=git_after,
             command_timeout=float(self.plan_cfg.command_timeout_seconds),
         )
+
+        if any(c.type in _EXTERNALLY_RESOLVED_CHECK_TYPES for c in step.acceptance):
+            # Populate verify_log for visibility but do not transition: an
+            # external decision (voly.plan.approval.decide / a business
+            # Executor result) owns this step's verifying → verified|failed
+            # move. Leaving it in `verifying` lets run() stop cleanly — a
+            # later resume() (same Plan, reloaded from the store) picks back
+            # up once that decision lands.
+            verify_step(plan, step_id, ctx)
+            return False
+
         step, results = complete_verification(
             plan, step_id, ctx, engine=self.engine
         )
@@ -338,9 +386,9 @@ class PlanRunner:
         if self.chat_fn is not None:
             return self.chat_fn(step, plan, instruction)
 
-        from voly.ai_gateway import AIGateway
+        from voly.ai_gateway import gateway_from_config
 
-        gateway = AIGateway(self.config)
+        gateway = gateway_from_config(self.config)
         system = (
             f"You are the '{step.role}' agent in a multi-step VOLY plan "
             f"(step id={step.id}). Complete only this step. Be concise."
