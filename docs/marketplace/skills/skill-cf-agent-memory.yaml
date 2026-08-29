@@ -18,20 +18,22 @@ content: |
     backend: agent_memory
     agent_memory_account_id: "${CF_ACCOUNT_ID}"
     agent_memory_namespace: voly-prod
-    agent_memory_profile: project-my-project
+    agent_memory_profile_mode: project
+    agent_memory_profile: default  # only used when mode: explicit
   ```
   ```bash
   export CF_ACCOUNT_ID=...
   export CLOUDFLARE_API_TOKEN=...  # Agent Memory permissions
   npx wrangler agent-memory namespace create voly-prod
-  voly memory status
-  voly memory summary
+  voly memory status --cwd /path/to/project
+  voly memory summary --cwd /path/to/project
   ```
 
   ## Notes
   - Dual-write: local SQLite + remote remember/recall.
   - Alternative: backend=hybrid + CF_WORKER_MEMORY_URL (D1/Vectorize Worker).
-  - Use a distinct profile per project/user/team; do not share `default` broadly.
+  - Project mode derives an isolated profile from cwd and fails closed without cwd.
+  - Use explicit mode only for an intentional shared user/team/org profile.
   - Manual conversation ingestion is available via `voly memory ingest`.
   - See the Cloudflare Agent Memory HTTP API and namespace/profile docs.
 tags:

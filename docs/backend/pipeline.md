@@ -48,6 +48,14 @@ budgeted records instead of raw history. The project must be identified through
 `cwd`, `project_cwd`, or an explicit `project_id`; otherwise no strategic
 memory is injected. See [strategic-memory.md](strategic-memory.md).
 
+With `memory.backend: agent_memory` and the default
+`agent_memory_profile_mode: project`, both `MEMORY_RETRIEVE` and
+`MEMORY_STORE` resolve an immutable Cloudflare profile from the run's `cwd`.
+The same profile is written into local SQLite metadata and applied to fallback
+queries. Runs without a project cwd skip memory instead of using a shared
+profile. A2A creates the same scoped view once per local run and shares it
+across that run's roles.
+
 Evaluated capability routing remains outside the active pipeline until the
 Phase 9 measured gate passes. The offline 20-task routing probe cannot enable
 it. See [production-validation.md](production-validation.md).

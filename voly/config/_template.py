@@ -77,6 +77,7 @@ memory:
   # Used when backend: agent_memory
   agent_memory_account_id: "${CF_ACCOUNT_ID}"
   agent_memory_namespace: "${CF_AGENT_MEMORY_NAMESPACE}"
+  agent_memory_profile_mode: project  # project | explicit
   agent_memory_profile: "${CF_AGENT_MEMORY_PROFILE}"
   strategic_compaction: false
   strategic_path: ".voly/strategic-memory.jsonl"

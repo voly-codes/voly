@@ -110,9 +110,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             port=int(p.get("port", DEFAULT_PXPIPE_PORT)),
             models=str(p.get("models", "claude-fable-5,gpt-5.6") or ""),
             auto_start=_parse_bool(p.get("auto_start"), False),
-            override_anthropic_base_url=_parse_bool(
-                p.get("override_anthropic_base_url"), False
-            ),
+            override_anthropic_base_url=_parse_bool(p.get("override_anthropic_base_url"), False),
         )
 
     if "VOLY_PXPIPE_ENABLED" in os.environ:
@@ -122,9 +120,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
     if os.environ.get("VOLY_PXPIPE_MODELS", "").strip():
         config.pxpipe.models = os.environ["VOLY_PXPIPE_MODELS"].strip()
     if "VOLY_PXPIPE_AUTO_START" in os.environ:
-        config.pxpipe.auto_start = _parse_bool(
-            os.environ.get("VOLY_PXPIPE_AUTO_START"), False
-        )
+        config.pxpipe.auto_start = _parse_bool(os.environ.get("VOLY_PXPIPE_AUTO_START"), False)
     if "VOLY_PXPIPE_OVERRIDE_BASE_URL" in os.environ:
         config.pxpipe.override_anthropic_base_url = _parse_bool(
             os.environ.get("VOLY_PXPIPE_OVERRIDE_BASE_URL"), False
@@ -139,11 +135,12 @@ def _parse_config(raw: dict) -> VOLYConfig:
             db_path=m.get("db_path", ".voly/memory.db"),
             embedding_model=m.get("embedding_model", "all-MiniLM-L6-v2"),
             max_memories=m.get("max_memories", 10000),
-            agent_memory_account_id=os.path.expandvars(
-                m.get("agent_memory_account_id", "") or ""
-            ),
+            agent_memory_account_id=os.path.expandvars(m.get("agent_memory_account_id", "") or ""),
             agent_memory_namespace=os.path.expandvars(
                 m.get("agent_memory_namespace", "voly") or "voly"
+            ),
+            agent_memory_profile_mode=str(
+                m.get("agent_memory_profile_mode", "project") or "project"
             ),
             agent_memory_profile=os.path.expandvars(
                 m.get("agent_memory_profile", "default") or "default"
@@ -151,9 +148,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             strategic_compaction=_parse_bool(m.get("strategic_compaction"), False),
             strategic_path=m.get("strategic_path", ".voly/strategic-memory.jsonl"),
             retrieval_token_budget=int(m.get("retrieval_token_budget", 600) or 600),
-            retrieval_per_class_limit=int(
-                m.get("retrieval_per_class_limit", 3) or 3
-            ),
+            retrieval_per_class_limit=int(m.get("retrieval_per_class_limit", 3) or 3),
         )
 
     if not config.memory.remote_url:
@@ -284,13 +279,16 @@ def _parse_config(raw: dict) -> VOLYConfig:
             allowed_licenses=list(
                 r.get("allowed_licenses")
                 or [
-                    "mit", "apache-2.0", "bsd-2-clause", "bsd-3-clause",
-                    "isc", "0bsd", "unlicense",
+                    "mit",
+                    "apache-2.0",
+                    "bsd-2-clause",
+                    "bsd-3-clause",
+                    "isc",
+                    "0bsd",
+                    "unlicense",
                 ]
             ),
-            deny_licenses=list(
-                r.get("deny_licenses") or ["gpl-2.0", "gpl-3.0", "agpl-3.0"]
-            ),
+            deny_licenses=list(r.get("deny_licenses") or ["gpl-2.0", "gpl-3.0", "agpl-3.0"]),
             pack_max_chars=int(r.get("pack_max_chars", 80_000) or 80_000),
             apply_dest=r.get("apply_dest", "vendor/reuse"),
             auto=_parse_bool(r.get("auto"), False),
@@ -315,12 +313,8 @@ def _parse_config(raw: dict) -> VOLYConfig:
         config.learning = LearningConfig(
             enabled=_parse_bool(learning.get("enabled"), False),
             mode=str(learning.get("mode", "shadow")),
-            store_path=str(
-                learning.get("store_path", ".voly/learning/instincts.json")
-            ),
-            min_skill_confidence=float(
-                learning.get("min_skill_confidence", 0.7) or 0.7
-            ),
+            store_path=str(learning.get("store_path", ".voly/learning/instincts.json")),
+            min_skill_confidence=float(learning.get("min_skill_confidence", 0.7) or 0.7),
         )
 
     if "hooks" in raw:
@@ -430,9 +424,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             eval_policy_version=str(e.get("eval_policy_version") or "1"),
         )
     if "VOLY_EVIDENCE_ENABLED" in os.environ:
-        config.evidence.enabled = _parse_bool(
-            os.environ.get("VOLY_EVIDENCE_ENABLED"), False
-        )
+        config.evidence.enabled = _parse_bool(os.environ.get("VOLY_EVIDENCE_ENABLED"), False)
 
     if "evaluation" in raw:
         evaluation = raw["evaluation"]
@@ -443,9 +435,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
         config.evaluation = EvaluationConfig(
             enabled=_parse_bool(evaluation.get("enabled"), False),
             policy_id=str(evaluation.get("policy_id") or "auto"),
-            command_timeout_seconds=float(
-                evaluation.get("command_timeout_seconds", 120.0)
-            ),
+            command_timeout_seconds=float(evaluation.get("command_timeout_seconds", 120.0)),
             llm_judge=LLMJudgeConfig(
                 mode=judge_mode,
                 model=str(judge.get("model") or ""),
@@ -459,15 +449,11 @@ def _parse_config(raw: dict) -> VOLYConfig:
             ),
         )
     if "VOLY_EVALUATION_ENABLED" in os.environ:
-        config.evaluation.enabled = _parse_bool(
-            os.environ.get("VOLY_EVALUATION_ENABLED"), False
-        )
+        config.evaluation.enabled = _parse_bool(os.environ.get("VOLY_EVALUATION_ENABLED"), False)
     if os.environ.get("VOLY_LLM_JUDGE_MODE", "").strip():
         env_judge_mode = os.environ["VOLY_LLM_JUDGE_MODE"].strip().lower()
         config.evaluation.llm_judge.mode = (
-            env_judge_mode
-            if env_judge_mode in {"off", "shadow", "required"}
-            else "off"
+            env_judge_mode if env_judge_mode in {"off", "shadow", "required"} else "off"
         )
 
     if "cloud" in raw:
@@ -580,8 +566,10 @@ def _parse_config(raw: dict) -> VOLYConfig:
         )
 
     if os.environ.get("VOLY_WORKFLOW_SDK_ENABLED", "").strip():
-        config.workflow_sdk.enabled = (
-            os.environ["VOLY_WORKFLOW_SDK_ENABLED"].strip().lower() in ("1", "true", "yes")
+        config.workflow_sdk.enabled = os.environ["VOLY_WORKFLOW_SDK_ENABLED"].strip().lower() in (
+            "1",
+            "true",
+            "yes",
         )
     if os.environ.get("VOLY_WORKFLOW_SDK_MAX_PARALLEL_NODES", "").strip():
         try:
@@ -602,12 +590,9 @@ def _parse_config(raw: dict) -> VOLYConfig:
             worker_url=raw_url.strip(),
             profiles_dir=c.get("profiles_dir", ".voly/capability/profiles"),
             worker_timeout_s=float(c.get("worker_timeout_s", 5.0)),
-            routing_policy=str(c.get("routing_policy") or "balanced").strip().lower()
-            or "balanced",
+            routing_policy=str(c.get("routing_policy") or "balanced").strip().lower() or "balanced",
             evaluated_enabled=_parse_bool(c.get("evaluated_enabled"), False),
-            evaluated_dir=str(
-                c.get("evaluated_dir", ".voly/capability/evaluated")
-            ),
+            evaluated_dir=str(c.get("evaluated_dir", ".voly/capability/evaluated")),
         )
     env_url = os.getenv("VOLY_CAPABILITY_WORKER_URL", "").strip()
     if env_url:
@@ -637,20 +622,22 @@ def _parse_config(raw: dict) -> VOLYConfig:
         mode = str(sensing.get("mode") or "shadow").strip().lower()
         if mode not in SensingConfig.VALID_MODES:
             mode = "shadow"
-        urgency = str(
-            sensing.get("min_urgency_for_decision") or "medium"
-        ).strip().lower()
+        urgency = str(sensing.get("min_urgency_for_decision") or "medium").strip().lower()
         if urgency not in SensingConfig.VALID_URGENCIES:
             urgency = "medium"
         connectors: list[SensingConnectorConfig] = []
         for item in sensing.get("connectors") or []:
             if not isinstance(item, dict) or not str(item.get("name") or "").strip():
                 continue
-            connectors.append(SensingConnectorConfig(
-                name=str(item["name"]).strip().lower(),
-                feeds=[str(feed).strip() for feed in (item.get("feeds") or []) if str(feed).strip()],
-                poll_interval_seconds=max(1, int(item.get("poll_interval_seconds", 900))),
-            ))
+            connectors.append(
+                SensingConnectorConfig(
+                    name=str(item["name"]).strip().lower(),
+                    feeds=[
+                        str(feed).strip() for feed in (item.get("feeds") or []) if str(feed).strip()
+                    ],
+                    poll_interval_seconds=max(1, int(item.get("poll_interval_seconds", 900))),
+                )
+            )
         config.sensing = SensingConfig(
             enabled=_parse_bool(sensing.get("enabled"), False),
             mode=mode,
@@ -659,9 +646,7 @@ def _parse_config(raw: dict) -> VOLYConfig:
             min_urgency_for_decision=urgency,
         )
     if "VOLY_SENSING_ENABLED" in os.environ:
-        config.sensing.enabled = _parse_bool(
-            os.environ.get("VOLY_SENSING_ENABLED"), False
-        )
+        config.sensing.enabled = _parse_bool(os.environ.get("VOLY_SENSING_ENABLED"), False)
     env_sensing_mode = os.environ.get("VOLY_SENSING_MODE", "").strip().lower()
     if env_sensing_mode in SensingConfig.VALID_MODES:
         config.sensing.mode = env_sensing_mode
@@ -672,8 +657,12 @@ def _parse_config(raw: dict) -> VOLYConfig:
         config.business_executors = BusinessExecutorsConfig(
             enabled=_parse_bool(business.get("enabled"), False),
             allow=[str(x) for x in (business.get("allow") or [])],
-            http_allowed_hosts=[str(x).strip().lower() for x in (http.get("allowed_hosts") or []) if str(x).strip()],
-            http_allowed_methods=[str(x).strip().upper() for x in (http.get("allowed_methods") or ["POST", "PATCH"])],
+            http_allowed_hosts=[
+                str(x).strip().lower() for x in (http.get("allowed_hosts") or []) if str(x).strip()
+            ],
+            http_allowed_methods=[
+                str(x).strip().upper() for x in (http.get("allowed_methods") or ["POST", "PATCH"])
+            ],
             http_timeout_seconds=float(http.get("timeout_seconds", 15.0)),
             http_max_response_bytes=int(http.get("max_response_bytes", 1_048_576)),
         )

@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
 
 from voly.config import A2AConfig, VOLYConfig
+from voly.memory.store import MemoryStore
 from voly.pipeline.stages import _PipelineStageMixin
 
 
 class _FakePipeline(_PipelineStageMixin):
     def __init__(self, config: VOLYConfig | None = None) -> None:
-        self.config = config or VOLYConfig(a2a=A2AConfig(enabled=True, auto_dispatch=True, min_flags_for_dispatch=2))
+        self.config = config or VOLYConfig(
+            a2a=A2AConfig(enabled=True, auto_dispatch=True, min_flags_for_dispatch=2)
+        )
         self._fired: list = []
 
     def _fire(self, stage, **kwargs):  # noqa: ANN001
@@ -82,7 +84,13 @@ def test_stage_a2a_auto_nested_returns_none() -> None:
     p = _FakePipeline()
     out = p._stage_a2a_auto(
         "task",
-        SimpleNamespace(requires_code_gen=True, requires_review=True, requires_testing=True, requires_deployment=True, complexity="high"),
+        SimpleNamespace(
+            requires_code_gen=True,
+            requires_review=True,
+            requires_testing=True,
+            requires_deployment=True,
+            complexity="high",
+        ),
         None,
         0.0,
         "tid",
@@ -97,3 +105,26 @@ def test_budget_helpers_still_importable() -> None:
 
     assert PipelineStage.DONE
     assert hasattr(_FakePipeline(), "_should_dispatch_a2a")
+
+
+def test_agent_memory_project_scope_fails_closed_without_cwd(tmp_path) -> None:
+    config = VOLYConfig()
+    config.memory.backend = "agent_memory"
+    config.memory.agent_memory_profile_mode = "project"
+    pipeline = _FakePipeline(config)
+    pipeline.memory = MemoryStore(tmp_path / "memory.db", backend="local")
+
+    assert pipeline._memory_for_context({}) is None
+
+
+def test_agent_memory_project_scope_changes_with_cwd(tmp_path) -> None:
+    config = VOLYConfig()
+    config.memory.backend = "agent_memory"
+    config.memory.agent_memory_profile_mode = "project"
+    pipeline = _FakePipeline(config)
+    pipeline.memory = MemoryStore(tmp_path / "memory.db", backend="local")
+
+    first = pipeline._memory_for_context({"cwd": str(tmp_path / "project-a")})
+    second = pipeline._memory_for_context({"cwd": str(tmp_path / "project-b")})
+
+    assert first.profile != second.profile

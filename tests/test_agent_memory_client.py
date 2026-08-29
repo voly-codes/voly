@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -91,7 +92,9 @@ def test_agent_memory_ingest_and_summary() -> None:
 
     def fake(req, timeout=30):
         captured.append(req)
-        result = {"summary": "## Project\n\nUses FastAPI"} if req.full_url.endswith("/summary") else None
+        result = (
+            {"summary": "## Project\n\nUses FastAPI"} if req.full_url.endswith("/summary") else None
+        )
         resp = MagicMock()
         resp.read.return_value = json.dumps({"success": True, "result": result}).encode()
         resp.__enter__.return_value = resp
@@ -177,10 +180,34 @@ def test_memory_store_local_backend_skips_remote(tmp_path) -> None:
     assert any(h.id == eid for h in hits)
 
 
+def test_memory_store_uses_distinct_remote_client_per_profile(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    clients: dict[str, MagicMock] = {}
+
+    def create_client(**kwargs):
+        profile = kwargs["agent_memory_profile"]
+        client = clients.setdefault(profile, MagicMock())
+        client.search.return_value = []
+        return client
+
+    monkeypatch.setattr("voly.memory.client.create_remote_memory_client", create_client)
+    store = MemoryStore(db_path=tmp_path / "m.db", backend="agent_memory")
+
+    store.scoped("project-a").search("database")
+    store.scoped("project-b").search("database")
+    store.scoped("project-a").search("cache")
+
+    assert set(clients) == {"project-a", "project-b"}
+    assert clients["project-a"].search.call_count == 2
+    assert clients["project-b"].search.call_count == 1
+
+
 def test_agent_memory_setup_cli_prints_current_wrangler_command() -> None:
     config = MagicMock()
     config.memory.agent_memory_namespace = "voly-prod"
     config.memory.agent_memory_profile = "project-a"
+    config.memory.agent_memory_profile_mode = "explicit"
 
     result = CliRunner().invoke(memory, ["agent-memory-setup"], obj={"config": config})
 
@@ -189,24 +216,46 @@ def test_agent_memory_setup_cli_prints_current_wrangler_command() -> None:
     assert "VOLY profile: project-a" in result.output
 
 
+def test_agent_memory_setup_cli_derives_project_profile(tmp_path: Path) -> None:
+    config = MagicMock()
+    config.default_cwd = ""
+    config.memory.agent_memory_namespace = "voly-prod"
+    config.memory.agent_memory_profile = "default"
+    config.memory.agent_memory_profile_mode = "project"
+
+    result = CliRunner().invoke(
+        memory,
+        ["agent-memory-setup", "--cwd", str(tmp_path / "My Project")],
+        obj={"config": config},
+    )
+
+    assert result.exit_code == 0
+    assert "VOLY profile: project-my-project-" in result.output
+    assert "unresolved" not in result.output
+
+
 def test_agent_memory_ingest_and_summary_cli(tmp_path) -> None:
     config = MagicMock()
     config.memory.backend = "agent_memory"
     config.memory.agent_memory_account_id = "acc"
     config.memory.agent_memory_namespace = "voly-prod"
     config.memory.agent_memory_profile = "project-a"
+    config.memory.agent_memory_profile_mode = "explicit"
     client = MagicMock()
     client.get_summary.return_value = "## Summary"
     conversation = tmp_path / "conversation.json"
-    conversation.write_text(json.dumps({
-        "sessionId": "run-1",
-        "messages": [{"role": "user", "content": "Use FastAPI"}],
-    }), encoding="utf-8")
+    conversation.write_text(
+        json.dumps(
+            {
+                "sessionId": "run-1",
+                "messages": [{"role": "user", "content": "Use FastAPI"}],
+            }
+        ),
+        encoding="utf-8",
+    )
 
     with patch("voly.memory.client.create_remote_memory_client", return_value=client):
-        ingested = CliRunner().invoke(
-            memory, ["ingest", str(conversation)], obj={"config": config}
-        )
+        ingested = CliRunner().invoke(memory, ["ingest", str(conversation)], obj={"config": config})
         summarized = CliRunner().invoke(
             memory, ["summary", "--session-id", "run-1"], obj={"config": config}
         )

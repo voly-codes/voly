@@ -98,21 +98,35 @@ class MemoryStore:
         self._agent_memory_namespace = agent_memory_namespace
         self._agent_memory_profile = agent_memory_profile
         self._remote_client: Any = None
+        self._remote_clients: dict[str, Any] = {}
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn: sqlite3.Connection | None = None
 
-    def _get_remote_client(self) -> Any:
-        if self._remote_client is None and self._backend != "local":
+    def _get_remote_client(self, profile: str = "") -> Any:
+        effective_profile = profile or self._agent_memory_profile
+        if self._remote_client is not None and effective_profile == self._agent_memory_profile:
+            return self._remote_client
+        if effective_profile in self._remote_clients:
+            return self._remote_clients[effective_profile]
+        if self._backend != "local":
             from voly.memory.client import create_remote_memory_client
 
-            self._remote_client = create_remote_memory_client(
+            client = create_remote_memory_client(
                 backend=self._backend,
                 remote_url=self._remote_url,
                 agent_memory_account_id=self._agent_memory_account_id,
                 agent_memory_namespace=self._agent_memory_namespace,
-                agent_memory_profile=self._agent_memory_profile,
+                agent_memory_profile=effective_profile,
             )
-        return self._remote_client
+            if client is not None:
+                self._remote_clients[effective_profile] = client
+            return client
+        return None
+
+    def scoped(self, profile: str) -> ScopedMemoryStore:
+        if not profile:
+            raise ValueError("memory profile is required")
+        return ScopedMemoryStore(self, profile)
 
     @property
     def conn(self) -> sqlite3.Connection:
@@ -131,13 +145,19 @@ class MemoryStore:
         metadata: dict[str, Any] | None = None,
         importance: float = 0.5,
         tags: list[str] | None = None,
+        memory_profile: str = "",
     ) -> str:
         import uuid
 
         if category not in self.VALID_CATEGORIES:
-            raise ValueError(f"Invalid category {category!r}. Must be one of: {self.VALID_CATEGORIES}")
+            raise ValueError(
+                f"Invalid category {category!r}. Must be one of: {self.VALID_CATEGORIES}"
+            )
 
         entry_id = uuid.uuid4().hex
+        stored_metadata = dict(metadata or {})
+        if memory_profile:
+            stored_metadata["memory_profile"] = memory_profile
         self.conn.execute(
             """INSERT INTO memories (id, category, title, content, metadata, timestamp, importance, tags)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -146,7 +166,7 @@ class MemoryStore:
                 category,
                 title,
                 content,
-                json.dumps(metadata or {}),
+                json.dumps(stored_metadata),
                 time.time(),
                 importance,
                 json.dumps(tags or []),
@@ -154,7 +174,7 @@ class MemoryStore:
         )
         self.conn.commit()
 
-        client = self._get_remote_client()
+        client = self._get_remote_client(memory_profile)
         if client:
             try:
                 client.add(
@@ -162,7 +182,7 @@ class MemoryStore:
                     content,
                     category=category,
                     tags=tags,
-                    metadata=metadata,
+                    metadata=stored_metadata,
                     importance=importance,
                     entry_id=entry_id,
                 )
@@ -185,8 +205,8 @@ class MemoryStore:
         escaped = query.replace('"', '""')
         return f'"{escaped}"'
 
-    def search(self, query: str, limit: int = 10) -> list[MemoryEntry]:
-        client = self._get_remote_client()
+    def search(self, query: str, limit: int = 10, *, memory_profile: str = "") -> list[MemoryEntry]:
+        client = self._get_remote_client(memory_profile)
         if client:
             try:
                 remote = client.search(query, limit=limit)
@@ -196,13 +216,21 @@ class MemoryStore:
                 _log.warning("remote memory search failed (%s): %s", self._backend, exc)
 
         try:
+            scope_sql = (
+                " AND json_extract(m.metadata, '$.memory_profile') = ?" if memory_profile else ""
+            )
+            params: tuple[Any, ...] = (
+                (self._sanitize_fts_query(query), memory_profile, limit)
+                if memory_profile
+                else (self._sanitize_fts_query(query), limit)
+            )
             rows = self.conn.execute(
-                """SELECT m.* FROM memories m
-                   INNER JOIN memories_fts fts ON m.rowid = fts.rowid
-                   WHERE memories_fts MATCH ?
-                   ORDER BY rank
-                   LIMIT ?""",
-                (self._sanitize_fts_query(query), limit),
+                f"""SELECT m.* FROM memories m
+                    INNER JOIN memories_fts fts ON m.rowid = fts.rowid
+                    WHERE memories_fts MATCH ?{scope_sql}
+                    ORDER BY rank
+                    LIMIT ?""",
+                params,
             ).fetchall()
         except Exception:
             rows = []
@@ -249,7 +277,9 @@ class MemoryStore:
 
     def count(self, category: str | None = None) -> int:
         if category:
-            row = self.conn.execute("SELECT COUNT(*) FROM memories WHERE category = ?", (category,)).fetchone()
+            row = self.conn.execute(
+                "SELECT COUNT(*) FROM memories WHERE category = ?", (category,)
+            ).fetchone()
         else:
             row = self.conn.execute("SELECT COUNT(*) FROM memories").fetchone()
         return row[0] if row else 0
@@ -264,9 +294,11 @@ class MemoryStore:
             self._conn.close()
             self._conn = None
 
-    def search_semantic(self, query: str, limit: int = 10) -> list[MemoryEntry]:
+    def search_semantic(
+        self, query: str, limit: int = 10, *, memory_profile: str = ""
+    ) -> list[MemoryEntry]:
         """Semantic search — CF Vectorize when remote_url set, else sentence-transformers."""
-        client = self._get_remote_client()
+        client = self._get_remote_client(memory_profile)
         if client:
             try:
                 remote = client.search(query, limit=limit)
@@ -276,9 +308,10 @@ class MemoryStore:
                 _log.warning("remote semantic search failed (%s): %s", self._backend, exc)
 
         try:
-            from sentence_transformers import SentenceTransformer, util as st_util
+            from sentence_transformers import SentenceTransformer
+            from sentence_transformers import util as st_util
         except ImportError:
-            return self.search(query, limit)
+            return self.search(query, limit, memory_profile=memory_profile)
 
         total = self.count()
         if total == 0:
@@ -286,11 +319,19 @@ class MemoryStore:
 
         # For large stores pre-filter with FTS5 to limit candidates
         if total > 1000:
-            candidates = self.search(query, limit=min(total, 200))
+            candidates = self.search(query, limit=min(total, 200), memory_profile=memory_profile)
         else:
-            rows = self.conn.execute(
-                "SELECT * FROM memories ORDER BY importance DESC, timestamp DESC LIMIT 1000"
-            ).fetchall()
+            if memory_profile:
+                rows = self.conn.execute(
+                    """SELECT * FROM memories
+                       WHERE json_extract(metadata, '$.memory_profile') = ?
+                       ORDER BY importance DESC, timestamp DESC LIMIT 1000""",
+                    (memory_profile,),
+                ).fetchall()
+            else:
+                rows = self.conn.execute(
+                    "SELECT * FROM memories ORDER BY importance DESC, timestamp DESC LIMIT 1000"
+                ).fetchall()
             candidates = [self._row_to_entry(r) for r in rows]
 
         if not candidates:
@@ -302,7 +343,7 @@ class MemoryStore:
         corpus_emb = model.encode(texts, convert_to_tensor=True)
         scores = st_util.cos_sim(query_emb, corpus_emb)[0].tolist()
 
-        ranked = sorted(zip(scores, candidates), key=lambda x: x[0], reverse=True)
+        ranked = sorted(zip(scores, candidates, strict=True), key=lambda x: x[0], reverse=True)
         return [entry for _, entry in ranked[:limit]]
 
     def _remote_to_entry(self, row: dict[str, Any]) -> MemoryEntry:
@@ -328,3 +369,20 @@ class MemoryStore:
             importance=row["importance"],
             tags=json.loads(row["tags"]),
         )
+
+
+class ScopedMemoryStore:
+    """Immutable per-run view over one local/remote memory profile."""
+
+    def __init__(self, store: MemoryStore, profile: str) -> None:
+        self.store = store
+        self.profile = profile
+
+    def add(self, title: str, content: str, **kwargs: Any) -> str:
+        return self.store.add(title, content, memory_profile=self.profile, **kwargs)
+
+    def search(self, query: str, limit: int = 10) -> list[MemoryEntry]:
+        return self.store.search(query, limit, memory_profile=self.profile)
+
+    def search_semantic(self, query: str, limit: int = 10) -> list[MemoryEntry]:
+        return self.store.search_semantic(query, limit, memory_profile=self.profile)

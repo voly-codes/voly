@@ -544,8 +544,9 @@ memory:
   # (token needs Agent Memory permissions).
   agent_memory_account_id: "${CF_ACCOUNT_ID}"
   agent_memory_namespace: voly-prod
-  # Do not use one shared `default` profile in multi-project/team environments.
-  agent_memory_profile: project-my-project
+  agent_memory_profile_mode: project  # project | explicit
+  # Used only in explicit mode. Do not share `default` across projects/tenants.
+  agent_memory_profile: default
   strategic_compaction: false
   strategic_path: .voly/strategic-memory.jsonl
   retrieval_token_budget: 600
@@ -576,22 +577,30 @@ voly memory agent-memory-setup
 
 `namespace` separates an application/environment or memory layer. `profile`
 is the isolation boundary for a project, user, team, tenant, agent, or other
-entity. A shared `default` profile can leak context between projects, so use an
-explicit scoped value until automatic profile derivation is implemented.
+entity. The default `agent_memory_profile_mode: project` derives a stable
+`project-<directory>-<path-hash>` profile from the resolved `cwd`. Without
+`cwd` it fails closed: no remote or local project-memory retrieval/store occurs.
+The local SQLite fallback is filtered by the same profile, so a remote outage
+cannot expose another project's rows.
+
+Use `agent_memory_profile_mode: explicit` only when the caller intentionally
+shares a profile (for example a team or organization). In that mode
+`agent_memory_profile` is used verbatim and must fit Cloudflare's 100-character
+profile-name limit.
 
 ```bash
 export CF_ACCOUNT_ID=...
 export CLOUDFLARE_API_TOKEN=...  # token with Agent Memory permissions
-voly memory status
-voly memory search "project architecture decisions"
-voly memory ingest conversation.json --session-id run-123
-voly memory summary --session-id run-123
+voly memory status --cwd /path/to/project
+voly memory search "project architecture decisions" --cwd /path/to/project
+voly memory ingest conversation.json --session-id run-123 --cwd /path/to/project
+voly memory summary --session-id run-123 --cwd /path/to/project
 ```
 
 `conversation.json` is either a JSON message list or
 `{"sessionId":"...","messages":[...]}`. VOLY caps manual ingestion at 1 MB
 and 500 messages. It does not automatically ingest every model turn; automatic
-checkpoint ingestion and dynamic project/user/org profiles are separate rollout
+checkpoint ingestion and user/org multi-profile retrieval are separate rollout
 steps. `strategic_compaction: true` continues to use the local typed strategic
 store rather than Agent Memory.
 

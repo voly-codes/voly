@@ -25,9 +25,7 @@ class _ContextStageMixin:
             cwd = str(context.get("cwd") or context.get("project_cwd") or "").strip()
             if not cwd:
                 return []
-            path = Path(
-                getattr(memory_config, "strategic_path", ".voly/strategic-memory.jsonl")
-            )
+            path = Path(getattr(memory_config, "strategic_path", ".voly/strategic-memory.jsonl"))
             if not path.is_absolute():
                 path = Path(cwd) / path
             project_id = str(context.get("project_id") or project_scope_id(cwd))
@@ -36,9 +34,7 @@ class _ContextStageMixin:
                 project_id=project_id,
                 organization_id=str(context.get("organization_id") or ""),
                 token_budget=getattr(memory_config, "retrieval_token_budget", 600),
-                per_class_limit=getattr(
-                    memory_config, "retrieval_per_class_limit", 3
-                ),
+                per_class_limit=getattr(memory_config, "retrieval_per_class_limit", 3),
             )
             messages = [
                 {
@@ -52,7 +48,10 @@ class _ContextStageMixin:
             ]
             self._fire(PipelineStage.MEMORY_RETRIEVE, hits=memories)  # type: ignore[attr-defined]
             return messages
-        memory_results = self.memory.search(task, limit=5)  # type: ignore[attr-defined]
+        memory = self._memory_for_context(context)
+        if memory is None:
+            return []
+        memory_results = memory.search(task, limit=5)
         messages = [
             {"role": "user", "content": f"[MEMORY: {m.category}] {m.title}: {m.content}"}
             for m in memory_results
@@ -60,8 +59,30 @@ class _ContextStageMixin:
         self._fire(PipelineStage.MEMORY_RETRIEVE, hits=memory_results)  # type: ignore[attr-defined]
         return messages
 
-    def _stage_memory_store(self, task: str, response: Any, route: Any) -> None:
-        self.memory.add(  # type: ignore[attr-defined]
+    def _memory_for_context(self, context: dict[str, Any] | None = None) -> Any:
+        """Return an immutable per-run memory view for Agent Memory."""
+        memory = self.memory  # type: ignore[attr-defined]
+        memory_config = self.config.memory  # type: ignore[attr-defined]
+        if str(getattr(memory_config, "backend", "")).lower() != "agent_memory":
+            return memory
+        from voly.memory.scope import resolve_memory_profile
+
+        context = context or {}
+        cwd = str(context.get("cwd") or context.get("project_cwd") or "").strip()
+        profile = resolve_memory_profile(
+            getattr(memory_config, "agent_memory_profile", "default"),
+            mode=getattr(memory_config, "agent_memory_profile_mode", "project"),
+            cwd=cwd,
+        )
+        return memory.scoped(profile) if profile else None
+
+    def _stage_memory_store(
+        self, task: str, response: Any, route: Any, context: dict[str, Any] | None = None
+    ) -> None:
+        memory = self._memory_for_context(context)
+        if memory is None:
+            return
+        memory.add(
             title=f"Task: {task[:100]}",
             content=response.content[:2000],
             category="history",
@@ -103,14 +124,20 @@ class _ContextStageMixin:
         pipeline never fails because of a marketplace connectivity issue.
         Emits SKILL_SUGGEST with the suggestions list for the UI to handle.
         """
-        marketplace_url = getattr(
-            getattr(self.config, "registry", None), "marketplace_url", ""  # type: ignore[attr-defined]
-        ) or ""
+        marketplace_url = (
+            getattr(
+                getattr(self.config, "registry", None),
+                "marketplace_url",
+                "",  # type: ignore[attr-defined]
+            )
+            or ""
+        )
         if not marketplace_url:
             return []
 
         try:
             from voly.registry.scout import SkillScout
+
             scout = SkillScout(self.skill_registry, marketplace_url)  # type: ignore[attr-defined]
             suggestions = scout.find_missing(task)
         except Exception:
@@ -121,9 +148,7 @@ class _ContextStageMixin:
 
         return suggestions
 
-    def _stage_skill_inject(
-        self, task: str, agent_name: str | None
-    ) -> tuple[list[str], str]:
+    def _stage_skill_inject(self, task: str, agent_name: str | None) -> tuple[list[str], str]:
         """Match installed skills and build a system-prompt block.
 
         Returns (skill_ids, prompt_addition). Both empty when nothing matches.

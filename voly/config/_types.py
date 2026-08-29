@@ -91,6 +91,7 @@ class MemoryConfig:
     # Cloudflare Agent Memory (backend=agent_memory)
     agent_memory_account_id: str = ""
     agent_memory_namespace: str = "voly"
+    agent_memory_profile_mode: str = "project"
     # Explicit project/user/org scope is recommended; "default" is only a
     # backwards-compatible single-profile fallback.
     agent_memory_profile: str = "default"
@@ -187,17 +188,29 @@ class ReuseConfig:
     reports_dir: str = ".voly/reuse/reports"
     max_repos: int = 5
     min_stars: int = 20
-    allowed_licenses: list[str] = field(default_factory=lambda: [
-        "mit", "apache-2.0", "bsd-2-clause", "bsd-3-clause", "isc", "0bsd", "unlicense",
-    ])
-    deny_licenses: list[str] = field(default_factory=lambda: [
-        "gpl-2.0", "gpl-3.0", "agpl-3.0",
-    ])
+    allowed_licenses: list[str] = field(
+        default_factory=lambda: [
+            "mit",
+            "apache-2.0",
+            "bsd-2-clause",
+            "bsd-3-clause",
+            "isc",
+            "0bsd",
+            "unlicense",
+        ]
+    )
+    deny_licenses: list[str] = field(
+        default_factory=lambda: [
+            "gpl-2.0",
+            "gpl-3.0",
+            "agpl-3.0",
+        ]
+    )
     pack_max_chars: int = 80_000
     apply_dest: str = "vendor/reuse"
-    auto: bool = False              # auto-run search+pick before each executor call
+    auto: bool = False  # auto-run search+pick before each executor call
     auto_max_age_seconds: int = 7 * 24 * 3600  # skip if fresh report exists
-    auto_max_repos: int = 3         # smaller limit to keep latency low
+    auto_max_repos: int = 3  # smaller limit to keep latency low
 
 
 @dataclass
@@ -242,7 +255,7 @@ class AIGatewayConfig:
     # Layer-A delegation: route non-CF calls through one external gateway
     # (e.g. "omniroute") first; direct adapters are the fallback. Empty = off.
     upstream: str = ""
-    upstream_model: str = ""            # override model sent upstream ("auto" = OmniRoute auto-combo)
+    upstream_model: str = ""  # override model sent upstream ("auto" = OmniRoute auto-combo)
     upstream_fallback_direct: bool = True
     # BYOK (Store Keys): provider API keys live in CF Secrets Store, the
     # gateway resolves them per request (docs/backend/ai-gateway.md § BYOK).
@@ -305,11 +318,11 @@ class CloudConfig:
     """
 
     enabled: bool = False
-    base_url: str = ""      # control plane, e.g. http://127.0.0.1:7790
+    base_url: str = ""  # control plane, e.g. http://127.0.0.1:7790
     tenant_id: str = ""
-    token: str = ""         # prefer env VOLY_CLOUD_TOKEN over yaml
-    user_id: str = ""       # optional attribution shown in the org timeline
-    device_id: str = ""     # AgentDevice id — required for heartbeat / runs/report
+    token: str = ""  # prefer env VOLY_CLOUD_TOKEN over yaml
+    user_id: str = ""  # optional attribution shown in the org timeline
+    device_id: str = ""  # AgentDevice id — required for heartbeat / runs/report
     timeout_seconds: float = 5.0
 
 
@@ -480,9 +493,7 @@ class DSPyConfig:
         if provider and not model:
             raise ValueError("DSPyConfig: provider is set but model is empty")
         if mode not in cls.VALID_MODES:
-            raise ValueError(
-                f"DSPyConfig: mode must be one of {cls.VALID_MODES}, got {mode!r}"
-            )
+            raise ValueError(f"DSPyConfig: mode must be one of {cls.VALID_MODES}, got {mode!r}")
         return True
 
 
@@ -577,10 +588,11 @@ class VOLYConfig:
     business_executors: BusinessExecutorsConfig = field(default_factory=BusinessExecutorsConfig)
     default_model: str = "kimi-k3"
     default_agent: str = "kimi"
-    default_cwd: str = ""   # VOLY_PROJECT_CWD or voly.yaml: default_cwd
+    default_cwd: str = ""  # VOLY_PROJECT_CWD or voly.yaml: default_cwd
 
     def get_model_config(self, name: str | None = None) -> ModelConfig:
         from voly.config._defaults import _DEFAULT_MODELS
+
         name = name or self.default_model
         if name in self.models:
             return self.models[name]

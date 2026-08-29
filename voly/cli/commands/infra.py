@@ -1,4 +1,5 @@
 """Infrastructure CLI groups: memory, rtk, headroom, pxpipe, mcp."""
+
 from __future__ import annotations
 
 import json
@@ -8,6 +9,7 @@ from pathlib import Path
 import click
 
 # ── Memory ────────────────────────────────────────────────────────────────────
+
 
 @click.group()
 def memory() -> None:
@@ -43,8 +45,9 @@ def memory_list(ctx: click.Context, category: str | None, limit: int) -> None:
 
 
 @memory.command("status")
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=None)
 @click.pass_context
-def memory_status(ctx: click.Context) -> None:
+def memory_status(ctx: click.Context, cwd: Path | None) -> None:
     """Show remote memory backend status (Worker or Agent Memory)."""
     from voly.memory.client import create_remote_memory_client
 
@@ -56,13 +59,17 @@ def memory_status(ctx: click.Context) -> None:
     if (mem.backend or "").lower() == "local":
         return
 
-    client = create_remote_memory_client(
-        backend=mem.backend,
-        remote_url=mem.remote_url,
-        agent_memory_account_id=mem.agent_memory_account_id,
-        agent_memory_namespace=mem.agent_memory_namespace,
-        agent_memory_profile=mem.agent_memory_profile,
-    )
+    if (mem.backend or "").lower() == "agent_memory":
+        try:
+            client = _configured_agent_memory_client(ctx, cwd=str(cwd or ""))
+        except click.ClickException as exc:
+            click.echo(str(exc), err=True)
+            return
+    else:
+        client = create_remote_memory_client(
+            backend=mem.backend,
+            remote_url=mem.remote_url,
+        )
     if not client:
         if (mem.backend or "").lower() == "agent_memory":
             click.echo("Agent Memory not configured (set CF_ACCOUNT_ID + API token).")
@@ -83,17 +90,32 @@ def memory_status(ctx: click.Context) -> None:
         click.echo(f"Namespace: {health['namespace']} / profile: {health.get('profile')}")
 
 
-def _configured_agent_memory_client(ctx: click.Context):  # type: ignore[no-untyped-def]
+def _agent_memory_profile(config, cwd: str = "") -> str:  # type: ignore[no-untyped-def]
+    from voly.memory.scope import resolve_memory_profile
+
+    mem = config.memory
+    project_cwd = cwd or str(getattr(config, "default_cwd", "") or "")
+    return resolve_memory_profile(
+        mem.agent_memory_profile,
+        mode=getattr(mem, "agent_memory_profile_mode", "project"),
+        cwd=project_cwd,
+    )
+
+
+def _configured_agent_memory_client(ctx: click.Context, *, cwd: str = ""):  # type: ignore[no-untyped-def]
     from voly.memory.client import create_remote_memory_client
 
     mem = ctx.obj["config"].memory
     if (mem.backend or "").lower() != "agent_memory":
         raise click.ClickException("memory.backend must be agent_memory")
+    profile = _agent_memory_profile(ctx.obj["config"], cwd)
+    if not profile:
+        raise click.ClickException("project-scoped Agent Memory requires --cwd or default_cwd")
     client = create_remote_memory_client(
         backend=mem.backend,
         agent_memory_account_id=mem.agent_memory_account_id,
         agent_memory_namespace=mem.agent_memory_namespace,
-        agent_memory_profile=mem.agent_memory_profile,
+        agent_memory_profile=profile,
     )
     if client is None:
         raise click.ClickException(
@@ -103,14 +125,18 @@ def _configured_agent_memory_client(ctx: click.Context):  # type: ignore[no-unty
 
 
 @memory.command("agent-memory-setup")
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=None)
 @click.pass_context
-def memory_agent_memory_setup(ctx: click.Context) -> None:
+def memory_agent_memory_setup(ctx: click.Context, cwd: Path | None) -> None:
     """Print the Wrangler command and VOLY scope selected for Agent Memory."""
     mem = ctx.obj["config"].memory
     namespace = mem.agent_memory_namespace or "voly"
-    profile = mem.agent_memory_profile or "default"
+    profile = _agent_memory_profile(ctx.obj["config"], str(cwd or ""))
     command = shlex.join(["npx", "wrangler", "agent-memory", "namespace", "create", namespace])
     click.echo(command)
+    if not profile:
+        click.echo("VOLY profile: unresolved (pass --cwd or configure default_cwd)")
+        return
     click.echo(f"VOLY profile: {profile}")
     if profile == "default":
         click.echo(
@@ -122,8 +148,11 @@ def memory_agent_memory_setup(ctx: click.Context) -> None:
 @memory.command("ingest")
 @click.argument("conversation", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("--session-id", default="", help="Stable conversation/run identifier")
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=None)
 @click.pass_context
-def memory_ingest(ctx: click.Context, conversation: Path, session_id: str) -> None:
+def memory_ingest(
+    ctx: click.Context, conversation: Path, session_id: str, cwd: Path | None
+) -> None:
     """Ingest a bounded JSON conversation into the configured profile."""
     if conversation.stat().st_size > 1_000_000:
         raise click.ClickException("conversation file exceeds 1 MB")
@@ -140,7 +169,9 @@ def memory_ingest(ctx: click.Context, conversation: Path, session_id: str) -> No
     if not effective_session and isinstance(payload, dict):
         effective_session = str(payload.get("sessionId") or payload.get("session_id") or "")
     try:
-        _configured_agent_memory_client(ctx).ingest(messages, session_id=effective_session)
+        _configured_agent_memory_client(ctx, cwd=str(cwd or "")).ingest(
+            messages, session_id=effective_session
+        )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     click.echo(f"ingested: {len(messages)} messages")
@@ -148,18 +179,22 @@ def memory_ingest(ctx: click.Context, conversation: Path, session_id: str) -> No
 
 @memory.command("summary")
 @click.option("--session-id", default="", help="Scope the Last Session summary")
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=None)
 @click.pass_context
-def memory_summary(ctx: click.Context, session_id: str) -> None:
+def memory_summary(ctx: click.Context, session_id: str, cwd: Path | None) -> None:
     """Print Cloudflare's Markdown summary for the configured profile."""
-    summary = _configured_agent_memory_client(ctx).get_summary(session_id=session_id)
+    summary = _configured_agent_memory_client(ctx, cwd=str(cwd or "")).get_summary(
+        session_id=session_id
+    )
     click.echo(summary or "(empty profile summary)")
 
 
 @memory.command("search")
 @click.argument("query")
 @click.option("--limit", "-n", default=10)
+@click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=None)
 @click.pass_context
-def memory_search(ctx: click.Context, query: str, limit: int) -> None:
+def memory_search(ctx: click.Context, query: str, limit: int, cwd: Path | None) -> None:
     """Search memory entries."""
     from voly.memory.store import MemoryStore
 
@@ -173,7 +208,14 @@ def memory_search(ctx: click.Context, query: str, limit: int) -> None:
         agent_memory_namespace=mem.agent_memory_namespace,
         agent_memory_profile=mem.agent_memory_profile,
     )
-    results = store.search_semantic(query, limit)
+    if (mem.backend or "").lower() == "agent_memory":
+        profile = _agent_memory_profile(config, str(cwd or ""))
+        if not profile:
+            store.close()
+            raise click.ClickException("project-scoped Agent Memory requires --cwd or default_cwd")
+        results = store.scoped(profile).search_semantic(query, limit)
+    else:
+        results = store.search_semantic(query, limit)
     for entry in results:
         click.echo(f"[{entry.category}] {entry.title}")
         click.echo(f"  {entry.content[:120]}...")
@@ -228,8 +270,7 @@ def memory_context(
     for item in memories:
         marker = " contradiction" if item.contradicts else ""
         click.echo(
-            f"[{item.memory_class.value}/{item.kind.value}{marker}] "
-            f"{item.title}: {item.content}"
+            f"[{item.memory_class.value}/{item.kind.value}{marker}] {item.title}: {item.content}"
         )
 
 
@@ -237,9 +278,7 @@ def memory_context(
 @click.option("--cwd", type=click.Path(file_okay=False, path_type=Path), default=Path("."))
 @click.option("--project-id", default="")
 @click.pass_context
-def memory_export(
-    ctx: click.Context, cwd: Path, project_id: str
-) -> None:
+def memory_export(ctx: click.Context, cwd: Path, project_id: str) -> None:
     """Export non-private strategic memories as JSON."""
     from voly.memory.strategic import StrategicMemoryStore, project_scope_id
 
@@ -247,13 +286,12 @@ def memory_export(
     path = Path(config.strategic_path)
     if not path.is_absolute():
         path = cwd / path
-    payload = StrategicMemoryStore(path).export(
-        project_id=project_id or project_scope_id(cwd)
-    )
+    payload = StrategicMemoryStore(path).export(project_id=project_id or project_scope_id(cwd))
     click.echo(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
 # ── RTK ───────────────────────────────────────────────────────────────────────
+
 
 @click.group()
 def rtk() -> None:
@@ -291,6 +329,7 @@ def rtk_stats(ctx: click.Context) -> None:
 
 
 # ── Headroom ──────────────────────────────────────────────────────────────────
+
 
 @click.group()
 def headroom() -> None:
@@ -341,6 +380,7 @@ def headroom_status(ctx: click.Context) -> None:
 
 
 # ── pxpipe ────────────────────────────────────────────────────────────────────
+
 
 @click.group()
 def pxpipe() -> None:
@@ -396,6 +436,7 @@ def pxpipe_status(ctx: click.Context) -> None:
 
 
 # ── MCP ───────────────────────────────────────────────────────────────────────
+
 
 @click.group()
 def mcp() -> None:
@@ -455,7 +496,7 @@ def mcp_serve(ctx: click.Context, host: str, port: int, transport: str) -> None:
         from voly.mcp.server import build_server, serve
     except ImportError as exc:
         raise click.ClickException(
-            f"MCP SDK not installed ({exc}). Install it with: pip install -e \".[mcp]\""
+            f'MCP SDK not installed ({exc}). Install it with: pip install -e ".[mcp]"'
         ) from exc
 
     if transport != "stdio":

@@ -58,16 +58,18 @@ class _A2AStageMixin:
     def _should_dispatch_a2a(self, analysis: Any, *, nested: bool = False) -> bool:
         if nested:
             return False
-        if not self.config.a2a.enabled or not getattr(self.config.a2a, 'auto_dispatch', True):
+        if not self.config.a2a.enabled or not getattr(self.config.a2a, "auto_dispatch", True):
             return False
-        flags = sum([
-            bool(getattr(analysis, 'requires_code_gen', False)),
-            bool(getattr(analysis, 'requires_review', False)),
-            bool(getattr(analysis, 'requires_testing', False)),
-            bool(getattr(analysis, 'requires_deployment', False)),
-        ])
-        min_flags = getattr(self.config.a2a, 'min_flags_for_dispatch', 2)
-        return flags >= min_flags or getattr(analysis, 'complexity', '') == 'high'
+        flags = sum(
+            [
+                bool(getattr(analysis, "requires_code_gen", False)),
+                bool(getattr(analysis, "requires_review", False)),
+                bool(getattr(analysis, "requires_testing", False)),
+                bool(getattr(analysis, "requires_deployment", False)),
+            ]
+        )
+        min_flags = getattr(self.config.a2a, "min_flags_for_dispatch", 2)
+        return flags >= min_flags or getattr(analysis, "complexity", "") == "high"
 
     def _stage_a2a_auto(
         self,
@@ -98,24 +100,30 @@ class _A2AStageMixin:
 
         # Local mode: a strong lead orchestrator assigns model tier + skills per
         # sub-agent, then each runs in-process via AIGateway.chat(). No federation.
-        if getattr(self.config.a2a, 'execution_mode', 'local') == 'local':
+        if getattr(self.config.a2a, "execution_mode", "local") == "local":
             return self._run_multiagent_local(
-                task, subtasks, agui_session_id, started, task_id,
+                task,
+                subtasks,
+                agui_session_id,
+                started,
+                task_id,
                 analysis=analysis,
                 project_cwd=project_cwd,
                 task_features=task_features,
             )
 
-        timeout = getattr(self.config.a2a, 'task_timeout_seconds', 120.0)  # type: ignore[attr-defined]
+        timeout = getattr(self.config.a2a, "task_timeout_seconds", 120.0)  # type: ignore[attr-defined]
         a2a_tasks = self.a2a.dispatch_parallel(subtasks, timeout_seconds=timeout)  # type: ignore[attr-defined]
         self._fire(PipelineStage.A2A_DELEGATE, a2a_tasks=a2a_tasks)  # type: ignore[attr-defined]
 
         # Poll until all tasks complete or timeout
         import logging as _logging
+
         _poll_log = _logging.getLogger(_PIPELINE_LOGGER_NAME)
         poll_deadline = _time.monotonic() + timeout
         poll_interval = 3.0
         from voly.a2a import TaskState as _TaskState
+
         terminal = {_TaskState.COMPLETED, _TaskState.FAILED, _TaskState.CANCELLED}
         while _time.monotonic() < poll_deadline:
             pending = [t for t in a2a_tasks if t.state not in terminal]
@@ -125,8 +133,12 @@ class _A2AStageMixin:
             _time.sleep(poll_interval)
             for t in pending:
                 updated = self.a2a.collect_results(t)  # type: ignore[attr-defined]
-                _poll_log.debug("A2A poll task_id=%s agent=%s state=%s",
-                                t.id, t.metadata.get('agent'), updated.state)
+                _poll_log.debug(
+                    "A2A poll task_id=%s agent=%s state=%s",
+                    t.id,
+                    t.metadata.get("agent"),
+                    updated.state,
+                )
         else:
             _poll_log.warning("A2A polling timed out after %.0fs", timeout)
 
@@ -137,40 +149,43 @@ class _A2AStageMixin:
         # (mirrors evaluate_multiagent_outcome on the local path).
         completed_tasks = [t for t in a2a_tasks if t.state == _TaskState.COMPLETED]
         fed_success = bool(a2a_tasks) and len(completed_tasks) == len(a2a_tasks)
-        fed_status = (
-            'completed' if fed_success
-            else ('partial' if completed_tasks else 'failed')
-        )
+        fed_status = "completed" if fed_success else ("partial" if completed_tasks else "failed")
 
         # Build and save report
-        reports_dir = getattr(self.config.telemetry, 'events_dir', '.voly/events')  # type: ignore[attr-defined]
+        reports_dir = getattr(self.config.telemetry, "events_dir", ".voly/events")  # type: ignore[attr-defined]
         report = A2AReport.from_a2a_tasks(task_id, task, a2a_tasks, merged, duration_ms)
         try:
-            saved = report.save(__import__('pathlib').Path(reports_dir).parent)
-            import logging; logging.getLogger(_PIPELINE_LOGGER_NAME).info('A2A report saved: %s', saved)
-        except Exception as e:
-            import logging; logging.getLogger(_PIPELINE_LOGGER_NAME).warning('A2A report save failed: %s', e)
+            saved = report.save(__import__("pathlib").Path(reports_dir).parent)
+            import logging
 
-        agents_used = [t.metadata.get('agent', 'unknown') for t in a2a_tasks]
-        route = RouteDecision(agent='a2a', model='multi-agent', provider='a2a', routing_score=0.9)
+            logging.getLogger(_PIPELINE_LOGGER_NAME).info("A2A report saved: %s", saved)
+        except Exception as e:
+            import logging
+
+            logging.getLogger(_PIPELINE_LOGGER_NAME).warning("A2A report save failed: %s", e)
+
+        agents_used = [t.metadata.get("agent", "unknown") for t in a2a_tasks]
+        route = RouteDecision(agent="a2a", model="multi-agent", provider="a2a", routing_score=0.9)
 
         # Create a fake InferenceResponse-like object for PipelineResult
         class _FakeUsage:
             input_tokens = 0
             output_tokens = 0
+
         class _FakeResponse:
             content = merged
-            model = 'a2a'
+            model = "a2a"
             usage = _FakeUsage()
 
         # Emit telemetry event
         from voly.telemetry import TaskEvent, emit_event_from_config
+
         ev = TaskEvent(
             task_id=task_id,
-            agent='a2a',
+            agent="a2a",
             status=fed_status,
-            model='multi-agent',
-            executor='a2a',
+            model="multi-agent",
+            executor="a2a",
             duration_ms=duration_ms,
             a2a_dispatched=True,
             a2a_subtask_count=len(subtasks),
@@ -186,7 +201,7 @@ class _A2AStageMixin:
             response=_FakeResponse(),
             route=route,
             a2a_tasks=a2a_tasks,
-            agui_session_id=agui_session_id or '',
+            agui_session_id=agui_session_id or "",
             duration_ms=duration_ms,
             event=ev,
         )
@@ -231,9 +246,7 @@ class _A2AStageMixin:
                 )
                 project_context = {
                     "task_features": list(task_features or []),
-                    "routing_policy": str(
-                        getattr(cap_cfg, "routing_policy", None) or "balanced"
-                    ),
+                    "routing_policy": str(getattr(cap_cfg, "routing_policy", None) or "balanced"),
                 }
             except Exception:  # noqa: BLE001
                 matcher = None
@@ -242,9 +255,9 @@ class _A2AStageMixin:
         lead = LeadOrchestrator(
             gateway=self.gateway,  # type: ignore[attr-defined]
             skill_matcher=self.match_skills_for_task,  # type: ignore[attr-defined]
-            lead_model=getattr(self.config.a2a, 'lead_model', ''),  # type: ignore[attr-defined]
-            lead_mode=getattr(self.config.a2a, 'lead_mode', 'auto') or 'auto',  # type: ignore[attr-defined]
-            role_tiers=dict(getattr(self.config.a2a, 'role_tiers', None) or {}),  # type: ignore[attr-defined]
+            lead_model=getattr(self.config.a2a, "lead_model", ""),  # type: ignore[attr-defined]
+            lead_mode=getattr(self.config.a2a, "lead_mode", "auto") or "auto",  # type: ignore[attr-defined]
+            role_tiers=dict(getattr(self.config.a2a, "role_tiers", None) or {}),  # type: ignore[attr-defined]
             matcher=matcher,
             project_context=project_context,
         )
@@ -256,8 +269,6 @@ class _A2AStageMixin:
         # Savings on the multi-agent path: deterministic (temp=0) → gateway cache
         # hits on repeat; semantic memory injected/stored per sub-agent; optional
         # Headroom compression when the proxy is running.
-        memory = self.memory if self.config.memory.enabled else None  # type: ignore[attr-defined]
-
         # Rung A resilience: heartbeat a RunRecord per sub-agent so a watchdog can
         # spot a chain that crashed/hung mid-flight (TaskEvent only fires at the end).
         tracker = None
@@ -278,6 +289,19 @@ class _A2AStageMixin:
         )
         if cwd:
             cwd = os.path.expanduser(cwd)
+        memory = None
+        if self.config.memory.enabled:  # type: ignore[attr-defined]
+            if str(getattr(self.config.memory, "backend", "")).lower() == "agent_memory":  # type: ignore[attr-defined]
+                from voly.memory.scope import resolve_memory_profile
+
+                profile = resolve_memory_profile(
+                    getattr(self.config.memory, "agent_memory_profile", "default"),  # type: ignore[attr-defined]
+                    mode=getattr(self.config.memory, "agent_memory_profile_mode", "project"),  # type: ignore[attr-defined]
+                    cwd=cwd,
+                )
+                memory = self.memory.scoped(profile) if profile else None  # type: ignore[attr-defined]
+            else:
+                memory = self.memory  # type: ignore[attr-defined]
         requires_code_gen = bool(
             getattr(analysis, "requires_code_gen", True) if analysis is not None else True
         )
@@ -309,9 +333,14 @@ class _A2AStageMixin:
             except Exception:  # noqa: BLE001
                 pass
         run_local(
-            task, assignments, self.gateway, self.match_skills_for_task,  # type: ignore[attr-defined]
-            memory=memory, headroom=getattr(self, 'headroom_mgr', None),
-            task_id=task_id, tracker=tracker,
+            task,
+            assignments,
+            self.gateway,
+            self.match_skills_for_task,  # type: ignore[attr-defined]
+            memory=memory,
+            headroom=getattr(self, "headroom_mgr", None),
+            task_id=task_id,
+            tracker=tracker,
             cwd=cwd,
             hybrid_code_gen=bool(getattr(a2a_cfg, "hybrid_code_gen", True)),
             hybrid_require_cwd=bool(getattr(a2a_cfg, "hybrid_require_cwd", True)),
@@ -321,17 +350,17 @@ class _A2AStageMixin:
             executor_runner=executor_runner,
             parallel_waves=bool(getattr(a2a_cfg, "parallel_waves", True)),
             max_parallel_roles=int(getattr(a2a_cfg, "max_parallel_roles", 3) or 3),
-            architect_max_tokens=int(
-                getattr(a2a_cfg, "architect_max_tokens", 4096) or 4096
-            ),
+            architect_max_tokens=int(getattr(a2a_cfg, "architect_max_tokens", 4096) or 4096),
             plan_config=plan_cfg,
             capability_worker_url=str(getattr(cap_cfg, "worker_url", "") or "") if cap_cfg else "",
             capability_profiles_dir=str(
                 getattr(cap_cfg, "profiles_dir", None) or _CAPABILITY_PROFILES_DIR
-            ) if cap_cfg else _CAPABILITY_PROFILES_DIR,
-            capability_worker_timeout_s=float(
-                getattr(cap_cfg, "worker_timeout_s", 3.0) or 3.0
-            ) if cap_cfg else 3.0,
+            )
+            if cap_cfg
+            else _CAPABILITY_PROFILES_DIR,
+            capability_worker_timeout_s=float(getattr(cap_cfg, "worker_timeout_s", 3.0) or 3.0)
+            if cap_cfg
+            else 3.0,
         )
 
         # Persist the complete local orchestration record. Remote analytics keeps
@@ -357,7 +386,9 @@ class _A2AStageMixin:
                 judge_name = str(getattr(judge_cfg, "model", "") or self.config.default_model)  # type: ignore[attr-defined]
                 judge_model_cfg = self.config.get_model_config(judge_name)  # type: ignore[attr-defined]
                 judge_model = str(judge_model_cfg.model or judge_name)
-                judge_provider = str(getattr(judge_cfg, "provider", "") or judge_model_cfg.provider or "anthropic")
+                judge_provider = str(
+                    getattr(judge_cfg, "provider", "") or judge_model_cfg.provider or "anthropic"
+                )
                 judge = AgenticJudgeAgent(
                     chat=self.gateway.chat,  # type: ignore[attr-defined]
                     cwd=cwd,
@@ -365,21 +396,24 @@ class _A2AStageMixin:
                     provider=judge_provider,
                     max_tokens=int(getattr(judge_cfg, "max_tokens", 1200) or 1200),
                 )
-                judge_trace = asyncio.run(judge.run(AgentRequest(
-                    task="Independently evaluate the multi-agent implementation",
-                    acceptance_criteria=tuple(episode.acceptance_criteria),
-                    context={"original_task": task, "solver_trace": episode.to_dict()},
-                    parent_trace_ids=tuple(trace.trace_id for trace in episode.traces),
-                    read_only=True,
-                    allowed_tools=READ_ONLY_JUDGE_TOOLS,
-                )))
+                judge_trace = asyncio.run(
+                    judge.run(
+                        AgentRequest(
+                            task="Independently evaluate the multi-agent implementation",
+                            acceptance_criteria=tuple(episode.acceptance_criteria),
+                            context={"original_task": task, "solver_trace": episode.to_dict()},
+                            parent_trace_ids=tuple(trace.trace_id for trace in episode.traces),
+                            read_only=True,
+                            allowed_tools=READ_ONLY_JUDGE_TOOLS,
+                        )
+                    )
+                )
                 episode.traces.append(judge_trace)
                 episode.metrics.extend(judge_trace.metrics)
                 episode.decisions.extend(judge_trace.decisions)
                 verdict = str(judge_trace.metadata.get("verdict") or "uncertain")
-                agentic_judge_required_failed = (
-                    judge_mode == "required"
-                    and (judge_trace.status != "completed" or verdict != "pass")
+                agentic_judge_required_failed = judge_mode == "required" and (
+                    judge_trace.status != "completed" or verdict != "pass"
                 )
                 episode.metadata["agentic_judge"] = {
                     "mode": judge_mode,
@@ -401,12 +435,14 @@ class _A2AStageMixin:
             import logging
 
             logging.getLogger(_PIPELINE_LOGGER_NAME).warning(
-                "A2A episode save failed", exc_info=True,
+                "A2A episode save failed",
+                exc_info=True,
             )
 
         merged = merge_report(task, assignments)
         ma_success, ma_status = evaluate_multiagent_outcome(
-            assignments, requires_code_gen=requires_code_gen,
+            assignments,
+            requires_code_gen=requires_code_gen,
         )
         if agentic_judge_required_failed:
             ma_success = False
@@ -442,19 +478,21 @@ class _A2AStageMixin:
 
         ev = TaskEvent(
             task_id=task_id,
-            agent='a2a-local',
+            agent="a2a-local",
             status=ma_status,
             tokens=TokenMetrics(
-                input=total_in, output=total_out,
-                saved_headroom=total_saved, saved_rtk=saved_rtk,
+                input=total_in,
+                output=total_out,
+                saved_headroom=total_saved,
+                saved_rtk=saved_rtk,
             ),
             # Aggregate gateway view: cache hit only when the whole chain was cached.
             gateway=GatewayMetrics(cache_hit=bool(assignments) and cache_hits == len(assignments)),
             cost_usd=total_cost,
             duration_ms=duration_ms,
-            model='multi-agent',
-            provider='a2a-local',
-            executor='a2a-local',
+            model="multi-agent",
+            provider="a2a-local",
+            executor="a2a-local",
             skill_ids=skill_ids,
             memory_hits=mem_hits,
             a2a_dispatched=True,
@@ -466,14 +504,17 @@ class _A2AStageMixin:
         )
         emit_event_from_config(ev, self.config)  # type: ignore[attr-defined]
 
-        route = RouteDecision(agent='a2a-local', model='multi-agent', provider='a2a-local', routing_score=0.9)
+        route = RouteDecision(
+            agent="a2a-local", model="multi-agent", provider="a2a-local", routing_score=0.9
+        )
 
         class _FakeUsage:
             input_tokens = total_in
             output_tokens = total_out
+
         class _FakeResponse:
             content = merged
-            model = 'multi-agent'
+            model = "multi-agent"
             usage = _FakeUsage()
 
         return PipelineResult(
@@ -481,7 +522,7 @@ class _A2AStageMixin:
             stage=PipelineStage.DONE,
             response=_FakeResponse(),
             route=route,
-            agui_session_id=agui_session_id or '',
+            agui_session_id=agui_session_id or "",
             duration_ms=duration_ms,
             event=ev,
             injected_skills=skill_ids,

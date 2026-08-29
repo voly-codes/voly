@@ -65,6 +65,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def a2a(self) -> Any:
         if self._a2a_orchestrator is None:
             from voly.a2a import create_a2a_orchestrator
+
             self._a2a_orchestrator = create_a2a_orchestrator(
                 self.config.a2a.federation_url,
                 token=self.config.a2a.token,
@@ -75,6 +76,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def agui(self) -> Any:
         if self._agui_gateway is None:
             from voly.agui import create_agui_gateway
+
             self._agui_gateway = create_agui_gateway(self.config.agui.remote_url)
         return self._agui_gateway
 
@@ -82,6 +84,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def agent_registry(self) -> Any:
         if self._agent_registry is None:
             from voly.registry.agents import AgentRegistry
+
             self._agent_registry = AgentRegistry()
         return self._agent_registry
 
@@ -89,6 +92,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def skill_registry(self) -> Any:
         if self._skill_registry is None:
             from voly.registry.skills import create_skill_registry
+
             config_dir = None
             if hasattr(self, "_config_path") and self._config_path:
                 config_dir = Path(self._config_path).parent
@@ -103,6 +107,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def model_router(self) -> Any:
         if self._model_router is None:
             from voly.model_router import ModelRouter
+
             self._model_router = ModelRouter()
         return self._model_router
 
@@ -110,6 +115,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def gateway(self) -> Any:
         if self._ai_gateway is None:
             from voly.ai_gateway import AIGateway
+
             gw = AIGateway(
                 account_id=self.config.ai_gateway.account_id,
                 gateway_id=self.config.ai_gateway.gateway_id,
@@ -143,6 +149,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             # Health checker must see BYOK providers as configured even without
             # env keys — otherwise a2a tier resolution demotes premium roles.
             from voly.ai_gateway.health import get_checker
+
             get_checker().configure_byok(gw.byok_enabled, gw.byok_providers)
             gw._enabled = self.config.ai_gateway.enabled
             # Scope the persistent cache to the project's repo state (R1): the same
@@ -150,6 +157,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             project_cwd = getattr(self.config, "default_cwd", "")
             if project_cwd:
                 from voly.ai_gateway.project_state import project_fingerprint
+
                 gw.cache_scope = project_fingerprint(project_cwd)
             self._ai_gateway = gw
         return self._ai_gateway
@@ -159,6 +167,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         if self._dspy_runner is None and self.config.dspy.enabled:
             try:
                 from voly.dspy.runner import DSPyRunner
+
                 self._dspy_runner = DSPyRunner(self.config, self.gateway)
             except ImportError:
                 pass
@@ -168,6 +177,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def inference_manager(self) -> Any:
         if self._inference_manager is None:
             from voly.inference import InferenceManager
+
             self._inference_manager = InferenceManager(self.config, self.gateway, self.dspy_runner)
         return self._inference_manager
 
@@ -179,6 +189,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
     def scan_project(self) -> Any:
         if self._project_profile is None:
             from voly.scanner import ProjectScanner
+
             self._scanner = ProjectScanner()
             self._project_profile = self._scanner.scan()
         return self._project_profile
@@ -216,6 +227,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
         if self.config.headroom.enabled:
             try:
                 from voly.headroom.proxy import HeadroomManager
+
                 self.headroom_mgr = HeadroomManager(
                     port=self.config.headroom.port,
                     savings_profile=self.config.headroom.savings_profile,
@@ -295,11 +307,13 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
 
     def start_agui_gateway(self) -> str:
         from voly.agui import AGUIContext
+
         ctx = AGUIContext(conversation_id=str(__import__("uuid").uuid4()))
         return self.agui.create_session(ctx)
 
     def deploy_a2a_agents(self, agents_cards: list[dict[str, Any]]) -> list[str]:
         from voly.a2a import A2AAgent, AgentCard
+
         deployed: list[str] = []
         for spec in agents_cards:
             card = AgentCard(
@@ -349,9 +363,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             # Auto GitHub reuse search before routing / A2A (same as web /api/run).
             # Saves .voly/reuse/reports/ under cwd; architect/developer then see it
             # via project_context_block / format_reuse_context.
-            run_cwd = str(
-                context.get("cwd") or context.get("project_cwd") or ""
-            ).strip()
+            run_cwd = str(context.get("cwd") or context.get("project_cwd") or "").strip()
             research_report = None
             research_cfg = getattr(self.config, "research", None)
             research_enabled = bool(
@@ -367,9 +379,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                     max_candidates=getattr(research_cfg, "max_candidates", 8),
                     max_duration_ms=getattr(research_cfg, "max_duration_ms", 1000),
                 )
-                reports_dir = Path(
-                    getattr(research_cfg, "reports_dir", ".voly/research/reports")
-                )
+                reports_dir = Path(getattr(research_cfg, "reports_dir", ".voly/research/reports"))
                 if not reports_dir.is_absolute():
                     reports_dir = Path(run_cwd) / reports_dir
                 report_path = save_report(research_report, reports_dir)
@@ -419,7 +429,11 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                 and self._should_dispatch_a2a(analysis, nested=a2a_nested)
             ):
                 a2a_auto_result = self._stage_a2a_auto(
-                    task, analysis, agui_session_id, started, task_id,
+                    task,
+                    analysis,
+                    agui_session_id,
+                    started,
+                    task_id,
                     nested=a2a_nested,
                     project_cwd=str(context.get("cwd") or context.get("project_cwd") or ""),
                     task_features=list(context.get("task_features") or []),
@@ -427,7 +441,9 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
                 if a2a_auto_result is not None:
                     return a2a_auto_result
 
-            spend_result = self._stage_spend_check(route, task_id, analysis, agui_session_id, started)
+            spend_result = self._stage_spend_check(
+                route, task_id, analysis, agui_session_id, started
+            )
             if spend_result is not None:
                 return spend_result
 
@@ -441,7 +457,11 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             msgs, headroom_saved = self._stage_headroom_compress(msgs, model)
 
             base_system = route.config.get("system_prompt") or ""
-            system_prompt = (base_system + "\n\n" + skills_system).strip() if skills_system else base_system or None
+            system_prompt = (
+                (base_system + "\n\n" + skills_system).strip()
+                if skills_system
+                else base_system or None
+            )
 
             inference_outcome = self.inference_manager.run(
                 task=task,
@@ -467,7 +487,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             self._metrics.total_tokens_out += response.usage.output_tokens
 
             if self.config.memory.enabled:
-                self._stage_memory_store(task, response, route)
+                self._stage_memory_store(task, response, route, context)
 
             if self.config.agui.enabled and agui_session_id:
                 self._stage_agui_done(agui_session_id, response)
@@ -475,13 +495,20 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             duration = (time.monotonic() - started) * 1000
             self._metrics.total_tasks += 1
             self._metrics.avg_duration_ms = (
-                (self._metrics.avg_duration_ms * (self._metrics.total_tasks - 1) + duration)
-                / self._metrics.total_tasks
-            )
+                self._metrics.avg_duration_ms * (self._metrics.total_tasks - 1) + duration
+            ) / self._metrics.total_tasks
             self._fire(PipelineStage.DONE)
 
             ev, status, cost_usd = self._emit_task_event(
-                task_id, route, response, gw_result, rtk_stats, task_type, dspy_result, duration, task,
+                task_id,
+                route,
+                response,
+                gw_result,
+                rtk_stats,
+                task_type,
+                dspy_result,
+                duration,
+                task,
                 injected_skills=injected_skills,
                 headroom_saved=headroom_saved,
                 memory_hits=len(memory_messages),

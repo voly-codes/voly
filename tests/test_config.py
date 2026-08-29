@@ -70,6 +70,10 @@ a2a:
 agui:
   port: 9300
   session_timeout_seconds: 7200
+memory:
+  backend: agent_memory
+  agent_memory_profile_mode: explicit
+  agent_memory_profile: team-a
 models:
   my-model:
     provider: openai
@@ -96,6 +100,9 @@ agents:
         assert cfg.a2a.remote_agents == ["http://localhost:9001"]
         assert cfg.agui.port == 9300
         assert cfg.agui.session_timeout_seconds == 7200
+        assert cfg.memory.backend == "agent_memory"
+        assert cfg.memory.agent_memory_profile_mode == "explicit"
+        assert cfg.memory.agent_memory_profile == "team-a"
         assert "my-model" in cfg.models
         assert cfg.models["my-model"].provider == "openai"
         assert "my-agent" in cfg.agents
@@ -162,9 +169,7 @@ def test_find_config_path_finds_own_config_within_git_root(tmp_path: Path) -> No
     assert found == project / "voly.yaml"
 
 
-def test_load_dotenv_does_not_cross_git_root(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_load_dotenv_does_not_cross_git_root(tmp_path: Path, monkeypatch) -> None:
     from voly.config._loader import _load_dotenv
 
     (tmp_path / ".env").write_text("VOLY_ANCESTOR_SECRET=leaked\n")

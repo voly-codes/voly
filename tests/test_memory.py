@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from voly.memory.scope import project_memory_profile, resolve_memory_profile
 from voly.memory.store import MemoryStore
 
 
@@ -50,8 +51,12 @@ def test_add_and_get() -> None:
 def test_search() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         store = _store(tmp)
-        store.add(title="Architecture decision", content="Use PostgreSQL for storage", category="decision")
-        store.add(title="Code convention", content="Use snake_case for Python", category="convention")
+        store.add(
+            title="Architecture decision", content="Use PostgreSQL for storage", category="decision"
+        )
+        store.add(
+            title="Code convention", content="Use snake_case for Python", category="convention"
+        )
         store.add(title="Bug fix", content="Fixed auth token refresh", category="history")
 
         results = store.search("PostgreSQL")
@@ -105,8 +110,16 @@ def test_search_semantic_fallback() -> None:
     """search_semantic falls back to FTS5 when sentence-transformers is not installed."""
     with tempfile.TemporaryDirectory() as tmp:
         store = _store(tmp)
-        store.add(title="PostgreSQL indexing", content="Use BRIN indexes for time-series", category="decision")
-        store.add(title="Docker compose", content="Multi-container setup for local dev", category="context")
+        store.add(
+            title="PostgreSQL indexing",
+            content="Use BRIN indexes for time-series",
+            category="decision",
+        )
+        store.add(
+            title="Docker compose",
+            content="Multi-container setup for local dev",
+            category="context",
+        )
 
         results = store.search_semantic("database indexing strategies")
         assert isinstance(results, list)
@@ -141,3 +154,24 @@ def test_count_and_clear() -> None:
         assert store.count() == 0
 
         store.close()
+
+
+def test_project_memory_profile_is_stable_and_bounded(tmp_path: Path) -> None:
+    profile = project_memory_profile(tmp_path / "My Project")
+    assert profile == project_memory_profile(tmp_path / "My Project")
+    assert profile.startswith("project-my-project-")
+    assert len(profile) <= 100
+    assert resolve_memory_profile("default", mode="project", cwd="") == ""
+    assert resolve_memory_profile("team-a", mode="explicit", cwd="") == "team-a"
+
+
+def test_scoped_memory_does_not_cross_project_boundaries(tmp_path: Path) -> None:
+    store = MemoryStore(tmp_path / "scoped.db", backend="local")
+    project_a = store.scoped("project-a")
+    project_b = store.scoped("project-b")
+    project_a.add("Database", "Use PostgreSQL", category="decision")
+    project_b.add("Database", "Use SQLite", category="decision")
+
+    assert [item.content for item in project_a.search("Database")] == ["Use PostgreSQL"]
+    assert [item.content for item in project_b.search("Database")] == ["Use SQLite"]
+    store.close()
