@@ -3,6 +3,23 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `a0e4eff` — Resolved the npm-reachable GitHub Dependabot alerts (44
+  high/76 medium/14 low) across `cf-workers/*`, `ui/`, `headroom/*`. Bumped
+  `@cloudflare/workers-types` v4→v5 with the `wrangler` version that now
+  requires it in all 8 Workers, fixing the resulting real type errors
+  (renamed Workers AI binding types in `agent`/`memory`; moved the
+  `SqlStorage` generic from `.toArray<T>()`/`.one<T>()` to `.exec<T>()` in
+  `spend`, query semantics unchanged) rather than suppressing them; each
+  worker re-verified via `tsc --noEmit` and `wrangler check startup`.
+  Removed the unused `@clerk/clerk-js` dependency from `ui/` (zero
+  references in `ui/src`, source of 16 of its 18 alerts via a Solana
+  wallet-adapter chain) — drops 486 unused packages. `npm audit fix` for
+  `headroom/docs`/`sdk/typescript`/`plugins/openclaw`. Left open: 1 low
+  Windows-only `esbuild` advisory in two `headroom` TS packages (not yet
+  fixable upstream even with `--force`), and 6 Rust/cargo advisories in
+  `headroom/Cargo.lock` — `cargo` isn't available in this environment, and
+  `pyo3`'s 0.24→0.29 bump guards Python↔Rust FFI bindings, too risky to
+  edit unverified.
 - `b20bf40` — Fixed `PlanRunner._exec_chat`'s no-`chat_fn` fallback calling
   `AIGateway(self.config)` directly: `AIGateway.__init__` takes bare
   constructor args, not a `VOLYConfig`, so the config landed in the unrelated
