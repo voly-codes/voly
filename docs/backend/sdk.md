@@ -4,9 +4,12 @@ Proposal: `docs/proposals/agent-workflow-sdk.md`. This doc tracks what is
 actually implemented; the proposal tracks the full multi-phase plan.
 
 **Status: Phase 0 through Phase 6 landed** (Phase 6 partially — 7 of 10
-scoped examples; see below). `Workflow` compiles to a normal `Plan` and runs
-through `PlanRunner`, which now schedules independent `mode: chat` nodes in
-bounded parallel waves and supports durable resume, cross-process
+scoped examples; see below), plus post-Phase-6 additions: `Agent`
+tool-calling, structured output, and capability-registry routing for both
+`Agent` and `Workflow`/hand-written Plans (see below and
+`docs/backend/capability.md`). `Workflow` compiles to a normal `Plan` and
+runs through `PlanRunner`, which now schedules independent `mode: chat`
+nodes in bounded parallel waves and supports durable resume, cross-process
 cancellation and a workflow-level timeout. `voly.sdk.presets` adds six
 graph-factory topology presets over `Workflow`. Phase 5 adds
 `voly workflow validate|run|resume|show`, the `/api/workflows/*` REST/SSE
@@ -44,15 +47,15 @@ freezes that invariant by scanning the package's imports.
 |---|---|---|
 | `agent.name` | `role` | |
 | `agent.instructions` + node `task` | `task` | folded at compile time: `f"{instructions}\n\n{task}"` — `PlanStep` has no separate instructions field, and a live `Agent` object is never read again at run time (see "resume by contract") |
-| `agent.model` / `agent.provider` | `model` / `provider` | used as-is when `agent.tier` is unset |
+| `agent.model` / `agent.provider` | `model` / `provider` | used as-is when `agent.tier` is unset; if `agent.model` is *also* unset (and `agent.tier` unset), `PlanStep.model`/`.provider` compile to `""` — `PlanRunner`'s default `_exec_chat` resolves that empty case at run time via `voly.capability.routing.capability_route()` when enabled, then `config.get_model_config()`/`config.default_model` (see `docs/backend/capability.md`) |
 | `agent.tier` | `model` / `provider` (resolved) + `tier` (informational) | resolved to a concrete pair via `voly.a2a.assignment.resolve_tier_model()` at compile time — `PlanRunner` never reads `step.tier` for routing, only `step.model`/`step.provider` |
 | `agent.mode` | `mode` | `MODE_CHAT` / `MODE_EXECUTOR` |
-| `agent.executor` | `executor` | |
+| `agent.executor` | `executor` | when unset, compiles to `""` — `PlanRunner`'s default `_exec_executor` resolves it the same way (`capability_route()` then `step.role`/`plan_cfg.executor_default`) |
 | node `depends_on` | `depends_on` | validated by `PlanEngine.validate()` (dup ids, unknown deps, cycles) — `Workflow` does not reimplement graph validation, it re-raises `PlanValidationError` as `WorkflowError` |
 | node `acceptance` | `acceptance` | extra `AcceptanceCheck`s beyond the approval gate below |
 | node `approval=True` | appends `AcceptanceCheck(type=CHECK_HUMAN_REVIEW)` to `acceptance` | see "Approval nodes" below |
 | node `timeout_seconds` | *(still not wired)* | accepted on `Workflow.add()` but currently a no-op — this is a *per-node* timeout, distinct from Phase 3's *workflow-level* `run(timeout_seconds=...)` (below), which bounds the whole call, not one node. No phase currently owns per-node enforcement; `PlanStep` has no per-step timeout field |
-| `agent.tools`, `agent.output_schema` | *(not representable)* | `Agent.__init__` already raises `NotImplementedError` if either is set, so a node's agent can never reach compilation with them |
+| `agent.tools`, `agent.output_schema` | *(still not representable)* | both are implemented on standalone `Agent.run()` (see "Tool calling"/"Structured output" above), but `PlanStep` has no `tools`/`output_schema` fields and `_compile_node()` does not forward either — a `Workflow` node's agent still loses them at compile time. Storing a live `output_schema` class would also conflict with "resume by contract" (persisted state must be versioned Plan state, not a Python object); representing it would mean persisting only the derived JSON-schema dict, not the pydantic class itself. Not implemented — a future phase's gap, distinct from Phase 1's original "not implemented at all" limitation |
 
 ## Schema-version policy
 
@@ -137,12 +140,13 @@ Agent(
     model: str | None = None,
     provider: str | None = None,
     tier: str | None = None,
-    tools: list[str] | None = None,       # raises NotImplementedError if non-empty (Phase 1)
-    output_schema: type | dict | None = None,  # raises NotImplementedError if set (Phase 1)
+    tools: list[str] | None = None,       # names resolved against voly.sdk.tools's allowlist
+    output_schema: type | dict | None = None,  # pydantic BaseModel subclass, or a raw JSON schema dict
     mode: Literal["chat", "executor"] = "chat",
     executor: str | None = None,
     *,
     config: VOLYConfig | None = None,     # injectable for tests/alternate config; not in the frozen positional contract
+    max_tool_steps: int = 6,              # added alongside tools; not in the frozen positional contract either
 )
 ```
 
@@ -156,14 +160,101 @@ executor logic behind a second async-native implementation.
 
 `AgentResult` fields: `content`, `success`, `error`, `provider`, `model`,
 `executor`, `input_tokens`, `output_tokens`, `cost_usd`, `duration_ms`,
-`files_touched`, `task_id`, `evidence_id`, `raw` (plus the `total_tokens`
-property). `evidence_id` is set (equal to `task_id`) only when
-`config.evidence.enabled` and the call ran in `executor` mode — chat-only
-calls have no `WorkReport`/file mutation to evidence.
+`files_touched`, `task_id`, `evidence_id`, `raw`, `tool_calls`, `parsed`
+(plus the `total_tokens` property). `evidence_id` is set (equal to
+`task_id`) only when `config.evidence.enabled` and the call ran in
+`executor` mode — chat-only calls have no `WorkReport`/file mutation to
+evidence (`tool_calls`/`parsed` were added after Phase 1 landed — see "Tool
+calling" and "Structured output" below).
 
 `tests/test_sdk_contracts.py` freezes the constructor parameter list/order
 and the `AgentResult` field set as snapshots — see that file's docstring for
 the update procedure if either genuinely needs to change.
+
+### Tool calling (`tools=[...]`)
+
+```python
+from voly import Agent
+from voly.sdk.tools import register_tool
+
+register_tool("lookup_price", "Look up a product's price.", lambda sku: PRICES[sku])
+
+agent = Agent("shopper", tools=["lookup_price"])
+result = agent.run("What does SKU-42 cost?")
+print(result.tool_calls)  # [{"name": "lookup_price", "arguments": {...}, "result": "...", "ok": True}]
+```
+
+`tools` is a `list[str]` of *names*, not raw callables — every name is
+resolved against `voly.sdk.tools`'s registry (`register_tool()`,
+`resolve_tools()`) **at construction time**, fail-closed: an unregistered
+name raises `AgentError` immediately, matching the proposal's "explicit
+allowlist" requirement for a tool-calling example. `voly.sdk.tools` ships
+two built-in, side-effect-free tools (`current_time`, `calculator`) so the
+feature is usable without writing a registration first.
+
+This is **not** a Model Context Protocol (MCP) client — no JSON-RPC, no
+subprocess server. `voly/tools/mcp.py::MCPManager` (VOLY's actual MCP
+integration) only generates `.mcp.json` configs for CLI executors
+(claude-code, opencode) to consume themselves; it has no synchronous
+"call a tool, get a result" primitive a chat loop could reuse. A real MCP
+client remains future work — see `examples/workflows/README.md`'s note on
+example 9.
+
+`Agent._run_chat`'s tool loop (bounded by `max_tool_steps`, default 6):
+call `AIGateway.chat(tools=[...])` (tool schemas and `tool_calls` in the
+response are already wired end-to-end at the transport layer — see
+`voly/ai_gateway/providers.py`); if the response carries `tool_calls`,
+execute each against the resolved allowlist (a call naming a tool outside
+this `Agent`'s own `tools=[...]` is reported as `ok: False`, never executed
+— a model hallucinating a tool name it wasn't given must not reach an
+arbitrary registered function), append the results as a plain user message,
+and loop. Breaks on the first response with no `tool_calls`. Exhausting
+`max_tool_steps` while the model keeps requesting tools is a failure
+(`success=False`, `error` mentions `max_tool_steps`), not a silent partial
+answer. This mirrors the bounded tool-call loop already proven in
+`voly.a2a.agentic_judge.AgenticJudgeAgent` rather than a new implementation.
+
+### Structured output (`output_schema=...`)
+
+```python
+from pydantic import BaseModel
+from voly import Agent
+
+class Verdict(BaseModel):
+    approved: bool
+    reason: str
+
+agent = Agent("reviewer", output_schema=Verdict)
+result = agent.run("Review this change")
+result.parsed.approved  # a validated Verdict instance
+```
+
+`output_schema` accepts a `pydantic.BaseModel` subclass or a raw JSON-schema
+`dict`; anything else raises `AgentError` at construction. This is
+**prompt-based** validation, not a provider-native structured-output API: no
+`response_format` parameter was added to `AIGateway.chat()`. The schema
+(derived via `model_json_schema()` for a pydantic class, or used as-is for a
+dict) is appended to the system prompt as an explicit instruction, and the
+returned text is parsed/validated afterward — the same pattern
+`voly.a2a.agentic_judge` already uses for its JSON verdict. `content` always
+stays the raw text response; `parsed` holds the validated pydantic instance
+or dict, `None` on any validation failure (`success=False`, `error`
+explains why: not valid JSON, not an object, missing a declared `required`
+key, or a pydantic `ValidationError`). A raw `dict` schema only gets this
+structural check — not full JSON Schema draft validation — since no
+`jsonschema` dependency was added for it.
+
+### Capability-registry routing
+
+When `config.capability.enabled` and the caller left the relevant field
+unset, `Agent` consults `voly.capability.routing.capability_route()` before
+falling back to static resolution — chat mode when neither `model` nor
+`tier` is set, executor mode when `executor` is unset. Disabled by default,
+best-effort (any registry/matcher error silently falls back), and the exact
+same helper `PlanRunner`'s default `_exec_chat`/`_exec_executor` paths use —
+see `docs/backend/capability.md`'s "Agent/Workflow SDK integration" section
+for the full contract, since it applies to `Workflow`-compiled and
+hand-written Plans identically, not only standalone `Agent.run()` calls.
 
 ## Public contracts (Phase 2)
 
@@ -337,11 +428,13 @@ them at the same factory.
 
 ```bash
 python -m pytest tests/test_sdk_contracts.py tests/test_sdk_agent.py \
+  tests/test_sdk_tools.py tests/test_capability_routing.py \
   tests/test_sdk_workflow.py tests/test_sdk_presets.py tests/test_sdk_loader.py \
   tests/test_workflow_cli.py tests/test_workflows_api.py tests/test_examples_workflows.py \
   tests/test_plan_runner.py tests/test_plan_approval.py tests/test_plan_concurrency.py \
   tests/test_protocol_contracts.py -q
-ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py voly/plan/runner.py \
+ruff check voly/sdk voly/capability/routing.py voly/ai_gateway/factory.py \
+  voly/plan/approval.py voly/plan/runner.py \
   voly/cli/commands/workflow_cmd.py voly/web/routes/workflows.py examples/workflows
 ```
 
@@ -481,13 +574,13 @@ stable" — this ships that contract first). Docs: `docs/frontend/api-client.md`
 `examples/workflows/` — see its own `README.md` for the full catalog and
 `BENCHMARK.md` for the measured (not estimated) first-run-LOC / graph /
 resume / evidence / failure-honesty comparison the proposal calls for. 7 of
-the originally-scoped 10 examples are implemented; 3 (structured-output,
-MCP-tool-allowlist, capability-routed) are blocked on `Agent` capabilities
-that are accepted on the constructor but still raise `NotImplementedError`
-(`tools`, `output_schema`) or don't exist yet (capability-registry routing)
-— see the catalog README's "Not implemented" section rather than a faked
-stand-in. `tests/test_examples_workflows.py` runs every implemented example
-offline as a regression suite.
+the originally-scoped 10 examples are implemented; example scripts for the
+other 3 (structured-output, tool-allowlist, capability-routed) are not
+written yet, though the underlying `Agent` capabilities they'd demonstrate
+have since landed (`tools`/`output_schema`/capability-routing — see above
+and `docs/backend/capability.md`) — writing those 3 scripts is now a small,
+unblocked follow-up, not blocked engineering work. `tests/test_examples_workflows.py`
+runs every implemented example offline as a regression suite.
 
 The benchmark surfaced one real, previously-undocumented gap: a
 `Workflow`-compiled executor-mode node's `AgentRunner` evidence record is
@@ -503,12 +596,19 @@ and changing it is a deliberate future phase, not an examples/benchmark PR.
 Within Phase 5: the UI has no run/resume trigger of its own yet, and there
 is no drag-and-drop graph editor (explicitly deferred by the proposal).
 
-Within what's landed: `Agent(tools=...)` / `Agent(output_schema=...)` are
-accepted on the constructor (frozen contract) but raise `NotImplementedError`
-if actually set — a node built from such an `Agent` can therefore never
-reach compilation with them either. `WorkflowNode.timeout_seconds` (a
-*per-node* hint) is still accepted and stored but not enforced — distinct
-from the *workflow-level* `run(timeout_seconds=...)`, which is enforced; no
-phase currently owns per-node timeout enforcement specifically.
-`Workflow.run(resume=True)` still raises `NotImplementedError` —
-`Workflow.resume(plan_id)` (an explicit plan_id) is the real mechanism.
+`Agent(tools=...)`/`Agent(output_schema=...)` are implemented for standalone
+`Agent.run()` (see "Tool calling"/"Structured output" above), but a
+`Workflow` node's agent still loses both at compile time — `PlanStep` has
+no `tools`/`output_schema` fields and `_compile_node()` doesn't forward
+either. `WorkflowNode.timeout_seconds` (a *per-node* hint) is still accepted
+and stored but not enforced — distinct from the *workflow-level*
+`run(timeout_seconds=...)`, which is enforced; no phase currently owns
+per-node timeout enforcement specifically. `Workflow.run(resume=True)`
+still raises `NotImplementedError` — `Workflow.resume(plan_id)` (an
+explicit plan_id) is the real mechanism.
+
+Tool-calling is not a Model Context Protocol (MCP) client — see "Tool
+calling" above for what `voly.sdk.tools` actually is and why a real MCP
+client remains future work. Structured output for a raw `dict` schema only
+gets a structural (object + declared `required` keys) check, not full JSON
+Schema draft validation — no `jsonschema` dependency was added for it.

@@ -641,6 +641,68 @@ Generated OpenWiki pages are not edited manually.
   (`tests/test_sdk_contracts.py::test_node_result_field_contract_is_frozen`),
   so changing it needs its own deliberate PR.
 
+- v0.9 — post-Phase-6: closed the three `Agent` capability gaps PR6's
+  examples 8–10 flagged as blocked, without changing the examples catalog's
+  scope (no new example scripts were added — see `examples/workflows/README.md`'s
+  updated "Not implemented" section).
+  - **Tool calling** (`Agent(tools=[...])`): `voly/sdk/tools.py` — an
+    explicit-allowlist registry (`register_tool`/`resolve_tools`, two
+    built-in tools: `current_time`, `calculator`); names are resolved at
+    `Agent.__init__` time, fail-closed on an unregistered name.
+    `Agent._run_chat` gained a bounded tool-call loop (new keyword-only
+    `max_tool_steps: int = 6`, not in the frozen positional contract) that
+    mirrors `voly.a2a.agentic_judge.AgenticJudgeAgent`'s already-proven
+    shape — `AIGateway.chat(tools=...)`'s transport-level tool-calling
+    (Anthropic/OpenAI/Google) already existed and needed no changes.
+    **Not** an MCP client — no JSON-RPC, no subprocess server; VOLY's actual
+    MCP integration (`voly/tools/mcp.py::MCPManager`) only generates
+    `.mcp.json` configs for CLI executors and has no synchronous
+    call-a-tool primitive to reuse. `AgentResult` gained `tool_calls:
+    list[dict]` (frozen field-set snapshot updated deliberately, per
+    `tests/test_sdk_contracts.py`'s own documented procedure).
+  - **Structured output** (`Agent(output_schema=...)`): prompt-based
+    validation (system-prompt schema instruction + parse/validate the text
+    response afterward) — the same pattern `agentic_judge` already uses for
+    its JSON verdict, not a new gateway-level `response_format` parameter.
+    Accepts a `pydantic.BaseModel` subclass (schema via
+    `model_json_schema()`, response parsed into a validated instance) or a
+    raw JSON-schema `dict` (structural check only — object-ness + declared
+    `required` keys, not full JSON Schema draft validation; no `jsonschema`
+    dependency was added). `AgentResult` gained `parsed: Any` — `content`
+    always keeps the raw text regardless.
+  - **Capability-registry routing**: `voly/capability/routing.py::capability_route()`
+    generalizes the `ExecutorMatcher` wiring `voly.decisions._build_business_executor`
+    and `voly.a2a.lead.LeadOrchestrator` each already implement separately,
+    placed in `voly.capability` (not `voly.sdk`) so the lower-level
+    `voly.plan.runner` can import it without a backwards dependency on the
+    SDK package. Wired into **two** call sites so it covers `Workflow`
+    equally with standalone `Agent.run()`: `Agent._resolve_model_provider()`/
+    `_run_executor()` (chat/executor mode, only when `model`/`tier`/`executor`
+    is unset), and — found to matter while implementing this, not an
+    afterthought — `PlanRunner`'s default (non-injected) `_exec_chat`/
+    `_exec_executor`, since a `Workflow`-compiled node never calls
+    `Agent._run_chat`/`_run_executor` at all (`PlanRunner` executes
+    `PlanStep`s directly); wiring it only into `Agent` would have silently
+    left every `Workflow`-compiled and hand-written-Plan-YAML executor/chat
+    node on static resolution forever. Disabled by default
+    (`config.capability.enabled`), best-effort (any registry/matcher
+    exception falls back to static resolution, never raises) — identical
+    safety contract to the business-action caller. See
+    `docs/backend/capability.md`'s "Agent/Workflow SDK integration" section
+    and `docs/backend/plan.md`.
+  - Left deliberately unimplemented, documented rather than faked: a
+    `Workflow` node's agent still loses `tools`/`output_schema` at compile
+    time (`PlanStep` has no fields for either, and storing a live
+    `output_schema` class would conflict with "resume by contract" —
+    persisted state must stay a versioned Plan, not a Python object).
+  - Tests: `tests/test_sdk_tools.py`, `tests/test_capability_routing.py`,
+    new cases in `tests/test_sdk_agent.py` (tool loop success/allowlist
+    rejection/bounded exhaustion, structured output for both schema forms,
+    capability routing consulted/ignored per explicit-vs-unset field) and
+    `tests/test_plan_runner.py` (capability routing in the default
+    `_exec_chat`/`_exec_executor` paths, with and without an explicit
+    `step.model`/`step.executor`).
+
 ## Recommended execution model
 
 This is a complex cross-cutting task. Use Codex for PR0–PR5. Documentation-only

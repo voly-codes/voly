@@ -642,9 +642,16 @@ class PlanRunner:
             f"You are the '{step.role}' agent in a multi-step VOLY plan "
             f"(step id={step.id}). Complete only this step. Be concise."
         )
-        model_cfg = self.config.get_model_config(step.model or None)
-        model = step.model or model_cfg.model or self.config.default_model
-        provider = step.provider or model_cfg.provider or "anthropic"
+        model, provider = step.model, step.provider
+        if not model:
+            from voly.capability.routing import capability_route
+
+            hint = capability_route(step.role, mode="chat", config=self.config)
+            if hint and hint[1]:
+                model, provider = hint[1], hint[2] or provider
+        model_cfg = self.config.get_model_config(model or None)
+        model = model or model_cfg.model or self.config.default_model
+        provider = provider or model_cfg.provider or "anthropic"
         t0 = time.monotonic()
         resp = gateway.chat(
             messages=[{"role": "user", "content": instruction}],
@@ -684,8 +691,19 @@ class PlanRunner:
 
         from voly.runner.agent_runner import AgentRunner
 
+        agent = step.executor
+        if not agent:
+            from voly.capability.routing import capability_route
+            from voly.runner.executor_factory import EXECUTOR_NAMES
+
+            hint = capability_route(
+                step.role, mode="executor", config=self.config,
+                available_executors=list(EXECUTOR_NAMES),
+            )
+            if hint and hint[0]:
+                agent = hint[0]
+        agent = agent or step.role or self.plan_cfg.executor_default
         runner = AgentRunner(self.config)
-        agent = step.executor or step.role or self.plan_cfg.executor_default
         result = runner.run(
             instruction,
             agent,

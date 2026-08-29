@@ -1,8 +1,10 @@
 # Workflow SDK examples
 
 Phase 6 of `docs/proposals/agent-workflow-sdk.md`. Ten examples were
-originally scoped; **seven are implemented** (1–7 below). 8–10 are not —
-see "Not implemented" at the bottom for why, rather than a faked stand-in.
+originally scoped; **seven have a runnable example script** (1–7 below).
+8–10 don't yet, though the `Agent` capabilities they'd demonstrate
+(structured output, tool-calling, capability routing) have since landed —
+see "Not implemented" at the bottom for the current, narrower gap.
 
 Every example is a standalone, runnable script:
 
@@ -45,20 +47,29 @@ completeness) rather than only favorable numbers.
 
 The original ten-example list included:
 
-8. a structured-output workflow — needs `Agent(output_schema=...)`, which
-   raises `NotImplementedError` today (Phase 1 accepted the constructor
-   parameter but never implemented it; see `docs/backend/sdk.md`'s "Not yet
-   implemented" section).
-9. an MCP tool workflow with an explicit allowlist — needs
-   `Agent(tools=...)`, same status: accepted, not implemented, raises
-   `NotImplementedError`.
-10. a capability-routed development workflow — `voly.capability`'s
-    `ExecutorMatcher` (used by `voly.decisions.DecisionService` for business
-    actions) is not wired into `Agent`/`Workflow` at all; an `Agent`'s
-    `executor`/`model`/`provider` are fixed at construction, not resolved by
-    the capability registry per-run.
+8. a structured-output workflow — `Agent(output_schema=...)` **is now
+   implemented** (prompt-based validation against a pydantic model or a raw
+   JSON schema dict; see `docs/backend/sdk.md`'s "Structured output"
+   section). No example script for it exists in this catalog yet — writing
+   one is now a small, unblocked follow-up, not blocked engineering work.
+9. a tool-allowlist workflow — `Agent(tools=[...])` **is now implemented**
+   (a bounded tool-call loop against `voly.sdk.tools`'s explicit allowlist
+   registry; see `docs/backend/sdk.md`'s "Tool calling" section). It is
+   *not* a Model Context Protocol (MCP) client — see that section for why —
+   so this stays named "tool-allowlist," not "MCP tool," going forward. No
+   example script for it exists yet either.
+10. a capability-routed development workflow — `voly.capability.routing.
+    capability_route()` **is now implemented** and wired into both
+    standalone `Agent.run()` and `PlanRunner`'s default `_exec_chat`/
+    `_exec_executor` paths (so it applies to `Workflow`-compiled graphs and
+    hand-written Plan YAML alike), gated on `config.capability.enabled`
+    (default `False`) and only consulted when the caller left
+    `model`/`tier`/`executor` unset; see `docs/backend/capability.md`'s
+    "Agent/Workflow SDK integration" section. No example script yet.
 
-Building a fake version of any of these would misrepresent what
-`voly.sdk` can actually do today. They stay on the list as the natural next
-examples once their underlying `Agent` capabilities land — not deleted from
-the proposal, just honestly unimplemented here.
+All three underlying gaps this section originally described are closed —
+what remains is writing the example scripts themselves (8, 9, 10), each a
+small addition once picked up, not new capability. `tests/test_sdk_agent.py`,
+`tests/test_sdk_tools.py` and `tests/test_capability_routing.py` /
+`tests/test_plan_runner.py`'s capability-routing tests already cover the
+underlying behavior these three examples would demonstrate.

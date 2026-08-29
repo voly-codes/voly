@@ -314,6 +314,7 @@ Guide: [`docs/backend/sdk.md`](backend/sdk.md).
 | PR4 | **landed** — six topology-preset graph factories | `voly/sdk/presets.py`, exported as `voly.sequential` etc. |
 | PR5 | **landed** — CLI/REST/SSE/UI lifecycle | `voly workflow validate\|run\|resume\|show`, `voly/web/routes/workflows.py`, `ui/.../workflows/WorkflowsPage.svelte` |
 | PR6 | **landed** (7/10 examples) — runnable catalog + measured benchmark | `examples/workflows/{README,BENCHMARK}.md`, 7 example scripts, `tests/test_examples_workflows.py` |
+| post-PR6 | **landed** — tool-calling, structured output, capability-registry routing | `voly/sdk/tools.py`, `voly/capability/routing.py`, `Agent`/`PlanRunner` default exec paths |
 
 `voly.Agent` is a facade, not a second runtime: chat mode calls
 `AIGateway.chat()` (via the shared `voly.ai_gateway.gateway_from_config`

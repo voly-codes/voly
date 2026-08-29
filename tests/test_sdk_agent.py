@@ -163,11 +163,204 @@ def test_invalid_mode_raises_agent_error() -> None:
         Agent("x", mode="bogus")  # type: ignore[arg-type]
 
 
-def test_tools_not_yet_implemented() -> None:
-    with pytest.raises(NotImplementedError):
-        Agent("x", tools=["search"])
+def test_unregistered_tool_name_is_rejected_at_construction() -> None:
+    """Fail-closed allowlist: an Agent must never silently accept a tool name
+    that voly.sdk.tools has no registration for."""
+    with pytest.raises(AgentError, match="unknown tool"):
+        Agent("x", tools=["this-tool-does-not-exist"])
 
 
-def test_output_schema_not_yet_implemented() -> None:
-    with pytest.raises(NotImplementedError):
-        Agent("x", output_schema=dict)
+def test_output_schema_rejects_an_unsupported_type() -> None:
+    with pytest.raises(AgentError, match="output_schema"):
+        Agent("x", output_schema=dict)  # plain `dict` type, not a dict instance or pydantic model
+
+
+def test_tool_call_loop_executes_a_registered_tool_and_feeds_result_back() -> None:
+    from voly.sdk.tools import register_tool
+
+    register_tool("echo_tool", "Echo the input.", lambda text: f"echo:{text}", replace=True)
+
+    calls = []
+
+    def scripted_chat(self, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            return {
+                "content": "",
+                "model": "claude-x",
+                "usage": {"input_tokens": 5, "output_tokens": 5},
+                "tool_calls": [{"id": "1", "name": "echo_tool", "arguments": {"text": "hi"}}],
+            }
+        return {"content": "Done: echo:hi", "model": "claude-x", "usage": {"input_tokens": 5, "output_tokens": 5}}
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", scripted_chat):
+        agent = Agent("assistant", tools=["echo_tool"], config=_config())
+        result = agent.run("say hi via the tool")
+
+    assert result.success is True
+    assert result.content == "Done: echo:hi"
+    assert len(calls) == 2
+    assert result.tool_calls == [
+        {"name": "echo_tool", "arguments": {"text": "hi"}, "result": "echo:hi", "ok": True}
+    ]
+    # Both chat calls must have received the same allowlisted tool schema.
+    assert calls[0]["tools"][0]["function"]["name"] == "echo_tool"
+
+
+def test_tool_not_in_allowlist_is_reported_without_executing_anything() -> None:
+    """A model hallucinating a tool name outside the constructor's allowlist
+    must never reach an arbitrary registered function."""
+    from voly.sdk.tools import register_tool
+
+    executed = []
+    register_tool("only_allowed", "x", lambda: executed.append("only_allowed") or "ok", replace=True)
+    register_tool("never_allowed", "x", lambda: executed.append("never_allowed") or "ok", replace=True)
+
+    calls = []
+
+    def scripted_chat(self, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            return {
+                "content": "", "model": "x", "usage": {},
+                "tool_calls": [{"id": "1", "name": "never_allowed", "arguments": {}}],
+            }
+        return {"content": "final", "model": "x", "usage": {}}
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", scripted_chat):
+        agent = Agent("assistant", tools=["only_allowed"], config=_config())
+        result = agent.run("try to call a tool you were not given")
+
+    assert result.success is True
+    assert executed == []  # neither function ran — never_allowed was never in this Agent's tools
+    assert result.tool_calls[0]["ok"] is False
+    assert "not in allowlist" in result.tool_calls[0]["result"]
+
+
+def test_tool_call_loop_bounded_and_fails_closed_on_exhaustion() -> None:
+    from voly.sdk.tools import register_tool
+
+    register_tool("loop_tool", "x", lambda: "again", replace=True)
+
+    def always_calls_tool(self, **kwargs):
+        return {
+            "content": "", "model": "x", "usage": {},
+            "tool_calls": [{"id": "1", "name": "loop_tool", "arguments": {}}],
+        }
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", always_calls_tool):
+        agent = Agent("assistant", tools=["loop_tool"], max_tool_steps=3, config=_config())
+        result = agent.run("loop forever")
+
+    assert result.success is False
+    assert "max_tool_steps" in result.error
+    assert len(result.tool_calls) == 3
+
+
+def test_structured_output_with_pydantic_model_is_validated_and_parsed() -> None:
+    from pydantic import BaseModel
+
+    class Verdict(BaseModel):
+        approved: bool
+        reason: str
+
+    with patch(
+        "voly.ai_gateway.gateway.AIGateway.chat",
+        _fake_chat('{"approved": true, "reason": "looks fine"}'),
+    ):
+        agent = Agent("reviewer", output_schema=Verdict, config=_config())
+        result = agent.run("review this change")
+
+    assert result.success is True
+    assert isinstance(result.parsed, Verdict)
+    assert result.parsed.approved is True
+    assert result.content == '{"approved": true, "reason": "looks fine"}'  # raw text preserved
+
+
+def test_structured_output_validation_failure_reports_unsuccessful_result() -> None:
+    from pydantic import BaseModel
+
+    class Verdict(BaseModel):
+        approved: bool
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", _fake_chat("not json at all")):
+        agent = Agent("reviewer", output_schema=Verdict, config=_config())
+        result = agent.run("review this change")
+
+    assert result.success is False
+    assert "not valid JSON" in result.error
+    assert result.parsed is None
+
+
+def test_structured_output_with_raw_dict_schema_checks_required_keys() -> None:
+    schema = {"type": "object", "properties": {"score": {"type": "number"}}, "required": ["score"]}
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", _fake_chat('{"score": 0.9}')):
+        agent = Agent("scorer", output_schema=schema, config=_config())
+        result = agent.run("score it")
+
+    assert result.success is True
+    assert result.parsed == {"score": 0.9}
+
+    with patch("voly.ai_gateway.gateway.AIGateway.chat", _fake_chat("{}")):
+        agent2 = Agent("scorer", output_schema=schema, config=_config())
+        missing = agent2.run("score it")
+
+    assert missing.success is False
+    assert "missing required fields" in missing.error
+
+
+def test_capability_routing_picks_chat_model_when_none_pinned() -> None:
+    config = _config()
+    config.capability.enabled = True
+
+    def fake_route(role, *, mode, config, available_executors=None):
+        assert mode == "chat"
+        return ("", "claude-routed", "anthropic")
+
+    calls = []
+
+    def spy_chat(self, **kwargs):
+        calls.append(kwargs)
+        return {"content": "ok", "model": kwargs["model"], "usage": {}}
+
+    with patch("voly.capability.routing.capability_route", fake_route), \
+         patch("voly.ai_gateway.gateway.AIGateway.chat", spy_chat):
+        Agent("developer", config=config).run("do something")
+
+    assert calls[0]["model"] == "claude-routed"
+
+
+def test_capability_routing_is_not_consulted_when_model_is_pinned() -> None:
+    config = _config()
+    config.capability.enabled = True
+
+    def fake_route(*args, **kwargs):
+        raise AssertionError("capability_route must not be called when model is explicit")
+
+    def spy_chat(self, **kwargs):
+        return {"content": "ok", "model": kwargs["model"], "usage": {}}
+
+    with patch("voly.capability.routing.capability_route", fake_route), \
+         patch("voly.ai_gateway.gateway.AIGateway.chat", spy_chat):
+        result = Agent("developer", model="claude-pinned", config=config).run("do something")
+
+    assert result.model == "claude-pinned"
+
+
+def test_capability_routing_picks_executor_when_none_pinned(tmp_path) -> None:
+    config = _config()
+    config.capability.enabled = True
+
+    def fake_route(role, *, mode, config, available_executors=None):
+        assert mode == "executor"
+        return ("wrangler", "", "")
+
+    er = ExecutorResult(success=True, output="done")
+    runner_result = RunnerResult(success=True, executor="wrangler", agent="developer", task_id="tid", result=er)
+
+    with patch("voly.capability.routing.capability_route", fake_route), \
+         patch("voly.runner.agent_runner.AgentRunner.run", return_value=runner_result) as run_mock:
+        Agent("developer", mode="executor", config=config).run("write code", cwd=str(tmp_path))
+
+    assert run_mock.call_args.args[1] == "wrangler"

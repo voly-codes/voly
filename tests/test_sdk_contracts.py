@@ -91,11 +91,16 @@ def test_agent_constructor_contract_is_frozen() -> None:
 
 # Frozen AgentResult field set — see "Result contract" / Agent.run() in the
 # proposal ("content, success, provider/model/executor attribution, tokens,
-# cost, duration, files touched and evidence/task identifiers").
+# cost, duration, files touched and evidence/task identifiers"), extended by
+# tool-calling/structured-output support: `tool_calls` (populated only when
+# Agent(tools=[...]) triggered at least one call) and `parsed` (populated
+# only when Agent(output_schema=...) validated successfully) — see
+# docs/backend/sdk.md.
 _AGENT_RESULT_FIELDS = {
     "content", "success", "error", "provider", "model", "executor",
     "input_tokens", "output_tokens", "cost_usd", "duration_ms",
     "files_touched", "task_id", "evidence_id", "raw",
+    "tool_calls", "parsed",
 }
 
 

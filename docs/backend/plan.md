@@ -112,6 +112,16 @@ context block (capped at 4000 chars per dependency) before the step's own
 that prior step actually produced. Only declared dependencies are included —
 unrelated sibling steps' output never leaks in.
 
+When a step has no explicit `model` (`_exec_chat`) or no explicit `executor`
+(`_exec_executor`), the default path consults
+`voly.capability.routing.capability_route(step.role, ...)` before falling
+back to `config.get_model_config()`/`step.role` — see
+[capability.md](capability.md)'s "Agent/Workflow SDK integration" section.
+Disabled by default (`config.capability.enabled`); best-effort either way,
+so a hand-written Plan YAML and a `Workflow`-compiled one behave identically
+here — this is a `PlanRunner` property, not something the SDK layer adds on
+top.
+
 ---
 
 ## Parallel chat waves, resume, cancellation and stale recovery

@@ -89,6 +89,40 @@ against a misbehaving CF Worker recommending an off-kind executor); disabled
 or unusable capability routing falls back to the first candidate id, which is
 the same static choice used before this integration existed.
 
+### Agent/Workflow SDK integration (`voly/capability/routing.py`)
+
+`capability_route(role, *, mode, config, available_executors=None)` is a
+third, generalized caller of the same `ExecutorMatcher` wiring
+`_build_business_executor` (above) and `LeadOrchestrator._capability_hint`
+([a2a.md](a2a.md)) each implement separately — added so
+`voly.sdk.agent.Agent` and `voly.plan.runner.PlanRunner`'s default
+(non-injected) `_exec_chat`/`_exec_executor` didn't need a fourth copy of the
+same registry/matcher construction. It lives in `voly.capability` rather
+than `voly.sdk` so the lower-level `voly.plan.runner` can import it without
+a backwards dependency on the SDK package.
+
+Consulted only when the caller left the relevant field unset — never
+overriding an explicit choice:
+
+- `Agent`/`Workflow`, chat mode: only when neither `model` nor `tier` is set
+  on the `Agent`/`WorkflowNode`'s agent. Returns `("", model, provider)`.
+- `Agent`/`Workflow`, executor mode: only when `executor` is unset. Returns
+  `(executor_id, "", "")`, checked against `voly.runner.executor_factory.EXECUTOR_NAMES`.
+- A hand-written Plan YAML step behaves identically to a `Workflow`-compiled
+  one here — both execute through the *same* `PlanRunner._exec_chat`/
+  `_exec_executor`, so this is not an SDK-only enhancement in practice, even
+  though it was added to close an SDK-scoped gap.
+
+Same disabled-by-default, best-effort contract as the business-action
+caller: `config.capability.enabled` defaults to `False` (no behavior change
+for anyone who hasn't opted in), and any registry/matcher exception or "no
+match" returns `None`, leaving the caller's own static fallback (config
+default model, `step.role`/`self.name` as a literal executor id) untouched.
+Never raises — capability routing must not be the reason a chat call or
+executor run fails. See `docs/backend/sdk.md` and
+`tests/test_capability_routing.py`/`tests/test_plan_runner.py`'s
+capability-routing tests.
+
 ```
 seed (voly/capability/seeds/) → materialized copy (.voly/capability/profiles/) → EMA updates from runs
 ```

@@ -280,6 +280,101 @@ def test_default_chat_path_builds_a_governed_gateway(cfg: VOLYConfig, monkeypatc
     assert seen["spend_daily_budget_usd"] == 0.01
 
 
+def test_default_chat_path_uses_capability_routing_when_model_unset(
+    cfg: VOLYConfig, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A hand-written Plan step with no explicit model, and any Workflow-
+    compiled chat node whose Agent had no model/tier pinned, both go through
+    this default _exec_chat path — capability routing must apply to both,
+    not just voly.sdk.agent.Agent's own standalone chat calls."""
+    cfg.capability.enabled = True
+    from voly.capability import routing as capability_routing_module
+
+    def fake_route(role, *, mode, config, available_executors=None):
+        assert mode == "chat"
+        assert role == "developer"
+        return ("", "claude-routed", "anthropic")
+
+    monkeypatch.setattr(capability_routing_module, "capability_route", fake_route)
+
+    seen = {}
+
+    def fake_chat(self, **kwargs):
+        seen["model"] = kwargs["model"]
+        seen["provider"] = kwargs["provider_name"]
+        return {"content": "ok"}
+
+    monkeypatch.setattr("voly.ai_gateway.gateway.AIGateway.chat", fake_chat)
+
+    plan = create_plan(
+        "chat-cap", [PlanStep(id="only", role="developer", mode=MODE_CHAT, task="say hi")]
+    )
+    runner = PlanRunner(cfg, emit_event=False)
+    result = runner.run(plan, mode="active")
+
+    assert result.success
+    assert seen["model"] == "claude-routed"
+    assert seen["provider"] == "anthropic"
+
+
+def test_default_chat_path_ignores_capability_routing_when_model_pinned(
+    cfg: VOLYConfig, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cfg.capability.enabled = True
+
+    def fail_route(*args, **kwargs):
+        raise AssertionError("capability_route must not be called when step.model is set")
+
+    monkeypatch.setattr("voly.capability.routing.capability_route", fail_route)
+    monkeypatch.setattr(
+        "voly.ai_gateway.gateway.AIGateway.chat",
+        lambda self, **kwargs: {"content": "ok", "model": kwargs["model"]},
+    )
+
+    plan = create_plan(
+        "chat-pinned",
+        [PlanStep(id="only", role="developer", mode=MODE_CHAT, task="say hi", model="claude-pinned")],
+    )
+    result = PlanRunner(cfg, emit_event=False).run(plan, mode="active")
+    assert result.success
+
+
+def test_default_executor_path_uses_capability_routing_when_executor_unset(
+    cfg: VOLYConfig, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cfg.capability.enabled = True
+    from voly.executor.base import ExecutorResult
+    from voly.runner.agent_runner import RunnerResult
+
+    def fake_route(role, *, mode, config, available_executors=None):
+        assert mode == "executor"
+        return ("wrangler", "", "")
+
+    monkeypatch.setattr("voly.capability.routing.capability_route", fake_route)
+
+    calls = []
+    er = ExecutorResult(success=True, output="done")
+    runner_result = RunnerResult(
+        success=True, executor="wrangler", agent="developer", task_id="tid", result=er
+    )
+
+    def fake_run(self, task, agent, **kwargs):
+        calls.append(agent)
+        return runner_result
+
+    monkeypatch.setattr("voly.runner.agent_runner.AgentRunner.run", fake_run)
+
+    plan = create_plan(
+        "exec-cap",
+        [PlanStep(id="only", role="developer", mode=MODE_EXECUTOR, task="write code")],
+        cwd=str(Path(cfg.default_cwd)),
+    )
+    result = PlanRunner(cfg, emit_event=False).run(plan, mode="active")
+
+    assert result.success
+    assert calls == ["wrangler"]
+
+
 def test_plan_config_from_yaml(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     yml = tmp_path / "voly.yaml"
     yml.write_text(
