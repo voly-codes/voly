@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from voly.memory.scope import truncate_utf8
 from voly.pipeline.types import PipelineStage
 
 
@@ -74,22 +75,63 @@ class _ContextStageMixin:
             mode=getattr(memory_config, "agent_memory_profile_mode", "project"),
             cwd=cwd,
         )
-        return memory.scoped(profile) if profile else None
+        return (
+            memory.scoped(
+                profile,
+                checkpoint_ingest=bool(
+                    getattr(memory_config, "agent_memory_checkpoint_ingest", True)
+                ),
+                checkpoint_max_bytes=int(
+                    getattr(memory_config, "agent_memory_checkpoint_max_bytes", 32_000)
+                ),
+            )
+            if profile
+            else None
+        )
 
     def _stage_memory_store(
-        self, task: str, response: Any, route: Any, context: dict[str, Any] | None = None
+        self,
+        task: str,
+        response: Any,
+        route: Any,
+        context: dict[str, Any] | None = None,
+        task_id: str = "",
     ) -> None:
         memory = self._memory_for_context(context)
         if memory is None:
             return
+        memory_config = self.config.memory  # type: ignore[attr-defined]
+        checkpoint = (
+            str(getattr(memory_config, "backend", "")).lower() == "agent_memory"
+            and bool(getattr(memory_config, "agent_memory_checkpoint_ingest", True))
+            and bool(task_id)
+        )
         memory.add(
             title=f"Task: {task[:100]}",
             content=response.content[:2000],
             category="history",
-            metadata={"agent": route.agent, "model": route.model, "provider": route.provider},
+            metadata={
+                "agent": route.agent,
+                "model": route.model,
+                "provider": route.provider,
+                "session_id": task_id,
+            },
             importance=0.6,
             tags=[route.agent, "task"],
+            remote=not checkpoint,
         )
+        if checkpoint:
+            limit = int(getattr(memory_config, "agent_memory_checkpoint_max_bytes", 32_000))
+            memory.ingest(
+                [
+                    {"role": "user", "content": truncate_utf8(task, limit)},
+                    {
+                        "role": "assistant",
+                        "content": truncate_utf8(response.content, limit),
+                    },
+                ],
+                session_id=truncate_utf8(task_id, 64),
+            )
         self._fire(PipelineStage.MEMORY_STORE)  # type: ignore[attr-defined]
 
     def _stage_headroom_compress(

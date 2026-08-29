@@ -123,10 +123,21 @@ class MemoryStore:
             return client
         return None
 
-    def scoped(self, profile: str) -> ScopedMemoryStore:
+    def scoped(
+        self,
+        profile: str,
+        *,
+        checkpoint_ingest: bool = False,
+        checkpoint_max_bytes: int = 32_000,
+    ) -> ScopedMemoryStore:
         if not profile:
             raise ValueError("memory profile is required")
-        return ScopedMemoryStore(self, profile)
+        return ScopedMemoryStore(
+            self,
+            profile,
+            checkpoint_ingest=checkpoint_ingest,
+            checkpoint_max_bytes=checkpoint_max_bytes,
+        )
 
     @property
     def conn(self) -> sqlite3.Connection:
@@ -146,6 +157,7 @@ class MemoryStore:
         importance: float = 0.5,
         tags: list[str] | None = None,
         memory_profile: str = "",
+        remote: bool = True,
     ) -> str:
         import uuid
 
@@ -174,7 +186,7 @@ class MemoryStore:
         )
         self.conn.commit()
 
-        client = self._get_remote_client(memory_profile)
+        client = self._get_remote_client(memory_profile) if remote else None
         if client:
             try:
                 client.add(
@@ -190,6 +202,24 @@ class MemoryStore:
                 _log.warning("remote memory add failed (%s): %s", self._backend, exc)
 
         return entry_id
+
+    def ingest(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        session_id: str,
+        memory_profile: str = "",
+    ) -> bool:
+        """Ingest a remote checkpoint; local history is stored separately by add()."""
+        client = self._get_remote_client(memory_profile)
+        if client is None or not hasattr(client, "ingest"):
+            return False
+        try:
+            client.ingest(messages, session_id=session_id)
+            return True
+        except Exception as exc:
+            _log.warning("remote memory ingest failed (%s): %s", self._backend, exc)
+            return False
 
     def get(self, entry_id: str) -> MemoryEntry | None:
         row = self.conn.execute("SELECT * FROM memories WHERE id = ?", (entry_id,)).fetchone()
@@ -374,9 +404,18 @@ class MemoryStore:
 class ScopedMemoryStore:
     """Immutable per-run view over one local/remote memory profile."""
 
-    def __init__(self, store: MemoryStore, profile: str) -> None:
+    def __init__(
+        self,
+        store: MemoryStore,
+        profile: str,
+        *,
+        checkpoint_ingest: bool = False,
+        checkpoint_max_bytes: int = 32_000,
+    ) -> None:
         self.store = store
         self.profile = profile
+        self.checkpoint_ingest = checkpoint_ingest
+        self.checkpoint_max_bytes = checkpoint_max_bytes
 
     def add(self, title: str, content: str, **kwargs: Any) -> str:
         return self.store.add(title, content, memory_profile=self.profile, **kwargs)
@@ -386,3 +425,10 @@ class ScopedMemoryStore:
 
     def search_semantic(self, query: str, limit: int = 10) -> list[MemoryEntry]:
         return self.store.search_semantic(query, limit, memory_profile=self.profile)
+
+    def ingest(self, messages: list[dict[str, Any]], *, session_id: str) -> bool:
+        return self.store.ingest(
+            messages,
+            session_id=session_id,
+            memory_profile=self.profile,
+        )

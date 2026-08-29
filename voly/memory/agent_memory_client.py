@@ -154,6 +154,10 @@ class AgentMemoryClient:
         """Extract durable memories from a bounded conversation batch."""
         if not messages:
             raise ValueError("messages must not be empty")
+        if len(messages) > 500:
+            raise ValueError("messages must contain at most 500 items")
+        if len(session_id.encode("utf-8")) > 64:
+            raise ValueError("session_id must be at most 64 bytes")
         normalized: list[dict[str, str]] = []
         for item in messages:
             if not isinstance(item, dict):
@@ -162,6 +166,8 @@ class AgentMemoryClient:
             content = str(item.get("content") or "").strip()
             if not role or not content:
                 raise ValueError("each message requires role and content")
+            if len(content.encode("utf-8")) > 32_768:
+                raise ValueError("message content must be at most 32 KiB")
             message = {"role": role, "content": content}
             timestamp = str(item.get("timestamp") or "").strip()
             if timestamp:

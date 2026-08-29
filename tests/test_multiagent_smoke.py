@@ -122,6 +122,57 @@ def test_run_local_cache_and_memory():
         assert a.mem_hits == 1
 
 
+def test_run_local_checkpoints_agent_memory_session() -> None:
+    assignment = Assignment(
+        idx=0,
+        role="architect",
+        description="Design the service",
+        depends_on=[],
+        tier="standard",
+        model="model-a",
+        provider="provider-a",
+    )
+
+    class _Mem:
+        checkpoint_ingest = True
+        checkpoint_max_bytes = 32_000
+
+        def __init__(self):
+            self.add_calls = []
+            self.ingest_calls = []
+
+        def search(self, query, limit=3):
+            return []
+
+        def add(self, **kwargs):
+            self.add_calls.append(kwargs)
+
+        def ingest(self, messages, *, session_id):
+            self.ingest_calls.append((messages, session_id))
+            return True
+
+    memory = _Mem()
+    run_local(
+        "Build a service",
+        [assignment],
+        _FakeGateway(),
+        memory=memory,
+        task_id="task-123",
+        hybrid_code_gen=False,
+    )
+
+    assert memory.add_calls[0]["remote"] is False
+    assert memory.ingest_calls == [
+        (
+            [
+                {"role": "user", "content": "Design the service"},
+                {"role": "assistant", "content": "output from architect"},
+            ],
+            "task-123",
+        )
+    ]
+
+
 def test_merge_report_contains_roles_and_models():
     a = Assignment(idx=0, role="architect", description="d", depends_on=[], tier="premium",
                    model="claude-sonnet-4-6", provider="anthropic", content="design", ok=True)

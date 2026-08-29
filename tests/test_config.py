@@ -74,6 +74,8 @@ memory:
   backend: agent_memory
   agent_memory_profile_mode: explicit
   agent_memory_profile: team-a
+  agent_memory_checkpoint_ingest: false
+  agent_memory_checkpoint_max_bytes: 12000
 models:
   my-model:
     provider: openai
@@ -103,6 +105,8 @@ agents:
         assert cfg.memory.backend == "agent_memory"
         assert cfg.memory.agent_memory_profile_mode == "explicit"
         assert cfg.memory.agent_memory_profile == "team-a"
+        assert cfg.memory.agent_memory_checkpoint_ingest is False
+        assert cfg.memory.agent_memory_checkpoint_max_bytes == 12_000
         assert "my-model" in cfg.models
         assert cfg.models["my-model"].provider == "openai"
         assert "my-agent" in cfg.agents

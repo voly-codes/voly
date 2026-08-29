@@ -380,15 +380,44 @@ class _RoleExecMixin:
                 a.error = "empty response from provider"
             if a.content.strip() and self.memory is not None and not a.cache_hit:
                 try:
-                    self.memory.add(
-                        title=f"[{a.role}] {a.description[:80]}",
-                        content=a.content[:2000], category="history",
-                        metadata={
-                            "role": a.role, "model": a.model, "provider": a.provider,
+                    checkpoint = bool(
+                        getattr(self.memory, "checkpoint_ingest", False) and self.task_id
+                    )
+                    add_kwargs = {
+                        "title": f"[{a.role}] {a.description[:80]}",
+                        "content": a.content[:2000],
+                        "category": "history",
+                        "metadata": {
+                            "role": a.role,
+                            "model": a.model,
+                            "provider": a.provider,
                             "task": self.task[:200],
                         },
-                        importance=0.5, tags=[a.role, "a2a"],
-                    )
+                        "importance": 0.5,
+                        "tags": [a.role, "a2a"],
+                    }
+                    if checkpoint:
+                        add_kwargs["remote"] = False
+                    self.memory.add(**add_kwargs)
+                    if checkpoint:
+                        from voly.memory.scope import truncate_utf8
+
+                        max_bytes = int(
+                            getattr(self.memory, "checkpoint_max_bytes", 32_000)
+                        )
+                        self.memory.ingest(
+                            [
+                                {
+                                    "role": "user",
+                                    "content": truncate_utf8(a.description, max_bytes),
+                                },
+                                {
+                                    "role": "assistant",
+                                    "content": truncate_utf8(a.content, max_bytes),
+                                },
+                            ],
+                            session_id=truncate_utf8(self.task_id, 64),
+                        )
                 except Exception as e:  # noqa: BLE001
                     _log.debug("memory store skipped for %s: %s", a.role, e)
         self.finish_step_plan(

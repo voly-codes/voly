@@ -299,7 +299,27 @@ class _A2AStageMixin:
                     mode=getattr(self.config.memory, "agent_memory_profile_mode", "project"),  # type: ignore[attr-defined]
                     cwd=cwd,
                 )
-                memory = self.memory.scoped(profile) if profile else None  # type: ignore[attr-defined]
+                memory = (  # type: ignore[attr-defined]
+                    self.memory.scoped(  # type: ignore[attr-defined]
+                        profile,
+                        checkpoint_ingest=bool(
+                            getattr(
+                                self.config.memory,  # type: ignore[attr-defined]
+                                "agent_memory_checkpoint_ingest",
+                                True,
+                            )
+                        ),
+                        checkpoint_max_bytes=int(
+                            getattr(
+                                self.config.memory,  # type: ignore[attr-defined]
+                                "agent_memory_checkpoint_max_bytes",
+                                32_000,
+                            )
+                        ),
+                    )
+                    if profile
+                    else None
+                )
             else:
                 memory = self.memory  # type: ignore[attr-defined]
         requires_code_gen = bool(

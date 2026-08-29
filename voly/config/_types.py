@@ -95,6 +95,8 @@ class MemoryConfig:
     # Explicit project/user/org scope is recommended; "default" is only a
     # backwards-compatible single-profile fallback.
     agent_memory_profile: str = "default"
+    agent_memory_checkpoint_ingest: bool = True
+    agent_memory_checkpoint_max_bytes: int = 32_000
     strategic_compaction: bool = False
     strategic_path: str = ".voly/strategic-memory.jsonl"
     retrieval_token_budget: int = 600

@@ -487,7 +487,7 @@ class Pipeline(_PipelineStageMixin, _SkillsMixin):
             self._metrics.total_tokens_out += response.usage.output_tokens
 
             if self.config.memory.enabled:
-                self._stage_memory_store(task, response, route, context)
+                self._stage_memory_store(task, response, route, context, task_id)
 
             if self.config.agui.enabled and agui_session_id:
                 self._stage_agui_done(agui_session_id, response)

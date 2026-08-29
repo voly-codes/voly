@@ -145,6 +145,13 @@ def _parse_config(raw: dict) -> VOLYConfig:
             agent_memory_profile=os.path.expandvars(
                 m.get("agent_memory_profile", "default") or "default"
             ),
+            agent_memory_checkpoint_ingest=_parse_bool(
+                m.get("agent_memory_checkpoint_ingest"), True
+            ),
+            agent_memory_checkpoint_max_bytes=min(
+                32_768,
+                max(1_000, int(m.get("agent_memory_checkpoint_max_bytes", 32_000))),
+            ),
             strategic_compaction=_parse_bool(m.get("strategic_compaction"), False),
             strategic_path=m.get("strategic_path", ".voly/strategic-memory.jsonl"),
             retrieval_token_budget=int(m.get("retrieval_token_budget", 600) or 600),

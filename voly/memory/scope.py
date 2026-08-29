@@ -10,6 +10,11 @@ from voly.memory.strategic import project_scope_id
 _SAFE = re.compile(r"[^a-z0-9_-]+")
 
 
+def truncate_utf8(value: str, max_bytes: int) -> str:
+    """Bound text by UTF-8 bytes without returning a partial code point."""
+    return value.encode("utf-8")[:max_bytes].decode("utf-8", errors="ignore")
+
+
 def project_memory_profile(cwd: str | Path) -> str:
     """Return a stable, readable profile name within Cloudflare's 100-char limit."""
     root = Path(cwd).expanduser().resolve()

@@ -56,6 +56,14 @@ queries. Runs without a project cwd skip memory instead of using a shared
 profile. A2A creates the same scoped view once per local run and shares it
 across that run's roles.
 
+When `agent_memory_checkpoint_ingest` is enabled, a successful Pipeline model
+call is checkpointed as one bounded user/assistant pair using `task_id` as the
+Cloudflare session. A2A checkpoints each successful non-cache role into the
+same task session. The SQLite history row is committed first; `/ingest` replaces
+the remote `/remember` mirror for that checkpoint, avoiding duplicate remote
+memories. Remote ingestion errors degrade to local-only history and do not fail
+the run.
+
 Evaluated capability routing remains outside the active pipeline until the
 Phase 9 measured gate passes. The offline 20-task routing probe cannot enable
 it. See [production-validation.md](production-validation.md).

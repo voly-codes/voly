@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from voly.config import A2AConfig, VOLYConfig
 from voly.memory.store import MemoryStore
@@ -128,3 +129,63 @@ def test_agent_memory_project_scope_changes_with_cwd(tmp_path) -> None:
     second = pipeline._memory_for_context({"cwd": str(tmp_path / "project-b")})
 
     assert first.profile != second.profile
+
+
+def test_agent_memory_checkpoint_uses_ingest_without_remote_remember(tmp_path) -> None:
+    config = VOLYConfig()
+    config.memory.backend = "agent_memory"
+    config.memory.agent_memory_profile_mode = "explicit"
+    config.memory.agent_memory_profile = "team-a"
+    pipeline = _FakePipeline(config)
+    pipeline.memory = MemoryStore(
+        tmp_path / "memory.db",
+        backend="agent_memory",
+        agent_memory_profile="team-a",
+    )
+    remote = MagicMock()
+    pipeline.memory._remote_client = remote
+
+    pipeline._stage_memory_store(
+        "Choose a database",
+        SimpleNamespace(content="Use PostgreSQL"),
+        SimpleNamespace(agent="architect", model="model-a", provider="provider-a"),
+        {},
+        "task-123",
+    )
+
+    remote.add.assert_not_called()
+    remote.ingest.assert_called_once_with(
+        [
+            {"role": "user", "content": "Choose a database"},
+            {"role": "assistant", "content": "Use PostgreSQL"},
+        ],
+        session_id="task-123",
+    )
+    stored = pipeline.memory.list_by_category("history")
+    assert stored[0].metadata["session_id"] == "task-123"
+
+
+def test_agent_memory_checkpoint_failure_keeps_local_history(tmp_path) -> None:
+    config = VOLYConfig()
+    config.memory.backend = "agent_memory"
+    config.memory.agent_memory_profile_mode = "explicit"
+    config.memory.agent_memory_profile = "team-a"
+    pipeline = _FakePipeline(config)
+    pipeline.memory = MemoryStore(
+        tmp_path / "memory.db",
+        backend="agent_memory",
+        agent_memory_profile="team-a",
+    )
+    remote = MagicMock()
+    remote.ingest.side_effect = RuntimeError("offline")
+    pipeline.memory._remote_client = remote
+
+    pipeline._stage_memory_store(
+        "Task",
+        SimpleNamespace(content="Result"),
+        SimpleNamespace(agent="agent", model="model", provider="provider"),
+        {},
+        "task-123",
+    )
+
+    assert pipeline.memory.count("history") == 1

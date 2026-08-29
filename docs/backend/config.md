@@ -547,6 +547,10 @@ memory:
   agent_memory_profile_mode: project  # project | explicit
   # Used only in explicit mode. Do not share `default` across projects/tenants.
   agent_memory_profile: default
+  # After each successful Pipeline/A2A model checkpoint, send one bounded
+  # user/assistant pair to Agent Memory /ingest instead of duplicating /remember.
+  agent_memory_checkpoint_ingest: true
+  agent_memory_checkpoint_max_bytes: 32000
   strategic_compaction: false
   strategic_path: .voly/strategic-memory.jsonl
   retrieval_token_budget: 600
@@ -599,10 +603,19 @@ voly memory summary --session-id run-123 --cwd /path/to/project
 
 `conversation.json` is either a JSON message list or
 `{"sessionId":"...","messages":[...]}`. VOLY caps manual ingestion at 1 MB
-and 500 messages. It does not automatically ingest every model turn; automatic
-checkpoint ingestion and user/org multi-profile retrieval are separate rollout
-steps. `strategic_compaction: true` continues to use the local typed strategic
-store rather than Agent Memory.
+and 500 messages. Automatic checkpoint ingestion runs after successful Pipeline
+results and successful non-cache A2A role results. It stores the local fallback first,
+then sends a bounded user/assistant pair under the task ID as Cloudflare
+`sessionId`; a remote failure never fails the task. Cloudflare manages remote
+retention. Deletion remains explicit through its memory, session, or profile
+lifecycle API; VOLY does not silently delete remote history.
+
+The API guardrails are enforced client-side: at most 500 messages per ingest,
+32 KiB per message, and 64 bytes per session ID. Lower
+`agent_memory_checkpoint_max_bytes` when prompts may contain large generated
+artifacts. `strategic_compaction: true` continues to use the local typed
+strategic store rather than Agent Memory. User/org multi-profile retrieval is a
+separate rollout step.
 
 ---
 

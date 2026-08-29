@@ -122,6 +122,18 @@ def test_agent_memory_ingest_rejects_invalid_messages(messages) -> None:
         client.ingest(messages)
 
 
+def test_agent_memory_ingest_enforces_cloudflare_limits() -> None:
+    client = AgentMemoryClient("acc", "voly", "project-a", token="tok")
+    message = {"role": "user", "content": "ok"}
+
+    with pytest.raises(ValueError, match="at most 500"):
+        client.ingest([message] * 501)
+    with pytest.raises(ValueError, match="64 bytes"):
+        client.ingest([message], session_id="s" * 65)
+    with pytest.raises(ValueError, match="32 KiB"):
+        client.ingest([{"role": "user", "content": "я" * 16_385}])
+
+
 def test_agent_memory_delete_lifecycle_quotes_ids() -> None:
     client = AgentMemoryClient("acc", "voly", "project-a", token="tok")
     captured: list = []

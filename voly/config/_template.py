@@ -79,6 +79,8 @@ memory:
   agent_memory_namespace: "${CF_AGENT_MEMORY_NAMESPACE}"
   agent_memory_profile_mode: project  # project | explicit
   agent_memory_profile: "${CF_AGENT_MEMORY_PROFILE}"
+  agent_memory_checkpoint_ingest: true
+  agent_memory_checkpoint_max_bytes: 32000
   strategic_compaction: false
   strategic_path: ".voly/strategic-memory.jsonl"
   retrieval_token_budget: 600
