@@ -1,4 +1,4 @@
-"""Correlation ID helpers and TaskEvent schema v3 field."""
+"""Correlation ID helpers and TaskEvent schema v4 field."""
 
 from __future__ import annotations
 
@@ -50,8 +50,8 @@ def test_json_log_formatter_includes_correlation_id() -> None:
     assert data["msg"] == "hello"
 
 
-def test_task_event_schema_v3_has_correlation_id() -> None:
-    assert TASK_EVENT_SCHEMA_VERSION == 3
+def test_task_event_schema_v4_has_correlation_id() -> None:
+    assert TASK_EVENT_SCHEMA_VERSION == 4
     ev = TaskEvent(
         task_id="t1",
         agent="developer",
@@ -59,4 +59,4 @@ def test_task_event_schema_v3_has_correlation_id() -> None:
         correlation_id="cid-1",
     )
     assert ev.to_dict()["correlation_id"] == "cid-1"
-    assert ev.to_dict()["schema_version"] == 3
+    assert ev.to_dict()["schema_version"] == 4

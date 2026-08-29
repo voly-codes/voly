@@ -2,7 +2,7 @@ id: skill-cf-run-correlation
 name: Cloudflare run correlation
 description: >-
   Trace VOLY runs across API, control plane, and Cloudflare Workers Logs
-  using X-Correlation-ID / correlation_id (TaskEvent schema v3).
+  using X-Correlation-ID / correlation_id (TaskEvent schema v4).
 source: marketplace
 status: active
 version: 0.1.0

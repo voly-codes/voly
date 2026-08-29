@@ -218,7 +218,9 @@ python -m pytest tests/test_evidence_foundation.py -q
 python -m pytest tests/test_capability_evidence.py -q
 ```
 
-`TaskEvent v3` is unchanged; EvidenceRecord is a separate local contract.
+`TaskEvent v4` is a separate local contract. Its optional business context
+links terminal Decision outcomes to the same task ID without embedding the
+EvidenceRecord action report or changing EvidenceRecord schema v3.
 
 ## Planned FinOps join
 

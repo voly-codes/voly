@@ -91,7 +91,7 @@ creating a graph per child call.
 Completed records also retain internal `workflow_metrics`: laps, repair laps,
 verified completion, cooperative manual interventions, total cost, duration,
 unique files touched, and stop reason. These fields deliberately stay outside
-the frozen public `TaskEvent` v3 contract. Summarize the newest completed sample
+the frozen public `TaskEvent` v4 contract. Summarize the newest completed sample
 with `voly workflow stats --limit 10 [--json]`; see
 [workflow-validation.md](workflow-validation.md) for the guarded rollout.
 

@@ -3,7 +3,7 @@
 **Status:** implementation started — PR0 contracts landed in the working tree
 **Layer:** new — **C** (business-signal orchestration; sits beside Layer A model gateway and Layer B code-agent orchestration, does not replace either)
 **Author context:** adapting VOLY toward Salim Ismail's "Intelligence Stack" model (*The Organizational Singularity*): Sensing → Interpretation → Decision → Orchestration/Execution → Learning, wrapped in a Governance band. VOLY already implements a mature version of this loop, but scoped to one input type — a human-typed coding task — and one output type — a git diff. This proposal generalizes the loop to arbitrary business signals and business actions, reusing existing contracts instead of building a parallel stack.
-**Related:** `voly/intelligence/` (repo_analyzer — code-scoped sensing, not reused directly but same shape), `voly/dspy/programs/*.py`, `voly/plan/` (FSM, gates, `review_required` pattern), `voly/executor/base.py` (`Executor`, `ExecutorResult`), `voly/capability/` (`ExecutorMatcher`, capability-aware fallback), `voly/learning/instincts.py`, `voly/evaluation/calibration.py`, `voly/evidence/` (`EvidenceRecord`, human feedback), `voly/telemetry.py` (`TaskEvent` v3), `voly/ai_gateway/` (`AIGateway.chat()`), `docs/proposals/plan-gate-verification.md` (this proposal reuses its FSM instead of adding a second one)
+**Related:** `voly/intelligence/` (repo_analyzer — code-scoped sensing, not reused directly but same shape), `voly/dspy/programs/*.py`, `voly/plan/` (FSM, gates, `review_required` pattern), `voly/executor/base.py` (`Executor`, `ExecutorResult`), `voly/capability/` (`ExecutorMatcher`, capability-aware fallback), `voly/learning/instincts.py`, `voly/evaluation/calibration.py`, `voly/evidence/` (`EvidenceRecord`, human feedback), `voly/telemetry.py` (`TaskEvent` v4), `voly/ai_gateway/` (`AIGateway.chat()`), `docs/proposals/plan-gate-verification.md` (this proposal reuses its FSM instead of adding a second one)
 
 ---
 
@@ -225,7 +225,7 @@ result: "200 OK"
 | `voly/capability/` (`ExecutorMatcher`, `fallback.py`) | Route/score business executors alongside code executors | register the string capability key `business_action` (the current `CapabilityDomain` is a score dataclass, not an enum) |
 | `voly/evidence/` (`baseline.py`, `record.py`, `store.py`) | Evidence for business actions | `ActionReport` alongside `WorkReport`; same `EvidenceRecord` envelope |
 | `voly/learning/instincts.py`, `voly/evaluation/calibration.py` | Learn from Decision/outcome pairs | ingest `plan_id` (business) same as it ingests judge-quality calibration events today |
-| `voly/telemetry.py` (`TaskEvent` v3) | Auditability | schema bump (see Risks) to carry `signal_id` / `plan_id` (business) — nested blob first, same strategy the plan-gate proposal used |
+| `voly/telemetry.py` (`TaskEvent` v4) | Auditability | local-only nested `signal` / `business_plan` context, excluded from Cloud Analytics v1 |
 | `voly/evidence/privacy.py` | Redaction before any remote analytics | Signal/Option/ActionReport payloads go through the same allowlist, fail-closed by default |
 | Web UI | New `#/signals` and `#/decisions` routes | reuse `WorkReport.svelte` / evidence-feedback UI patterns |
 
@@ -447,7 +447,7 @@ rows alongside existing judge-calibration rows; reports stay observational
 [x] PR3  two-step business Plan + human_review/action_succeeded checks + decisions API/CLI/UI
 [x] PR4  HTTP + webhook notify orchestration, EvidenceRecord v3, `business_action` seeds
 [x] PR5  instincts.py / calibration.py extended to business Decisions
-[ ] PR6  TaskEvent schema bump + contract tests + docs
+[x] PR6  TaskEvent schema bump + contract tests + docs
 ```
 
 ---

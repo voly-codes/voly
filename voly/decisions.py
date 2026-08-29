@@ -50,6 +50,12 @@ class DecisionService:
             metadata={
                 "kind": "business_decision",
                 "signal_id": signal.signal_id,
+                "signal": {
+                    "signal_id": signal.signal_id,
+                    "source": signal.source,
+                    "captured_at": signal.captured_at,
+                    "confidence": signal.confidence,
+                },
                 "option_id": option.option_id,
                 "urgency": option.urgency,
                 "action_kind": option.action_kind,
@@ -99,6 +105,8 @@ class DecisionService:
             plan.status = "failed"
         self.store.save(plan)
         self._learn(plan)
+        if decision == "reject" and self.config is not None:
+            self._emit_task_event(plan)
         return DecisionResult(plan, desired, True)
 
     def list(self) -> list[Plan]:
@@ -142,10 +150,12 @@ class DecisionService:
             self.engine.transition(plan, step.id, "failed", error=result.error)
             plan.status = "failed"
             plan.metadata["execution"] = "failed"
+        plan.metadata["executed_at"] = time.time()
         plan.metadata["action_report"] = dict(result.metadata.get("action_report") or {})
         self.store.save(plan)
         if self.config is not None:
             self._save_evidence(plan, result)
+            self._emit_task_event(plan)
         self._learn(plan)
         return plan
 
@@ -154,6 +164,35 @@ class DecisionService:
             return
         from voly.learning.instincts import InstinctStore
         InstinctStore(self.config.learning.store_path).ingest_business_decision(plan)
+
+    def _emit_task_event(self, plan: Plan) -> None:
+        from voly.telemetry import TaskEvent, emit_event_from_config
+
+        meta = plan.metadata
+        action = dict(meta.get("action_spec") or {})
+        report = dict(meta.get("action_report") or {})
+        execution = str(meta.get("execution") or "pending")
+        status = "failed" if execution == "failed" else "completed"
+        emit_event_from_config(TaskEvent(
+            task_id=plan.task_id or plan.plan_id,
+            agent="operator" if execution != "pending" else "human-reviewer",
+            status=status,
+            executor=str(action.get("kind") or ""),
+            task_type="business_decision",
+            task_prompt=plan.task[:2000],
+            result=str(report.get("result") or meta.get("decision") or "")[:8000],
+            signal=dict(meta.get("signal") or {}),
+            business_plan={
+                "plan_id": plan.plan_id,
+                "option_id": str(meta.get("option_id") or ""),
+                "urgency": str(meta.get("urgency") or ""),
+                "decision": str(meta.get("decision") or "pending"),
+                "decided_at": meta.get("decided_at"),
+                "execution": execution,
+                "executed_at": meta.get("executed_at"),
+                "action_kind": str(action.get("kind") or meta.get("action_kind") or ""),
+            },
+        ), self.config)
 
     def _save_evidence(self, plan: Plan, result) -> None:  # type: ignore[no-untyped-def]
         from datetime import datetime, timezone

@@ -125,7 +125,7 @@ open versioned interfaces — they are frozen by contract tests
 
 | Contract | Version | Where documented |
 |---|---|---|
-| `TaskEvent` (task telemetry) | `schema_version: 3` | `voly/telemetry.py`, `docs/backend/api.md` |
+| `TaskEvent` (task telemetry) | `schema_version: 4` | `voly/telemetry.py`, `docs/backend/api.md` |
 | Cloud analytics allowlist | `schema_version: 1` | `voly/telemetry.py`, `docs/backend/api.md` |
 | EvidenceRecord (local) | `schema_version: 3` | `voly/evidence/schema.py`, `docs/backend/evidence.md` |
 | Evidence Cloud allowlist | `schema_version: 2` | `voly/evidence/privacy.py`, `docs/backend/evidence.md` |
@@ -192,7 +192,7 @@ repository baseline → DSPy plan → executor/fallback → WorkReport
 → root-cause classification → local EvidenceRecord → TaskEvent
 ```
 
-EvidenceRecord is separate from the frozen TaskEvent v3 contract. It stores a
+EvidenceRecord is separate from the frozen TaskEvent v4 contract. It stores a
 versioned execution bundle and prevents provider/tool/environment or
 pre-existing repository failures from reducing agent capability evidence.
 
@@ -283,7 +283,22 @@ Layer C business Decisions reuse the same Plan FSM as two steps:
 `approve-option` waits in `verifying`, while dependent `execute-action` remains
 blocked in `pending`. Explicit approve/reject is persisted through
 `DecisionService`; approval opens the dependency gate but does not itself run
-the external action. UI route: `#/decisions`; API: `/api/decisions`.
+the external action. Terminal rejection or action execution emits TaskEvent v4
+with local-only nested `signal` and `business_plan` context; Cloud Analytics v1
+excludes both objects. UI route: `#/decisions`; API: `/api/decisions`.
+
+The complete Layer C path is:
+
+```text
+RSS Signal → analyst Option → Decision Plan → human approval
+                                      ↓
+                         HTTP/notify Executor → EvidenceRecord
+                                      ↓
+                         TaskEvent v4 → learning/calibration
+```
+
+Backend guides: [`sensing.md`](backend/sensing.md) and
+[`decisions.md`](backend/decisions.md).
 
 ### `voly/pipeline/` — central orchestrator (text path)
 

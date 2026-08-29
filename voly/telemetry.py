@@ -149,7 +149,7 @@ class GatewayMetrics:
 # allowlist schema below; neither Pipeline nor R2 receives TaskEvent directly.
 # Any field/semantic change requires a version bump, contract-test update and
 # matching docs/backend/api.md change.
-TASK_EVENT_SCHEMA_VERSION = 3
+TASK_EVENT_SCHEMA_VERSION = 4
 CLOUD_ANALYTICS_SCHEMA_VERSION = 1
 
 
@@ -218,6 +218,10 @@ class TaskEvent:
     # Per-sub-agent assignment plan from the lead orchestrator:
     # [{role, tier, model, provider, skills:[...], input_tokens, output_tokens, cost_usd, ok}]
     a2a_assignments: list[dict[str, Any]] = field(default_factory=list)
+    # Local-only business OODA context. The remote Cloud Analytics allowlist
+    # deliberately excludes both nested objects.
+    signal: dict[str, Any] | None = None
+    business_plan: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

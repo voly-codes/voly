@@ -47,7 +47,7 @@ without learning would only buy more cost.
 ## Persisted metrics
 
 Completed parent `RunRecord` files keep `workflow_metrics` outside the frozen
-`TaskEvent` v3 schema: lap count, repair laps, verified completion, cooperative
+`TaskEvent` v4 schema: lap count, repair laps, verified completion, cooperative
 manual interventions, total cost, duration, unique files touched, and stop
 reason. `voly workflow stats` aggregates the newest completed workflow records;
 it does not include active runs or ordinary executor records.

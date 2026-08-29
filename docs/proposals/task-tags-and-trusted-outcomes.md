@@ -3,7 +3,7 @@
 Tracking issue: [voly-codes/voly#9](https://github.com/voly-codes/voly/issues/9)
 
 Status: planned. None of the task-tagging acceptance criteria are implemented
-yet. `TaskEvent` remains schema v3 and the Spend Protocol remains v1.
+yet. `TaskEvent` is schema v4 and the Spend Protocol remains v1.
 
 ## Goal
 

@@ -121,3 +121,62 @@ def test_decision_and_execution_feed_enabled_learning_store(tmp_path) -> None:
     assert len(instincts) == 1
     assert [item.kind for item in instincts[0].evidence] == ["user_accepted", "verified_outcome"]
     assert instincts[0].lifecycle is InstinctLifecycle.CANDIDATE
+
+
+def test_business_execution_emits_local_task_event_v4(tmp_path) -> None:
+    import json
+
+    from voly.config import VOLYConfig
+    from voly.executor.base import ExecutorResult
+
+    config = VOLYConfig()
+    config.telemetry.events_dir = str(tmp_path / "events")
+    config.telemetry.pipeline_enabled = False
+    config.telemetry.r2_enabled = False
+    service = DecisionService(PlanStore(str(tmp_path / "plans")), config=config)
+    option = Option(
+        "opt-event", "rss-1", "Notify sales", "Market changed", "high", "Revenue", "business",
+        {"kind": "notify", "url": "https://hooks.example.com/business", "body": {}},
+    )
+    service.create(_signal(), option)
+    service.decide(option.option_id, "approve")
+
+    class FakeExecutor:
+        def run(self, task):
+            return ExecutorResult(True, metadata={"action_report": {"result": "HTTP 200"}})
+
+    service.execute(option.option_id, executor=FakeExecutor())
+
+    event = json.loads((tmp_path / "events" / "opt-event.json").read_text(encoding="utf-8"))
+    assert event["schema_version"] == 4
+    assert event["task_type"] == "business_decision"
+    assert event["signal"] == {
+        "signal_id": "rss-1",
+        "source": "rss",
+        "captured_at": "2026-08-29T10:00:00Z",
+        "confidence": 0.8,
+    }
+    assert event["business_plan"]["decision"] == "approved"
+    assert event["business_plan"]["execution"] == "completed"
+    assert event["business_plan"]["executed_at"] is not None
+
+
+def test_rejected_business_decision_emits_terminal_event(tmp_path) -> None:
+    import json
+
+    from voly.config import VOLYConfig
+
+    config = VOLYConfig()
+    config.telemetry.events_dir = str(tmp_path / "events")
+    config.telemetry.pipeline_enabled = False
+    config.telemetry.r2_enabled = False
+    service = DecisionService(PlanStore(str(tmp_path / "plans")), config=config)
+    service.create(_signal(), _option())
+
+    service.decide("opt-1", "reject")
+
+    event = json.loads((tmp_path / "events" / "opt-1.json").read_text(encoding="utf-8"))
+    assert event["status"] == "completed"
+    assert event["agent"] == "human-reviewer"
+    assert event["business_plan"]["decision"] == "rejected"
+    assert event["business_plan"]["execution"] == "pending"

@@ -70,7 +70,7 @@ for the reviewer to inspect.
 
 The final SSE `done` payload includes `workflow`, parent `task_id`,
 `stop_reason`, `laps`, `total_cost_usd`, `duration_ms`, and `cwd`. This is an
-endpoint response shape, not a change to the frozen `TaskEvent` v3 contract.
+endpoint response shape, not a change to the frozen `TaskEvent` v4 contract.
 
 Start a task. Returns an SSE stream.
 
@@ -323,7 +323,7 @@ The route only serves `.png` files inside the task artifact directory.
 
 Workflow parent records add `workflow`, `lap`, `max_laps`, `active_role`,
 `latest_verdict`, `stop_reason`, `cancel_requested`, and a causal `timeline`.
-These are internal run-state fields and do not modify `TaskEvent` v3.
+These are internal run-state fields and do not modify `TaskEvent` v4.
 
 ### POST /api/runs/{task_id}/cancel
 
@@ -468,17 +468,20 @@ Requires `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Secrets Store Edit).
 
 Write telemetry from external sources.
 
-### TaskEvent contract (schema_version: 3)
+### TaskEvent contract (schema_version: 4)
 
 `TaskEvent` (`voly/telemetry.py`) is the complete local versioned task event
 format used by `.voly/events`, local APIs and local dashboards. Each event
-carries `schema_version` (currently `3`). The v3 field set is frozen by the
+carries `schema_version` (currently `4`). The v4 field set is frozen by the
 contract test `tests/test_protocol_contracts.py` — changing the schema requires
 bumping `TASK_EVENT_SCHEMA_VERSION`, updating this section, and the snapshot
 in the test. Key field groups: identification (`task_id`, `agent`, `executor`,
 `status`, `schema_version`, `correlation_id`), cost (`cost_usd`, `retry_count`,
 `retry_cost_usd`, `tokens`), diagnostics (`error`, `error_class`,
 `chain_timelog`), local artifacts (`artifacts`), A2A (`a2a_*`), DSPy (`dspy_*`).
+TaskEvent v4 adds optional local-only nested `signal` and `business_plan`
+objects for terminal business Decision outcomes. They contain bounded identity,
+timing and lifecycle fields; Signal raw payloads and action bodies are absent.
 
 `correlation_id` links API requests, runner TaskEvents, and Cloudflare Worker
 calls (forwarded as `X-Correlation-ID`) so Workers Logs custom fields can be
@@ -486,14 +489,15 @@ filtered together with VOLY events. Clients may send `X-Correlation-ID` or
 `X-Request-ID`; otherwise the API generates a UUID.
 
 CF Pipelines, R2 and linked Cloud run history do **not** receive serialized
-TaskEvent v3. They are gated by explicit `cloud_analytics.enabled` consent and
+TaskEvent v4. They are gated by explicit `cloud_analytics.enabled` consent and
 receive the separate Cloud Analytics allowlist (`schema_version: 1`,
-`source_schema_version: 3`). Its exact top-level field set is also frozen in
+`source_schema_version: 4`). Its exact top-level field set is also frozen in
 `tests/test_protocol_contracts.py`. It includes a pseudonymous event id,
 task/executor/model categories, token/cost/duration/outcome/error-class and
 DSPy/A2A counters. It excludes `task_id`, correlation id, prompts, results,
 free-form errors, reports, paths, artifacts, stage/chain logs and assignment
 payloads.
+The v4 `signal` and `business_plan` objects are also excluded in full.
 
 Related contract: spend protocol — `docs/backend/spend-protocol.md`.
 

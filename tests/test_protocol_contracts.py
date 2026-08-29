@@ -26,12 +26,12 @@ from voly.telemetry import (
     event_to_pipeline_record,
 )
 
-# ─── TaskEvent schema v3 ───────────────────────────────────────────────────────
+# ─── TaskEvent schema v4 ───────────────────────────────────────────────────────
 
 # Замороженный набор полей схемы v3. Добавление/удаление/переименование поля
 # без бампа TASK_EVENT_SCHEMA_VERSION ломает внешних потребителей молча —
 # поэтому сначала версия и docs/backend/api.md, потом этот список.
-_V3_FIELDS = {
+_V4_FIELDS = {
     "task_id", "agent", "status", "schema_version", "correlation_id",
     "tokens", "gateway", "skill_ids", "memory_hits", "workflow",
     "routing_score", "cost_usd", "duration_ms",
@@ -43,6 +43,7 @@ _V3_FIELDS = {
     "dspy_dataset", "dspy_compile_id", "dspy_score", "dspy_shadow_delta",
     "task_prompt", "result", "stage_log", "report", "artifacts", "chain_timelog",
     "a2a_dispatched", "a2a_subtask_count", "a2a_agents_used", "a2a_assignments",
+    "signal", "business_plan",
 }
 
 _CLOUD_ANALYTICS_V1_FIELDS = {
@@ -57,15 +58,15 @@ _CLOUD_ANALYTICS_V1_FIELDS = {
 }
 
 
-def test_task_event_schema_v3_frozen():
+def test_task_event_schema_v4_frozen():
     actual = {f.name for f in fields(TaskEvent)}
-    assert TASK_EVENT_SCHEMA_VERSION == 3, (
-        "Версия схемы изменилась — обнови _V3_FIELDS→_V4_FIELDS и docs/backend/api.md"
+    assert TASK_EVENT_SCHEMA_VERSION == 4, (
+        "Версия схемы изменилась — обнови _V4_FIELDS→_V5_FIELDS и docs/backend/api.md"
     )
-    missing = _V3_FIELDS - actual
-    added = actual - _V3_FIELDS
+    missing = _V4_FIELDS - actual
+    added = actual - _V4_FIELDS
     assert not missing and not added, (
-        f"Схема TaskEvent разошлась с v3: added={sorted(added)}, missing={sorted(missing)}. "
+        f"Схема TaskEvent разошлась с v4: added={sorted(added)}, missing={sorted(missing)}. "
         "Изменение схемы = бамп TASK_EVENT_SCHEMA_VERSION + docs/backend/api.md + этот снимок."
     )
 
@@ -73,17 +74,35 @@ def test_task_event_schema_v3_frozen():
 def test_task_event_serializes_schema_version():
     ev = TaskEvent(task_id="t1", agent="a", status="completed", correlation_id="c-1")
     d = ev.to_dict()
-    assert d["schema_version"] == 3
+    assert d["schema_version"] == 4
     assert d["correlation_id"] == "c-1"
     # И в плоской записи для CF Pipelines
     rec = event_to_pipeline_record(ev)
     assert CLOUD_ANALYTICS_SCHEMA_VERSION == 1
     assert rec["schema_version"] == 1
-    assert rec["source_schema_version"] == 3
+    assert rec["source_schema_version"] == 4
     assert set(rec) == _CLOUD_ANALYTICS_V1_FIELDS
     # Ключевые плоские поля pipeline-записи (контракт SQL-трансформации)
     for key in ("ts_us", "tokens_input", "tokens_output", "cache_hit", "fallback_used"):
         assert key in rec
+
+
+def test_task_event_v4_business_context_is_local_only():
+    ev = TaskEvent(
+        task_id="business-1",
+        agent="operator",
+        status="completed",
+        signal={"signal_id": "rss-1", "source": "rss"},
+        business_plan={"plan_id": "option-1", "decision": "approved"},
+    )
+
+    local = ev.to_dict()
+    remote = event_to_pipeline_record(ev)
+
+    assert local["signal"]["signal_id"] == "rss-1"
+    assert local["business_plan"]["decision"] == "approved"
+    assert "signal" not in remote
+    assert "business_plan" not in remote
 
 
 def test_task_event_json_roundtrip_types():
