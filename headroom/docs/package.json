@@ -21,7 +21,7 @@
 		"fumadocs-ui": "16.10.3",
 		"headroom-ai": "file:../sdk/typescript",
 		"lucide-react": "^1.7.0",
-		"next": "16.2.6",
+		"next": "^16.3.3",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
 		"recharts": "^3.8.1",
@@ -29,7 +29,7 @@
 	},
 	"devDependencies": {
 		"@ai-sdk/openai": "^3.0.51",
-		"@anthropic-ai/sdk": "^0.82.0",
+		"@anthropic-ai/sdk": "^0.122.0",
 		"@tailwindcss/postcss": "^4.2.2",
 		"@types/mdx": "^2.0.13",
 		"@types/node": "^25.5.0",

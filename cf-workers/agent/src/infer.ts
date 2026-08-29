@@ -190,7 +190,7 @@ async function _callViaBinding(
 
   try {
     const result = await env.AI.run(
-      bindingModel as BaseAiTextGenerationModels,
+      bindingModel as keyof AiModels,
       { messages, max_tokens: maxTokens } as AiTextGenerationInput,
     ) as AiTextGenerationOutput;
 

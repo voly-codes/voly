@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 export interface Env {
   DB: D1Database;
@@ -158,8 +159,11 @@ app.post("/match", async (c) => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(incoming),
       });
-      const data = await resp.json();
-      return c.json({ ...data, deprecated: true, proxied_to: "capability" }, resp.status);
+      const data = (await resp.json()) as Record<string, unknown>;
+      return c.json(
+        { ...data, deprecated: true, proxied_to: "capability" },
+        resp.status as ContentfulStatusCode,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return c.json({ ok: false, error: message, deprecated: true }, 502);

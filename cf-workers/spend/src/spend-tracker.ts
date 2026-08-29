@@ -50,12 +50,12 @@ export class SpendTracker extends DurableObject<SpendEnv> {
       const limit = parseFloat(url.searchParams.get("limit") ?? "20");
       const since = Date.now() - 86_400_000;
       const row = this.ctx.storage.sql
-        .exec(
+        .exec<{ spent: number }>(
           "SELECT COALESCE(SUM(cost_usd), 0) as spent FROM spend WHERE agent = ? AND ts > ?",
           agent,
           since,
         )
-        .one<{ spent: number }>();
+        .one();
       const spent = row?.spent ?? 0;
       return Response.json({ ok: spent < limit, spent, limit, agent });
     }
@@ -64,7 +64,7 @@ export class SpendTracker extends DurableObject<SpendEnv> {
       const days = Math.min(parseInt(url.searchParams.get("days") ?? "1"), 30);
       const since = Date.now() - days * 86_400_000;
       const rows = this.ctx.storage.sql
-        .exec(
+        .exec<{ agent: string; tasks: number; spent: number }>(
           `SELECT agent,
                   COUNT(*) as tasks,
                   COALESCE(SUM(cost_usd), 0) as spent
@@ -74,7 +74,7 @@ export class SpendTracker extends DurableObject<SpendEnv> {
            ORDER BY spent DESC`,
           since,
         )
-        .toArray<{ agent: string; tasks: number; spent: number }>();
+        .toArray();
 
       const total = rows.reduce((sum, r) => sum + r.spent, 0);
       return Response.json({ days, total, agents: rows });

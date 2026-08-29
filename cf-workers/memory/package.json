@@ -8,7 +8,7 @@
     "db:init": "wrangler d1 execute voly --remote --file=schema.sql"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250620.0",
+    "@cloudflare/workers-types": "^5.20260731.1",
     "typescript": "^5.5.0",
     "wrangler": "^4.82.2"
   },

@@ -1,9 +1,10 @@
 import { DurableObject } from "cloudflare:workers";
+import type { Env } from "./index";
 
 const MAX_EVENTS = 200;
 
-export class AGUISession extends DurableObject {
-  constructor(ctx: DurableObjectState, env: unknown) {
+export class AGUISession extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     ctx.storage.sql.exec(`
       CREATE TABLE IF NOT EXISTS events (
@@ -57,8 +58,8 @@ export class AGUISession extends DurableObject {
     if (url.pathname === "/events" && request.method === "GET") {
       const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50"), MAX_EVENTS);
       const rows = this.ctx.storage.sql
-        .exec("SELECT payload, ts FROM events ORDER BY ts DESC LIMIT ?", limit)
-        .toArray<{ payload: string; ts: number }>();
+        .exec<{ payload: string; ts: number }>("SELECT payload, ts FROM events ORDER BY ts DESC LIMIT ?", limit)
+        .toArray();
       const events = rows.map((r) => JSON.parse(r.payload)).reverse();
       return Response.json({ events });
     }
@@ -66,7 +67,7 @@ export class AGUISession extends DurableObject {
     if (url.pathname === "/state" && request.method === "GET") {
       return Response.json({
         connections: this.ctx.getWebSockets().length,
-        events: this.ctx.storage.sql.exec("SELECT COUNT(*) as n FROM events").one<{ n: number }>()?.n ?? 0,
+        events: this.ctx.storage.sql.exec<{ n: number }>("SELECT COUNT(*) as n FROM events").one()?.n ?? 0,
       });
     }
 

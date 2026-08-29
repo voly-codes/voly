@@ -20,8 +20,8 @@ function authorize(c: { req: { header: (name: string) => string | undefined }; e
 }
 
 async function embedText(ai: Ai, text: string): Promise<number[]> {
-  const result = await ai.run(EMBED_MODEL as BaseAiTextEmbeddingsModels, { text: [text] });
-  return (result as { data: number[][] }).data[0];
+  const result = await ai.run(EMBED_MODEL, { text: [text] });
+  return result.data[0];
 }
 
 const app = new Hono<{ Bindings: Env }>();
