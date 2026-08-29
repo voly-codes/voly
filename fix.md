@@ -3,6 +3,20 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `13f270d` — Fixed three gaps found while adding the `Workflow` SDK builder
+  (PR2 of the agent-workflow-sdk proposal): (1) neither `Plan` nor
+  `PlanStep` tracked per-step cost/duration at all, so any aggregate-cost
+  reporting over a Plan would have silently always read `0.0` — added
+  `cost_usd`/`duration_ms` to `PlanStep`, populated only by
+  `PlanRunner._exec_chat`/`_exec_executor`'s default (non-injected)
+  implementations, so existing `chat_fn`/`executor_fn` test doubles are
+  unaffected; (2) a dependent step's instruction never referenced its
+  dependency's output — `PlanRunner` now prepends each `depends_on` step's
+  stored output as context before running a step, so every Plan benefits,
+  not only `Workflow`-built ones; (3) `Agent._run_executor` never folded
+  `self.instructions` into the task the way `_run_chat` folds it into the
+  system prompt — `Agent(instructions=..., mode="executor")` was silently
+  dropping it.
 - `a0e4eff` — Resolved the npm-reachable GitHub Dependabot alerts (44
   high/76 medium/14 low) across `cf-workers/*`, `ui/`, `headroom/*`. Bumped
   `@cloudflare/workers-types` v4→v5 with the `wrangler` version that now
