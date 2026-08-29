@@ -3,6 +3,17 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `8debfb8` — Fixed a real cross-thread/cross-process race found while
+  building `PlanRunner.cancel()` (PR3 of the agent-workflow-sdk proposal):
+  the run loop's own post-step `self.store.save(plan)` calls could silently
+  clobber an external `cancel()`/`PLAN_ABORTED` that landed on disk while a
+  step or wave was mid-flight, because the in-memory `Plan` object had no
+  way to know about it until the next check. `run()` now re-checks the
+  persisted status immediately before every such save
+  (`_external_abort_requested`) and adopts an external abort instead of
+  overwriting it — caught by
+  `tests/test_plan_concurrency.py::test_cancel_stops_a_run_in_flight_from_another_thread`,
+  which failed reliably before the fix.
 - `13f270d` — Fixed three gaps found while adding the `Workflow` SDK builder
   (PR2 of the agent-workflow-sdk proposal): (1) neither `Plan` nor
   `PlanStep` tracked per-step cost/duration at all, so any aggregate-cost
