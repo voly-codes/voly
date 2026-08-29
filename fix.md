@@ -3,6 +3,23 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `2a65598` — Closed a DNS-rebinding SSRF gap in `HttpActionExecutor`: the IP
+  validated as public was checked once, then urllib re-resolved the hostname
+  independently at connect time, so a rebinding attacker could answer public
+  on the check and private on the real connect. The validated IP is now
+  pinned to the actual TCP connect (`_PinnedHTTPSConnection`/
+  `_PinnedHTTPSHandler`) while TLS SNI/cert verification still targets the
+  original hostname; `NotifyExecutor` inherits the fix since it delegates to
+  `HttpActionExecutor`. Also registered `human_review`/`action_succeeded` as
+  known (fail-closed, `DecisionService`-owned) acceptance-check types in
+  `voly/plan/verify_checks.py` so a generic `run_check`/`PlanRunner` caller no
+  longer hits "unknown check type", and hardened `PlanRunner.run()` to refuse
+  `mode: business` steps outright instead of silently running them as a chat
+  step. Wired business-executor selection (`voly.decisions.
+  _build_business_executor`) through `ExecutorMatcher` capability scoring
+  when `capability.enabled`, replacing a hardcoded `if/else`, with fallback to
+  the prior static choice when capability routing is disabled or unusable.
+
 - `535e969` — Fix a real data gap in the A2A live graph: a role's own
   per-attempt billing fallback (`ExecutorResult.metadata["chain_timelog"]`,
   already produced by `agent_runner.py` for every executor call) was
