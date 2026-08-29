@@ -309,19 +309,29 @@ Guide: [`docs/backend/sdk.md`](backend/sdk.md).
 |---|---|---|
 | PR0 | **landed** — frozen contracts, ADR | `tests/test_sdk_contracts.py`, `docs/backend/sdk.md` |
 | PR1 | **landed** — `Agent`/`AgentResult` facade | `voly/sdk/agent.py`, exported as `voly.Agent` |
-| PR2+ | not started | `Workflow`/`WorkflowResult` compiling to `Plan` |
+| PR2 | **landed** — `Workflow` compiles to `Plan`, runs via `PlanRunner` | `voly/sdk/workflow.py`, exported as `voly.Workflow` |
+| PR3+ | not started | parallel chat waves, durable resume, presets, CLI/API/UI, examples |
 
 `voly.Agent` is a facade, not a second runtime: chat mode calls
 `AIGateway.chat()` (via the shared `voly.ai_gateway.gateway_from_config`
 wiring — the same one `Pipeline.gateway` builds, so DLP/spend/cache/fallback
 apply unchanged); executor mode calls `AgentRunner.run()` unchanged. No
-provider client is ever constructed under `voly/sdk/`.
+provider client is ever constructed under `voly/sdk/`. `voly.Workflow`
+compiles declared nodes to `PlanStep`s and hands the resulting `Plan` to the
+existing `PlanEngine`/`PlanRunner`/`PlanStore` — no second state machine, no
+per-node scheduler.
 
 ```python
-from voly import Agent
+from voly import Agent, Workflow
 
 researcher = Agent("researcher", instructions="Find verifiable facts")
-result = researcher.run("Compare two markets")
+reviewer = Agent("reviewer", instructions="Check claims and sources")
+
+workflow = Workflow("research-review")
+workflow.add("research", agent=researcher)
+workflow.add("review", agent=reviewer, depends_on=["research"])
+
+result = workflow.run("Compare two markets")
 ```
 
 ### `voly/pipeline/` — central orchestrator (text path)
@@ -654,5 +664,5 @@ docs/skills.md              ← SkillRegistry, sources, auto-generation
 docs/project-scanner.md     ← ProjectScanner, ProjectProfile (core utility: voly scan, project skills, Pipeline.scan_project)
 docs/proposals/
   business-ooda-loop.md     ← draft Layer C business-signal loop and phased delivery contracts
-  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR1 landed)
+  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR2 landed)
 ```

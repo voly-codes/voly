@@ -60,6 +60,34 @@ ChatFn = Callable[[PlanStep, Plan, str], tuple[bool, str, str]]
 ExecutorFn = Callable[[PlanStep, Plan, str], tuple[bool, str, str, list[str]]]
 # Returns (success, output, error, files_touched)
 
+_DEPENDENCY_CONTEXT_CHARS = 4000
+
+
+def _with_dependency_context(plan: Plan, step: PlanStep, instruction: str) -> str:
+    """Prepend each verified dependency's output as context.
+
+    A step's own ``task``/``instruction`` never references upstream results —
+    PlanStep carries no template/interpolation syntax — so without this, a
+    dependent step (e.g. a "review" node depending on "research") would run
+    blind to what its dependency actually produced. Only ``depends_on`` is
+    used, not the full step graph, so unrelated sibling output never leaks in.
+    """
+    if not step.depends_on:
+        return instruction
+    blocks = []
+    for dep_id in step.depends_on:
+        try:
+            dep = plan.get_step(dep_id)
+        except Exception:  # noqa: BLE001
+            continue
+        if not dep.output:
+            continue
+        blocks.append(f"### {dep_id}\n{dep.output[:_DEPENDENCY_CONTEXT_CHARS]}")
+    if not blocks:
+        return instruction
+    context = "\n\n".join(blocks)
+    return f"Context from completed steps:\n\n{context}\n\n---\n\n{instruction}"
+
 
 @dataclass
 class PlanRunResult:
@@ -263,6 +291,7 @@ class PlanRunner:
         instruction = (step.task or plan.task or "").strip()
         if not instruction:
             instruction = f"Perform role={step.role} for plan {plan.plan_id}"
+        instruction = _with_dependency_context(plan, step, instruction)
 
         git_before = git_porcelain(plan.cwd) if plan.cwd else {}
         mode = (step.mode or MODE_CHAT).lower()
@@ -387,6 +416,7 @@ class PlanRunner:
             return self.chat_fn(step, plan, instruction)
 
         from voly.ai_gateway import gateway_from_config
+        from voly.telemetry import _estimate_cost
 
         gateway = gateway_from_config(self.config)
         system = (
@@ -396,6 +426,7 @@ class PlanRunner:
         model_cfg = self.config.get_model_config(step.model or None)
         model = step.model or model_cfg.model or self.config.default_model
         provider = step.provider or model_cfg.provider or "anthropic"
+        t0 = time.monotonic()
         resp = gateway.chat(
             messages=[{"role": "user", "content": instruction}],
             model=model,
@@ -405,6 +436,15 @@ class PlanRunner:
             max_tokens=4096,
             temperature=0.0,
         )
+        step.duration_ms = (time.monotonic() - t0) * 1000
+        usage = resp.get("usage") if isinstance(resp, dict) else getattr(resp, "usage", None)
+        if usage:
+            resolved_model = str(
+                resp.get("model") if isinstance(resp, dict) else getattr(resp, "model", "")
+            ) or model
+            in_tok = int(usage.get("input_tokens", 0)) if isinstance(usage, dict) else 0
+            out_tok = int(usage.get("output_tokens", 0)) if isinstance(usage, dict) else 0
+            step.cost_usd = _estimate_cost(resolved_model, in_tok, out_tok)
         if isinstance(resp, dict):
             if resp.get("error"):
                 return False, "", str(resp["error"])
@@ -437,6 +477,8 @@ class PlanRunner:
             emit_event=False,
         )
         er = result.result
+        step.cost_usd = er.cost_usd
+        step.duration_ms = er.duration_ms
         files: list[str] = []
         if er.report is not None:
             files = list(

@@ -3,10 +3,9 @@
 Proposal: `docs/proposals/agent-workflow-sdk.md`. This doc tracks what is
 actually implemented; the proposal tracks the full multi-phase plan.
 
-**Status: Phase 0 + Phase 1 landed**, plus the generic approval-gate
-primitive Phase 2 needs (`voly/plan/approval.py`, `PlanRunner.resume()`) built
-ahead of schedule to resolve a design gap found while planning Phase 2 (see
-below). `Workflow`/`WorkflowResult` themselves do not exist yet.
+**Status: Phase 0, Phase 1 and Phase 2 landed.** `Workflow` compiles to a
+normal `Plan` and runs through the existing `PlanRunner`/`PlanStore`. Phase 3
+(parallel chat waves, durable resume, workflow-level timeout) is not started.
 
 ## Architecture decision: the SDK is a facade
 
@@ -20,47 +19,51 @@ contracts that already exist and are already governed:
 - file-capable calls go through `voly.runner.agent_runner.AgentRunner.run()`
   (billing fallback chain, evidence collection, `WorkReport` all apply
   unchanged);
-- from Phase 2 on, `Workflow.compile()` produces an ordinary `voly.plan.Plan`
-  and execution stays inside `PlanEngine`/`PlanRunner` — no second state
-  machine.
+- `Workflow.compile()` produces an ordinary `voly.plan.types.Plan` and
+  execution stays inside `PlanEngine`/`PlanRunner` — no second state machine,
+  no per-node scheduler of its own.
 
 No module under `voly/sdk/` constructs a provider client (`anthropic`,
 `openai`, raw `httpx`/`requests`, …) or calls one directly —
 `tests/test_sdk_contracts.py::test_sdk_source_never_imports_a_provider_client_directly`
 freezes that invariant by scanning the package's imports.
 
-## `Agent` → `PlanStep` / `Workflow` → `Plan` mapping
+## `Agent`/`WorkflowNode` → `PlanStep` mapping
 
-This mapping is normative for Phase 2 (`Workflow` does not exist yet, but the
-mapping is fixed now so Phase 1's `Agent` fields need no renaming later):
+`Workflow._compile_node()` is the single place this mapping is implemented
+(`voly/sdk/workflow.py`):
 
-| `Agent` field | `PlanStep` field (Phase 2) |
-|---|---|
-| `name` | `role` |
-| `instructions` | folded into the chat `system` prompt at execution time, not stored on `PlanStep` |
-| `model` / `provider` / `tier` | `model` / `provider` (tier is resolved to a concrete model/provider before compilation — `PlanStep` carries no tier concept) |
-| `mode` (`chat`/`executor`) | `mode` (`voly.plan.types.MODE_CHAT` / `MODE_EXECUTOR`) |
-| `executor` | `executor` |
-| `tools`, `output_schema` | not yet representable on `PlanStep` — raises `NotImplementedError` today (see below) |
-
-A `workflow.add(node_id, agent=..., depends_on=..., approval=..., acceptance=...)`
-call is expected to compile to one `PlanStep` per node, with `approval=True`
-adding a preceding step whose acceptance is `human_review` — resolved via
-`voly.plan.approval.decide()`, see below.
+| `Agent`/node field | `PlanStep` field | Notes |
+|---|---|---|
+| `agent.name` | `role` | |
+| `agent.instructions` + node `task` | `task` | folded at compile time: `f"{instructions}\n\n{task}"` — `PlanStep` has no separate instructions field, and a live `Agent` object is never read again at run time (see "resume by contract") |
+| `agent.model` / `agent.provider` | `model` / `provider` | used as-is when `agent.tier` is unset |
+| `agent.tier` | `model` / `provider` (resolved) + `tier` (informational) | resolved to a concrete pair via `voly.a2a.assignment.resolve_tier_model()` at compile time — `PlanRunner` never reads `step.tier` for routing, only `step.model`/`step.provider` |
+| `agent.mode` | `mode` | `MODE_CHAT` / `MODE_EXECUTOR` |
+| `agent.executor` | `executor` | |
+| node `depends_on` | `depends_on` | validated by `PlanEngine.validate()` (dup ids, unknown deps, cycles) — `Workflow` does not reimplement graph validation, it re-raises `PlanValidationError` as `WorkflowError` |
+| node `acceptance` | `acceptance` | extra `AcceptanceCheck`s beyond the approval gate below |
+| node `approval=True` | appends `AcceptanceCheck(type=CHECK_HUMAN_REVIEW)` to `acceptance` | see "Approval nodes" below |
+| node `timeout_seconds` | *(not wired)* | accepted on `Workflow.add()` for forward compatibility with Phase 3 ("enforce workflow-level timeout") but currently a no-op — `PlanStep` has no per-step timeout field and `PlanRunner` does not read one |
+| `agent.tools`, `agent.output_schema` | *(not representable)* | `Agent.__init__` already raises `NotImplementedError` if either is set, so a node's agent can never reach compilation with them |
 
 ## Schema-version policy
 
-Phase 1 introduces no new persisted schema (no `Workflow`/`Plan` compilation
-yet) and changes no existing one — `TaskEvent` stays at `schema_version=4`. A
-chat call made through `Agent.run()` emits a plain `TaskEvent` with
-`workflow="sdk-agent"` so it is visible in `voly runs list`/telemetry exactly
-like every other chat call; it does not add fields to the frozen `TaskEvent`
-contract (see `tests/test_protocol_contracts.py`).
+`TaskEvent` stays at `schema_version=4` — neither `Agent.run()` chat calls nor
+`Workflow`-compiled Plans add fields to it (see
+`tests/test_protocol_contracts.py`). A chat call made through `Agent.run()`
+emits a plain `TaskEvent` with `workflow="sdk-agent"`, visible in
+`voly runs list`/telemetry like any other chat call.
 
-When Phase 2 compiles `Workflow` to `Plan`, that `Plan` is a normal
-`voly.plan.types.Plan` (current `SCHEMA_VERSION`) with `metadata["kind"]` set
-to `"sdk_workflow"` (mirroring the `"business_decision"` convention already
-used by `voly.decisions.DecisionService`) — not a new persisted format.
+A `Workflow`-compiled `Plan` is an ordinary `voly.plan.types.Plan` (current
+`SCHEMA_VERSION`) — not a new persisted format — with
+`plan.metadata["kind"] = "sdk_workflow"` and
+`plan.metadata["workflow_name"] = self.name`, mirroring the
+`"business_decision"` convention `voly.decisions.DecisionService` already
+uses. This is why `DecisionService.decide()` correctly refuses these
+Plans (`kind` mismatch) — approval on a `Workflow` node resolves through the
+generic `voly.plan.approval.decide()` instead (below), which does not filter
+by `kind` at all.
 
 ## Resolved: `human_review` is now a generic approval primitive
 
@@ -106,10 +109,10 @@ the "nothing runnable" branch immediately rather than through `_verify()`;
 both paths are covered in `tests/test_plan_approval.py`.
 
 `DecisionService` was deliberately left as its own, unmodified,
-business-specific layer — a future `Workflow.add(..., approval=True)` would
-compile to a Plan whose approval step's acceptance is `human_review`, and
-resolve it through `voly.plan.approval.decide()` directly, exactly the way
-this is tested today.
+business-specific layer. `Workflow.add(node_id, agent=..., approval=True)`
+compiles that node's `PlanStep.acceptance` to include `human_review`, and the
+node is resolved through `voly.plan.approval.decide()` directly — see
+"Approval nodes" below.
 
 ## Public contracts (Phase 1)
 
@@ -155,12 +158,114 @@ calls have no `WorkReport`/file mutation to evidence.
 and the `AgentResult` field set as snapshots — see that file's docstring for
 the update procedure if either genuinely needs to change.
 
+## Public contracts (Phase 2)
+
+```python
+from voly import Agent, Workflow
+
+researcher = Agent("researcher", instructions="Find verifiable facts")
+reviewer = Agent("reviewer", instructions="Check claims and sources")
+
+workflow = Workflow("research-review")
+workflow.add("research", agent=researcher)
+workflow.add("review", agent=reviewer, depends_on=["research"])
+
+result = workflow.run("Compare two markets")
+```
+
+```python
+Workflow(name: str, *, config: VOLYConfig | None = None)
+
+workflow.add(
+    node_id: str,               # positional
+    *,
+    agent: Agent,
+    task: str = "",
+    depends_on: list[str] | None = None,
+    approval: bool = False,
+    acceptance: list[AcceptanceCheck] | None = None,
+    timeout_seconds: int | None = None,  # accepted, currently a no-op — see mapping table above
+) -> Workflow                   # chainable
+
+workflow.compile(task: str = "", *, cwd: str | None = None) -> Plan
+workflow.run(task: str = "", *, cwd=None, resume: bool = False, mode: str | None = None) -> WorkflowResult
+workflow.arun(...) -> WorkflowResult   # asyncio.to_thread(self.run, ...), same reasoning as Agent.arun()
+```
+
+`compile()`/`run()` raise `WorkflowError` for a duplicate node id, an unknown
+`depends_on` target, a dependency cycle, or an empty workflow (all detected
+by `PlanEngine.validate()` and re-raised with the SDK's own exception type).
+`run(resume=True)` raises `NotImplementedError` today — see "Resuming a
+paused workflow" below for the real, working alternative.
+
+`mode` defaults to `"active"` (hard gate — a failed/pending-approval node
+blocks its dependents) regardless of the global `plan.mode` config value,
+since a `Workflow` call site is a deliberate, new entry point where "governed
+by default" is the right default independent of whatever `voly plan run`/A2A
+happen to have `plan.mode` set to for their own purposes. Pass
+`mode="shadow"` explicitly to soften non-approval acceptance failures.
+
+`WorkflowResult` fields: `plan` (the executed `Plan`), `success`, `status`
+(`plan.status`), `node_results` (`list[NodeResult]`, one per compiled node in
+declaration order), `cost_usd` (sum of every node's `cost_usd`), `duration_ms`
+(whole-Plan wall time from `PlanRunner`), `error`. `success` is `plan.status
+== PLAN_COMPLETED` — a pending or failed node can never make this `True`.
+
+`NodeResult` fields: `node_id`, `status` (the `PlanStep` status —
+`pending`/`verifying`/`verified`/`failed`/…), `success` (`status == VERIFIED`),
+`output`, `error`, `cost_usd`, `duration_ms`, `files_touched`. These are read
+back from the executed `PlanStep` — never a live `AgentResult` kept around
+from before the run, matching "resume by contract": everything `WorkflowResult`
+reports is reconstructable from the persisted `Plan` alone.
+
+### Approval nodes
+
+`workflow.add("decide", agent=manager, approval=True)` compiles to a
+`PlanStep` whose acceptance includes `human_review`. The node still runs
+normally (the agent produces real output) — `approval=True` means that
+output requires an explicit human sign-off before dependents may start, not
+that the node is skipped. See `voly/plan/approval.py` and the "human_review"
+section above for the underlying mechanism;
+`tests/test_sdk_workflow.py::test_approval_blocks_downstream_execution` is
+the full compile → run → pause → approve → resume round trip.
+
+### Resuming a paused workflow
+
+`Workflow.run(resume=True)` is not implemented — `Workflow` has no way to
+identify *which* prior Plan to resume from `task` text alone (compilation
+deliberately gives every `compile()`/`run()` call a fresh `plan_id`; only the
+node *topology* is guaranteed deterministic, see the proposal's compilation
+note). Until Phase 3 defines how a caller addresses a specific prior run,
+resume the underlying Plan directly — this is fully supported today:
+
+```python
+result = workflow.run("Should we proceed?")   # pauses on an approval node
+# ... time passes, a human reviews result.node("decide").output ...
+
+from voly.plan.approval import decide as decide_human_review
+from voly.plan.store import PlanStore
+from voly.plan.runner import PlanRunner
+
+store = PlanStore(config.plan.store_dir)
+decide_human_review(store, result.plan.plan_id, "decide", "approve")
+resumed = PlanRunner(config).resume(result.plan.plan_id)
+```
+
+## Output handoff between nodes
+
+A dependent node's instruction is never a live template over its
+dependency's `AgentResult` — `PlanRunner` prepends each `depends_on` step's
+stored `output` as plain context before the node's own task at execution
+time (see `docs/backend/plan.md`). This is a `PlanRunner` behavior, not
+something `Workflow` does at compile time, so it benefits every Plan, not
+only SDK-built ones.
+
 ## Bug fixed alongside PR1: `PlanRunner`'s default chat path was ungoverned
 
 While wiring `Agent`'s chat mode through the same gateway construction
 `Pipeline.gateway` uses, `voly/plan/runner.py::_exec_chat`'s fallback path
 (used whenever a `Plan` is run without an injected `chat_fn` — which is what
-every `Workflow`-compiled chat node will do from Phase 2 on) was found
+every `Workflow`-compiled chat node does) was found
 calling `AIGateway(self.config)` directly. `AIGateway.__init__` takes bare
 constructor args (`account_id`, `gateway_id`, `api_token`), not a
 `VOLYConfig` — passing one positionally lands it in the unrelated `provider`
@@ -179,17 +284,24 @@ them at the same factory.
 
 ```bash
 python -m pytest tests/test_sdk_contracts.py tests/test_sdk_agent.py \
-  tests/test_plan_runner.py tests/test_plan_approval.py \
-  tests/test_protocol_contracts.py -q
+  tests/test_sdk_workflow.py tests/test_plan_runner.py \
+  tests/test_plan_approval.py tests/test_protocol_contracts.py -q
 ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py
 ```
 
 ## Not yet implemented
 
-`Workflow`/`WorkflowResult` themselves, parallel chat waves, the six topology
-presets, CLI/API/UI surfaces, and the `examples/workflows/` catalog — see
-Phase 2 onward in `docs/proposals/agent-workflow-sdk.md`. `Agent(tools=...)`
-and `Agent(output_schema=...)` are accepted on the constructor (frozen
-contract) but raise `NotImplementedError` if actually set. `PlanRunner.resume()`
-is a minimal version — it does not yet implement Phase 3's stale-running
-recovery policy or workflow-level timeout/cancellation.
+Everything from Phase 3 onward in `docs/proposals/agent-workflow-sdk.md`:
+bounded parallel chat waves, `workflow_sdk.*` config, real durable resume
+(`Workflow.run(resume=True)` — see above for the working manual alternative),
+workflow-level timeout/cancellation, the six topology presets, CLI/API/UI
+surfaces, and the `examples/workflows/` catalog.
+
+Within what's landed: `Agent(tools=...)` / `Agent(output_schema=...)` are
+accepted on the constructor (frozen contract) but raise `NotImplementedError`
+if actually set — a node built from such an `Agent` can therefore never
+reach compilation with them either. `WorkflowNode.timeout_seconds` is
+accepted and stored but not enforced (no `PlanStep` field, no `PlanRunner`
+timeout logic — that's explicitly Phase 3's "enforce workflow-level
+timeout"). `PlanRunner.resume()` is a minimal version — it does not
+implement Phase 3's stale-running recovery policy.

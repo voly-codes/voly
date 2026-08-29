@@ -35,9 +35,19 @@ __version__ = "0.1.0"
 from voly.config import VOLYConfig
 from voly.pipeline import Pipeline
 from voly.router import AgentRouter
-from voly.sdk import Agent, AgentError, AgentResult
+from voly.sdk import (
+    Agent,
+    AgentError,
+    AgentResult,
+    NodeResult,
+    Workflow,
+    WorkflowError,
+    WorkflowNode,
+    WorkflowResult,
+)
 
 __all__ = [
     "VOLYConfig", "Pipeline", "AgentRouter",
     "Agent", "AgentError", "AgentResult",
+    "NodeResult", "Workflow", "WorkflowError", "WorkflowNode", "WorkflowResult",
 ]

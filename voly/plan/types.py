@@ -158,6 +158,11 @@ class PlanStep:
     model: str = ""
     provider: str = ""
     tier: str = ""
+    # Filled by PlanRunner's default _exec_chat/_exec_executor (not by an
+    # injected chat_fn/executor_fn test double, which owns its own return
+    # shape and leaves these at 0.0). See WorkflowResult.cost_usd.
+    cost_usd: float = 0.0
+    duration_ms: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -177,6 +182,8 @@ class PlanStep:
             "model": self.model,
             "provider": self.provider,
             "tier": self.tier,
+            "cost_usd": self.cost_usd,
+            "duration_ms": self.duration_ms,
         }
 
     @classmethod
@@ -221,6 +228,8 @@ class PlanStep:
             model=str(data.get("model") or ""),
             provider=str(data.get("provider") or ""),
             tier=str(data.get("tier") or ""),
+            cost_usd=float(data.get("cost_usd") or 0.0),
+            duration_ms=float(data.get("duration_ms") or 0.0),
         )
 
 

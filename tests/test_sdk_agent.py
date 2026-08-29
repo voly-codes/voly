@@ -117,6 +117,25 @@ def test_executor_mode_delegates_to_agent_runner(tmp_path) -> None:
     assert result.task_id == "tid-1"
 
 
+def test_executor_mode_folds_instructions_into_the_task() -> None:
+    """Regression: _run_executor used to drop self.instructions entirely —
+    only _run_chat threaded it through (as the `system` prompt). An
+    Agent(instructions=..., mode="executor") must not silently lose it."""
+    er = ExecutorResult(success=True, output="done")
+    runner_result = RunnerResult(
+        success=True, executor="claude-code", agent="coder", task_id="tid-3", result=er,
+    )
+    with patch(
+        "voly.runner.agent_runner.AgentRunner.run", return_value=runner_result
+    ) as run_mock:
+        agent = Agent("coder", instructions="Follow house style", mode="executor", config=_config())
+        agent.run("write a file", cwd="/tmp/project")
+
+    sent_task = run_mock.call_args.args[0]
+    assert "Follow house style" in sent_task
+    assert "write a file" in sent_task
+
+
 def test_executor_mode_surfaces_failure() -> None:
     er = ExecutorResult(success=False, error="executor failed")
     runner_result = RunnerResult(

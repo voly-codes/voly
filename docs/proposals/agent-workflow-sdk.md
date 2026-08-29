@@ -1,7 +1,7 @@
 # Proposal: Public Agent and Workflow SDK
 
-**Status:** PR0 + PR1 landed (see `docs/backend/sdk.md` for what's actually
-implemented vs. this plan)  
+**Status:** PR0 + PR1 + PR2 landed (see `docs/backend/sdk.md` for what's
+actually implemented vs. this plan)  
 **Complexity:** complex  
 **Recommended agent:** Codex  
 **Related:** `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`,
@@ -441,7 +441,7 @@ Generated OpenWiki pages are not edited manually.
 ```text
 [x] PR0  freeze SDK/Plan compatibility contracts and architecture decision
 [x] PR1  minimal public Agent + AgentResult facade
-[ ] PR2  Workflow builder compiles to Plan and runs through PlanRunner
+[x] PR2  Workflow builder compiles to Plan and runs through PlanRunner
 [ ] PR3  bounded chat waves, checkpoints, recovery and resume
 [ ] PR4  six graph-factory presets with bounds and tests
 [ ] PR5  CLI/API/AG-UI lifecycle and read-only workflow graph UI
@@ -482,6 +482,38 @@ Generated OpenWiki pages are not edited manually.
   `docs/backend/plan.md` for the full design, and
   `tests/test_plan_approval.py` for the pause/approve/reject/resume contract
   tests, including a shadow-mode test proving approval is never bypassed.
+- v0.4 — PR2 landed: `voly/sdk/workflow.py` (`Workflow`, `WorkflowNode`,
+  `WorkflowResult`, `NodeResult`), exported as `voly.Workflow`. Compiles to a
+  `Plan` tagged `metadata["kind"] = "sdk_workflow"`, validates via
+  `PlanEngine` (re-raised as `WorkflowError`), and runs through the
+  unmodified `PlanRunner`/`PlanStore`. `approval=True` nodes use the v0.3
+  approval-gate primitive directly — the pause/approve/resume path proposed
+  there is now exercised end-to-end from `Workflow.run()`. Two supporting
+  `PlanRunner` gaps had to be closed for the contract to hold: (1) per-step
+  `cost_usd`/`duration_ms` didn't exist anywhere in `Plan`/`PlanStep` at all,
+  so `WorkflowResult.cost_usd` would have been silently always `0.0` — added
+  both fields to `PlanStep`, populated by `_exec_chat`/`_exec_executor`'s
+  default (non-injected) implementations only, so existing `chat_fn`/
+  `executor_fn` test doubles are unaffected; (2) a dependent node's
+  instruction never referenced its dependency's output — `PlanRunner` now
+  prepends each `depends_on` step's stored output as context before running
+  a step, benefiting every Plan, not only SDK-built ones. Also fixed a Phase
+  1 completeness gap found while wiring node compilation:
+  `Agent._run_executor` never used `self.instructions` (only `_run_chat`
+  did) — an `Agent(instructions=..., mode="executor")` silently dropped it.
+  `Workflow.run(resume=True)` intentionally raises `NotImplementedError`:
+  there is no way to identify which prior Plan to resume from `task` text
+  alone (plan_id is a fresh "runtime id" every `compile()` call, matching
+  the proposal's own compilation-determinism note, which promises identical
+  *topology*, not identical *plan_id*) — resuming a paused node works today
+  via `voly.plan.approval.decide()` + `PlanRunner.resume(plan_id)` directly,
+  documented in `docs/backend/sdk.md`, and Phase 3 owns defining the real
+  addressing scheme. `WorkflowNode.timeout_seconds` is accepted (frozen
+  constructor contract) but not enforced — no `PlanStep` field, no
+  `PlanRunner` timeout logic exists yet; that's explicitly Phase 3's
+  "enforce workflow-level timeout," and wiring a partial version now would
+  have meant `Workflow` (a "builder, not an executor" per this proposal)
+  reaching into `PlanRunner`'s execution/scheduling internals prematurely.
 
 ## Recommended execution model
 

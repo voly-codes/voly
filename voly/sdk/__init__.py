@@ -5,5 +5,15 @@ A facade over existing runtime contracts (AIGateway, AgentRunner, Plan/PlanRunne
 """
 
 from voly.sdk.agent import Agent, AgentError, AgentResult
+from voly.sdk.workflow import (
+    NodeResult,
+    Workflow,
+    WorkflowError,
+    WorkflowNode,
+    WorkflowResult,
+)
 
-__all__ = ["Agent", "AgentError", "AgentResult"]
+__all__ = [
+    "Agent", "AgentError", "AgentResult",
+    "NodeResult", "Workflow", "WorkflowError", "WorkflowNode", "WorkflowResult",
+]

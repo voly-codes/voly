@@ -94,6 +94,26 @@ voly plan show auth-refactor
 
 ---
 
+## Step execution attribution and dependency handoff
+
+`PlanStep.cost_usd`/`duration_ms` are populated by `PlanRunner`'s default
+`_exec_chat`/`_exec_executor` (from the `AIGateway.chat()` response's token
+usage, and from `ExecutorResult.cost_usd`/`duration_ms` respectively) — not
+by an injected `chat_fn`/`executor_fn` test double, which owns its own
+return shape and leaves both at `0.0`. `voly plan show` and any Plan-level
+aggregation (e.g. `WorkflowResult.cost_usd` — see `docs/backend/sdk.md`) can
+sum these across steps.
+
+A step's instruction never templates or interpolates a prior step's output —
+`PlanStep`/`AcceptanceCheck` carry no such syntax. Instead, `PlanRunner`
+prepends each `depends_on` entry's stored `output` as a `### <dep_id>`
+context block (capped at 4000 chars per dependency) before the step's own
+`task`, so a step that depends on a prior one is never run blind to what
+that prior step actually produced. Only declared dependencies are included —
+unrelated sibling steps' output never leaks in.
+
+---
+
 ## Acceptance check types
 
 | `type` | Pass when |

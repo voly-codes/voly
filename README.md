@@ -95,16 +95,24 @@ Or from Python — a governed chat call in under ten lines, no provider client
 involved (DLP/spend/cache/fallback apply exactly as they do for `voly run`):
 
 ```python
-from voly import Agent
+from voly import Agent, Workflow
 
 researcher = Agent("researcher", instructions="Find verifiable facts")
-result = researcher.run("Compare two markets")
-print(result.content, result.cost_usd)
+reviewer = Agent("reviewer", instructions="Check claims and sources")
+
+workflow = Workflow("research-review")
+workflow.add("research", agent=researcher)
+workflow.add("review", agent=reviewer, depends_on=["research"])
+
+result = workflow.run("Compare two markets")
+print(result.success, result.cost_usd, result.node("review").output)
 ```
 
-See [docs/backend/sdk.md](docs/backend/sdk.md) — file-writing `mode="executor"`
-agents and the `Workflow` graph builder (`docs/proposals/agent-workflow-sdk.md`)
-are the next phases.
+`Workflow.add(..., approval=True)` gates a node behind human sign-off — the
+run pauses (never "fails") until `voly.plan.approval.decide()` approves it.
+See [docs/backend/sdk.md](docs/backend/sdk.md) for the full contract; bounded
+parallel execution, durable resume and topology presets are the next phases
+(`docs/proposals/agent-workflow-sdk.md`).
 
 For an installed package, use `voly quickstart --cwd ~/my-project`. Add `--yes`
 to create a missing `voly.yaml` without prompting. Quickstart never installs or

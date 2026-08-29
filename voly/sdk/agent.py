@@ -217,10 +217,11 @@ class Agent:
             )
         from voly.runner.agent_runner import AgentRunner
 
+        instruction = f"{self.instructions}\n\n{task}".strip() if self.instructions else task
         agent_id = self.executor or self.name
         runner = AgentRunner(self.config)
         runner_result = runner.run(
-            task,
+            instruction,
             agent_id,
             cwd=cwd,
             max_turns=max_turns,

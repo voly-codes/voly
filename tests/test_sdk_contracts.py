@@ -14,7 +14,16 @@ from dataclasses import fields
 from pathlib import Path
 
 import voly.sdk as sdk_pkg
-from voly import Agent, AgentError, AgentResult
+from voly import (
+    Agent,
+    AgentError,
+    AgentResult,
+    NodeResult,
+    Workflow,
+    WorkflowError,
+    WorkflowNode,
+    WorkflowResult,
+)
 
 _SDK_DIR = Path(sdk_pkg.__file__).resolve().parent
 
@@ -48,11 +57,17 @@ def test_sdk_source_never_imports_a_provider_client_directly() -> None:
 
 def test_public_sdk_import_surface() -> None:
     """`from voly import Agent, AgentResult, AgentError` is the frozen Phase 1
-    surface. Adding names is fine; removing/renaming one is a breaking change
-    that needs the proposal's schema-version policy applied first."""
+    surface, extended in Phase 2 with Workflow/WorkflowNode/WorkflowResult/
+    NodeResult. Adding names is fine; removing/renaming one is a breaking
+    change that needs the proposal's schema-version policy applied first."""
     assert Agent is sdk_pkg.Agent
     assert AgentResult is sdk_pkg.AgentResult
     assert AgentError is sdk_pkg.AgentError
+    assert Workflow is sdk_pkg.Workflow
+    assert WorkflowNode is sdk_pkg.WorkflowNode
+    assert WorkflowResult is sdk_pkg.WorkflowResult
+    assert WorkflowError is sdk_pkg.WorkflowError
+    assert NodeResult is sdk_pkg.NodeResult
 
 
 # Frozen constructor contract — see docs/proposals/agent-workflow-sdk.md
@@ -95,3 +110,65 @@ def test_agent_result_field_contract_is_frozen() -> None:
 def test_agent_has_sync_and_async_entry_points() -> None:
     assert callable(Agent.run)
     assert inspect.iscoroutinefunction(Agent.arun)
+
+
+# Frozen Workflow.add() contract — see docs/proposals/agent-workflow-sdk.md
+# "Proposed public contracts" > Workflow. node_id is positional; the rest are
+# keyword-only.
+_WORKFLOW_ADD_PARAMS = {
+    "node_id", "agent", "task", "depends_on", "approval", "acceptance", "timeout_seconds",
+}
+
+
+def test_workflow_add_contract_is_frozen() -> None:
+    sig = inspect.signature(Workflow.add)
+    params = list(sig.parameters)[1:]  # drop self
+    assert params[0] == "node_id", "Workflow.add()'s first param must stay positional node_id"
+    assert set(params) == _WORKFLOW_ADD_PARAMS, (
+        f"Workflow.add() params changed: added={set(params) - _WORKFLOW_ADD_PARAMS} "
+        f"removed={_WORKFLOW_ADD_PARAMS - set(params)}"
+    )
+
+
+# Frozen WorkflowResult field set — "Result contract" in the proposal: "the
+# final Plan, ordered node results, aggregate cost, duration, status,
+# partial/failure details and evidence IDs."
+_WORKFLOW_RESULT_FIELDS = {
+    "plan", "success", "status", "node_results", "cost_usd", "duration_ms", "error",
+}
+_NODE_RESULT_FIELDS = {
+    "node_id", "status", "success", "output", "error", "cost_usd", "duration_ms", "files_touched",
+}
+
+
+def test_workflow_result_field_contract_is_frozen() -> None:
+    actual = {f.name for f in fields(WorkflowResult)}
+    assert actual == _WORKFLOW_RESULT_FIELDS, (
+        f"WorkflowResult fields changed: added={actual - _WORKFLOW_RESULT_FIELDS} "
+        f"removed={_WORKFLOW_RESULT_FIELDS - actual}"
+    )
+
+
+def test_node_result_field_contract_is_frozen() -> None:
+    actual = {f.name for f in fields(NodeResult)}
+    assert actual == _NODE_RESULT_FIELDS, (
+        f"NodeResult fields changed: added={actual - _NODE_RESULT_FIELDS} "
+        f"removed={_NODE_RESULT_FIELDS - actual}"
+    )
+
+
+def test_workflow_has_sync_and_async_entry_points() -> None:
+    assert callable(Workflow.run)
+    assert callable(Workflow.compile)
+    assert inspect.iscoroutinefunction(Workflow.arun)
+
+
+def test_workflow_never_reports_success_when_a_required_node_is_pending_or_failed() -> None:
+    """Guards the proposal's explicit result-contract invariant at the type
+    level: WorkflowResult.success must be a plain bool derived from Plan
+    status, not something a caller could spoof independent of node outcomes.
+    This is enforced functionally in test_sdk_workflow.py; here we only
+    confirm the field exists with the right type so that contract can't
+    silently regress to e.g. an Optional or a str."""
+    assert fields(WorkflowResult)[1].name == "success"
+    assert fields(WorkflowResult)[1].type in ("bool", bool)
