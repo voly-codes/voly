@@ -614,6 +614,15 @@ then sends a bounded user/assistant pair under the task ID as Cloudflare
 retention. Deletion remains explicit through its memory, session, or profile
 lifecycle API; VOLY does not silently delete remote history.
 
+Confirmed against a real account (namespace/profile/token, health/remember/
+ingest/recall/summary, all live): `/ingest` triggers **asynchronous**
+fact-extraction on Cloudflare's side. A `delete_profile()`/`delete_session()`
+call issued immediately after `ingest()` can still leave the profile
+non-empty a few seconds later, once that async job lands its derived facts.
+Anything that needs a guaranteed-empty profile after ingesting (test
+teardown, a "forget this project" flow) should delete, wait, then delete
+again — a single immediate delete is not sufficient.
+
 The API guardrails are enforced client-side: at most 500 messages per ingest,
 32 KiB per message, and 64 bytes per session ID. Lower
 `agent_memory_checkpoint_max_bytes` when prompts may contain large generated
