@@ -13,6 +13,7 @@ from voly.cli.commands.infra import memory
 from voly.memory.agent_memory_client import (
     AgentMemoryClient,
     create_agent_memory_client,
+    resolve_agent_memory_token,
 )
 from voly.memory.client import create_remote_memory_client
 from voly.memory.store import MemoryStore
@@ -31,6 +32,16 @@ def _fake_urlopen(payload: dict):
 def test_create_agent_memory_client_requires_account(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("CF_ACCOUNT_ID", raising=False)
     assert create_agent_memory_client() is None
+
+
+def test_agent_memory_token_never_uses_worker_memory_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CF_WORKER_MEMORY_TOKEN", "worker-token")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "cloudflare-token")
+
+    assert resolve_agent_memory_token() == "cloudflare-token"
+    assert AgentMemoryClient("acc", "voly", "profile").token == "cloudflare-token"
 
 
 def test_create_remote_memory_client_agent_memory(monkeypatch: pytest.MonkeyPatch) -> None:

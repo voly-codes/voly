@@ -601,6 +601,10 @@ voly memory ingest conversation.json --session-id run-123 --cwd /path/to/project
 voly memory summary --session-id run-123 --cwd /path/to/project
 ```
 
+Agent Memory authenticates only with `CLOUDFLARE_API_TOKEN` (or the legacy
+`CF_API_TOKEN`). `CF_WORKER_MEMORY_TOKEN` belongs to the separate custom Memory
+Worker used by `backend: hybrid` and is never sent to Cloudflare's account API.
+
 `conversation.json` is either a JSON message list or
 `{"sessionId":"...","messages":[...]}`. VOLY caps manual ingestion at 1 MB
 and 500 messages. Automatic checkpoint ingestion runs after successful Pipeline

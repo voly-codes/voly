@@ -30,11 +30,20 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from voly.memory.client import USER_AGENT, MemoryClientError, resolve_memory_token
+from voly.memory.client import USER_AGENT, MemoryClientError
 
 _log = logging.getLogger("voly.memory.agent_memory")
 
 _API_ROOT = "https://api.cloudflare.com/client/v4"
+
+
+def resolve_agent_memory_token() -> str:
+    """Resolve a Cloudflare API token, never a custom Memory Worker token."""
+    for key in ("CLOUDFLARE_API_TOKEN", "CF_API_TOKEN"):
+        token = os.environ.get(key, "").strip()
+        if token:
+            return token
+    return ""
 
 
 class AgentMemoryClient:
@@ -55,7 +64,7 @@ class AgentMemoryClient:
         self.account_id = account_id.strip()
         self.namespace = namespace.strip()
         self.profile = profile.strip()
-        self.token = token or resolve_memory_token()
+        self.token = token or resolve_agent_memory_token()
         self.api_root = api_root.rstrip("/")
         self.timeout = timeout
 
@@ -321,7 +330,7 @@ def create_agent_memory_client(
             aid,
             ns,
             pf,
-            token=token or resolve_memory_token(),
+            token=token or resolve_agent_memory_token(),
             api_root=api_root or _API_ROOT,
         )
     except ValueError:
