@@ -156,3 +156,7 @@ fc446a9 — Declared the capability schemas namespace explicitly, removing ambig
 6731956 — Removed the orphaned `agentsview` gitlink that made checkout post-job cleanup fail on every CI runner.
 
 d775ae6 — Added six Workflow topology presets (sequential, concurrent, supervisor_workers, reviewer_loop, council, planner_generator_evaluator) as plain graph factories with hard build-time bounds; documented that reviewer_loop's exit_acceptance only gates the final unrolled round since PlanEngine has no conditional-skip primitive for a true early-exit loop.
+
+2b4db9b — Added `voly workflow validate|run|resume|show`, the `/api/workflows/*` REST/SSE surface, and a read-only `#/workflows` UI graph viewer for the Workflow SDK. Fixed a real bug found while testing the approval-decide endpoint: `voly.plan.approval.decide()` raises `PlanValidationError` (not `ApprovalError`/`FileNotFoundError`) for an unknown `step_id` on an otherwise-valid plan — the REST handler now catches it and returns HTTP 404 instead of leaking a 500.
+
+56f1a07 — Added a 7-example runnable `examples/workflows/` catalog and a measured (not estimated) comparison benchmark for the Workflow SDK proposal. Found and documented (not fixed, out of scope for an examples PR): a `Workflow` executor-mode node's `AgentRunner` evidence record is written but unrecoverable from `WorkflowResult`/`NodeResult` — neither carries an `evidence_id`, unlike a direct `Agent.run(mode="executor")` call.
