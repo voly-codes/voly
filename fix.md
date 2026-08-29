@@ -3,6 +3,23 @@
 Functional fixes are recorded here after commit. Entries use the exact short
 commit hash and an English description.
 
+- `b20bf40` — Fixed `PlanRunner._exec_chat`'s no-`chat_fn` fallback calling
+  `AIGateway(self.config)` directly: `AIGateway.__init__` takes bare
+  constructor args, not a `VOLYConfig`, so the config landed in the unrelated
+  `provider` slot and every DLP/spend/cache/fallback setting silently stayed
+  at `AIGateway`'s bare defaults regardless of what the caller configured.
+  Extracted the governed wiring `Pipeline.gateway` already used into
+  `voly.ai_gateway.gateway_from_config()` and pointed `PlanRunner` at it.
+  Also fixed `PlanRunner`'s `human_review`/`action_succeeded` acceptance
+  handling: a step with either check used to be routed through
+  `complete_verification()`, which would fail it outright, and `mode: shadow`
+  would then force-verify it via the normal soft-open — silently bypassing a
+  human-approval/action gate the same way shadow mode bypasses an ordinary
+  failed quality check. `_verify()` now parks such a step in `verifying`
+  instead, exempt from shadow's soft-open either way; added
+  `voly/plan/approval.py` (a generic, `DecisionService`-independent
+  approve/reject primitive) and `PlanRunner.resume()` so a paused Plan can
+  actually be unblocked and continued.
 - `2a65598` — Closed a DNS-rebinding SSRF gap in `HttpActionExecutor`: the IP
   validated as public was checked once, then urllib re-resolved the hostname
   independently at connect time, so a rebinding attacker could answer public
