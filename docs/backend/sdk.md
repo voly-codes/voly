@@ -3,11 +3,12 @@
 Proposal: `docs/proposals/agent-workflow-sdk.md`. This doc tracks what is
 actually implemented; the proposal tracks the full multi-phase plan.
 
-**Status: Phase 0, Phase 1, Phase 2 and Phase 3 landed.** `Workflow` compiles
-to a normal `Plan` and runs through `PlanRunner`, which now schedules
-independent `mode: chat` nodes in bounded parallel waves and supports
-durable resume, cross-process cancellation and a workflow-level timeout.
-Phase 4 (topology presets) is not started.
+**Status: Phase 0, Phase 1, Phase 2, Phase 3 and Phase 4 landed.** `Workflow`
+compiles to a normal `Plan` and runs through `PlanRunner`, which now
+schedules independent `mode: chat` nodes in bounded parallel waves and
+supports durable resume, cross-process cancellation and a workflow-level
+timeout. `voly.sdk.presets` adds six graph-factory topology presets over
+`Workflow`. Phase 5 (CLI/API/UI) is not started.
 
 ## Architecture decision: the SDK is a facade
 
@@ -332,7 +333,7 @@ them at the same factory.
 
 ```bash
 python -m pytest tests/test_sdk_contracts.py tests/test_sdk_agent.py \
-  tests/test_sdk_workflow.py tests/test_plan_runner.py \
+  tests/test_sdk_workflow.py tests/test_sdk_presets.py tests/test_plan_runner.py \
   tests/test_plan_approval.py tests/test_plan_concurrency.py \
   tests/test_protocol_contracts.py -q
 ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py voly/plan/runner.py
@@ -344,10 +345,76 @@ recovery, resume-does-not-rerun-verified-nodes, cross-thread cancellation
 and workflow-level timeout — the specific test categories Phase 3's proposal
 calls for.
 
+## Topology presets (Phase 4)
+
+`voly.sdk.presets` (also exported from `voly` directly) provides six graph
+factories over `Workflow`. Each is a plain function — `Workflow.add()` some
+number of times, then return the builder — never a `Workflow`/`PlanRunner`
+subclass with its own run loop, and never a provider import (covered by the
+same `tests/test_sdk_contracts.py` import scan that covers `agent.py`/
+`workflow.py`, since it walks all of `voly/sdk/`).
+
+```python
+from voly import Agent, sequential, concurrent, supervisor_workers, reviewer_loop, council, planner_generator_evaluator
+
+result = sequential([Agent("researcher"), Agent("reviewer")]).run("Compare two markets")
+result = concurrent([Agent("us"), Agent("eu"), Agent("apac")]).run("Regional demand")
+result = supervisor_workers(Agent("lead"), [Agent("w1"), Agent("w2")]).run("Break down and solve")
+result = reviewer_loop(Agent("writer"), Agent("editor"), max_iterations=3).run("Draft the memo")
+result = council([Agent("bull"), Agent("bear")], Agent("judge")).run("Should we invest?")
+result = planner_generator_evaluator(Agent("planner"), Agent("coder"), Agent("qa")).run("Ship the feature")
+```
+
+| Preset | Shape | Node ids | Bound |
+|---|---|---|---|
+| `sequential(agents, *, tasks=None)` | A → B → C | `n0, n1, ...` | `MAX_SEQUENTIAL_NODES=20`, ≥2 agents |
+| `concurrent(agents, *, tasks=None)` | A, B, C (independent) | `n0, n1, ...` | `MAX_CONCURRENT_NODES=20`, ≥2 agents |
+| `supervisor_workers(supervisor, workers, *, dispatch_task="", synthesis_task="")` | S → workers → S2 | `supervise`, `worker0, ...`, `synthesize` | `MAX_WORKERS=10`, ≥1 worker |
+| `reviewer_loop(generator, reviewer, *, max_iterations=3, exit_acceptance=None)` | generate ↔ review, unrolled | `generate_0, review_0, generate_1, ...` | `MAX_REVIEWER_ITERATIONS=10`, ≥1 |
+| `council(members, judge, *, member_task="", judge_task="")` | members → judge | `member0, ...`, `judge` | `MAX_COUNCIL_MEMBERS=10`, ≥2 members |
+| `planner_generator_evaluator(planner, generator, evaluator)` | P → G → E | `plan`, `generate`, `evaluate` | fixed 3 nodes |
+
+Every factory raises `WorkflowError` immediately if a bound is violated (not
+a silent truncation), and every graph is an ordinary compiled `Plan` — the
+same `WorkflowResult`/`NodeResult` contract, `depends_on`-based output
+handoff, bounded parallel chat waves, resume and cancel documented above all
+apply unchanged. `council`'s and `supervisor_workers`' aggregation/synthesis
+step is a real second/extra chat call whose cost is included in
+`WorkflowResult.cost_usd` like any other node — nothing here is free.
+
+**`reviewer_loop`'s bound is real, its "exit" is partial.** `PlanEngine` has
+no conditional-skip primitive — a Plan is a static DAG, not a state machine
+with branches — so `reviewer_loop` cannot implement a true early-exit loop
+that stops once a review approves. It unrolls into a **fixed** chain of
+`max_iterations` `generate_i → review_i` pairs that **always all execute**.
+`exit_acceptance`, if supplied, is attached only to the *final* round's
+`review_{max_iterations - 1}` node: earlier rounds carry no acceptance
+(`Plan`'s `(DONE, VERIFIED)` transition auto-passes an empty acceptance
+list, per `voly/plan/types.py::LEGAL_TRANSITIONS`), so the chain is never
+blocked mid-way regardless of what an intermediate round produced.
+`WorkflowResult.success` therefore answers "did the last round satisfy the
+exit criteria," not "did any round satisfy them" — a caller who wants the
+first passing round can inspect `result.node(f"review_{i}")` for each `i`
+directly. Making this a real early-exit loop is future work that needs
+conditional-skip support in `PlanEngine`, not in the SDK layer.
+
+`council` and `supervisor_workers`' judge/synthesis output is evidence for
+the caller to read from `WorkflowResult`, not an implicit authorization to
+bypass human approval — neither preset adds a `human_review` gate; pass
+`approval=True` by building the graph manually with `Workflow.add()` (or
+post-process the preset's returned `Workflow` before calling `.run()`) if
+one is required.
+
+**Tests:** `tests/test_sdk_presets.py` — graph-shape snapshots, bound
+enforcement, dependency-output handoff (`supervisor_workers`'
+synthesis/`council`'s judge actually see prior outputs), failure
+propagation (`sequential`), cost aggregation (`concurrent`), and both
+`reviewer_loop` exit-gate outcomes (all-verified vs. final-round-fails).
+
 ## Not yet implemented
 
-Phase 4 onward in `docs/proposals/agent-workflow-sdk.md`: the six topology
-presets, CLI/API/UI surfaces, and the `examples/workflows/` catalog.
+Phase 5 onward in `docs/proposals/agent-workflow-sdk.md`: CLI/API/AG-UI/UI
+surfaces, and the `examples/workflows/` catalog.
 
 Within what's landed: `Agent(tools=...)` / `Agent(output_schema=...)` are
 accepted on the constructor (frozen contract) but raise `NotImplementedError`

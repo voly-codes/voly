@@ -113,8 +113,23 @@ run pauses (never "fails") until `voly.plan.approval.decide()` approves it.
 Independent nodes run in bounded concurrent waves
 (`workflow_sdk.max_parallel_nodes`); a run survives a process restart via
 `workflow.resume(plan_id)`, and `workflow.cancel(plan_id)` stops one in
-flight from elsewhere. See [docs/backend/sdk.md](docs/backend/sdk.md) for
-the full contract — topology presets are the next phase
+flight from elsewhere.
+
+Six reusable graph factories build a `Workflow` for you — no manual
+`.add()` wiring:
+
+```python
+from voly import Agent, council
+
+result = council(
+    [Agent("bull"), Agent("bear")], Agent("judge"),
+).run("Should we invest in this market?")
+```
+
+`sequential`, `concurrent`, `supervisor_workers`, `reviewer_loop`, `council`
+and `planner_generator_evaluator` are also available — see
+[docs/backend/sdk.md](docs/backend/sdk.md) for the full contract, node-id
+shapes and bounds. CLI/API/UI surfaces are the next phase
 (`docs/proposals/agent-workflow-sdk.md`).
 
 For an installed package, use `voly quickstart --cwd ~/my-project`. Add `--yes`

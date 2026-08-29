@@ -1,7 +1,7 @@
 # Proposal: Public Agent and Workflow SDK
 
-**Status:** PR0 + PR1 + PR2 + PR3 landed (see `docs/backend/sdk.md` for
-what's actually implemented vs. this plan)  
+**Status:** PR0 + PR1 + PR2 + PR3 + PR4 landed (see `docs/backend/sdk.md`
+for what's actually implemented vs. this plan)  
 **Complexity:** complex  
 **Recommended agent:** Codex  
 **Related:** `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`,
@@ -443,7 +443,7 @@ Generated OpenWiki pages are not edited manually.
 [x] PR1  minimal public Agent + AgentResult facade
 [x] PR2  Workflow builder compiles to Plan and runs through PlanRunner
 [x] PR3  bounded chat waves, checkpoints, recovery and resume
-[ ] PR4  six graph-factory presets with bounds and tests
+[x] PR4  six graph-factory presets with bounds and tests
 [ ] PR5  CLI/API/AG-UI lifecycle and read-only workflow graph UI
 [ ] PR6  ten runnable examples, offline fixtures and product-proof benchmark
 ```
@@ -540,6 +540,35 @@ Generated OpenWiki pages are not edited manually.
   `WorkflowNode.timeout_seconds` (per-node) is still unenforced — distinct
   from `run()`'s new workflow-level timeout, and still not owned by any
   landed phase.
+- v0.6 — PR4 landed: `voly/sdk/presets.py` — `sequential`, `concurrent`,
+  `supervisor_workers`, `reviewer_loop`, `council`,
+  `planner_generator_evaluator`, all exported from `voly.sdk` and `voly`
+  directly. Each is a plain function returning an uncompiled `Workflow` (no
+  `Workflow`/`PlanRunner` subclass, no provider import — covered by the
+  existing `voly/sdk/**` import scan in `tests/test_sdk_contracts.py`), so
+  every existing `Workflow` guarantee (compile-time cycle/dependency
+  validation, dependency-output handoff, bounded parallel chat waves,
+  resume/cancel, cost aggregation) applies to a preset's graph unchanged.
+  Every preset enforces a hard node/iteration bound at build time
+  (`WorkflowError`, not truncation): `MAX_SEQUENTIAL_NODES`/
+  `MAX_CONCURRENT_NODES=20`, `MAX_WORKERS`/`MAX_COUNCIL_MEMBERS=10`,
+  `MAX_REVIEWER_ITERATIONS=10`. `council`'s and `supervisor_workers`'
+  judge/synthesis node is a real, costed chat call the caller can read from
+  `WorkflowResult`, never an implicit authorization to skip human approval —
+  neither preset adds a `human_review` gate itself. Found and resolved
+  during design, not after: `reviewer_loop` cannot be a true early-exit loop
+  over a Plan, because `PlanEngine` has no conditional-skip primitive (a
+  Plan is a static DAG, not a branching state machine) — gating every
+  round's `review_i` on `exit_acceptance` would mean a round that *fails*
+  the criteria blocks the *next* generate attempt, which is backwards from
+  "keep retrying until it passes." Implemented instead as a fixed,
+  always-fully-executed chain of `max_iterations` rounds where
+  `exit_acceptance` gates only the final round's review node — documented in
+  `docs/backend/sdk.md` as a partial "exit," with the real early-exit case
+  named as future work needing `PlanEngine` changes, not an SDK-layer
+  workaround pretending otherwise. See `tests/test_sdk_presets.py` for graph
+  snapshots, bound enforcement, handoff-reaches-the-aggregation-node checks
+  and both `reviewer_loop` exit-gate outcomes.
 
 ## Recommended execution model
 

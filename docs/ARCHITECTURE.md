@@ -311,7 +311,8 @@ Guide: [`docs/backend/sdk.md`](backend/sdk.md).
 | PR1 | **landed** — `Agent`/`AgentResult` facade | `voly/sdk/agent.py`, exported as `voly.Agent` |
 | PR2 | **landed** — `Workflow` compiles to `Plan`, runs via `PlanRunner` | `voly/sdk/workflow.py`, exported as `voly.Workflow` |
 | PR3 | **landed** — bounded parallel chat waves, durable resume, cancellation, workflow-level timeout | `voly/plan/runner.py` (`_run_chat_wave`, `resume()`, `cancel()`), `workflow_sdk.*` config |
-| PR4+ | not started | topology presets, CLI/API/UI, examples |
+| PR4 | **landed** — six topology-preset graph factories | `voly/sdk/presets.py`, exported as `voly.sequential` etc. |
+| PR5+ | not started | CLI/API/AG-UI/UI surfaces, examples |
 
 `voly.Agent` is a facade, not a second runtime: chat mode calls
 `AIGateway.chat()` (via the shared `voly.ai_gateway.gateway_from_config`
