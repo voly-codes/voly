@@ -1,0 +1,16 @@
+# Hand-written voly.plan.types.Plan equivalent of 01_sequential_research_review.py's
+# build_workflow() — same two-node topology, runnable via `voly plan run`.
+# Referenced by BENCHMARK.md's line-of-code comparison; not used by any test
+# or example script directly (Workflow.compile() mints its own plan_id/task_id).
+plan_id: research-review
+task: "Compare two markets and summarize the growth trend."
+steps:
+  - id: research
+    role: researcher
+    mode: chat
+    task: "Find verifiable market facts."
+  - id: review
+    role: reviewer
+    mode: chat
+    depends_on: [research]
+    task: "Check claims and sources for consistency."

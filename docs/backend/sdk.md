@@ -3,14 +3,16 @@
 Proposal: `docs/proposals/agent-workflow-sdk.md`. This doc tracks what is
 actually implemented; the proposal tracks the full multi-phase plan.
 
-**Status: Phase 0 through Phase 5 landed.** `Workflow` compiles to a normal
-`Plan` and runs through `PlanRunner`, which now schedules independent
-`mode: chat` nodes in bounded parallel waves and supports durable resume,
-cross-process cancellation and a workflow-level timeout. `voly.sdk.presets`
-adds six graph-factory topology presets over `Workflow`. Phase 5 adds
+**Status: Phase 0 through Phase 6 landed** (Phase 6 partially — 7 of 10
+scoped examples; see below). `Workflow` compiles to a normal `Plan` and runs
+through `PlanRunner`, which now schedules independent `mode: chat` nodes in
+bounded parallel waves and supports durable resume, cross-process
+cancellation and a workflow-level timeout. `voly.sdk.presets` adds six
+graph-factory topology presets over `Workflow`. Phase 5 adds
 `voly workflow validate|run|resume|show`, the `/api/workflows/*` REST/SSE
-surface, and a read-only `#/workflows` UI graph viewer. Phase 6 (runnable
-examples + product-proof benchmark) is not started.
+surface, and a read-only `#/workflows` UI graph viewer. Phase 6 adds
+`examples/workflows/` (7 runnable examples + a measured comparison
+benchmark).
 
 ## Architecture decision: the SDK is a facade
 
@@ -336,11 +338,11 @@ them at the same factory.
 ```bash
 python -m pytest tests/test_sdk_contracts.py tests/test_sdk_agent.py \
   tests/test_sdk_workflow.py tests/test_sdk_presets.py tests/test_sdk_loader.py \
-  tests/test_workflow_cli.py tests/test_workflows_api.py \
+  tests/test_workflow_cli.py tests/test_workflows_api.py tests/test_examples_workflows.py \
   tests/test_plan_runner.py tests/test_plan_approval.py tests/test_plan_concurrency.py \
   tests/test_protocol_contracts.py -q
 ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py voly/plan/runner.py \
-  voly/cli/commands/workflow_cmd.py voly/web/routes/workflows.py
+  voly/cli/commands/workflow_cmd.py voly/web/routes/workflows.py examples/workflows
 ```
 
 `tests/test_plan_concurrency.py` covers real wall-clock concurrency timing
@@ -474,12 +476,32 @@ stable" — this ships that contract first). Docs: `docs/frontend/api-client.md`
 **Tests:** `tests/test_sdk_loader.py`, `tests/test_workflow_cli.py`
 (Phase-5 subcommands), `tests/test_workflows_api.py`.
 
+## Examples and benchmark (Phase 6)
+
+`examples/workflows/` — see its own `README.md` for the full catalog and
+`BENCHMARK.md` for the measured (not estimated) first-run-LOC / graph /
+resume / evidence / failure-honesty comparison the proposal calls for. 7 of
+the originally-scoped 10 examples are implemented; 3 (structured-output,
+MCP-tool-allowlist, capability-routed) are blocked on `Agent` capabilities
+that are accepted on the constructor but still raise `NotImplementedError`
+(`tools`, `output_schema`) or don't exist yet (capability-registry routing)
+— see the catalog README's "Not implemented" section rather than a faked
+stand-in. `tests/test_examples_workflows.py` runs every implemented example
+offline as a regression suite.
+
+The benchmark surfaced one real, previously-undocumented gap: a
+`Workflow`-compiled executor-mode node's `AgentRunner` evidence record is
+written but not recoverable from `WorkflowResult`/`NodeResult` (no
+`evidence_id` field on either) — unlike a direct `Agent.run(mode="executor")`
+call, which does surface one. Left as a documented gap, not fixed here:
+`NodeResult`'s field set is a frozen contract
+(`tests/test_sdk_contracts.py::test_node_result_field_contract_is_frozen`)
+and changing it is a deliberate future phase, not an examples/benchmark PR.
+
 ## Not yet implemented
 
-Phase 6 in `docs/proposals/agent-workflow-sdk.md`: the `examples/workflows/`
-catalog and product-proof benchmark. Within Phase 5: the UI has no
-run/resume trigger of its own yet, and there is no drag-and-drop graph
-editor (explicitly deferred by the proposal).
+Within Phase 5: the UI has no run/resume trigger of its own yet, and there
+is no drag-and-drop graph editor (explicitly deferred by the proposal).
 
 Within what's landed: `Agent(tools=...)` / `Agent(output_schema=...)` are
 accepted on the constructor (frozen contract) but raise `NotImplementedError`

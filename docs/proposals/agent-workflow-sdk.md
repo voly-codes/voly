@@ -1,7 +1,7 @@
 # Proposal: Public Agent and Workflow SDK
 
-**Status:** PR0 + PR1 + PR2 + PR3 + PR4 + PR5 landed (see `docs/backend/sdk.md`
-for what's actually implemented vs. this plan)  
+**Status:** PR0 + PR1 + PR2 + PR3 + PR4 + PR5 + PR6 (7/10 examples) landed
+(see `docs/backend/sdk.md` for what's actually implemented vs. this plan)  
 **Complexity:** complex  
 **Recommended agent:** Codex  
 **Related:** `docs/ARCHITECTURE.md`, `docs/backend/pipeline.md`,
@@ -445,7 +445,8 @@ Generated OpenWiki pages are not edited manually.
 [x] PR3  bounded chat waves, checkpoints, recovery and resume
 [x] PR4  six graph-factory presets with bounds and tests
 [x] PR5  CLI/API/AG-UI lifecycle and read-only workflow graph UI
-[ ] PR6  ten runnable examples, offline fixtures and product-proof benchmark
+[x] PR6  seven of ten runnable examples (3 blocked on unimplemented Agent
+         capabilities), offline fixtures and product-proof benchmark
 ```
 
 ## Changelog
@@ -607,6 +608,38 @@ Generated OpenWiki pages are not edited manually.
   `tests/test_workflows_api.py`; `ui/` verified via `npm run build` (no new
   errors; one new a11y warning class already present on several pre-existing
   components in this codebase, e.g. `Drawer.svelte`).
+- v0.8 — PR6 landed (7 of 10 scoped examples): `examples/workflows/` — seven
+  standalone, `--offline`-runnable scripts (`01`–`07`, one per landed
+  capability: `sequential`/`supervisor_workers`/`planner_generator_evaluator`
+  presets, a manually-built mixed chat/executor graph, an `approval=True`
+  pause/decide/resume round trip, a manually-built read-only parallel-fan-in
+  graph, and a workflow-level-timeout/resume round trip), each with a
+  docstring stating expected `--offline` output, required credentials and
+  cost/safety notes (enforced by
+  `tests/test_examples_workflows.py::test_every_example_has_a_module_docstring_with_required_sections`).
+  Examples 8–10 (structured-output, MCP-tool-allowlist, capability-routed)
+  are *not* implemented — `Agent(output_schema=...)`/`Agent(tools=...)` still
+  raise `NotImplementedError`, and capability-registry routing isn't wired
+  into `Agent`/`Workflow` at all; faking any of them would misrepresent
+  current capability, so the catalog's README documents the gap instead
+  (`examples/workflows/README.md`, "Not implemented"). `BENCHMARK.md`
+  measures (not estimates) first-run LOC against a hand-written
+  `Plan` YAML equivalent (`examples/workflows/_plan_equivalent_01.yaml`,
+  verified to load and pass `PlanEngine().validate()`), and confirms resume/
+  failure-honesty are `PlanEngine`/`PlanRunner` properties every Plan gets
+  regardless of construction method, not something the SDK adds. Found while
+  writing it, not fixed here (scope: an examples/benchmark PR, not a
+  contract-breaking change): `PlanRunner._exec_executor()` calls
+  `AgentRunner.run()` for a `Workflow` executor-mode node exactly like
+  `Agent._run_executor()` does, but never captures the returned
+  `RunnerResult.task_id`, and `NodeResult` has no `evidence_id` field at
+  all — so that node's `EvidenceStore` record exists but is unrecoverable
+  from `WorkflowResult`/`NodeResult`, unlike a direct
+  `Agent.run(mode="executor")` call. Documented in `docs/backend/sdk.md` and
+  `BENCHMARK.md`'s "Evidence completeness" section as a real gap for a
+  future phase — `NodeResult`'s field set is a frozen contract
+  (`tests/test_sdk_contracts.py::test_node_result_field_contract_is_frozen`),
+  so changing it needs its own deliberate PR.
 
 ## Recommended execution model
 
