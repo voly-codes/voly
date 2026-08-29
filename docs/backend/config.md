@@ -541,14 +541,15 @@ memory:
   remote_url: "${CF_WORKER_MEMORY_URL}"
   db_path: .voly/memory.db
   # When backend: agent_memory — requires CF_ACCOUNT_ID + CLOUDFLARE_API_TOKEN
-  # (token needs Agent Memory permissions; private beta).
+  # (token needs Agent Memory permissions).
   agent_memory_account_id: "${CF_ACCOUNT_ID}"
-  agent_memory_namespace: voly
-    agent_memory_profile: default
-    strategic_compaction: false
-    strategic_path: .voly/strategic-memory.jsonl
-    retrieval_token_budget: 600
-    retrieval_per_class_limit: 3
+  agent_memory_namespace: voly-prod
+  # Do not use one shared `default` profile in multi-project/team environments.
+  agent_memory_profile: project-my-project
+  strategic_compaction: false
+  strategic_path: .voly/strategic-memory.jsonl
+  retrieval_token_budget: 600
+  retrieval_per_class_limit: 3
 
 agents:
   cursor:
@@ -558,6 +559,41 @@ agents:
     executor: zen
     model: auto
 ```
+
+### Cloudflare Agent Memory
+
+`backend: agent_memory` keeps the local SQLite write and mirrors new entries to
+Cloudflare through the Agent Memory HTTP API. Retrieval is remote-first and
+falls back to local FTS when the service is unavailable or returns no memory.
+
+Create the configured namespace once:
+
+```bash
+npx wrangler agent-memory namespace create voly-prod
+# or print the command derived from voly.yaml:
+voly memory agent-memory-setup
+```
+
+`namespace` separates an application/environment or memory layer. `profile`
+is the isolation boundary for a project, user, team, tenant, agent, or other
+entity. A shared `default` profile can leak context between projects, so use an
+explicit scoped value until automatic profile derivation is implemented.
+
+```bash
+export CF_ACCOUNT_ID=...
+export CLOUDFLARE_API_TOKEN=...  # token with Agent Memory permissions
+voly memory status
+voly memory search "project architecture decisions"
+voly memory ingest conversation.json --session-id run-123
+voly memory summary --session-id run-123
+```
+
+`conversation.json` is either a JSON message list or
+`{"sessionId":"...","messages":[...]}`. VOLY caps manual ingestion at 1 MB
+and 500 messages. It does not automatically ingest every model turn; automatic
+checkpoint ingestion and dynamic project/user/org profiles are separate rollout
+steps. `strategic_compaction: true` continues to use the local typed strategic
+store rather than Agent Memory.
 
 ---
 

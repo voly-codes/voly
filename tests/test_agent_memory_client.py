@@ -6,7 +6,9 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from click.testing import CliRunner
 
+from voly.cli.commands.infra import memory
 from voly.memory.agent_memory_client import (
     AgentMemoryClient,
     create_agent_memory_client,
@@ -83,6 +85,64 @@ def test_agent_memory_remember_and_recall() -> None:
     assert rows[0]["source"] == "agent-memory"
 
 
+def test_agent_memory_ingest_and_summary() -> None:
+    client = AgentMemoryClient("acc", "voly", "project-a", token="tok")
+    captured: list = []
+
+    def fake(req, timeout=30):
+        captured.append(req)
+        result = {"summary": "## Project\n\nUses FastAPI"} if req.full_url.endswith("/summary") else None
+        resp = MagicMock()
+        resp.read.return_value = json.dumps({"success": True, "result": result}).encode()
+        resp.__enter__.return_value = resp
+        return resp
+
+    with patch("urllib.request.urlopen", fake):
+        client.ingest(
+            [{"role": "user", "content": "Use FastAPI", "timestamp": "2026-08-30T10:00:00Z"}],
+            session_id="run-1",
+        )
+        summary = client.get_summary(session_id="run-1")
+
+    ingest_body = json.loads(captured[0].data.decode())
+    assert captured[0].full_url.endswith("/ingest")
+    assert ingest_body["sessionId"] == "run-1"
+    assert ingest_body["messages"][0]["content"] == "Use FastAPI"
+    assert json.loads(captured[1].data.decode()) == {"sessionId": "run-1"}
+    assert summary == "## Project\n\nUses FastAPI"
+
+
+@pytest.mark.parametrize("messages", [[], [{}], [{"role": "user"}], ["bad"]])
+def test_agent_memory_ingest_rejects_invalid_messages(messages) -> None:
+    client = AgentMemoryClient("acc", "voly", "project-a", token="tok")
+    with pytest.raises(ValueError):
+        client.ingest(messages)
+
+
+def test_agent_memory_delete_lifecycle_quotes_ids() -> None:
+    client = AgentMemoryClient("acc", "voly", "project-a", token="tok")
+    captured: list = []
+
+    def fake(req, timeout=30):
+        captured.append(req)
+        result = {"id": "memory/1"} if "/memories/" in req.full_url else None
+        resp = MagicMock()
+        resp.read.return_value = json.dumps({"success": True, "result": result}).encode()
+        resp.__enter__.return_value = resp
+        return resp
+
+    with patch("urllib.request.urlopen", fake):
+        deleted = client.delete("memory/1")
+        client.delete_session("session/1")
+        client.delete_profile()
+
+    assert deleted["id"] == "memory/1"
+    assert captured[0].method == "DELETE"
+    assert captured[0].full_url.endswith("/memories/memory%2F1")
+    assert captured[1].full_url.endswith("/sessions/session%2F1")
+    assert captured[2].full_url.endswith("/profiles/project-a")
+
+
 def test_memory_store_uses_agent_memory_backend(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CF_ACCOUNT_ID", "acc")
     monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "tok")
@@ -115,3 +175,45 @@ def test_memory_store_local_backend_skips_remote(tmp_path) -> None:
     eid = store.add("T", "hello world", category="context")
     hits = store.search("hello")
     assert any(h.id == eid for h in hits)
+
+
+def test_agent_memory_setup_cli_prints_current_wrangler_command() -> None:
+    config = MagicMock()
+    config.memory.agent_memory_namespace = "voly-prod"
+    config.memory.agent_memory_profile = "project-a"
+
+    result = CliRunner().invoke(memory, ["agent-memory-setup"], obj={"config": config})
+
+    assert result.exit_code == 0
+    assert "npx wrangler agent-memory namespace create voly-prod" in result.output
+    assert "VOLY profile: project-a" in result.output
+
+
+def test_agent_memory_ingest_and_summary_cli(tmp_path) -> None:
+    config = MagicMock()
+    config.memory.backend = "agent_memory"
+    config.memory.agent_memory_account_id = "acc"
+    config.memory.agent_memory_namespace = "voly-prod"
+    config.memory.agent_memory_profile = "project-a"
+    client = MagicMock()
+    client.get_summary.return_value = "## Summary"
+    conversation = tmp_path / "conversation.json"
+    conversation.write_text(json.dumps({
+        "sessionId": "run-1",
+        "messages": [{"role": "user", "content": "Use FastAPI"}],
+    }), encoding="utf-8")
+
+    with patch("voly.memory.client.create_remote_memory_client", return_value=client):
+        ingested = CliRunner().invoke(
+            memory, ["ingest", str(conversation)], obj={"config": config}
+        )
+        summarized = CliRunner().invoke(
+            memory, ["summary", "--session-id", "run-1"], obj={"config": config}
+        )
+
+    assert ingested.exit_code == 0
+    client.ingest.assert_called_once_with(
+        [{"role": "user", "content": "Use FastAPI"}], session_id="run-1"
+    )
+    assert summarized.exit_code == 0
+    assert "## Summary" in summarized.output

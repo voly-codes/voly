@@ -9,6 +9,14 @@ Maps VOLY MemoryClient-shaped calls onto Agent Memory remember/recall:
   list()   → GET  .../memories
   health() → GET  .../namespaces/:name
 
+Also exposes the managed lifecycle API directly:
+
+  ingest()         → POST   .../ingest
+  get_summary()    → POST   .../summary
+  delete()         → DELETE .../memories/:id
+  delete_session() → DELETE .../sessions/:id
+  delete_profile() → DELETE .../profiles/:profile
+
 Docs: https://developers.cloudflare.com/agent-memory/api/http-api/
 """
 
@@ -22,7 +30,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from voly.memory.client import MemoryClientError, USER_AGENT, resolve_memory_token
+from voly.memory.client import USER_AGENT, MemoryClientError, resolve_memory_token
 
 _log = logging.getLogger("voly.memory.agent_memory")
 
@@ -136,6 +144,60 @@ class AgentMemoryClient:
         if isinstance(result, dict) and result.get("id"):
             return str(result["id"])
         return entry_id or ""
+
+    def ingest(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        session_id: str = "",
+    ) -> None:
+        """Extract durable memories from a bounded conversation batch."""
+        if not messages:
+            raise ValueError("messages must not be empty")
+        normalized: list[dict[str, str]] = []
+        for item in messages:
+            if not isinstance(item, dict):
+                raise ValueError("each message must be an object")
+            role = str(item.get("role") or "").strip()
+            content = str(item.get("content") or "").strip()
+            if not role or not content:
+                raise ValueError("each message requires role and content")
+            message = {"role": role, "content": content}
+            timestamp = str(item.get("timestamp") or "").strip()
+            if timestamp:
+                message["timestamp"] = timestamp
+            normalized.append(message)
+        body: dict[str, Any] = {"messages": normalized}
+        if session_id.strip():
+            body["sessionId"] = session_id.strip()
+        self._request("POST", f"{self.profile_base}/ingest", body=body)
+
+    def get_summary(self, *, session_id: str = "") -> str:
+        """Return Cloudflare's Markdown summary for the configured profile."""
+        body: dict[str, str] = {}
+        if session_id.strip():
+            body["sessionId"] = session_id.strip()
+        result = self._request("POST", f"{self.profile_base}/summary", body=body)
+        return str(result.get("summary") or "") if isinstance(result, dict) else ""
+
+    def delete(self, entry_id: str) -> dict[str, Any]:
+        """Delete one remote memory and return the deleted memory payload."""
+        if not entry_id.strip():
+            raise ValueError("entry_id is required")
+        mid = urllib.parse.quote(entry_id.strip(), safe="")
+        result = self._request("DELETE", f"{self.profile_base}/memories/{mid}")
+        return result if isinstance(result, dict) else {}
+
+    def delete_session(self, session_id: str) -> None:
+        """Delete all remote messages and memories in one session."""
+        if not session_id.strip():
+            raise ValueError("session_id is required")
+        sid = urllib.parse.quote(session_id.strip(), safe="")
+        self._request("DELETE", f"{self.profile_base}/sessions/{sid}")
+
+    def delete_profile(self) -> None:
+        """Delete the configured remote profile and all of its contents."""
+        self._request("DELETE", self.profile_base)
 
     def search(self, query: str, limit: int = 5, category: str = "") -> list[dict[str, Any]]:
         del category  # Agent Memory recall has no category filter

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import shlex
 from pathlib import Path
 
 import click
@@ -80,6 +81,78 @@ def memory_status(ctx: click.Context) -> None:
         click.echo(f"Service: {health['service']}")
     if health.get("namespace"):
         click.echo(f"Namespace: {health['namespace']} / profile: {health.get('profile')}")
+
+
+def _configured_agent_memory_client(ctx: click.Context):  # type: ignore[no-untyped-def]
+    from voly.memory.client import create_remote_memory_client
+
+    mem = ctx.obj["config"].memory
+    if (mem.backend or "").lower() != "agent_memory":
+        raise click.ClickException("memory.backend must be agent_memory")
+    client = create_remote_memory_client(
+        backend=mem.backend,
+        agent_memory_account_id=mem.agent_memory_account_id,
+        agent_memory_namespace=mem.agent_memory_namespace,
+        agent_memory_profile=mem.agent_memory_profile,
+    )
+    if client is None:
+        raise click.ClickException(
+            "Agent Memory is not configured; set CF_ACCOUNT_ID and CLOUDFLARE_API_TOKEN"
+        )
+    return client
+
+
+@memory.command("agent-memory-setup")
+@click.pass_context
+def memory_agent_memory_setup(ctx: click.Context) -> None:
+    """Print the Wrangler command and VOLY scope selected for Agent Memory."""
+    mem = ctx.obj["config"].memory
+    namespace = mem.agent_memory_namespace or "voly"
+    profile = mem.agent_memory_profile or "default"
+    command = shlex.join(["npx", "wrangler", "agent-memory", "namespace", "create", namespace])
+    click.echo(command)
+    click.echo(f"VOLY profile: {profile}")
+    if profile == "default":
+        click.echo(
+            "Warning: profile 'default' is shared; configure a project/user/org-specific profile.",
+            err=True,
+        )
+
+
+@memory.command("ingest")
+@click.argument("conversation", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--session-id", default="", help="Stable conversation/run identifier")
+@click.pass_context
+def memory_ingest(ctx: click.Context, conversation: Path, session_id: str) -> None:
+    """Ingest a bounded JSON conversation into the configured profile."""
+    if conversation.stat().st_size > 1_000_000:
+        raise click.ClickException("conversation file exceeds 1 MB")
+    try:
+        payload = json.loads(conversation.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise click.ClickException(f"invalid conversation JSON: {exc}") from exc
+    messages = payload.get("messages") if isinstance(payload, dict) else payload
+    if not isinstance(messages, list):
+        raise click.ClickException("conversation must be a JSON list or an object with messages")
+    if len(messages) > 500:
+        raise click.ClickException("conversation exceeds 500 messages")
+    effective_session = session_id
+    if not effective_session and isinstance(payload, dict):
+        effective_session = str(payload.get("sessionId") or payload.get("session_id") or "")
+    try:
+        _configured_agent_memory_client(ctx).ingest(messages, session_id=effective_session)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"ingested: {len(messages)} messages")
+
+
+@memory.command("summary")
+@click.option("--session-id", default="", help="Scope the Last Session summary")
+@click.pass_context
+def memory_summary(ctx: click.Context, session_id: str) -> None:
+    """Print Cloudflare's Markdown summary for the configured profile."""
+    summary = _configured_agent_memory_client(ctx).get_summary(session_id=session_id)
+    click.echo(summary or "(empty profile summary)")
 
 
 @memory.command("search")

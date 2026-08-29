@@ -91,6 +91,8 @@ class MemoryConfig:
     # Cloudflare Agent Memory (backend=agent_memory)
     agent_memory_account_id: str = ""
     agent_memory_namespace: str = "voly"
+    # Explicit project/user/org scope is recommended; "default" is only a
+    # backwards-compatible single-profile fallback.
     agent_memory_profile: str = "default"
     strategic_compaction: bool = False
     strategic_path: str = ".voly/strategic-memory.jsonl"
