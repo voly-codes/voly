@@ -28,6 +28,7 @@ from voly.plan.verify import (
     CHECK_GIT_DIFF_NONEMPTY,
     CHECK_OUTPUT_NONEMPTY,
     CHECK_OUTPUT_REGEX,
+    KNOWN_CHECK_TYPES,
     VerifyContext,
     VerifyError,
     all_passed,
@@ -38,6 +39,7 @@ from voly.plan.verify import (
     safe_join,
     verify_step,
 )
+from voly.plan.verify_types import CHECK_ACTION_SUCCEEDED, CHECK_HUMAN_REVIEW
 
 
 @pytest.fixture()
@@ -597,6 +599,23 @@ def test_verify_step_writes_log_without_transition(engine: PlanEngine, cwd: Path
     assert all_passed(results)
     assert plan.get_step("s").status == VERIFYING  # unchanged
     assert plan.get_step("s").verify_log[0]["ok"] is True
+
+
+def test_business_check_types_are_known_and_fail_closed_generically() -> None:
+    """human_review/action_succeeded are business-Decision check types, resolved
+    out-of-band by DecisionService (see voly/decisions.py), not by this generic
+    dispatch. They must be registered (so a future generic runner doesn't hit
+    "unknown check type") but must still fail closed here, since this module
+    has no way to observe an external human decision or executor outcome.
+    """
+    assert CHECK_HUMAN_REVIEW in KNOWN_CHECK_TYPES
+    assert CHECK_ACTION_SUCCEEDED in KNOWN_CHECK_TYPES
+
+    for check_type in (CHECK_HUMAN_REVIEW, CHECK_ACTION_SUCCEEDED):
+        result = run_check(AcceptanceCheck(type=check_type), VerifyContext())
+        assert result.ok is False
+        assert "unknown check type" not in result.message
+        assert "DecisionService" in result.message
 
 
 def test_gate_still_blocks_until_verified(engine: PlanEngine, cwd: Path) -> None:

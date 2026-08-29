@@ -17,6 +17,7 @@ from voly.plan.loader import plan_summary
 from voly.plan.store import PlanStore
 from voly.plan.types import (
     FAILED,
+    MODE_BUSINESS,
     MODE_CHAT,
     MODE_EXECUTOR,
     PENDING,
@@ -229,6 +230,19 @@ class PlanRunner:
 
         git_before = git_porcelain(plan.cwd) if plan.cwd else {}
         mode = (step.mode or MODE_CHAT).lower()
+
+        if mode == MODE_BUSINESS:
+            # Business Plans are driven exclusively by
+            # voly.decisions.DecisionService (human approval, then a real
+            # business Executor). Running one through this generic
+            # chat/executor loop would either prompt a chat model with a
+            # business action's task text or skip the mandatory human
+            # checkpoint — fail closed instead.
+            self.engine.transition(
+                plan, step_id, FAILED,
+                error="mode=business steps must run via DecisionService, not PlanRunner",
+            )
+            return False
 
         try:
             if mode == MODE_EXECUTOR:

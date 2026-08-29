@@ -32,6 +32,55 @@ class DecisionConflictError(ValueError):
     pass
 
 
+# action_spec.kind -> candidate business-executor ids, in static-fallback order.
+# Capability routing (when enabled) scores within this candidate set instead of
+# picking blindly; the first id is also the safe default when capability
+# routing is disabled, unavailable, or returns something outside this set.
+_ACTION_KIND_EXECUTOR_IDS: dict[str, list[str]] = {
+    "http_call": ["http-action"],
+    "notify": ["notify"],
+}
+
+
+def _build_business_executor(action_kind: str, config):  # type: ignore[no-untyped-def]
+    candidates = _ACTION_KIND_EXECUTOR_IDS.get(action_kind)
+    if not candidates:
+        raise ValueError(f"no business executor registered for action kind: {action_kind}")
+
+    executor_id = candidates[0]
+    cap_cfg = getattr(config, "capability", None)
+    if cap_cfg is not None and bool(getattr(cap_cfg, "enabled", False)):
+        try:
+            from voly.capability.matcher import ExecutorMatcher, MatchRequest
+            from voly.capability.registry import CapabilityRegistry
+
+            registry = CapabilityRegistry(
+                str(getattr(cap_cfg, "profiles_dir", "") or ".voly/capability/profiles")
+            )
+            matcher = ExecutorMatcher(
+                registry, worker_url=str(getattr(cap_cfg, "worker_url", "") or "")
+            )
+            result = matcher.find_executors(MatchRequest(
+                dimension="business_action",
+                available_executors=candidates,
+                project_features=None,
+                kind="executor",
+                requires_file_tools=False,
+                routing_policy=str(getattr(cap_cfg, "routing_policy", "") or "balanced"),
+                worker_timeout_s=float(getattr(cap_cfg, "worker_timeout_s", 5.0) or 5.0),
+            ))
+            if result.recommended is not None and result.recommended.id in candidates:
+                executor_id = result.recommended.id
+        except Exception:  # noqa: BLE001 -- capability routing is best-effort
+            pass
+
+    if executor_id == "notify":
+        from voly.executor.notify import NotifyExecutor
+        return NotifyExecutor(config)
+    from voly.executor.http_action import HttpActionExecutor
+    return HttpActionExecutor(config)
+
+
 class DecisionService:
     def __init__(self, store: PlanStore, config=None) -> None:  # type: ignore[no-untyped-def]
         self.store = store
@@ -133,12 +182,7 @@ class DecisionService:
         plan.metadata["execution"] = "running"
         self.store.save(plan)
         if executor is None:
-            if action["kind"] == "notify":
-                from voly.executor.notify import NotifyExecutor
-                executor = NotifyExecutor(self.config)
-            else:
-                from voly.executor.http_action import HttpActionExecutor
-                executor = HttpActionExecutor(self.config)
+            executor = _build_business_executor(action["kind"], self.config)
         result = executor.run(json.dumps({k: v for k, v in action.items() if k != "kind"}))
         if result.success:
             self.engine.transition(plan, step.id, "done")

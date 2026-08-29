@@ -92,6 +92,22 @@ and headers. `voly decide execute <plan-id>` explicitly runs an approved action;
 the Plan is marked running before network I/O and EvidenceRecord v3 stores its
 local-only redacted `action_report`.
 
+The resolved IP that passed the public-address check is pinned for the actual
+TCP connect (`_PinnedHTTPSConnection`/`_PinnedHTTPSHandler`), with TLS SNI/cert
+verification still done against the original hostname. A plain re-resolve at
+connect time (the initial PR4 implementation) would reopen a DNS-rebinding gap:
+an attacker-controlled domain can answer public on the pre-check and private
+on the real connect a moment later if the two lookups aren't pinned to the
+same address.
+
+Which of the registered business executors (`http-action`, `notify`) handles a
+given `action_spec.kind` is resolved by capability-aware routing
+(`voly.decisions._build_business_executor`) when `capability.enabled` is set,
+scoring the `business_action` capability via `ExecutorMatcher` instead of a
+hardcoded `if/else`; the static id remains the fallback when capability
+routing is disabled or returns nothing usable. See
+[capability.md](capability.md).
+
 ## NotifyExecutor (Layer C)
 
 `voly/executor/notify.py` is the single v1 notification transport. It converts

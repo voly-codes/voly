@@ -12,12 +12,14 @@ from pathlib import Path
 from voly.plan.types import AcceptanceCheck
 from voly.plan.verify_git import changed_paths, git_porcelain, safe_join
 from voly.plan.verify_types import (
+    CHECK_ACTION_SUCCEEDED,
     CHECK_COMMAND,
     CHECK_FILE_LINE_LIMIT,
     CHECK_FILES_EXIST,
     CHECK_FILES_MISSING,
     CHECK_GIT_DIFF_CONTAINS,
     CHECK_GIT_DIFF_NONEMPTY,
+    CHECK_HUMAN_REVIEW,
     CHECK_OUTPUT_NONEMPTY,
     CHECK_OUTPUT_REGEX,
     DEFAULT_COMMAND_TIMEOUT,
@@ -452,6 +454,34 @@ def _check_file_line_limit(check: AcceptanceCheck, ctx: VerifyContext) -> Verify
     )
 
 
+def _check_human_review(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:  # noqa: ARG001
+    """Business `approve-option` steps are resolved out-of-band by
+    voly.decisions.DecisionService via POST /api/decisions/{plan_id}/feedback,
+    which transitions the step directly. Generic synchronous verification
+    (this dispatch) has no way to observe that external decision, so it fails
+    closed rather than guessing — matching the mandatory-human-checkpoint
+    invariant instead of raising an opaque "unknown check type" error.
+    """
+    return VerifyResult(
+        CHECK_HUMAN_REVIEW,
+        False,
+        "human_review is resolved by DecisionService.decide(), not generic verification",
+    )
+
+
+def _check_action_succeeded(check: AcceptanceCheck, ctx: VerifyContext) -> VerifyResult:  # noqa: ARG001
+    """Business `execute-action` steps are resolved by
+    voly.decisions.DecisionService.execute() from the real Executor result,
+    not from VerifyContext (which carries no business-executor outcome).
+    Fails closed for the same reason as _check_human_review.
+    """
+    return VerifyResult(
+        CHECK_ACTION_SUCCEEDED,
+        False,
+        "action_succeeded is resolved by DecisionService.execute(), not generic verification",
+    )
+
+
 _HANDLERS: dict[str, Callable[[AcceptanceCheck, VerifyContext], VerifyResult]] = {
     CHECK_COMMAND: _check_command,
     CHECK_FILES_EXIST: _check_files_exist,
@@ -461,6 +491,8 @@ _HANDLERS: dict[str, Callable[[AcceptanceCheck, VerifyContext], VerifyResult]] =
     CHECK_OUTPUT_NONEMPTY: _check_output_nonempty,
     CHECK_OUTPUT_REGEX: _check_output_regex,
     CHECK_FILE_LINE_LIMIT: _check_file_line_limit,
+    CHECK_HUMAN_REVIEW: _check_human_review,
+    CHECK_ACTION_SUCCEEDED: _check_action_succeeded,
 }
 
 

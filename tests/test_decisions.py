@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from voly.decisions import DecisionConflictError, DecisionService
+from voly.decisions import DecisionConflictError, DecisionService, _build_business_executor
 from voly.plan.store import PlanStore
 from voly.sensing.schema import Option, Signal
 
@@ -159,6 +159,57 @@ def test_business_execution_emits_local_task_event_v4(tmp_path) -> None:
     assert event["business_plan"]["decision"] == "approved"
     assert event["business_plan"]["execution"] == "completed"
     assert event["business_plan"]["executed_at"] is not None
+
+
+def test_business_executor_selection_uses_capability_matcher_when_enabled(tmp_path) -> None:
+    from voly.config import VOLYConfig
+    from voly.executor.http_action import HttpActionExecutor
+    from voly.executor.notify import NotifyExecutor
+
+    config = VOLYConfig()
+    config.capability.enabled = True
+    config.capability.profiles_dir = str(tmp_path / "capability" / "profiles")
+
+    assert isinstance(_build_business_executor("http_call", config), HttpActionExecutor)
+    assert isinstance(_build_business_executor("notify", config), NotifyExecutor)
+
+
+def test_business_executor_selection_ignores_off_kind_capability_match(tmp_path, monkeypatch) -> None:
+    """A remote/local match outside the action-kind candidate set must not be honored."""
+    from voly.capability.schema import ExecutorCapabilityProfile
+    from voly.config import VOLYConfig
+    from voly.executor.http_action import HttpActionExecutor
+
+    class _FakeResult:
+        recommended = ExecutorCapabilityProfile.unknown("some-other-executor")
+
+    def _fake_find_executors(self, req):
+        return _FakeResult()
+
+    monkeypatch.setattr(
+        "voly.capability.matcher.ExecutorMatcher.find_executors", _fake_find_executors
+    )
+    config = VOLYConfig()
+    config.capability.enabled = True
+    config.capability.profiles_dir = str(tmp_path / "capability" / "profiles")
+
+    assert isinstance(_build_business_executor("http_call", config), HttpActionExecutor)
+
+
+def test_business_executor_selection_falls_back_when_capability_disabled() -> None:
+    from voly.config import VOLYConfig
+    from voly.executor.http_action import HttpActionExecutor
+
+    config = VOLYConfig()
+    assert config.capability.enabled is False
+    assert isinstance(_build_business_executor("http_call", config), HttpActionExecutor)
+
+
+def test_business_executor_selection_rejects_unknown_action_kind() -> None:
+    from voly.config import VOLYConfig
+
+    with pytest.raises(ValueError):
+        _build_business_executor("carrier_pigeon", VOLYConfig())
 
 
 def test_rejected_business_decision_emits_terminal_event(tmp_path) -> None:

@@ -80,6 +80,15 @@ The `http-action` seed uses the `business_action` capability key and
 `file_tools: false`; the `notify` seed represents the webhook transport under
 the same domain. Neither is eligible for the code executor fallback chain.
 
+`voly.decisions._build_business_executor` calls `ExecutorMatcher.find_executors`
+(`dimension="business_action"`, `requires_file_tools=False`, `available_executors`
+restricted to the candidate id(s) for the approved `action_spec.kind`) when
+`capability.enabled` is set, instead of a hardcoded `if action["kind"] == ...`
+branch. A remote/local match outside that candidate set is ignored (defends
+against a misbehaving CF Worker recommending an off-kind executor); disabled
+or unusable capability routing falls back to the first candidate id, which is
+the same static choice used before this integration existed.
+
 ```
 seed (voly/capability/seeds/) → materialized copy (.voly/capability/profiles/) → EMA updates from runs
 ```

@@ -14,6 +14,11 @@ CHECK_GIT_DIFF_CONTAINS = "git_diff_contains"
 CHECK_OUTPUT_NONEMPTY = "output_nonempty"
 CHECK_OUTPUT_REGEX = "output_regex"
 CHECK_FILE_LINE_LIMIT = "file_line_limit"
+# Business-decision acceptance types (mode: business). Both are resolved
+# asynchronously by voly.decisions.DecisionService, not by this module's
+# synchronous dispatch — see _check_human_review / _check_action_succeeded.
+CHECK_HUMAN_REVIEW = "human_review"
+CHECK_ACTION_SUCCEEDED = "action_succeeded"
 
 KNOWN_CHECK_TYPES = frozenset({
     CHECK_COMMAND,
@@ -24,6 +29,8 @@ KNOWN_CHECK_TYPES = frozenset({
     CHECK_OUTPUT_NONEMPTY,
     CHECK_OUTPUT_REGEX,
     CHECK_FILE_LINE_LIMIT,
+    CHECK_HUMAN_REVIEW,
+    CHECK_ACTION_SUCCEEDED,
 })
 
 DEFAULT_COMMAND_TIMEOUT = 60.0

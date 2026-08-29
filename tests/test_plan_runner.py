@@ -13,6 +13,7 @@ from voly.cli.main import main
 from voly.config import PlanConfig, VOLYConfig, load_config
 from voly.plan import (
     FAILED,
+    MODE_BUSINESS,
     MODE_CHAT,
     MODE_EXECUTOR,
     PLAN_COMPLETED,
@@ -173,6 +174,37 @@ def test_verify_fail_stops_active(cfg: VOLYConfig, tmp_path: Path) -> None:
     assert result.plan.get_step("next").status == "pending"
     assert ran_chat["n"] == 0  # gate blocked second step
     assert result.plan.status == PLAN_FAILED
+
+
+def test_runner_refuses_business_mode_steps(cfg: VOLYConfig, tmp_path: Path) -> None:
+    """Business Plans belong exclusively to voly.decisions.DecisionService (human
+    approval, then a real business Executor). PlanRunner must not silently
+    reinterpret a business step as a chat prompt or an executor task — that
+    would either leak the step's task text to a chat model or bypass the
+    mandatory human checkpoint the business-decision gate is supposed to enforce.
+    """
+    proj = Path(cfg.default_cwd)
+    ran = {"chat": 0, "exec": 0}
+
+    def chat_fn(step, plan, instruction):
+        ran["chat"] += 1
+        return True, "should not run", ""
+
+    def exec_fn(step, plan, instruction):
+        ran["exec"] += 1
+        return True, "should not run", "", []
+
+    plan = create_plan(
+        "biz",
+        [PlanStep(id="approve-option", mode=MODE_BUSINESS, task="approve")],
+        cwd=str(proj),
+    )
+    runner = PlanRunner(cfg, chat_fn=chat_fn, executor_fn=exec_fn, emit_event=False)
+    result = runner.run(plan, mode="active")
+    assert not result.success
+    assert result.plan.get_step("approve-option").status == FAILED
+    assert ran["chat"] == 0
+    assert ran["exec"] == 0
 
 
 def test_shadow_verify_fail_opens_gate(cfg: VOLYConfig, tmp_path: Path) -> None:

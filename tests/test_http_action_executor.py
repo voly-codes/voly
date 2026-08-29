@@ -3,7 +3,11 @@ from __future__ import annotations
 import json
 
 from voly.config import VOLYConfig
-from voly.executor.http_action import HttpActionExecutor
+from voly.executor.http_action import (
+    HttpActionExecutor,
+    _PinnedHTTPSConnection,
+    _PinnedHTTPSHandler,
+)
 
 
 def _config() -> VOLYConfig:
@@ -67,6 +71,43 @@ def test_http_action_rejects_host_method_and_missing_key() -> None:
         {"method": "POST", "url": "https://api.example.com/x"},
     ):
         assert executor.run(json.dumps(action)).success is False
+
+
+def test_pinned_https_connection_dials_validated_ip_not_hostname() -> None:
+    """Regression for DNS-rebinding: the socket must connect to the IP that was
+    validated as public, not re-resolve the hostname at connect time (which
+    would let a rebinding attacker swap in a private address after the check).
+    """
+
+    class _FakeSocket:
+        def setsockopt(self, *args): pass
+
+    class _FakeContext:
+        def __init__(self): self.wrap_calls = []
+        def wrap_socket(self, sock, server_hostname):
+            self.wrap_calls.append((sock, server_hostname))
+            return sock
+
+    dial_calls = []
+
+    def fake_create_connection(address, timeout, source_address):
+        dial_calls.append(address)
+        return _FakeSocket()
+
+    conn = _PinnedHTTPSConnection("api.example.com", pinned_ip="93.184.216.34", timeout=5)
+    conn._create_connection = fake_create_connection
+    conn._context = _FakeContext()
+    conn.connect()
+
+    assert dial_calls == [("93.184.216.34", conn.port)]
+    assert conn._context.wrap_calls == [(conn.sock, "api.example.com")]
+
+
+def test_http_action_default_opener_pins_resolved_ip() -> None:
+    executor = HttpActionExecutor(_config(), resolver=_resolver)
+    opener = executor._build_opener("93.184.216.34")
+    handler = next(h for h in opener.handlers if isinstance(h, _PinnedHTTPSHandler))
+    assert handler._pinned_ip == "93.184.216.34"
 
 
 def test_business_executor_config_is_fail_closed(monkeypatch) -> None:

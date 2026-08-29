@@ -106,20 +106,36 @@ voly plan show auth-refactor
 | `file_line_limit` | every changed text file is within `max_lines`; binary and generated/lock files are skipped (plus `exclude_patterns`) |
 | `output_nonempty` | agent output non-empty |
 | `output_regex` | agent output matches `pattern` |
+| `human_review` | never passes through this dispatch (see below) |
+| `action_succeeded` | never passes through this dispatch (see below) |
 
 Unknown types **fail closed**.
 
 ### Business Decision plans
 
-Active business sensing reuses this FSM as a two-step Plan. `approve-option`
-waits in `verifying` for explicit human feedback; its dependent
-`execute-action` stays `pending` and cannot start. Approval performs the legal
-`verifying → verified` transition. Rejection performs `verifying → failed` and
-keeps the action blocked. Identical repeated feedback is idempotent and a
-conflicting decision fails closed.
+Active business sensing reuses this FSM as a two-step Plan (`mode: business`).
+`approve-option` waits in `verifying` for explicit human feedback; its
+dependent `execute-action` stays `pending` and cannot start. Approval performs
+the legal `verifying → verified` transition. Rejection performs
+`verifying → failed` and keeps the action blocked. Identical repeated feedback
+is idempotent and a conflicting decision fails closed.
 
-The business action itself is not executed in PR3; that remains the business
-executor phase. CLI: `voly decide list|approve|reject`.
+`human_review` and `action_succeeded` are registered `KNOWN_CHECK_TYPES` (so a
+generic caller of `run_check`/`verify_step` gets a clear message instead of
+"unknown check type"), but both are resolved out-of-band by
+`voly.decisions.DecisionService` — `decide()` transitions `approve-option`
+directly from an explicit `POST /api/decisions/{plan_id}/feedback`, and
+`execute()` transitions `execute-action` directly from a real business
+Executor's result. Neither goes through `PlanRunner`/`complete_verification`,
+so the generic handlers for these two types always report `ok=False`: there is
+no synchronous evidence (`VerifyContext` has no notion of "a human approved
+this" or "the HTTP call returned 200") from which the generic dispatch could
+honestly say otherwise. `PlanRunner.run()` itself refuses `mode: business`
+steps outright (fails the step immediately, runs neither chat nor executor)
+rather than misinterpreting a business step as a chat prompt or generic
+executor task — business Plans are driven exclusively by `DecisionService`.
+
+CLI: `voly decide list|approve|reject|execute`.
 
 Command checks are platform-neutral, but the command itself must name an
 executable available on the target OS. Tests and generated examples should use

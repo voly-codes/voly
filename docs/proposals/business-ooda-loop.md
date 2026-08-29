@@ -465,3 +465,14 @@ rows alongside existing judge-calibration rows; reports stay observational
 ## Changelog
 
 - v0.1 — initial draft.
+- v0.2 — post-implementation correctness pass: fixed a DNS-rebinding gap in
+  `HttpActionExecutor` (the resolved IP validated as public is now pinned for
+  the actual TCP connect, closing the window between the check and the
+  connect); registered `human_review`/`action_succeeded` as known (but
+  fail-closed, externally-resolved) acceptance-check types in
+  `voly/plan/verify_checks.py` so a generic `run_check`/`PlanRunner` caller no
+  longer hits "unknown check type"; hardened `PlanRunner` to refuse
+  `mode: business` steps outright rather than silently running them as chat;
+  and wired business-executor selection through `ExecutorMatcher`
+  (`voly.decisions._build_business_executor`) instead of a hardcoded
+  `if/else`, matching this proposal's Phase 4 fallback claim.
