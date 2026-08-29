@@ -1,6 +1,6 @@
 # Proposal: Public Agent and Workflow SDK
 
-**Status:** PR0 + PR1 + PR2 + PR3 + PR4 landed (see `docs/backend/sdk.md`
+**Status:** PR0 + PR1 + PR2 + PR3 + PR4 + PR5 landed (see `docs/backend/sdk.md`
 for what's actually implemented vs. this plan)  
 **Complexity:** complex  
 **Recommended agent:** Codex  
@@ -444,7 +444,7 @@ Generated OpenWiki pages are not edited manually.
 [x] PR2  Workflow builder compiles to Plan and runs through PlanRunner
 [x] PR3  bounded chat waves, checkpoints, recovery and resume
 [x] PR4  six graph-factory presets with bounds and tests
-[ ] PR5  CLI/API/AG-UI lifecycle and read-only workflow graph UI
+[x] PR5  CLI/API/AG-UI lifecycle and read-only workflow graph UI
 [ ] PR6  ten runnable examples, offline fixtures and product-proof benchmark
 ```
 
@@ -569,6 +569,44 @@ Generated OpenWiki pages are not edited manually.
   workaround pretending otherwise. See `tests/test_sdk_presets.py` for graph
   snapshots, bound enforcement, handoff-reaches-the-aggregation-node checks
   and both `reviewer_loop` exit-gate outcomes.
+- v0.7 — PR5 landed: `voly/sdk/loader.py` (`load_workflow_file`/
+  `load_workflow_dict`) parses a YAML/JSON **Workflow document**
+  (`Agent`-shaped nodes) into an ordinary `Workflow` via `Workflow.add()` —
+  distinct from `voly.plan.loader.load_plan_file`, which loads an
+  already-compiled `Plan`/`PlanStep` document for `voly plan run`. CLI:
+  `voly workflow validate|run|resume|show` in
+  `voly/cli/commands/workflow_cmd.py`, added alongside (not replacing) that
+  module's pre-existing `stats`/`review-until-clean` subcommands for the
+  unrelated bounded-review-workflow concept — no name collision since the
+  new subcommand names don't overlap. REST/SSE:
+  `voly/web/routes/workflows.py` — `validate`/`run`/`{plan_id}/resume`
+  (SSE)/list/get/`{plan_id}/nodes/{node_id}/decide`, all delegating to the
+  same `voly.sdk.loader` + `PlanRunner` + `voly.plan.approval` machinery the
+  CLI and Python SDK use, so all three surfaces observe the same persisted
+  Plan (the proposal's "UI and SDK disagree" mitigation). Node-lifecycle SSE
+  events (`queued`/`running`/`verifying`/`completed`/`failed`) are produced
+  by polling the persisted Plan every ~1s — mirroring `/api/run`'s existing
+  heartbeat-polling pattern in `voly/web/routes/run.py`, at Phase 3's
+  per-step persistence granularity — not a push channel threaded through
+  `PlanRunner`'s internals, so no second event system was introduced. UI:
+  `ui/src/lib/components/workflows/WorkflowsPage.svelte` at `#/workflows` —
+  a read-only list + per-node detail view with Approve/Reject on a paused
+  `human_review` node, reusing the same approval contract
+  `DecisionsPage.svelte` already uses for business Decisions. Scoped down
+  from the full Phase 5 wish list on purpose: the UI only *observes*
+  persisted workflows today (list/detail poll) and has no run/resume trigger
+  of its own, and the node view is a top-to-bottom status list, not a
+  force-directed graph canvas — both explicitly deferred by the proposal
+  ("defer drag-and-drop editing until the read-only graph contract is
+  stable"; this ships that contract first). Found and fixed while writing
+  the approval-decide tests: `voly.plan.approval.decide()` raises
+  `PlanValidationError` (not `ApprovalError`/`FileNotFoundError`) for an
+  unknown `step_id` on an otherwise-valid plan — the REST handler now catches
+  it too and returns HTTP 404 instead of leaking a 500. Tests:
+  `tests/test_sdk_loader.py`, `tests/test_workflow_cli.py`,
+  `tests/test_workflows_api.py`; `ui/` verified via `npm run build` (no new
+  errors; one new a11y warning class already present on several pre-existing
+  components in this codebase, e.g. `Drawer.svelte`).
 
 ## Recommended execution model
 

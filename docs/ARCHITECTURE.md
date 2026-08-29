@@ -312,7 +312,8 @@ Guide: [`docs/backend/sdk.md`](backend/sdk.md).
 | PR2 | **landed** — `Workflow` compiles to `Plan`, runs via `PlanRunner` | `voly/sdk/workflow.py`, exported as `voly.Workflow` |
 | PR3 | **landed** — bounded parallel chat waves, durable resume, cancellation, workflow-level timeout | `voly/plan/runner.py` (`_run_chat_wave`, `resume()`, `cancel()`), `workflow_sdk.*` config |
 | PR4 | **landed** — six topology-preset graph factories | `voly/sdk/presets.py`, exported as `voly.sequential` etc. |
-| PR5+ | not started | CLI/API/AG-UI/UI surfaces, examples |
+| PR5 | **landed** — CLI/REST/SSE/UI lifecycle | `voly workflow validate\|run\|resume\|show`, `voly/web/routes/workflows.py`, `ui/.../workflows/WorkflowsPage.svelte` |
+| PR6+ | not started | `examples/workflows/` catalog, product-proof benchmark |
 
 `voly.Agent` is a facade, not a second runtime: chat mode calls
 `AIGateway.chat()` (via the shared `voly.ai_gateway.gateway_from_config`

@@ -12,6 +12,21 @@ already recorded; the UI surfaces the server error and does not overwrite it.
 
 ---
 
+## Workflow SDK (`/api/workflows`, Phase 5)
+
+`fetchWorkflows()` calls `GET /api/workflows` (summary list). `fetchWorkflow(planId)`
+calls `GET /api/workflows/{planId}` (full Plan document, used by
+`WorkflowsPage.svelte`'s detail view). `decideWorkflowNode(planId, nodeId,
+decision, comment)` posts to `/api/workflows/{planId}/nodes/{nodeId}/decide` —
+same idempotent/409-on-conflict contract as `submitDecision` above, just
+backed by `voly.plan.approval` instead of `DecisionService`. None of these
+three call the streaming `run`/`resume` endpoints — the current UI only
+observes persisted workflows (run/resume triggers stay CLI/Python-only for
+now); see `docs/backend/api.md`'s Workflow SDK section for the SSE `node`
+event shape those endpoints produce, for a future consumer.
+
+---
+
 ## POST /api/run — SSE stream
 
 Main endpoint for running tasks.

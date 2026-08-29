@@ -12,6 +12,7 @@
   import GatewayPage from './lib/components/gateway/GatewayPage.svelte'
   import TelemetryPage from './lib/components/telemetry/TelemetryPage.svelte'
   import DecisionsPage from './lib/components/decisions/DecisionsPage.svelte'
+  import WorkflowsPage from './lib/components/workflows/WorkflowsPage.svelte'
   import Drawer from './lib/components/shared/Drawer.svelte'
   import Toast from './lib/components/shared/Toast.svelte'
   import Spinner from './lib/components/shared/Spinner.svelte'
@@ -27,6 +28,7 @@
   const navItems = $derived([
     { id: 'tasks', label: t('nav.tasks') },
     { id: 'decisions', label: t('nav.decisions') },
+    { id: 'workflows', label: t('nav.workflows') },
   ])
 
   // "Run" is the primary action (mockup's "+ New task") — visually distinct
@@ -120,6 +122,8 @@
   <div class="body">
     {#if router.page === 'decisions'}
       <DecisionsPage />
+    {:else if router.page === 'workflows'}
+      <WorkflowsPage />
     {:else}
     {#if tasksStore.loading && tasksStore.tasks.length === 0}
       <div class="loading"><Spinner size={24} /> {t('app.loadingTasks')}</div>

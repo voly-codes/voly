@@ -154,3 +154,5 @@ f54acdb — Fixed the wheel manifest so clean installs include intelligence, reu
 fc446a9 — Declared the capability schemas namespace explicitly, removing ambiguous setuptools packaging before PyPI release.
 87a8ba6 — Made quickstart executor mocks cross-platform and aligned the setuptools smoke test with the packaged workflow module.
 6731956 — Removed the orphaned `agentsview` gitlink that made checkout post-job cleanup fail on every CI runner.
+
+d775ae6 — Added six Workflow topology presets (sequential, concurrent, supervisor_workers, reviewer_loop, council, planner_generator_evaluator) as plain graph factories with hard build-time bounds; documented that reviewer_loop's exit_acceptance only gates the final unrolled round since PlanEngine has no conditional-skip primitive for a true early-exit loop.

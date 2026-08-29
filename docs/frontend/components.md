@@ -11,6 +11,25 @@ actions until the list has been read back from the server. The card displays
 the exact HTTP method and target before approval; after approval a separate
 Execute button calls the action endpoint only while execution is pending.
 
+## WorkflowsPage.svelte
+
+Top-level `#/workflows` page (Phase 5 of `docs/proposals/agent-workflow-sdk.md`)
+for persisted `voly.sdk.Workflow`-compiled Plans. List view calls
+`GET /api/workflows` (summary cards: name, status, verified/total nodes,
+cost); clicking one calls `GET /api/workflows/{plan_id}` and renders a
+read-only, top-to-bottom node list — status, role/model/provider, `depends_on`,
+duration and cost per `PlanStep` — not a force-directed graph canvas (deferred
+per the proposal: "defer drag-and-drop editing until the read-only graph
+contract is stable"; this ships the read-only contract first). A node parked
+in `verifying` with a `human_review` acceptance check shows Approve/Reject,
+calling `POST /api/workflows/{plan_id}/nodes/{node_id}/decide` — the same
+generalized `voly.plan.approval` contract `DecisionsPage.svelte` uses via
+`voly.decisions.DecisionService` for business Decisions, just a different
+backing plan `kind`. This page only *observes* runs (list/detail poll, no
+run/resume trigger from the UI yet) — a workflow started from
+`voly workflow run`/Python is visible here mid-run since both read the same
+`PlanStore`-persisted Plan.
+
 `PixelGoose.svelte` is the reusable, CSS-token-colored brand mark used by the app header and agent graphs. Graph canvases use a crisp 16 px pixel grid, 3 px square frames, and hard offset shadows derived from `--voly-orange` and `--voly-ink`; keep these surfaces square and respect reduced-motion preferences.
 
 The application shell uses the same system globally: warm paper surfaces, ink structural borders, orange selection/action states, square controls, and hard shadows. Semantic success/warning/error colors remain distinct. New top-level pages should consume the shared tokens in `app.css` instead of introducing cool neutral surfaces or rounded-card styling.

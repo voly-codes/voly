@@ -136,8 +136,8 @@ def create_app(
         browse,
         capability_api,
         cf,
-        dspy,
         decisions,
+        dspy,
         environment,
         evidence,
         gateway,
@@ -148,6 +148,7 @@ def create_app(
         runs,
         tasks,
         telemetry,
+        workflows,
     )
 
     app = FastAPI(title="VOLY UI", version="0.1.0", docs_url="/api/docs")
@@ -191,6 +192,7 @@ def create_app(
     app.include_router(telemetry.router)
     app.include_router(providers.router)
     app.include_router(runs.router)
+    app.include_router(workflows.router)
 
     _log.warning(
         "Web UI has no authentication (open-core) — the API, including POST "

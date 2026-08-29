@@ -3,12 +3,14 @@
 Proposal: `docs/proposals/agent-workflow-sdk.md`. This doc tracks what is
 actually implemented; the proposal tracks the full multi-phase plan.
 
-**Status: Phase 0, Phase 1, Phase 2, Phase 3 and Phase 4 landed.** `Workflow`
-compiles to a normal `Plan` and runs through `PlanRunner`, which now
-schedules independent `mode: chat` nodes in bounded parallel waves and
-supports durable resume, cross-process cancellation and a workflow-level
-timeout. `voly.sdk.presets` adds six graph-factory topology presets over
-`Workflow`. Phase 5 (CLI/API/UI) is not started.
+**Status: Phase 0 through Phase 5 landed.** `Workflow` compiles to a normal
+`Plan` and runs through `PlanRunner`, which now schedules independent
+`mode: chat` nodes in bounded parallel waves and supports durable resume,
+cross-process cancellation and a workflow-level timeout. `voly.sdk.presets`
+adds six graph-factory topology presets over `Workflow`. Phase 5 adds
+`voly workflow validate|run|resume|show`, the `/api/workflows/*` REST/SSE
+surface, and a read-only `#/workflows` UI graph viewer. Phase 6 (runnable
+examples + product-proof benchmark) is not started.
 
 ## Architecture decision: the SDK is a facade
 
@@ -333,10 +335,12 @@ them at the same factory.
 
 ```bash
 python -m pytest tests/test_sdk_contracts.py tests/test_sdk_agent.py \
-  tests/test_sdk_workflow.py tests/test_sdk_presets.py tests/test_plan_runner.py \
-  tests/test_plan_approval.py tests/test_plan_concurrency.py \
+  tests/test_sdk_workflow.py tests/test_sdk_presets.py tests/test_sdk_loader.py \
+  tests/test_workflow_cli.py tests/test_workflows_api.py \
+  tests/test_plan_runner.py tests/test_plan_approval.py tests/test_plan_concurrency.py \
   tests/test_protocol_contracts.py -q
-ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py voly/plan/runner.py
+ruff check voly/sdk voly/ai_gateway/factory.py voly/plan/approval.py voly/plan/runner.py \
+  voly/cli/commands/workflow_cmd.py voly/web/routes/workflows.py
 ```
 
 `tests/test_plan_concurrency.py` covers real wall-clock concurrency timing
@@ -411,10 +415,71 @@ synthesis/`council`'s judge actually see prior outputs), failure
 propagation (`sequential`), cost aggregation (`concurrent`), and both
 `reviewer_loop` exit-gate outcomes (all-verified vs. final-round-fails).
 
+## CLI, REST/SSE and UI (Phase 5)
+
+`voly.sdk.loader.load_workflow_file`/`load_workflow_dict` build a `Workflow`
+from a YAML/JSON **Workflow document** — distinct from a raw Plan YAML
+(`voly.plan.loader.load_plan_file`, `voly plan run`): a Workflow document is
+`Agent`-shaped (`name`, `instructions`, `model`/`provider`/`tier`, `mode`,
+`executor`) per node, not already-resolved `PlanStep` fields.
+
+```yaml
+name: research-review
+task: Compare two markets
+nodes:
+  - id: research
+    agent: {name: researcher, instructions: Find verifiable facts}
+  - id: review
+    agent: {name: reviewer}
+    depends_on: [research]
+```
+
+CLI (`voly/cli/commands/workflow_cmd.py`, alongside the pre-existing
+`review-until-clean`/`stats` subcommands for the unrelated bounded-review
+workflow concept):
+
+```bash
+voly workflow validate wf.yaml
+voly workflow run wf.yaml [--task ...] [--cwd ...] [--mode active|shadow] [--timeout-seconds N] [--json-out]
+voly workflow resume <plan_id> [--mode ...] [--timeout-seconds N] [--json-out]
+voly workflow show <plan_id> [--json-out]
+```
+
+`resume`/`show` take a `plan_id`, not a file — resuming/inspecting operates
+on the persisted Plan directly (`voly.plan.runner.PlanRunner`/`PlanStore`),
+the same way `Workflow.resume(plan_id)` does in Python.
+
+REST/SSE: `voly/web/routes/workflows.py` — `POST /api/workflows/validate`,
+`POST /api/workflows/run`, `POST /api/workflows/{plan_id}/resume` (SSE, node
+lifecycle events), `GET /api/workflows`, `GET /api/workflows/{plan_id}`,
+`POST /api/workflows/{plan_id}/nodes/{node_id}/decide`. Full contract in
+`docs/backend/api.md`'s "Workflow SDK" section. Node events are produced by
+polling the same `PlanStore`-persisted Plan every ~1s (mirroring `/api/run`'s
+existing heartbeat-polling SSE pattern in `voly/web/routes/run.py`, at
+Phase 3's per-step persistence granularity) — not a push channel threaded
+through `PlanRunner`'s internals, so the CLI, Python and UI never observe
+divergent state (`docs/proposals/agent-workflow-sdk.md`'s "UI and SDK
+disagree" risk mitigation).
+
+UI: `ui/src/lib/components/workflows/WorkflowsPage.svelte` at `#/workflows`
+— a read-only list + per-node detail view (status, role/model/provider,
+`depends_on`, duration, cost) reading `GET /api/workflows`/`GET
+/api/workflows/{plan_id}`, with Approve/Reject on a node paused in
+`verifying` with a `human_review` acceptance check. It observes persisted
+Plans only; it does not yet trigger `run`/`resume` itself (the proposal
+defers drag-and-drop editing until "the read-only graph contract is
+stable" — this ships that contract first). Docs: `docs/frontend/api-client.md`,
+`docs/frontend/components.md`, `docs/frontend/overview.md`.
+
+**Tests:** `tests/test_sdk_loader.py`, `tests/test_workflow_cli.py`
+(Phase-5 subcommands), `tests/test_workflows_api.py`.
+
 ## Not yet implemented
 
-Phase 5 onward in `docs/proposals/agent-workflow-sdk.md`: CLI/API/AG-UI/UI
-surfaces, and the `examples/workflows/` catalog.
+Phase 6 in `docs/proposals/agent-workflow-sdk.md`: the `examples/workflows/`
+catalog and product-proof benchmark. Within Phase 5: the UI has no
+run/resume trigger of its own yet, and there is no drag-and-drop graph
+editor (explicitly deferred by the proposal).
 
 Within what's landed: `Agent(tools=...)` / `Agent(output_schema=...)` are
 accepted on the constructor (frozen contract) but raise `NotImplementedError`

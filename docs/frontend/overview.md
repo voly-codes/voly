@@ -82,6 +82,8 @@ ui/
           TelemetryPage.svelte
         decisions/
           DecisionsPage.svelte             # #/decisions human approval checkpoint
+        workflows/
+          WorkflowsPage.svelte             # #/workflows — read-only Workflow SDK graph viewer
 ```
 
 ---

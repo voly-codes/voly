@@ -168,3 +168,14 @@ export const submitDecision = (planId, decision, comment = '') =>
   post(`/api/decisions/${encodeURIComponent(planId)}/feedback`, { decision, comment }).then(r => r.json())
 export const executeDecision = planId =>
   post(`/api/decisions/${encodeURIComponent(planId)}/execute`, {}).then(r => r.json())
+
+// Workflow SDK (Phase 5, docs/proposals/agent-workflow-sdk.md): read-only
+// list/detail over persisted sdk_workflow Plans, plus the same approval
+// contract as Business Decisions above (voly.plan.approval, not DecisionService).
+export const fetchWorkflows = () => get('/api/workflows')
+export const fetchWorkflow = planId => get(`/api/workflows/${encodeURIComponent(planId)}`)
+export const decideWorkflowNode = (planId, nodeId, decision, comment = '') =>
+  post(
+    `/api/workflows/${encodeURIComponent(planId)}/nodes/${encodeURIComponent(nodeId)}/decide`,
+    { decision, comment },
+  ).then(r => r.json())

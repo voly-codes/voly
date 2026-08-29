@@ -46,6 +46,68 @@ action. HTTP 409 is returned unless approval is verified and execution is
 pending. State is persisted as `running` before network I/O; completed calls
 are idempotent and do not issue the action again.
 
+## Workflow SDK (`/api/workflows`, Phase 5)
+
+REST surface for `voly.sdk.Workflow` documents (`docs/backend/sdk.md`). Every
+endpoint delegates to `voly.sdk.loader`, `voly.plan.runner.PlanRunner` and
+`voly.plan.approval` — there is no separate execution path from the CLI's
+`voly workflow validate|run|resume|show` or `Workflow.run()` in Python; all
+three read/write the same `PlanStore`-persisted Plan.
+
+A **Workflow document** (request body for `validate`/`run`) is the same shape
+`voly.sdk.loader.load_workflow_dict` accepts:
+
+```json
+{
+  "name": "research-review",
+  "task": "Compare two markets",
+  "cwd": null,
+  "nodes": [
+    {"id": "research", "agent": {"name": "researcher", "instructions": "Find facts"}},
+    {"id": "review", "agent": {"name": "reviewer"}, "depends_on": ["research"], "approval": false}
+  ]
+}
+```
+
+- `POST /api/workflows/validate` — compiles the document without running it.
+  Returns `{"ok": true, "name", "node_ids"}` or HTTP 400 with the
+  `WorkflowError` detail (duplicate id, missing dependency, cycle, empty
+  `nodes`).
+- `POST /api/workflows/run` — compiles and runs the document, an SSE stream
+  identical in transport to `POST /api/run` (`text/event-stream`,
+  `Cache-Control: no-cache`) but polling the persisted Plan every ~1s instead
+  of a single whole-task heartbeat: a `start` event carrying `plan_id`, one
+  `node` event per observed `PlanStep` status change (`event` is one of
+  `queued|running|verifying|completed|failed`, matching the proposal's Phase 5
+  "AG-UI events for node queued/running/verifying/completed/failed"), then a
+  final `done` event with `success`/`status`/`cost_usd`/`duration_ms`/`error`.
+  HTTP 400 on a `WorkflowError` at compile time, before any streaming starts.
+- `POST /api/workflows/{plan_id}/resume` — same SSE shape, continuing an
+  already-persisted `sdk_workflow` Plan (404 if unknown or not one). Body:
+  `{"mode": "shadow"|"active"|null, "timeout_seconds": number|null}`.
+- `GET /api/workflows` — list persisted `sdk_workflow` Plans (summary: id,
+  workflow name, status, cost, node/verified counts).
+- `GET /api/workflows/{plan_id}` — the full Plan document (same shape
+  `voly workflow show --json-out` prints). 404 if unknown or not a
+  `sdk_workflow` Plan.
+- `POST /api/workflows/{plan_id}/nodes/{node_id}/decide` with
+  `{"decision": "approve"|"reject", "comment": "..."}` — resolve an
+  `approval=True` node paused in `verifying`. Same idempotent/fail-closed
+  contract as `/api/decisions/{plan_id}/feedback`, generalized by
+  `voly.plan.approval.decide()` instead of `DecisionService` (a `Workflow`
+  Plan is tagged `metadata.kind == "sdk_workflow"`, never
+  `"business_decision"`, so `DecisionService` correctly refuses it). HTTP 404
+  for an unknown plan/step id, HTTP 400 if the step has no `human_review`
+  acceptance check, HTTP 409 on a conflicting decision.
+
+Node polling is not a push channel threaded through `PlanRunner`'s internals
+— it reads the same `PlanStore`-persisted Plan the CLI and Python SDK read
+(the proposal's "UI and SDK disagree" mitigation: "both read the same stored
+Plan and event stream"). This means a workflow started from the CLI or
+Python can be *observed* mid-run via `GET /api/workflows/{plan_id}` from the
+UI, but only a run/resume actually *started* through this API streams live
+`node` events for its own duration.
+
 ### Bounded review workflow
 
 The normal request also accepts these optional fields:
