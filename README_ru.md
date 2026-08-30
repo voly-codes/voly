@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="docs/assets/voly-logo.png" alt="VOLY" width="720">
-</p>
-
-<p align="center">
   <a href="https://github.com/voly-codes/voly/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/voly-codes/voly/ci.yml?branch=main&style=for-the-badge"></a>
   <a href="https://pypi.org/project/voly/"><img alt="PyPI" src="https://img.shields.io/pypi/v/voly?style=for-the-badge&logo=pypi&logoColor=white"></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white">
@@ -11,10 +7,6 @@
   <img alt="Cloudflare AI Gateway" src="https://img.shields.io/badge/Cloudflare-AI_Gateway-F38020?style=for-the-badge&logo=cloudflare&logoColor=white">
   <img alt="AG-UI" src="https://img.shields.io/badge/AG--UI-Streaming-0EA5E9?style=for-the-badge">
   <img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge">
-</p>
-
-<p align="center">
-  <a href="https://www.producthunt.com/products/voly-3?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-voly-3" target="_blank" rel="noopener noreferrer"><img alt="VOLY - Routes AI coding agents with cost tracking and fallback | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1198419&theme=light&t=1784293268132"></a>
 </p>
 
 <p align="center">
