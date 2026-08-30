@@ -670,5 +670,6 @@ docs/skills.md              ← SkillRegistry, sources, auto-generation
 docs/project-scanner.md     ← ProjectScanner, ProjectProfile (core utility: voly scan, project skills, Pipeline.scan_project)
 docs/proposals/
   business-ooda-loop.md     ← draft Layer C business-signal loop and phased delivery contracts
-  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR3 landed)
+  agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR6 + post-PR6 landed)
+  workflow-graph-ui-and-business-templates.md  ← planning: visual graph UI + business-vertical templates (not started)
 ```

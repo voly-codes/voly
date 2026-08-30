@@ -594,7 +594,11 @@ and changing it is a deliberate future phase, not an examples/benchmark PR.
 ## Not yet implemented
 
 Within Phase 5: the UI has no run/resume trigger of its own yet, and there
-is no drag-and-drop graph editor (explicitly deferred by the proposal).
+is no drag-and-drop graph editor (explicitly deferred by the proposal). A
+visual (non-list) graph canvas and a curated business-vertical template
+catalog are planned in
+[`docs/proposals/workflow-graph-ui-and-business-templates.md`](../proposals/workflow-graph-ui-and-business-templates.md)
+(not started).
 
 `Agent(tools=...)`/`Agent(output_schema=...)` are implemented for standalone
 `Agent.run()` (see "Tool calling"/"Structured output" above), but a
