@@ -9,6 +9,25 @@ def test_mcp_manager_builtins() -> None:
     assert "gitlab" in mgr.BUILTIN_SERVERS
     assert "postgres" in mgr.BUILTIN_SERVERS
     assert "filesystem" in mgr.BUILTIN_SERVERS
+    assert "context7" in mgr.BUILTIN_SERVERS
+
+
+def test_register_builtin_context7() -> None:
+    mgr = MCPManager()
+    server = mgr.register_builtin("context7")
+    assert server.command == "npx"
+    assert server.args == ["-y", "@upstash/context7-mcp"]
+    assert server.env == {}
+
+
+def test_register_builtin_docker_has_no_env_key() -> None:
+    """Regression: BUILTIN_SERVERS["docker"] has no "env" key at all (unlike
+    every other builtin) — register_builtin() used to index spec["env"]
+    directly, which would have raised KeyError the first time anything
+    actually called register_builtin("docker")."""
+    mgr = MCPManager()
+    server = mgr.register_builtin("docker")
+    assert server.env == {}
 
 
 def test_register_builtin() -> None:

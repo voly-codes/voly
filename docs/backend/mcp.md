@@ -5,6 +5,25 @@ Desktop, an IDE) as nine tools. It is the opposite direction from
 `voly/tools/mcp.py`, which is the *client* manager for MCP servers VOLY's own
 agents consume.
 
+## Client-side builtin servers (`voly/tools/mcp.py::MCPManager`)
+
+`MCPManager.BUILTIN_SERVERS` (`github`, `gitlab`, `postgres`, `docker`,
+`filesystem`, `context7`) are ready-made `npx`/`docker` MCP server specs;
+`voly mcp config` generates a `.mcp.json`-shaped config for
+`github`/`gitlab`/`filesystem`/`postgres`/`context7` (`docker` is excluded
+from the default set — it needs a local Docker daemon, not a universal
+environment assumption). `context7` (`@upstash/context7-mcp`) pulls
+up-to-date, version-specific library documentation into the prompt — reduces
+an executor hallucinating an outdated or nonexistent API. No API key is
+required by default (optional, for higher rate limits/private repos); since
+Context7's key is a `--api-key` CLI arg rather than an env var, add one by
+registering a custom `MCPServer` (`MCPManager.register()`) instead of the
+builtin, which ships with none.
+
+`voly/pipeline/stages_emit.py::_build_tools()` auto-registers any requested
+tool name that matches a `BUILTIN_SERVERS` key via `register_builtin()`, so
+these are also reachable from pipeline-driven tool use, not only the CLI.
+
 ```bash
 pip install -e ".[mcp]"
 voly mcp serve --port 7799          # or: python -m voly.mcp

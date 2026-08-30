@@ -466,7 +466,7 @@ def mcp_config(ctx: click.Context, fmt: str) -> None:
     from voly.tools.mcp import MCPManager
 
     mgr = MCPManager()
-    for name in ["github", "gitlab", "filesystem", "postgres"]:
+    for name in ["github", "gitlab", "filesystem", "postgres", "context7"]:
         try:
             mgr.register_builtin(name)
         except ValueError:

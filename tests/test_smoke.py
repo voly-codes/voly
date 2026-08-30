@@ -171,9 +171,10 @@ def test_cli_mcp_config(runner: CliRunner, tmp_config: Path) -> None:
     assert result.exit_code == 0
     # Should output valid JSON
     try:
-        json.loads(result.output)
+        parsed = json.loads(result.output)
     except json.JSONDecodeError:
         pytest.fail(f"mcp config output is not valid JSON:\n{result.output}")
+    assert "context7" in parsed["mcpServers"]
 
 
 def test_cli_memory_list(runner: CliRunner, tmp_config: Path) -> None:

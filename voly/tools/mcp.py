@@ -69,6 +69,16 @@ class MCPManager:
             "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"],
             "env": {},
         },
+        # Up-to-date, version-specific library docs pulled into the prompt —
+        # reduces an executor hallucinating an outdated/nonexistent API.
+        # No API key required (optional, for higher rate limits/private repos);
+        # add one by registering a custom MCPServer with `--api-key` in args
+        # instead of a builtin, since the key is a CLI arg here, not an env var.
+        "context7": {
+            "command": "npx",
+            "args": ["-y", "@upstash/context7-mcp"],
+            "env": {},
+        },
     }
 
     def __init__(self):
@@ -78,7 +88,9 @@ class MCPManager:
         if name not in self.BUILTIN_SERVERS:
             raise ValueError(f"Unknown built-in MCP server: {name}. Available: {list(self.BUILTIN_SERVERS)}")
         spec = self.BUILTIN_SERVERS[name]
-        server = MCPServer(name=name, command=spec["command"], args=spec["args"], env=spec["env"])
+        server = MCPServer(
+            name=name, command=spec["command"], args=spec["args"], env=spec.get("env", {}),
+        )
         self._servers[name] = server
         return server
 
