@@ -201,6 +201,13 @@ voly skill show skill-nextjs
 voly skill show my-skill --local
 ```
 
+The live marketplace (372 skills / 81 plugins as of the last audit) has
+accumulated duplicates, near-stub `builtin` content, and a dead
+`usage_count` field from a one-time bulk import — see
+[`docs/proposals/marketplace-skills-audit.md`](proposals/marketplace-skills-audit.md)
+(planning, not started) before assuming catalog size reflects curated
+quality.
+
 ## Programmatic marketplace access
 
 ```python

@@ -672,4 +672,5 @@ docs/proposals/
   business-ooda-loop.md     ← draft Layer C business-signal loop and phased delivery contracts
   agent-workflow-sdk.md     ← public Agent/Workflow SDK facade, phased delivery (PR0-PR6 + post-PR6 landed)
   workflow-graph-ui-and-business-templates.md  ← planning: visual graph UI + business-vertical templates (not started)
+  marketplace-skills-audit.md  ← planning: audit/cleanup of the live CF marketplace's 372 skills/81 plugins (not started)
 ```
