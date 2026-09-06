@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:928cd8480ac79411a0948752e4a67faf3844f7c689f2c6896603f68b378325d2",
+  "claims": [
+    {
+      "id": "claim_3833403feb804fabb0a9fdb64ced0363",
+      "statement": "Cloudflare Workers are optional remote integration boundaries: the federation and custom memory Python client factories return no client when no URL resolves, while MemoryStore retains local SQLite/FTS5 behavior and falls back to it after remote search failure or an empty remote result.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/federation.py#L149-L172",
+          "version": "repo-lines-v1:sha256:6507872dca268f949291daff1a2f96cd0b3dc4b8fbc901b354bd4918cd193c83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjQ2YTc4Y2U0ZTcxMGVhOWY3MzhmYTMwOWRiMTY0OTE2ZDA3NGVhMjIyZDAxNDBjNzQ0MGNkMjYyZmE2OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlMzMyYWIxOTk5ZDBjMDAwYTRjODJhYTQ5NGQ2YWY0ZjkwODE1OTE0MWZlOTFiNjg0YzEwN2M0YmZlMjhkNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2YzNkYmJlOGRhN2Q3MjU0MWZkYTg1YjRlNmY2MDRkMGM4Y2YzYzc0YjEyNzhmODg5YWI2MWEzOTE5ODFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/memory/client.py#L107-L130",
+          "version": "repo-lines-v1:sha256:9bf0a50df8841a070e517b915b6ca164d085dc93f81ae43f35042daae5ae0af5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YTExMjdjODA1MDQxMGE4NTA0OTc1MjU0NzQwMDQ0MGExOWQ3NWFmYTIxOGZiZjY2ZDBjNjJlODhlYjkwM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMWNhNTJmN2QzNjRhOTZkOTI3MzdlYzkzM2UyZjUyMWUwNTJiYTU3NzhjZDhiY2U2Y2RhNzA0MTE5MDRlYmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2YzNkYmJlOGRhN2Q3MjU0MWZkYTg1YjRlNmY2MDRkMGM4Y2YzYzc0YjEyNzhmODg5YWI2MWEzOTE5ODFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlOTkyNjdjNjMyZDFlNjBmMmEwNjhjZjAxODUyYjdlZjlkODI1OWZiY2NiODQzOTI3Mjg5ZGQwYTlhNGZiNjEifQ"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L238-L267",
+          "version": "repo-lines-v1:sha256:65c697b47e9a95772cade2254b241ad2ef334c87a90c5b540731cfc3e9977592:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NWY3ZjdhMTE5MmQ2ZjM4ZDhjOGY5M2JhZTFkNWY0Y2E2ZGYzYmMzZjczN2M2OGU1MjUzNzc3ODJlZWFlNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNzdhNTA5MzRjNWNlZmQ1Yzk0NDNmZjA3NTcyOTUwNDYwOGVjM2M5MmQxM2M1YTVhOTdjYjQxOGVkMGE0MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NzM2OGFjOTMwNWYzMzgzY2NmMmU5ZDA2ODhmZTJjZGVmZWJjNTE0MmRkOTAxMTVjNjljNDYxZjQ4MzQ2OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiMzAyOGU0NzY4MGEwMDQyY2YyZTZjY2QwNWJlNjNhNDFkYWNlNWQwM2ZiY2YxYTM1OTNhZjU4ZjgzNTliOGMifQ"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L43-L124",
+          "version": "repo-lines-v1:sha256:0780223640c5e458b08a12e91bfcea35f6bd5798992de00dc48042f2937a9df9:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkZDcxMmEwODYyMWYwYWZhOTA1YjcxMjA1OTc2ODc3OGUzNmFlNDQ4ZTgwYTAxMjc1MDZiMWExZTJiMTFmZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3ZTQyN2JiMGZjYWY0NzE0NTYwNjQ0MDA5M2MxNDI1YzY0YzdlMDMzYWVmZjk2MmM1NjVmYzYxYmIxMThkYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzNjc2NjFjM2U0NGI1ZmZiOTVlYWYzZTQ3NDU2ZWMyY2NhOGRjOWVhMDFlNjU0NzgyZGExMTc5NzdjYjY3ZjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_98e71db7352f4af89ba321aa3ac01210",
+      "statement": "The A2A Worker stores agent cards and tasks in D1, lazily seeds built-in cards when the agent table is empty, and queues a submitted task only when asynchronous dispatch is enabled and an agent name was provided.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L196-L240",
+          "version": "repo-lines-v1:sha256:afbf4905aea0af6a5e43fb5d528b273f370235023a57eaa8f8531705180036bb:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYjVkZjVhODVmYzZjNzc1M2MzZTEyMWZmMzIxYmUxY2I1YWM1OTQxODNkOWQ5MzE0ZWYzZjlkZjBhM2U4MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkODk4NDAyZmM4YWNjYjc1NWI1MmRkMTljNGQ4ZmM3NTJiZDM3OGJlZjM2Y2UyM2NmOWI1NDFiY2JhM2JmZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzNTY5NzRiMDA2MzIwODg3ODQ2Zjc5Y2Q1Y2M0ZmRjOGRkMmJjMzM0ZTM4NWMzZDRlOWI0ZDNmZTE2ZGMyYTIifQ"
+        },
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L29-L44",
+          "version": "repo-lines-v1:sha256:b748ea6fb968cbbdef7bb041bc9b8c3a576f75d92b80f303ab192e6c8ca10240:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmNDY1MzY1NTRjMzVkOTIwODBjYjVjYjZiZDcyMDQzMTE0MTc4MDI1OGU5Zjk2MjE5YzgyY2QwMDRlZjhjNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMGUyZThiYTdmYTE0NDZlZjA3OGQ2MjFiNTA0ZjdjMGZlMDFmZjcwMmRiNDlmMmUwNTcyZTllYWJhZDg5YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwNzlhY2QzMmQxMTMxYWEyNjlhNjQwZjNiNTEyNTA4ZTE5MGQyYjU3N2M2MWJhOWJhYzlkODIwM2UyNjZjZTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a0bd923d43714cf9bd81101080bb18f4",
+      "statement": "An A2A Queue consumer processes only submitted tasks, persists working state, invokes the configured Agent Worker through a service binding or URL, marks non-successful dispatches failed, and retries Queue messages on exceptions; if no agent target is configured it leaves the task working.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L350-L421",
+          "version": "repo-lines-v1:sha256:bb0bb179d05a728b7f19145360b1ec859f8b1eda503d78b72e3b8d7a57081bcf:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZjA4NzQ3MDQyN2ZiNzk4Y2UxZWIxYTg4MTVjMGE3ZjhkMjNjOTRiMDFlYTgxMmY5NzMwYTA2M2Q4N2M2YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWNkMmZiNGYzZGY4ODQ1MTUyNTViMzk1MjNmMmY4YjU0NzJiZWVhOWY1NjZmZmNhMjA0ZGI4MDI1NjEwNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhODBiMGFkNjI1NjEzYzdjZDNjMGI5ODZhNWYwZjYyNzczZDYyMWJkZTA0ZWQ2NWFkZTEyZDczNjIxNDcyNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8387df3e9cf54e919f49de85997ad118",
+      "statement": "The Agent Worker can skip already terminal federated tasks, delegates execution to a configured pipeline runner or otherwise uses its Worker AI inference path, and posts resulting completion or failure back to the federation service.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/agent/src/index.ts#L62-L94",
+          "version": "repo-lines-v1:sha256:5eee313d86d5afa6cf785b75a01c5f6684dc3c2e7a996a20bfaa3b70f9d7234c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxZjM2ZDMxYjMzYjcyNTY4MDIzOGUyMmY3MTY4YzMwZTNjYzUwYzQwZjZlYTFkNTc0MjhlYjYwYjEyYmFkNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzOTE2Y2MyZjllNTBkOTBlODY0YmNjZGY1YjhkYWY4NTAxNjAzZjg4MzQ0NDkyYTJkNjU2YzJjYzZlY2I5NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3M2FlZDMwMTY5NWFmNTY4Y2E0OTA4NDc4NzdiNTM2MTdiZTgyZGM0YmIwNzI0YWRiYTA4ODhiOThjNmU5Y2QifQ"
+        },
+        {
+          "resource": "repo://cf-workers/agent/src/pipeline.ts#L32-L79",
+          "version": "repo-lines-v1:sha256:51b084da5f905394dfecaa886e449070afc89b6f88279964fc63f32f1e1e0f04:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwNjYzYzk3Yjk0MmQ2M2FjM2Y1MDkyMjA5ODkyNTkwNDQ0OWM4MjAxMjcxNzBkNmY4M2E2ZGRjNzZmZDNkZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjZWU3YjhiMjhiM2VjYjhmNjc2ZjI4MzM4ZmU1NmJhZTRkNjYzZmQ3OWNkYTJhN2NhN2VhZmMyOTc5YjkxZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiNjQwMzhmYjA0YTAzMWM1ZGVjNDUxMDI0OWY1YWMxYTRkZWQwODdlYTU3NTdlMzlkMWQ4NjM4YzY4MWZiOWEifQ"
+        },
+        {
+          "resource": "repo://cf-workers/agent/src/pipeline.ts#L81-L138",
+          "version": "repo-lines-v1:sha256:b05d02ddd5b9d7562df6dc506bde0a10893c7aa51a856db13add82b6bdafd853:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NjUzYzk3NjIwZjBmM2ZkNGZlMjM0Zjk5ZDM5MGI5MGJhYTUwMTNiNWE5YjJhNzQyMjQwODRiMmJmNzhhZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNTgwZTk2NGY4M2E0NzNmNDNkNDQzODQ2Mjk0OWQ2OGI1NjAwZmRhNzg3ZjE2Mzc0NWQwMGRlODljYmYzNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d5b802d822c44d43bf47f2d23c4768aa",
+      "statement": "A2A Worker bearer enforcement is conditional on its API_TOKEN secret; the Python client resolves its URL from configuration or CF_WORKER_A2A_URL/A2A_FEDERATION_URL and its bearer from VOLY_A2A_TOKEN or CF_WORKER_A2A_TOKEN.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L21-L27",
+          "version": "repo-lines-v1:sha256:abb3334e5416b8046ef3c4544f254e9e7c531edac65547ffeecbc0fc771bb898:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjlhNmIwMzU0ODY2ZjQ0NDBkYmIzYmRlM2Y1NTcyNWY3OWYzNzVhNGQyMzE1OTRiOTNmN2UyZmRlNDFhMmEzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjQ4OTNiNmVjMmQ3NmVhMGUxNWY4M2Y4NjQ3OGFkYzE5YjBiZmRhYjNmZTUzYjdhYmQ1MGMzMmI0N2Q0OTAyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTEzNjY3OTc2OTZhNTgwYWE2NDQ3MDY3ZmM0OGFmZTI2YTI4YjYxMjE2YTc2MTg0NzFkMmVmODE3NDVhN2UzZiJ9"
+        },
+        {
+          "resource": "repo://voly/a2a/federation.py#L149-L172",
+          "version": "repo-lines-v1:sha256:6507872dca268f949291daff1a2f96cd0b3dc4b8fbc901b354bd4918cd193c83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjQ2YTc4Y2U0ZTcxMGVhOWY3MzhmYTMwOWRiMTY0OTE2ZDA3NGVhMjIyZDAxNDBjNzQ0MGNkMjYyZmE2OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlMzMyYWIxOTk5ZDBjMDAwYTRjODJhYTQ5NGQ2YWY0ZjkwODE1OTE0MWZlOTFiNjg0YzEwN2M0YmZlMjhkNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2YzNkYmJlOGRhN2Q3MjU0MWZkYTg1YjRlNmY2MDRkMGM4Y2YzYzc0YjEyNzhmODg5YWI2MWEzOTE5ODFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b859469d663d472587b7492fb487ed46",
+      "statement": "The Capability Worker uses D1 for executor profiles and routing: initial profile seeding does not overwrite executors with learned runs, evidence updates use an EMA subject to a five-minute debounce, and matching returns ranked recommendations and fallbacks.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/capability/src/routes/match.ts#L12-L99",
+          "version": "repo-lines-v1:sha256:82fe28dbb7c367d09747d542cacad35d3ec1844153498b8862b2cd215cc25355:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyYmNjYWQyNzUxZjVlNGUwZmEwM2E1MGI2YzZiYWFjMDE2Zjc2NDAyZjQ4ODI5YWI5ZTIxODMxM2NhNzIwNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2ZjkwNjU4MjA3YWNjMDQ3Y2EyM2ZjNzY1Yjg2YjdhMjIxZmNmNjliZjQzYzNkZGFjOTdkMWIzODU5YzQ3OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://cf-workers/capability/src/routes/profiles.ts#L131-L200",
+          "version": "repo-lines-v1:sha256:9632f7fdc7a39772698351a5b4930a2bbaa98ace66760d545e17d8e5b1e13f58:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmY2I4NDNmODZmZDdkYzdiNDVmOTVmZWYyMDhlNGY1YzgxMjk2MDhjNTEzZjA4N2IwYjExZjkzMWY3Mjc1ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImViMWVhMTVhMGY3YjFkNzc0MWMwOTJkZTgwMmQzOWZkYTQ0MzRlY2YwNWY5NDM1OGM2ZjM2OWNhOTExNmUyMmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2M2FmOWNiNzZlNjk3ZjlhYmM3YzAyM2JjZWE2NmFjODM0ZTBhZWMyNjJmMDZjZDI4NzhmZDdjYWM4MWU2MzgifQ"
+        },
+        {
+          "resource": "repo://cf-workers/capability/src/routes/profiles.ts#L16-L129",
+          "version": "repo-lines-v1:sha256:06c765a971b339e8ee52f4d9fe9ac324e6124f4d0c9b8becc1f1a1f391d6de11:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NDhmMGJkNDFhY2MzOTFiNDE3YmM0NTBlMDAxMzc4MmE1N2Q4NTBjZGQ4Yzg0OGQ0NDQzMjNhODNjZTZlNTFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiNTQxMDg2N2VlYWJmNTNhMDU2Y2M1ZWMwN2NjYjYyMDVmMzE0Y2FlMDk2YTQ3ODZhN2Q1ZTc1YjhmOGE2NDdiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwZGVjOGZkZmY0YTVkMzVkODdlY2FjNDZiZWRmZmVmZjc3YzlhNmY3YmQ4YThmNTZlMmJhZjMyZmE3ZWRjM2JkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc2b27f2b46e429ea4f091cf71411e38",
+      "statement": "Evaluated capability synchronization is authenticated, content-addressed replication: local snapshots are deterministic and bounded without raw prompts/evidence; the Worker validates bearer, bounds, and canonical SHA-256 content, while the client writes a receipt only after exact read-back verification and invalidates it when local store state changes.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/capability/src/routes/evaluated.ts#L38-L168",
+          "version": "repo-lines-v1:sha256:f885b0b9142adc1bcf405d0f7219a01348c6ffd0c8198f17811ba101d6e2668f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzNDQ3NTQ3YjE5NjVmMTI0MGQxNWY2Njk1OTYxYjhmY2RmZTBhMDY4YjQ3Yjc3M2ZlMWU4MDkxMzM4MzdmY2FkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiNDBkNjZlNTM3NTZhNDc5NWZmMzRlODlhZTk2ZTUxN2FkODM5MzIyNTVkYzA5OTEyYmY2MTA4ZDQ4OGE5OTUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3MjQwZjVhNWZmZjYxMTc4ZWY1YmNkNjQwM2U5MzYxNzFkN2U3ODEyNmE4Y2I0ZWNmZmNiMzNjZmRhMTIzMmFkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxMTdmYjhkMzY2ZGYxZGZhNjJkYjY4YjFkZWZiM2I1NjE4ZWJmNTQ1NDBkNWZlZTIxNjcyMWNiMWE5MTcxMGIyIn0"
+        },
+        {
+          "resource": "repo://tests/test_capability_remote_sync.py#L45-L163",
+          "version": "repo-lines-v1:sha256:9ecd3503cb102448bc6f7ee53ccb79795d4628bfd5871e5a683c2bae8a9294a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiODIyYjg1NDFlODg5ODU2MWFjZDdhZjJlMTFhOGZhMmNlMGZmOWNiM2JkMzY2YTBmMGI2ODg4MDc2M2M4YzE2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0ZTUyNTBmZmMyNDc0NjQ0ZmUwNzNlYmU0OTFiM2I2ZGQ3NzViNTIyZThlNmQ5NGNiOTIyMjVjNzU4MTBlYWU1In0"
+        },
+        {
+          "resource": "repo://voly/capability/remote_sync.py#L168-L254",
+          "version": "repo-lines-v1:sha256:deac717a3104f481f1abd06110cc7570ea4e7b9eddba801c63c152714ed689f1:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4NWMyODIwMThlMjliYzk4OWFlZDFjMDVjMDJmNmNlMWRhMzg0MGNmZWM5MjAyYTZiNTY5NmM0MTFmODJjZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YmFlYzY1N2Q0N2RkOGEzMmM5MWUzOGZjMjViMGMzMTAxMzJjZTMyNjRkODFhMDQzYjI1MWY4OTdiZjNlNGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlMTFkY2I5MjAyZDIyYWRkOGM3ZjZhNTM3ZTMyZWEwNzQ0MzU5ODYyOTM5MGYyZDk3OWVmYjJjMDRjY2I0OTQifQ"
+        },
+        {
+          "resource": "repo://voly/capability/remote_sync.py#L90-L140",
+          "version": "repo-lines-v1:sha256:ccff1fed289dfb062019c4dfc5a73d7d95ee76a0e40ff543eafd32a6ea14d11e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NzEwNjc0NjNhOWE5YjQzMGMzMTE5YWQyMDYxZjg3YTEzYTU4NzFhZjEwYjk0ODMyZjVjYzkxZGI4ZTgzNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZDQyZmEzNzcxNWNmZTM5MzYyOGE4ZTNkMDMzY2Q4NGIzZjk3YjdmMWQ2YTI0ZWQ1ZjhkMTg4ZTZiNzk2NTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3NTE1NzZhMjc3NDdlYWMxZWZlYWU4MzNmMTA5YzE4Y2M3NjRjYjNhNDZiMzc3NDE2OTAyNmQ3NjE1YmJiMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_217f3a60c4c04494b8428f49dddcf957",
+      "statement": "The evaluated capability CLI refuses remote synchronization while a pilot is incomplete or if no capability has been activated, and obtains the sync bearer from VOLY_CAPABILITY_SYNC_TOKEN.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/remote_sync.py#L257-L258",
+          "version": "repo-lines-v1:sha256:2d3f3f4c81d02953d102b0330d7e6068490cfade95b541f1e7c9622b00e77d42:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDAzYTU5MTk1MTA0ZDQxODVlNjg2N2VmMDBlZmU0NTFkZWFkMjMyNzUyNGFlNzNmM2JiMjIxNThhOWUwYzA2MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTFlZjI1ZDQxMTQ1Y2IzZjA4NTJjNDA3MjRhZTlhNmYzNzNiMTA4NDVlOGQzMjM5ZjRiMjAxODVjMWVhZjVjZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://voly/cli/commands/capability_evaluated_cmd.py#L243-L301",
+          "version": "repo-lines-v1:sha256:443e1577e216933b5873003bb6436c347dc27387040890562458f96222471376:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjY2RhM2EwZjc5YjdlMzM5YmI2NzU5M2QyYjZkNTViMTBlYzAxMDc0ZTFmYTc2NTU1ZWZiNjJmYmM3OTZlMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzZTk5ZjIyZWU3YWUwNzFmNGRmMjNhNzk5OTY3NzIzNjNkM2IwMTVmZGE1YzA3YmFjMTdkOTk5YTUyZTMwODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2NDUwMTc4NGFkNzlkMzlhMzdhZjg4NjYyNDBlZmM0MDBmNjA3ODBkZTc2Y2Y4ZTU5YjIwNjdlZTk0ZDRkMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiMjI2OTg5YjljNTE2MWJjYWUwM2Y2YjRmNWRmZmQwODlhMjkxZTQ3MDc1NDRiMDc1Y2U1MTJkZTlhNzEwNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_624a4709709b4e6ca4beb919bf9be347",
+      "statement": "The custom Memory Worker embeds memory text with Workers AI, uses Vectorize for semantic retrieval, D1 for full structured records, and R2 for JSON object copies; category filtering happens after Vectorize matching.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/memory/src/index.ts#L103-L179",
+          "version": "repo-lines-v1:sha256:d44cf81619720499a9b4d53ef1c01278b0da03063a5b47b80bc2651ac5481c3c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzMDY5ZmFjYzUxYmE4NjAxY2MxNmVlZDMwNjkwNzdkMDExZmJhNWYxNTE1M2Y3NWIyY2I4OTA0MTI3YjliODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhMjc1Y2ZiMmRmY2E4Zjc5YmViODVlMTBmODFhZDRjYjI4ZmVlNDYyYWUzNzg1Y2JiMTFjZTEwMmI4N2RmZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5YzBlNDg0NDMyMGRmMTRmY2ViMTY4NjZhODY5MWM1ODkyZmUxNjhkNTVlNWMzMTFmMTZhOTQ0NDI4YWFlNzcifQ"
+        },
+        {
+          "resource": "repo://cf-workers/memory/src/index.ts#L22-L25",
+          "version": "repo-lines-v1:sha256:80775b22b9d882176aeb05f2fde0de0a1b6e56e0ec9c36ecbceac259de7bcbf7:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmIzMjE1NDVhMTlkMjc1MWE3OWEzODY4NmVhZDEzOGVmNjE5M2EzNWFjOGZiNDZkNDZlNTdlYjlhMzEwY2ExNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwZTJlOGJhN2ZhMTQ0NmVmMDc4ZDYyMWI1MDRmN2MwZmUwMWZmNzAyZGI0OWYyZTA1NzJlOWVhYmFkODliNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjEzNzM2ODRkOWQ0NWM4MjYyMDI0MGIzYmE2YTc2YTA5MDUyN2MxZmJkZjY0ZTVhZWQ0ZTU3Mzk0ZGMyODc5OSJ9"
+        },
+        {
+          "resource": "repo://cf-workers/memory/src/index.ts#L33-L100",
+          "version": "repo-lines-v1:sha256:718a6fb7d004738b80127e63ca27e5ab4ce11b00774a209c83c90dd20bb943c6:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkYjI2NGFiNzVjZGEzYzdiYWEwOGM1YWY3NWE0MmRlZmQ5MzU2ODQ2NmI3NjI4YWI2MDMyYmZkYjc5MmUxN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxMzgxMjljMWM2MjZhYTM3N2Q3MzllOWUxZWQwZGUyOWFjYzhlNzZlMTYxNjc2ZjI2MjEzNTgxNGMyNTgxMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmZWE5NWE4MDUwNmFlY2RjMmNlZjllMWZmODA4MjM1NDY4ZDdlYmZjZjE5NDBkNzFmMzVhOWRlNTA2MDMyMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlZjk0NGY2NmRmZGI5ZGQ5YTNhZGZkYTA1MTAwOWJjZjgyMjZhOGIwNmFhMWM4MmY0NmYyZDg2OTQyYTBkMTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6e9ea89923904485b8c496133c7f2508",
+      "statement": "MemoryStore commits a local SQLite record before best-effort remote replication, prefers non-empty remote search results, and falls back to local FTS5 or locally computed semantic ranking when remote service or optional sentence-transformers support is unavailable.",
+      "evidence": [
+        {
+          "resource": "repo://voly/memory/store.py#L151-L204",
+          "version": "repo-lines-v1:sha256:cffd6bd19115b563d4e4d3be01afe353f1128978c94b742ea31866dd951852b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYzE0YjY4M2Q4NjEwOWQxZmVhNDhlMGZlM2Q1ZmJkOThkNjBjYzYwZWM0YmFiNWNhZDY3YmRmMGRjYTdmZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYTVmMWZkZmY5YmFkY2M5OThjYTY2YWY5N2M0OTQ4MjYwNTU5YzQyOGM4ZjU5NTllZDU0MGE5ZjJlMGVjYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZWNhYzNmMDQyMDc5NmQzODYxZjM0MjgzNjAwNGIzMDQ4ODZiNjNlYjdjZjIxNGNjOWVkNmVjZjMyYzIxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNjVlODI0NWZmMDA5ZWZkNDgwYmY2MDc1YTEyMDZhYzAzNmEzMzU5OWYyNGRjNDFiMzA2NDk3ZmY0MWFhZjcifQ"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L238-L267",
+          "version": "repo-lines-v1:sha256:65c697b47e9a95772cade2254b241ad2ef334c87a90c5b540731cfc3e9977592:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NWY3ZjdhMTE5MmQ2ZjM4ZDhjOGY5M2JhZTFkNWY0Y2E2ZGYzYmMzZjczN2M2OGU1MjUzNzc3ODJlZWFlNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNzdhNTA5MzRjNWNlZmQ1Yzk0NDNmZjA3NTcyOTUwNDYwOGVjM2M5MmQxM2M1YTVhOTdjYjQxOGVkMGE0MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NzM2OGFjOTMwNWYzMzgzY2NmMmU5ZDA2ODhmZTJjZGVmZWJjNTE0MmRkOTAxMTVjNjljNDYxZjQ4MzQ2OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiMzAyOGU0NzY4MGEwMDQyY2YyZTZjY2QwNWJlNjNhNDFkYWNlNWQwM2ZiY2YxYTM1OTNhZjU4ZjgzNTliOGMifQ"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L327-L377",
+          "version": "repo-lines-v1:sha256:04c18ed9116e841c36d1ada1f32ecbb3584eff8af915a700ce15f1df64a00d1f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkMTg2NGIxODlkYTVhMDE1NWU0NTYyZjIyYTY4YjM3MDgzNzE1ZjkwYTQ3NmU3MzZiZGMzMmJhODk2ZjUyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmYzMzNzEwZTUwNWRhOGViMDFmN2JlODk5M2RlYjkzZTUwMGUzOTYyMmU1Y2Y5NDdiOGEzNmRiYzU1ZWI4OTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYzUxOTEyMDg3ODBiODYyNWY5NDQwNzMxN2I0NDY1ZGJmNjE4MDdlMDZmMDM5MTk4OWQzODA3NWY3Y2I0MWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZjY1MGZhYjVmMmM5MjFlODU0ZGFjZDcwYWQzMGQzOGJlOTk1YTQ4ZWRlYjcwMzU4ZGYwMmQ2NTY3ODI5MDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f8c8bf87fa174c64963dae839ad7926f",
+      "statement": "The managed AgentMemoryClient maps VOLY-shaped add/search/get/list calls onto Cloudflare Agent Memory endpoints, exposes remote ingest/summary/deletion operations, and adapts category/title/tags into free text because recall has neither category filtering nor importance.",
+      "evidence": [
+        {
+          "resource": "repo://voly/memory/agent_memory_client.py#L1-L20",
+          "version": "repo-lines-v1:sha256:c1d24e03fb520326e7b404b07c4e95e196f69fdc6f1797c4f45c95943595c492:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4MjE2MDIxOTgyYzQxOGNiMDVhYjYxMTVlZDE5YmJkODk2NzE1MDU2ZDAwZTBhODFkOGIzNmEzZmI3NDg1NzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhYWY3NjM3Y2I2ZTdlNWRiODVkNjM0Mjc0NjAxNGRmMDQxY2NkNTU4YTkyMGIyOWViNmFjNzE5ZDdiYWY1YzIifQ"
+        },
+        {
+          "resource": "repo://voly/memory/agent_memory_client.py#L132-L215",
+          "version": "repo-lines-v1:sha256:976b575080cbda125d4ddfc44c3445f33dd81a27492c9a9e3cdefb144ff37e50:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYzE0YjY4M2Q4NjEwOWQxZmVhNDhlMGZlM2Q1ZmJkOThkNjBjYzYwZWM0YmFiNWNhZDY3YmRmMGRjYTdmZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZDU1M2M1YWI3NjA4NWFiMzA0MmIyYmZkMjRjNjEwZDNmNDBkOTA0ZDU5YWYzNDJhNjU1ZTEyZTJhMWIyZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMDg2MDlmZWNkZTQ3N2Y4ZDU2ZDE4MWQyMDBiNWMzMjNjYmMyM2E3NTA1ZDdiNWU2NWZjNzY4N2ZjZDViZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyNzU1ZWNkNjVlNzQwZjBmOWUxYTZhNjdkNDFhYzk3MzI1N2E2ZjEwNGQzYTBkZGQ4MDhjZDJlNTMxN2U3MmUifQ"
+        },
+        {
+          "resource": "repo://voly/memory/agent_memory_client.py#L217-L290",
+          "version": "repo-lines-v1:sha256:cf7af9dbddb035d7b23c4c67dc69252b1274f19bfc1b6e010842574943fb133d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmN2ExYzc4MWE4NjIxN2Q0NGJmOTlhZTJlZGQxMzgwYWI5YjEyMGQwNzVjMWUxODM1MTVmMWRjNTQ5ZGUzMzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyZDQ1OTNjZjIyYWUzM2QzYjFhZmI4MGU5MWFlMjQyMDlhYzA5MDdhODdiOTk0YTYxOTYwNjFlNGFmZTA5MWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkYzA0NDExMjAzNDMyODE5ZmQzYjgzNzhkZTkzMjRiNTQ1ZTgyYjE4MDAwMWU0ZWMyNjgwMTUwMTdjYTlkODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNTY1ZGJjZmIyMDI1Y2Q3YWZjZDMyMmU2MjRlMWIxNTU5Mjg2NWU5MjRiMjZjODlkYzhjMjkzODdjY2EyMjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6ec334bb5c72440ab2eeb5fff3ebb738",
+      "statement": "The Spend Worker routes every spend operation to a single global Durable Object whose SQLite ledger supports trailing-24-hour strict budget checks, capped summaries and recent entries; Python spend recording/checking is best-effort and does not disrupt a run on remote failure.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/spend/src/index.ts#L18-L65",
+          "version": "repo-lines-v1:sha256:f7288d307454d25b43dcf27528f3e940ac3e8c133b9e68ccde8186096c48b4b2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3ZmQ3ZDFjYmY1YzQwMDRkMzI1Nzk2YzhmODhiOGI2ZTFkZTEwNWNiOTI4ZGRjNjRhMDZkNjVlOGViNTdhM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMGUyZThiYTdmYTE0NDZlZjA3OGQ2MjFiNTA0ZjdjMGZlMDFmZjcwMmRiNDlmMmUwNTcyZTllYWJhZDg5YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkYjY5MjkwNDVhN2EzZmRkM2M2OWM2MDM0MTY1ZGQyMmNhNDZjMDZhNDI3NDNjMWU4NzNkMWNlZThiZDg2OWEifQ"
+        },
+        {
+          "resource": "repo://cf-workers/spend/src/spend-tracker.ts#L7-L96",
+          "version": "repo-lines-v1:sha256:ac26ba81de8b36bdc1a018e1691e82d63198d0fa4ed01f62ee804d09ea41c64d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlNjIyM2RlYmMxOTYwNzg5YmRhMWVjNWRkZmFiMWEwNWVhOTkyYTgwOTVhZDBkMGYyMDk3MjlkOWFkNDc0YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNGJlNzQ4N2MwYmUzZmMyZWY2MTQ1YzEyMzBiYjk4NDZlMjQ3YTI2NmRmYWUyNTA1ZjczMmI2Y2I2Njc1YjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://voly/spend/__init__.py#L12-L55",
+          "version": "repo-lines-v1:sha256:c2c6eefab54ddd0f7a713c58094a3920e0b991c4599be395e36e3a3f7e3b7668:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5YTdkNWVmMjc3YjZiZjQyNjY0ZWMwYzI2MjAzNjRlZmYzMzU2NDdmY2E2NmY1MWIyODczZGM5ZmYzMmEzNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5ZDk2Yzc2MGIxZjY5OTc5NGNkODA2MzgyYmQ0MjdhMzdkNzYwNThjNTllZGE1OTMxYjk5OTc1ZDg4MGIwNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3be783f4056f4ab19234bd28fe5e22a1",
+      "statement": "AG-UI session Durable Objects persist and broadcast session events while retaining only the most recent 200; the Worker bearer protects session creation and HTTP event/state routes but not the WebSocket forwarding route.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/spend/src/agui-session.ts#L4-L89",
+          "version": "repo-lines-v1:sha256:0a0fbe0525eccd48d6854d0c8eb6af8062fddec99b105d2638b3cac6cc8c7e22:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwM2JhNzc1NWYyZjRiNTJlN2U2MGQ3ZTlhYTg2ZTk5M2ViYTQyYzNmNWI3YWNhZGY1MjYxZDZjZDU4Y2RkOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkZGUyYjhkYzhhOGY5ODEzNzY4Y2Y3NWU4MWRhMWYyYWM5YzE1ZGVlNWFhMGEyNTE0YjUwMDBhOGEwOGViYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://cf-workers/spend/src/index.ts#L67-L114",
+          "version": "repo-lines-v1:sha256:38de75955e8aef20e61fade3e1baf89164ae11bcce811975f02317bf81c7508c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3NGQ1YTc0MTQ5N2VhODNkZjljMmE5MTRjY2FiNGIzYjRhZDRlNTU0OGVmMjhhNzljNTE1NTNkNTFlMzBiNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmOTBiY2Y3YmFkMGIxMzY0ODU1OGEzOGNjZjYwNDgyYzkzMzk5Nzg2ZDY4YWMzYmNmOTUzODkzNTlhMWM5NzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlZmFjZTQyMzg4ZGZmODRlODgxMTYyYmVkZWNhOWExNDJmOTA0MzMwZWQ4ZGRjMzlhYzVlZTkxZjE3NjIyZGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a197e042fa29454eabc1325d98f1ace7",
+      "statement": "The spend client deliberately uses only CF_WORKER_SPEND_TOKEN for its Worker bearer and does not fall back to CLOUDFLARE_API_TOKEN, which is enforced by focused tests.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_spend_client.py#L38-L52",
+          "version": "repo-lines-v1:sha256:742b58866a736c12dc720d149383d202523219db694c88588ca7df81c3f1e78f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYjcyMDNjZThlMWVmODMwMDk2NDdiMWE2YzBlM2NhNzNkYzQ5ZTIxMjYwNDJiOTFlNWU0YTIxNzZjZDk4NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0YjQ1NDZhNmYyOGU1MjQxMjMwOWI1ZGM3ZGFkZmRmY2ZjYzk0NDI0MmYwYjNlZGU1NWYyOTFjMWUyYWQ2MDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MWE2NzAxMjk1NzFiYWI4NjdjY2NkOWZkYzliOTY0Mjc2MThiY2ZhZmUxNTQ2ODUwMzViMDUwYTk3YTc3YTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/spend/client.py#L100-L125",
+          "version": "repo-lines-v1:sha256:7584e44293d0d6edc2220780b1510ee6d97d956227e2b662158291a3fd0ad3e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YTY5ZTNhNGJmYjg1ZGY0ZTE2ZmZjYmZhNmVkMzFhZjYyNWQ0MjZjMDNmZTAxY2FiODA0M2I0NDk1NDM5OTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NWNiNzFjZjU4MjdhYjE2MWQyOTk4MTQ4OWE5YWNmYmE4OGY2MjA1NThiZDJmZDM5NmM0NTAwZmMwODUzZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2YzNkYmJlOGRhN2Q3MjU0MWZkYTg1YjRlNmY2MDRkMGM4Y2YzYzc0YjEyNzhmODg5YWI2MWEzOTE5ODFmZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_824bef76d58a47918ad1e6107dc32899",
+      "statement": "VOLY always writes complete TaskEvent JSON locally first and sends only an allowlisted analytics record remotely when cloud analytics consent is enabled; remote delivery failure is non-fatal.",
+      "evidence": [
+        {
+          "resource": "repo://voly/telemetry.py#L269-L340",
+          "version": "repo-lines-v1:sha256:3159f7279888080656f330b8a04f1c95e3a9b347de75bc0943944e981a4b6438:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYmRiM2FmMzY2YjEyNzFkNGRhNmMwODllZWY2NGNmYjZhYTI0OTBiZmViMDlkOGJjN2NjOGExYmJkOWQ5MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZTg4OTVjMDk5YzM0NTFmODM1M2NmZjRmNTc1YmI2N2Y1NDQ0NGExM2UxM2E2NDQ1YTAzM2Q1MzdkZGI5YTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlNGQ1YTY2MTVmMzczNGRjOGI5OTk5OWI3NGI2ODIyMmQxZWE4MWUwN2FhMTUxNWVlNTNkOGJlNDExNGI4YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMGI1MDE4MjE2MDUzNGVlOGFlYjZiNDY5YWIzOTJmZDI1ZTAyMjNiNWY5YjZlODk1OGZhMDczMzJkZmE3ZWEifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L343-L390",
+          "version": "repo-lines-v1:sha256:7f85d7c051b325734916aabd3d0d7f67c459f00f9be457ca9e5fe0f8253eecc0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4YWYxNTUxNjE3M2RjNmJiYjg4ODZjMjhkMTQ4ODc0MDZmOWMwZTRkNWQzZDk3MmNhYzQ4MjM0NzliOGQ3ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5OGE1MWJjODQ1Njc2MDY3ZjM1MmYxODk5NDBjZGY0OTRiY2VlNjQ5NmI4NzUxY2ExYWI3OWY0ZDcyNzQwZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYmRkZTZmOTJlODY4OWIyMGM5NDFkNWRkMGQxMmU5YjM5NjNhM2JjYjc0NjU3MWVmMWE5MWNmNDcwNWNhNTMifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L393-L425",
+          "version": "repo-lines-v1:sha256:7ff208f075364d710fd5c3c3d216c44e7ed720925fedd671b1a14c7a2bb50592:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZDFkN2EzNWQyYjM4NmNmMDk3ZTkxNTgxNGMyYjFiZWM0ODczMmZiMDYwNzUyMjlhNjkzMjc3YWE0MDIxZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MjNmYTY5MmJjYmNhY2ZjMGVkOTIyYWU4OTQ5ZGI1ZmFiYjkwZGZlNzdhMjJkYzI0YTkzZjBmYTM0MDllYTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjNDAwYTBhYzRmMGY2YWQ1YzUyMDljM2MxMDQ4MTVlMmUyNjFiZTMzNDM4ZGI5MDMwMWFjM2E4YzA3OGQ3MGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8cbbb6e5e8c7431d9f5796f9404af69d",
+      "statement": "The telemetry Worker accepts event batches, ignores records without task IDs, stores each remote payload in R2 and an upserted D1 index, so repeated task IDs replace rather than append remote event data.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/telemetry/src/index.ts#L176-L219",
+          "version": "repo-lines-v1:sha256:0f8b81709193eadc2559e184f3345866d281420a4a7c44efd16bed97f42f4e77:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NzFiODhmZjg3ZWY4NWY0NDBmMDYzODJkMzM1NWQwYjlmNWU1N2ZiNThjZDYzY2YxOTE2NmE0MDQ0MWFlZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhNmVmMTc1ZTRhYWE4NDhjZWYyY2ZhYTU4MzExMWQ3MDQwNjYxYmRmNTIyN2Y1MTVkZTFjMjVhY2U1NWY1ZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5YzBlNDg0NDMyMGRmMTRmY2ViMTY4NjZhODY5MWM1ODkyZmUxNjhkNTVlNWMzMTFmMTZhOTQ0NDI4YWFlNzcifQ"
+        },
+        {
+          "resource": "repo://cf-workers/telemetry/src/index.ts#L76-L141",
+          "version": "repo-lines-v1:sha256:76f8be0841f4030850e6155f685face42cb7fea42b99bcb3a1e0ba868374fc13:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MDZiNDgwNGJiYWUxOGVlM2YzMDMxMTMwNDQ5NWI0ZWM4NDk3MzRmNTk1ZmE3YTcyMjc5YTRlMzU1NmNjYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlNDRkNjQxMWI2MmUzNmI0NGYwY2ViMGQ0ZjU1MWI0MjI1MjVhM2FmMGIwYjBiNDQ3MGVjNGY2MWE2Nzk2NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhNGM3YjcwNzYxYmI4ZDkwZTZkMWFlOTFlMDI3ZjIwZTlmYzZiNTZmZTNhZDdhMmQ1OTJkY2ZlYThiYzhhNTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b79f51eff824acea76e2ad343d1e3db",
+      "statement": "Catalog synchronization saves the local model catalog before optionally pushing remote D1 data and treats remote push failures as non-fatal; the Catalog Worker's match endpoint is deprecated and either proxies to Capability or returns a legacy heuristic.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/catalog/src/index.ts#L150-L201",
+          "version": "repo-lines-v1:sha256:73e54cd6a742b498dcaa782deb71df0c68f15bcb662a4560742c0fd684beaa32:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyODQ3ODZkMDYwMGU3NjY2ZTY4ZjJhNWU2M2ZjYzkxZGI5NGYxOWI2ZmY3NzcyZWNiZjFhM2RjNTJjOTM1NGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNzU2YzczYTQ3OTlkOWI2OTZlNzVkYzQ3MmY0ZmE0OThhNWM2ZWU4YzcwZjk3MmY5NDcxNzJiZTk4NWZhMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5YzBlNDg0NDMyMGRmMTRmY2ViMTY4NjZhODY5MWM1ODkyZmUxNjhkNTVlNWMzMTFmMTZhOTQ0NDI4YWFlNzcifQ"
+        },
+        {
+          "resource": "repo://cf-workers/catalog/src/index.ts#L91-L148",
+          "version": "repo-lines-v1:sha256:5ebb73bdad276177d48832e05e37d83837183008d072ca1f06b259218a94d7f1:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0YWQ0MzAyZTdmNmYyOWVjMDQ5OTRlMGZmMjZkMTU1MmU4YmRmNmVhYTJiNGZjZWY4YzBjYzZiZDY3ZjdmODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzOTQ0NjEyZDExZjA1Y2Y3Y2VhMTU3ZmFlOTljNzdjNTkyNjVkMDk4MmU0MTcwNzdiODE0MzQ1ZDVhNDg4YjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllNzRkYjdiY2ZmMThkMTc0MGU4YmRjY2MxMmY5Yzc0MGFhZTA2ODYxNjUxNTVmNWZiY2RlNjBlYTEyODk0NmUifQ"
+        },
+        {
+          "resource": "repo://voly/catalog/supervisor.py#L22-L34",
+          "version": "repo-lines-v1:sha256:fe432c8cb4cd9b98fd6dab23ada4d8e8c28ad49dd29a6cad8033c7d20777da4b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkNTYyYmJmODUwNTA3YTNkNzljYmRhNDQxYjUxYWE4YTNiZDJlOGUzZGYwY2FkNzk5OTNjOWNlZGQyYzk0NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyYmUyNjRiZjU1NjE5M2IyM2E4YzVlZjUyNGYzODdkYzY5YzJlZDQxNzE4ZDRmNTYwZTRmZTZmZWU4Mjc2OTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhMWIzZjk2YmEzOWYzYTE4NTY2NWFhZGVjNDg5YjFmMTY1ZGQxODljNDNhMmNjNWE3ZGQ0NGQ1ZTI3ZDRmMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2Y2Q0N2RmYjE2YTgzZDk5N2QwYzViMThkOGY5ZTEwZDE1N2FkOWYzNTgzM2ZjYTQ5ZDUxYmJlZjQzODgxZWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e9e68fd1255f4a3d89661396234aae62",
+      "statement": "The Marketplace Worker uses D1 as the skill/plugin catalog, KV as a hot skill cache, R2 as skill backup/download fallback, and Vectorize with D1 FTS fallback for search; skill publishing schedules R2 mirroring, embedding, and cache invalidation asynchronously.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/marketplace/src/index.ts#L199-L280",
+          "version": "repo-lines-v1:sha256:1b500a65435dba8f309583270b83041a89edadd1b6d357940a8d27dfd7bb8103:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZmMyZTY4NTkwZGMwYWQ2ZTFkYTc1ZTZmN2FiZGMxODAxODU4OGI0NjU4NTA3Njg0YTZhMDU5YjVkMjg5ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljNzhmZTQ2ZDlmNjJmNWJjZjQ5NThmMTIwYjNlNWM0NDFjZjExMjE0YzY5YmU4YTUyMGU2ZjUwMzk3MGE1YzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NzlkMTE4ZDZlM2NiZjQ1MDUzOTc0OGRlZTdhNDMwN2FjYmU2NDQ2Y2JhMjk3ZjI3NjBmYTVkMGJiYTFiYzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyZjY1ZTM3YjlmYTBmNjc3OTJkMGRhNzRjODRlZDIxOGEwZmIxMDI2NDIzNTVlZWM0MTYwNmQ1NmVmOGE3YWUifQ"
+        },
+        {
+          "resource": "repo://cf-workers/marketplace/src/index.ts#L283-L361",
+          "version": "repo-lines-v1:sha256:95ec327f9ebd98a0c9042b73cd72ee8657ad2751a31a48187b885a024bbae513:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4Zjg4ZWY3Zjc0OGYzODExYTBmZWQyMzk5MGY5ZTZlMjJhZDEzODk2ODY5YzI0MWZkZDZmMDk4YTlmMjk2YjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZjJlZjE2Nzc3ZjA0YjZiNzVkODg3MjRkNzRkMDIxOTQ5MmMzYjBkMzgxY2ZmMTM5MzQ0NjI1ZjU2ZmRiMTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0M2ZjYjI5ZGQ2NDBhMWJiNzM5OGJlODA3ODNlMGNjZTAxOTQxOWRiYzRmYzRjMTEyMWY0MjkzZmE1ODZhMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5YzYzM2U1NTM0OWEzYTNlMWZhN2NmZTg4MjM3M2IwOTI4YjEwYjJhNGVlYWRhNDVjN2E2NDJmMTJhYjIxYjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4306f39267e744a1b64f576ded39f9f6",
+      "statement": "Marketplace access is URL-opt-in and remote discovery is best-effort: the client does not attach bearer authentication, and pipeline/web paths catch remote failure and use or report local registry/catalog fallback.",
+      "evidence": [
+        {
+          "resource": "repo://voly/config/_parser.py#L253-L268",
+          "version": "repo-lines-v1:sha256:c96c5d0bb79b23243dddbacb888c91e47c1313eff163ee6b6a8c1d60b3555940:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkY2U0NWY3Yjk0MmRhMWQyYjkwY2UzZDg4N2EyOGZhMzgyZWYyYjY2YTg2NGRhYmI0MjU3ZWVhNTYzNDBmNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxYmQ1OWJhZjEwOThhZTk2ZmQ3ODY0ZjM2ZTg4MjJjNTExMWFlMGZkNzBmNmFiODI2MzZmZWUyZTg1ZjRhYjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3YWM1MWRiMGEzMGQ1ZDNhMWFhODM3M2VhNzhmYzIzMGQ4MTI1NDc0MTNjYTUxNmZjYTMwY2VmZGRiM2JjZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3NWU5N2UyY2JhZWEyMGM1ZjMzZjBkN2JhNWM5NzRlYjBlOWM0MDA4OTVmODBhMGI5NDUwMjA1NzgyMTQ1MmEifQ"
+        },
+        {
+          "resource": "repo://voly/registry/marketplace.py#L18-L64",
+          "version": "repo-lines-v1:sha256:046db3f4680b3666fda74c296ca4e4d688494217a5b1c330a8bfea917d00d0dc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NjliMTVjYmMwYzM3YWMyNjhkMGU2ODg3ZDk1MTZiNTA4MTc0NTgxOWM0OWZiYzUzYzczNzNiZTUxZjllZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxYzA5YmZiMzRkZDQ2ODFmODkzYmJjYWUyZWY1MTNkZDk0MDgxMzVmM2FkMTVlODIwZDMyNjFkMDVkYTYxNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NDEyNzMwOWZkZTJiZWUxOWQzODY1MWRkOWU5ZmJiZmQzM2E5MGM2Yjc1ODk4NjY4MzM3N2U1YmNjNzUyOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNWUwZTUxZGVhZDAyYzg4NjlkNTdiZWY5NDhjYTFlYTg4MjllODQ1YzJlNzYwMTdiNDE5OTYzOTE1OGViYWYifQ"
+        },
+        {
+          "resource": "repo://voly/web/routes/marketplace.py#L188-L215",
+          "version": "repo-lines-v1:sha256:f1673eb9b7495d2f0f8a013f721fa0c9b75472259ca19a7d5fe6c02180b8da3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1MjUzNTVlODM5ZGI5OTliZjViODRlNTcwMDYxZDZjNWQ5MDZjY2ExNjdjNTFhODI3YTUwNzE3MTIxZmZmYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjMWZhYjdlYmVkMTQwMWY3NmQ1ODIzMmJmZjNjN2RiMTliNmI2YzYzN2YyZWY2ZTk3ZTcyNGQ1YTdiYzZjNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYmE1M2Q4ODYyZTAwOTgzM2VkMDEyMmM4NjVjNDE1YmQ2MDIzNzJlM2ZiYTgzMGJiMmE5OWVkY2YzYzJmZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOGNmNmU2MjBjMDg2ZDAzMTIyYzIxNThkMTY2ODZkMmIzYzBkZGE3YjY1ZDdkMjc4YjVkNWFlOGE2MDMxMmIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T11:56:59.124Z"
+  }
+}

@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:87c4e73c480aaa732b8b77e09ac8f41917f6f8b75f13a38c477730c92809ae61",
+  "claims": [
+    {
+      "id": "claim_ebfaaf8d679c4060a1b1ae72bc6518cb",
+      "statement": "The public `Agent` and `Workflow` APIs are exported from `voly`; `Agent` delegates chat to the gateway and executor work to `AgentRunner`, while `Workflow` compiles nodes into an ordinary Plan run by `PlanRunner` and persisted by `PlanStore`, rather than implementing a second runtime.",
+      "evidence": [
+        {
+          "resource": "repo://voly/__init__.py#L35-L60",
+          "version": "repo-lines-v1:sha256:c7ef8927649915b59ae3f7dbf241dd746002ce61304c4d49b2e19da28f0d0338:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhOWY0YjUwMzJiODljMGE4YmFlNDUxMzZmMDBjYjliNmIyZDg0MzBiZDY2YjA1ZWE5MzYwYjhlNWMxMjJhN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OWFjMjgwMTczNmRiMWJiZjVhYjk0ZDQxYjAzZjhmZjk2NWJiN2NiNzA1ZTY3NmNjOThkMzM5OTA5ZjA2OTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4NTdmOTE2MjY4NTY4MzlhYjFhYjcwOTZhMGM4YWVjOTJhZWFkYTRkZjIzNDBhNzQ1YTg0MDlkNzJkMmU3N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/agent.py#L137-L147",
+          "version": "repo-lines-v1:sha256:ff70a5a35df1760b3dd60f79ed4a028e814da54a2cc96c928f6c788ab06b35a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOGNkOTc5NjliOTRmN2NhYmQ5YWI4NTJjZGVjZGM5Y2U5OWU1MmQ3MmVjMWNkMThiOGFlY2EyOWE5ZTJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNmU2MTczMTU5MWYwMTJkY2I2MTA5OGNhNzI0ZTEzOWU5MjMzNzJlZDBlZGJlOWY0NGY4Yjk5ODVhZjA1YjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxMjQ4YWQ5NTRlYjZmN2ZjNTI0ZDY5OWUzZTMxNzRkYTg5NjQ0MzZhOWZlMmViZDMyNmFhNDhiNmE1OTVhNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMjEzNTBjYTQ2YjdiNzQ5ZWRlN2VhMGE2YWFiZDVkYWNhY2ZiYmQxN2Y4ZGRlNmMyNmYyZGQ3ZTI3YjFiOTEifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L1-L8",
+          "version": "repo-lines-v1:sha256:d527c169e4807ac0413631a896466bf7e80591d2c8993cba710adf3a9a0b4fca:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2QyNmRjMzk0YzAwYTA0Njg0ZWRmZDNlN2UzMGJmY2Q1MmZlMmMwMjAxOGFlMjk0MzQyZGM2Yjk1ZTQ4N2ZjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZlZGIxZDI0ZTA1MTNlMGJhMDY4OTBmZWM3ZWNhZmJlY2E4ODEzMDNlMzhhYWNlMjY0NDMzNzhkMzc5OWIyMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFhZjc2MzdjYjZlN2U1ZGI4NWQ2MzQyNzQ2MDE0ZGYwNDFjY2Q1NThhOTIwYjI5ZWI2YWM3MTlkN2JhZjVjMiJ9"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L193-L200",
+          "version": "repo-lines-v1:sha256:813e5a887450d8b31af4089ac150c858aad3a74fc821a30d751b5d3136bdce00:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjhkOWFlZDY4NWM0M2M3ZTgyNzY0OGMwNjE2OWQ3ZWM1MTVlYWFkMjY4NzY1MTE3MmUxNjZjY2ZiMjU0ZGFkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDYzZGViZGE5ZGRkNDM0Mzk1Yjc3MDZkZDZiNzk2MjRkNWJjNGI5NTRhNDQ0N2MyYTEzZTBhNThiMDQ5NGY3ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTEzMzE3MGY3YzcwN2VlNjU3ZDE1ZjcyOTQ0YWE0YjY1OGY5ZjI3YjdlNWMyZGViNzgwMzQ1Yjk0OWJjNjQxYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzEyMTM1MGNhNDZiN2I3NDllZGU3ZWEwYTZhYWJkNWRhY2FjZmJiZDE3ZjhkZGU2YzI2ZjJkZDdlMjdiMWI5MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_49e27a95c5ea4e9daa6b5e11db0e022a",
+      "statement": "Workflow compilation maps agent/node data to PlanSteps, labels the Plan as `sdk_workflow`, assigns a fresh plan id per compilation, and delegates missing-dependency and cycle validation to `PlanEngine`, re-raising validation failures as `WorkflowError`.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/engine.py#L41-L69",
+          "version": "repo-lines-v1:sha256:e9dca3576316477c30e74967c427cb9a746c78a2bef32286a3b2b4b11d03bb2e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOGJhOGYwY2VkY2Q4ZGJlZDFiZmVkMWFiMzc2ZjBmM2M4MTE4ZTI4MWJiNjM1NjRhOWI5Y2ZmNmFjNDgxZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyOWM1MjQ0MzRjMDA5YWFmMGQ3ZmU5ZTJmZmU3MjJiMTcwY2Y4ZWIxYzhjMTU3NWU0ZTNiZDUxZTkyNmM3MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMjBlMDU4N2EzZDlmNDJmNDZhMDI1MDVkN2ZhYjVjYzc3MWJjOTY2NmUyY2FjZTk5YTUyMTcwMjEyMjJmZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYzljMjYzMjI2Yzc3N2Q1ODZhMjM2YmQyZjdjZWZkNmIyZDU2OWY3MTNiNGM3ODMwY2IxZmUxYWEwZWY4YTEifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L112-L172",
+          "version": "repo-lines-v1:sha256:864389134a21e88b7d8bb9e2ee3393993fe4c0e712f18ad21bb3587de9bfb6b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MzY4Y2UzYjI4ZTFiMzc2NzA2ZDliMDBjODBiMWVkN2Q4MGIxZjEyOTRjZWYzMzQxMzgzMzdjY2ViNjViOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MTA5YzcwNTliNjQxMjQxZDgzOThlNjAzMDY2Y2I1MTk0ZjE0MTdhYmZiMWUwMDYxOTM4NTcyMzQzZTUwOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2OTcyMTY0NTY2Yzk5NWU3ZTA0MTZhNWY2NGE5NWUxMWRmODA1MDQ5MDQ2OGEzNTBmYzIxOWEwNWE2NDBhMDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d781831541af4bff9df85ddd4f72bf40",
+      "statement": "A Plan step can start only from pending or failed after all dependencies are verified; the runner passes only declared dependency outputs as context to downstream instructions.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/engine.py#L118-L138",
+          "version": "repo-lines-v1:sha256:9e4cbb2b6526ffd9fea7fc841c0f64aa4e47dd4fb3f6e6eb02c840b25619ef2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1YmE2ODJjNzJiYTA5Y2EzOWVhOTBhYmI0NWY5NWFhM2NkNzNiZWM2ODc5YThjYmFjOTgzMDNjNGY2ODczOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTc3Nzg2OTNhZjY4ZjQ4Njc5NTE3OTdjNWIwNjBhMTdjNTFkZDFkYTBmNzUyMWEzMzBlYWVmMTU1YThlNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjMTRmZjgyYjJkZjEwMGYwZDQ4NGM0NzFlNGEzYTQ0NjdjZjAyNDVjNGVkZmE0MWFhNjRmMjkzMmIyYzM1ZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiYjc5NzA2Y2MwNWQyMmY3ODUyZjdjZjZkMjRiZjlmNDMzNGU5Zjc4NWMzZjI5ZjE2OGQ0YzM1Y2RlNzlkZDkifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L66-L89",
+          "version": "repo-lines-v1:sha256:71392f259188a1ac9f6bb27b56a824577316d163119206b0e07e8ae0806a2284:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhZmQ1ZTIwODExYjZiMDBkOGI4ZGIzNGJlMGYxMjRiOTE2OTRkMWZhMWM0MTYyYTU4Yzk1MTVlYWY2M2QwODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyZGYxMzVmYTQyZTU5MjM5ZDc3NGZmZGE5MDBkMmQzMmE0MDM1ZjRlMTc3YjVhOGVhNGUzZDI0MGU4YjYzMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMTE4YzIzZDYwZjE5ODBlNzBkYThmY2ZmODliYmE4ZDY3MjAyZjg4ZTkwYzkzMzliY2Y0MzBlNDA2NDM0M2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bca489f83a03416e98170ace7e6922a2",
+      "statement": "Workflow results are reconstructed from PlanSteps in declaration order, aggregate per-node cost, and report success only when the underlying PlanRunner result is successful.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/runner.py#L262-L276",
+          "version": "repo-lines-v1:sha256:1b0b38bf3236640e60b37317b1ae25f34894d3aab1dc3f8b64aabdae21393b4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwZDUyYWZlNzA4YWZjMjRkY2Q0NmFlYzM3YzcxYWU4ZTAxYzFkZjM2Y2M5OGJlNjFmMWQzMzBmZTUyZjVlYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMjFjZTExNDUyNzAxMGFlZjNlN2I0OWZjOWVhMmM1YTUyMGM2NGRmM2I5NjFmMTdlNDg0MzRhN2VhODFkZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2NTZlYjQ2N2E2MzQ2NTkwYjAxMDkyNTcyMjE2ZjFkOTBhMzc5YzI4MDI2NjU3NmI0MWY5YjMyNWY4YmQ2MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMjM1OWVjZWU1YzE3YjE4Y2NhYmZhOGViZDI5MzVlYjQyNGRhYzcyOGVjZThkMjQ1MWU4ZDg1M2U5MTVmM2IifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L242-L267",
+          "version": "repo-lines-v1:sha256:7751922d26bad724544df366c34bd53fa0134ce86960ddc4b7f38876fe7012b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwNTRjZDZkMTFkYjcxNGEwZjEzZDM0MjViODI4NGFmMzM5ZjljODgyY2E1ODQ4Zjc4NzFiYzQ2M2VjOGI2ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZmVjMWRlODAwMDFkMmE0N2EyN2Y1ZWRjODBjM2NmZTg1NDMxZjg0OTcxNmRhOTRiY2JjZTI5ODEyYmNmNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_66a5b9eccdb84f468c47f15479e2cbe3",
+      "statement": "Standalone Agent supports allowlisted tools and prompt-based structured-output validation, but Workflow compilation does not propagate `tools` or `output_schema`; per-node `timeout_seconds` is accepted by WorkflowNode but has no PlanStep execution field.",
+      "evidence": [
+        {
+          "resource": "repo://voly/sdk/agent.py#L184-L226",
+          "version": "repo-lines-v1:sha256:05179ab1dd51c34e4bce8f3fe88a496366d68f84ab51b67dca89d4fed635452e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZjUwMTFkZTJlMDVhYzhkOTU4NDcyZjNlZjJjZjZkYTZlMWNiOGZiZGY3ODBhZmYyMTE5MWM1NzQ0Y2NlN2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMjAzZTEwY2YzNzI3ZDBkNmE4NDJmYjc2YjM2MWE5Njc3YTIzNmEyY2MwMzRlNzA2Zjk1Y2I3Y2E2ODAwOGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3YzNiMjM3YjJlMTliMjk0ZTRhODU5ZmJhNTQ5YzgwOTJjNzY3MjFjZmJkNDRiN2IyNDg5Zjg4ODZkYjIzMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlOTZiMDFjNjU4MjhmYTI0NjRiN2MwZWNlZjVkNWJhZWRjOTM2ZDdmOTJmMDYwZGJkODI2NmIzYTQ0NGJjZmIifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/agent.py#L91-L131",
+          "version": "repo-lines-v1:sha256:37c9fd3d2d6aadc590605c83962ddb54b9cd1d181c18f13ab212fa6bfe45cf15:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkZTJhNTBkNmQ1NjczNjA0MDY2OTY5ZTlkMjVkYTI1OWZhMGZhOGU0NGQyN2IyYWUwNzhhNDk0NDI0ZDhlZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4NjkwODYxYmUzM2EzYWQwMzQwZGY5Zjk0YjgxMWExMjZmYTg2ODYyMDQyNjA3YjMwYzk2Yjk2MjAzYjE0ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3OTA5MTI3MDY0OWM4NzEwNzhlMzEzZjYzNzVhYWI5MWU1NTBmNzE3OTM4Mjc0Yzc5MzY1Y2VjOTFkNzZiYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1OTVhYmU4NzYyODAyNWFmZDA5ODZiMTg5NTEwMjYxYzc1NmUwNGQxMmQwODExMzgzZTA5MjE1M2VlMjllMjYifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L142-L172",
+          "version": "repo-lines-v1:sha256:34ccf7616e589c5df47447cdc096c898e2ac55af003abce310eceab5b8515713:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ODU5ZTNhNDJhZDM4MGJlYmEyMWMzM2ZhMzAwNmU5OGFhNTA1MDA3ZjZlMjBjODJlNTYwNjAwYmIyNjc2ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhZDA1ZWMwMzVmNWJlOTNiM2RhZTdkN2RjN2ViMWEzMDNjYzBmMGVjMjk5NzgwZWNhY2UzMTM0ZTFkYzNkMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2OTcyMTY0NTY2Yzk5NWU3ZTA0MTZhNWY2NGE5NWUxMWRmODA1MDQ5MDQ2OGEzNTBmYzIxOWEwNWE2NDBhMDAifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L25-L33",
+          "version": "repo-lines-v1:sha256:da74e0063f5337d478961cc5737ead93b87ff954237a9fae15867af713a41398:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjZmYmFlMGI5MWQ0NGZjMGQ0OWY1ZGU2OTFkYTZmYzQzMWYyNjAxMzRiZjczMWUwZTIxZjc2NDgwOTQzMzRjYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZThhODcxZTE4OGQ3NmRmNDg3NDYzODZlODcxNjhhNDUzYzk1Y2RmZGNkZjJhN2M4ZTEyYTcwZTdiZjNkYmE5YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzA3NDQ1YTdkY2JiZWU0OGYxZGZlMTM5N2U3NDUyYjUxYjJiZDg3YjRiNDA1OWRmM2FkNWI1NzcxNGVkZjEwMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmMxZjAyZmQ3ZWMxZDQ2MmMwY2I4MThiOTQ4ZmZlNGY3MTViMmMyYzQzMjYzMGMyMzJkZmUzNGQ0Mjc0M2ZhOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6dc2a2c6df414e0a8b4db10b26a0e47b",
+      "statement": "PlanEngine enforces legal step transitions and inserts verification for steps with acceptance checks; a plan completes only when all steps are terminal and at least one is verified, while aborted status is retained.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/engine.py#L151-L226",
+          "version": "repo-lines-v1:sha256:8e7c7989f1666eb0818f20c3ec85068240b24268ec152d5aec571bb4cd779775:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhODU3YmE1MzJiNWE3NDRhMmU5NTMzYzMxOGIzZDBjZjdiYzUyNzA3NmE5ODFjZGMwYmRjNmQ4OWQxZWQxMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDZkNmU5YWM4ZjI1ZjU3Y2IxNDQzNWRjOTU0MDQ0MmNiNTJmYzMzZmU0N2I0ODcwZDk2MmE3MDhlYTkyMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2ZWY2MjFlMmVjOGEwOWU1OWRlZGMzZTNhYjQwYTUyMDZhZDdkMzUwZTMyZTAwYjc4ZTY2MTg4N2Q4YWM4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyYTI4NDA1NTRjOGY2NGQyZTY3ZmZiNTlhODQ0NTA0MGE3NGQ2YzI2Y2E3OGE4MmNkNmZlYTYyMjQ2NGVlZjIifQ"
+        },
+        {
+          "resource": "repo://voly/plan/engine.py#L264-L312",
+          "version": "repo-lines-v1:sha256:de361486aba5bc9daa05c79106ba73a20b07aef24c0fbf0fe89556fb21799480:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZGJjMDdkNjE5NjBkYzcxNTg2OTdiYmIzNzBkYTNjYWMzNGI3YTBkMzlmYzliNmFlZTUyMzMxNzNlMDViNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiYzE0ZGZiYWY3MzQ3M2E5ZTY0YTViOGVlNmMyMTUzN2Q3NGEwZGI2ZWJkMjQwYzZjMmY5MDI0NDFiZGEyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNWVkM2Q1MmRiOWUzMDUxNjFhMmJjYjBlNmE1MmQ1OWU2MWEzNjQ3YTMyYTlhOWM3NDI3NTIyM2JjMDExZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1YjBhNzY1YTliZWQ3MzA2ZDBjNTA2MzEyNmJkZjczZDUzYTEzNjI5ZDRlODlhZDFlODMzM2JkOWM4YmM2NGIifQ"
+        },
+        {
+          "resource": "repo://voly/plan/types.py#L14-L53",
+          "version": "repo-lines-v1:sha256:dcb3185602f8f9fb9b0feaa6c38ce889c1e0f9a7935b57b5072e135f044234ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiNTE2Y2JiMTc0MTE2ZjQ0ZGU1MzM4MzY1MjMxYmZjZTQ0NTZkMDBkYzg5N2U0MzkxNmQ0OTMxMjE0YjNjMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1ODBiNzY1MThkYWU5NzlmYWViZDAyMzY3YTI5MjkyYTUwZDk3NjA5MjI1MWEzOGE2Y2UzMDg4MGJhNDI4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkMjNmN2E5MzNlM2QyMmNlOTdiN2FhN2ZjMzRjMTM1YTMyMjlkZDUzNjE1NmVkYjBjNjNlZGI3YmYzOGI1YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkOTNkYTEyYWMxNzcyMzczNWFkMDExZTRiMGUzNTBiZDFkZjNiY2I3ODI5YTMxYzIwN2Q3MWRkZjBlNzIyMTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_18fb1d0a09d041bda5caa3a95476429f",
+      "statement": "PlanStore is the durable source of truth: it atomically writes Plan JSON under the plans directory, timestamps saves, and raises on persistence errors instead of treating state loss as best-effort telemetry.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/store.py#L1-L5",
+          "version": "repo-lines-v1:sha256:caf22af0c4d75cb0a7ea5eceec3bbcb0eb206e23be261fd439cecba84d700829:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2UyN2ZlM2M2N2U4ZjcyNGM2MjdlZGM5YzIxNWZhZmZmNDU3NTViOTA2YWZhZDNmMWVkMjM5OTk5YTYwYjg1ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
+        },
+        {
+          "resource": "repo://voly/plan/store.py#L18-L58",
+          "version": "repo-lines-v1:sha256:41dbccb19cf0613139bfc7373f3a4d06590974b12d7cf846bcdd1c7788b38994:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NjhhMWQ1MjMzNGMwZjRiY2VkOTM5YWZmNjA0ZmI4OTg2NjJiZDY1YzllNGFmYzVjM2RkYjcxN2M3NjJjMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNjg3MWYxNTg5MTdmYTYwODk5ZjMxYzE0ZWVjODgxZWNhOWNiODhkMjNlNGYzOTFjMWZkOTc1YmFjNThhZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1MGMxYjhhNmEyY2Y3MmUzYzhiMDY2MTk4NWY4ODNmZDRmNDJiOTA3MWZhODgzMTY4ODZmZTkxNTIyYjk3MjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3NTJmZTY0YWI2ZTc4NTVlNTlhYjU4NGNjNDc3ZThjMzBmZGQ0NTk3YTY2YjE4MmQ3YjQ4NDIxMWRiMTc1YzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cdf73bb28c584815aec840d57e572d96",
+      "statement": "A workflow-level timeout leaves incomplete work resumable, and resume reloads the Plan by id; stale running steps older than `workflow_sdk.stale_running_seconds` are recovered to failed for normal retry handling.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/runner.py#L126-L140",
+          "version": "repo-lines-v1:sha256:5b927b561c149bda82b59a79e869bca255807b91ef4e437655c05b268e2602fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOGNkOTc5NjliOTRmN2NhYmQ5YWI4NTJjZGVjZGM5Y2U5OWU1MmQ3MmVjMWNkMThiOGFlY2EyOWE5ZTJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NjdlYTdkYWM1M2UyOWNiOWViOWZhYzAxYjM5NjY5YjAzM2FmOGZhYzA1ZmU5ODQ2ZDA2NzE3YTRiNGYxYmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2YjUzYWEzYzM0MTJkYjMwMDMwZjM2MTM3ZGU2MGUxNDljNTNlNmU3ODFkODU5NTljZjE2MzM3MDc5N2IyZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYjc2Nzg4NDkwMGQwYjU4MGYxZGU2YzM0YzFmYjZiZGIwOTM4MGQ3N2M3NWEyMzAwZDgxODVmYzdkZjQwZTEifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L279-L297",
+          "version": "repo-lines-v1:sha256:e30230b624d2c39827ebb724508634a0d6c12a6ee3a81ca58c301c9b93f0a47d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNzI1NWU0YmIwYzI0MGI2NDQwNmZiYmE2NDU4ZDcxNjY0MzE4MzkxOGZmOTYwODE4M2Q3OTk1YmQ0NGZjMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4YWMyMDNhMGQ2ZTMzYWNhMzZhOWU0ZjA4ODY2YTc2OWIzNWY1OWQ4ZjhjMjkwMjk1OWYyOTBkNGY5OTIyNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNmU5NTljOWRjY2YyYTZkZDQ4MzAyZTA4NDU3MTAzMGVhMGIyYzJhMmU2ZmUwM2FlNmRlZGFkMDhhN2ZiODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NjUxMDQ2OTI1OGQ1NDYxNzlmNDQxOWNjMGUxOGM0NjkxMGZhNDYzYzU0ZTUxOWExMzMyMTNmYzhjMDVkMTcifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L315-L340",
+          "version": "repo-lines-v1:sha256:7f6d3957377c8900e1fe90653fd5aee252aa3bfa1ddaa3ab208dcfaaec111767:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMmI0OWEwMDlkYjA4MTg1MTAxMmFhNzA0MzNhNGUwZWI5N2E2MWJmOTliYjY3OTg3NmYzNmM5MDIwYWNmMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmFkYjFlNmJjMzkxYjM1OTdkYWU1OGI4MjIzNzFhZGQ2NTc1OWMwNDEyZjM2NmZmYWZlNWIwMjQ3OGVkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViOTY1OTJmNjdjMDUyOWFjY2VlZjUyMmRlNDllYzhmYjE2YjBiNWE2YmZmNmE2ZDQ0OTYzMjM1MmI2N2ZlN2MifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L215-L232",
+          "version": "repo-lines-v1:sha256:2821ad3b7c14c0f221c1dddf886828692a14419e4b57af6421e4631dd374884a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNzI1NWU0YmIwYzI0MGI2NDQwNmZiYmE2NDU4ZDcxNjY0MzE4MzkxOGZmOTYwODE4M2Q3OTk1YmQ0NGZjMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2M2RlYmRhOWRkZDQzNDM5NWI3NzA2ZGQ2Yjc5NjI0ZDViYzRiOTU0YTQ0NDdjMmExM2UwYTU4YjA0OTRmN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMGY2YTEwZWVjNmY0YmE2NTJhNGMxMzQ4NWIxYTliN2Y2YTUzYzRiOGZlNjJjOTY2ZTQxMDg3ZDUyMjlhNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1Njk5MDFkYzdiNzRjYTU0MTU1MjNlZDliYjE5MTAzMTc5MGMyODQ0NGQ0MDEyMjE2ZmQyZDdmMTIxYWM4M2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_948217f2e89a4515804608b2a89656e0",
+      "statement": "`approval=True` adds a `human_review` acceptance check; externally resolved `human_review` and `action_succeeded` checks remain verifying until external resolution and are not bypassed by shadow mode. Human decisions are idempotent for the same result and fail closed for conflicting or premature decisions.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/approval.py#L55-L99",
+          "version": "repo-lines-v1:sha256:e4cc9889cf880bd4529c2e84153f3b7235029e62c1ff0010034a0bdac53e2022:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3OWJjNzA3ZDQwZjkzODFjYWQwNWJmNjEyN2Y1OGE0MjU4NzcxZTc5MGZmOGE2YzI3ZjNlNmMyOTE5OTNhOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxZTE1ZWY5M2RjNmZhNWYxMjBiYzJlMjIzYTgwZDdlNzQ4Y2Y5ZGI1NTQwMjFlNWRmOGZmZDUxYjc3MmFiYzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3NDIyYzExZmJlNzZiZmVjZTk1NjVhMTMxN2IyYjI4ZjU2YmJiZTExZTQ5ZTNmYjNiZTcyNTRlZjM5M2RjZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L48-L55",
+          "version": "repo-lines-v1:sha256:49e0c1fb1c061c7c19fc0bcd07dc8429476de09fecb5e3f24cc9d7192399213a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIwMzllNTQzZTY4ZDU3OGIyOTY0MzFhZmY4MjhiZGZlOGMzODNiNTI0NDA3M2I5YTc5NjEzZDczMjdlNzdjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc2NGQ0ZTA0Nzk4YzY1MzA1NjQzYmUxZDkyNmY1NDBkZTQ0ZTBjY2NhODRlYzkyODlhN2Y4YzBkMmRhZjI4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjYzNGU3MTRkN2RmNjUyMmZiN2VkYTI5MGNhMThlOWIyZjgwNDE1OWU0ZmViYWZjYmQ4NTU0YzU0MDIwODE0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2E5ODA3ZjcyZDg5NDVjN2E2OTMxMDM0YzgyZGI3NTA2Y2VkZDdhNWYyNDE4MmE1ZmM0OTBlNGM3ZTEwNGU3OCJ9"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L601-L629",
+          "version": "repo-lines-v1:sha256:15db979352240e7ed35478f643f356804eca0ba3a5ed883c7876c82097841cd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3YTI3NWIyYmNkZjUzM2U0Y2U0ZTQ2Yjc2MzdiNmNiMjQ1YzhhYmYxMjBjYzU3ZWMwNWY2Y2U1ZGVmOTE5YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5N2M3MTI0N2FmM2NkMWVkZjU1NWE3ZDEwNzU5MzE1N2Y2ZGMyYTIyYWYwZGU4MmU3Nzc0YWJmMTBmOGFkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZGM1YzM1NDFiYzg0MDJkMjY1YjJiOTlmZjIzMzNmMzk1MTM1MjcwZWFjOTU2OWZkNGUyOTJhZGIxZGY5ZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNDFkNmMxMGVhZjc1MWM0MmZlNGQxZDUyYTI5YzgyNjNjMjQxNTE2YmZjN2VjYjNmODg2MzJlNDNiNzEwMzAifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L155-L172",
+          "version": "repo-lines-v1:sha256:9f6de9ef8dbd26bbeb7d8f622b14892117ee10cdb56a9c28e067d462d8c6adb2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZjMyNjQ3NDNhNTUyZDJmYTk5ODk2YWY3ZmVjODY0OTZmNjA0YzU4NTM1N2E1ZDFhOTdkZjAzYTE1MTMwYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlYmMyNjBlMDIxYWNiZjgzNWU2NWJkNmJmYzczNjJmYjU1MjA4NDE3NjU2YWI5YmM0ZmMxZDZiNTNhZDJhYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2OTcyMTY0NTY2Yzk5NWU3ZTA0MTZhNWY2NGE5NWUxMWRmODA1MDQ5MDQ2OGEzNTBmYzIxOWEwNWE2NDBhMDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9613e5d2ccbf41149d8f640f9cba5028",
+      "statement": "Independent chat steps run in waves bounded by `workflow_sdk.max_parallel_nodes`, with state finalization in declared order; executor steps always use the sequential path because they share the Plan cwd and must not run concurrently.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_plan_concurrency.py#L149-L180",
+          "version": "repo-lines-v1:sha256:445885436696d454bdc17af141609fa544f2c26183cc0c397624da667fc9e513:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTZjY2YwOWRjM2VjOTkyYzZhYzNiN2I1OTIzNDZkNDc2MWNkYzBiZTRkM2RkYTI2NTI4NzM3NTkyYzJkZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3YzJlZDcwNGRiMDk0NzJmMjdjOWEyODliNzI4MWU4ODYzMTZkM2M1YjliODY5MWNmOTc4MWIwODI3ZTdiNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViOGFkMjE4M2I4ODliODRjY2I3MjRiNWZiZmRiNjIzMWEyZDEwYzU3MzRhZjE3NWY2MmU5ZDJmYzY1NGU4NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1M2NhMjhlNWY1NTM3OGFiOThlYmJkZTdlNjA4YjI4NjdjYWVkZTFiMmY0ZGUwZDc0NDE0NDA5ZGEyYjNlYjAifQ"
+        },
+        {
+          "resource": "repo://voly/config/_types.py#L432-L453",
+          "version": "repo-lines-v1:sha256:531f2d326d12801c5925dc90fd3b1cf72bfd4545000ed498df4b36237718997b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ZTYwMzczYzc0YTJiMmM3YzRhYzUyNjEwOTcyN2I2ODgxYjNiNzJhOWI1MDQxOWE3MWE4MWM4YWE2YmI5NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYzRhOTQxNjA4OTBhMmNiZDY4YzRmYmY5NzVmNTA2OGUxNDBkY2ZhOTg0NDVlODQwMmM1MWUyZTMwNjBiMDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L163-L244",
+          "version": "repo-lines-v1:sha256:16fa2ae18d7d0fa820ff05ac1f801018abe6de3742f9f896512b83141198ece8:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlODgzOThhOTc1ZTgzNWZiNDMzMzMzYjk1ZGUzNWYyOTU2OWExMWQ4ZTI0ZTViYjI3ZWU4N2MwMzQ0YmVlZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYTFlYmJlMzIzNGYwMGU4YzQ4ODVhNDRkN2FkYjBlNWRmOTdjOGI2ZGM3MWQwYWJlYmY0MDUxOTczZDNlNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ODU4ZTY3YWZjOWE2MDcwOWE3ODYxODI3MzBjMzgxN2FiMmU0MWJlZmE2OTFiZDMxYWZlM2YyY2RkZmUzYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZTZkNGIzMTgwNTI0ZjRlOGNlNTcxZTFhYWZlM2U0ODZjZjYxNzc2NDI3YWIxNTBmOTJhNjZiYzgwMzE3YTEifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L412-L452",
+          "version": "repo-lines-v1:sha256:bf09c056de28ba395e57769bfe48b69498093b5a690a93fd265aed296ee53f1b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYWRmZjM3NjU0ZjQwZDNiZThjNzAwYjA5ZWJlMTIyMmFmZDUzYWJjMTAxNDkxZDYxZjY1ZTU4OGNkNDNiZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwNjc2NGU0MzNhOWU1MWYwYjE3OTVmYTBiNGFlNTg2MmY3ZDU1OGE2ODgxYWI0NzQ4MjQ3NzQxNjYyYTFhZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNTc2NDk0MjlhNmVjNGRmODcwMWQ3ZWNkYjhhOGUxODNkNmExNThkOGJkY2ZlMDc1ODE5YzQ3OTFmMGMxMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjOTg1ZGM5YzlkMWI5NWE2NjA3N2M5ZjUxNjZhMGMzYzA4ZjFiNzJlNTQ4NTNiMDc3ZWE5Y2Y0NDE2M2IzOTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d736f522a93c47ebbd636717bcb720aa",
+      "statement": "Cancellation persists an aborted Plan and is cooperative: the runner rechecks stored abort state between work waves or steps so an external cancellation is adopted without interrupting an already executing call.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/runner.py#L299-L313",
+          "version": "repo-lines-v1:sha256:86b71f267115d8faaff4ba308ffefce17f80cb835927adb87f85fefd26f5f518:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkOGE1ZWY2MTM2YWFiZTRhOTcxODAwZTA4NGE5ZmU0Y2E5YmVjZjE5OGU1YjQ5OTMyYTEyNzI2YTYyM2MyZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwNzQ1YTVlYThmMDgxNjRjZDIxYjFlODRiNWI2NWFhZTY3Y2ZkYTgxZmE3OWYzZWExMGEwYWVhOTQxYmY5ZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjZGQ0ZWU1NTEyYWIzNTAyMWNiMjY0NWM5Yjk4YTBlNGEyNjBiMzZjYTMxYmQyMmZmMDM3MzVmOWVkNzIwMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0ZWFiMTFiMWE0MzU2ZGI5YmNmMGUyMWFiOGM3M2E4M2U0NWFhZGYwYjc2ZDIyNTVkNWU3ODNlZGFjNThlMjYifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L342-L358",
+          "version": "repo-lines-v1:sha256:60f91ae1ca0a73a5d86c7d6748eae6cce4aec3e84d26bdd6e2a7f9d23be52571:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1Y2UwNjZjZDk0NDZlMDJkZDgwMTI0ZTc0MGUzYzA5ZDkwMjNjN2M1NTFkNDM3YWQzMDgzYmYyZWRiY2QyMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5N2M3MTI0N2FmM2NkMWVkZjU1NWE3ZDEwNzU5MzE1N2Y2ZGMyYTIyYWYwZGU4MmU3Nzc0YWJmMTBmOGFkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3MDU1MDk4YjEwYWRkNTNlZjAyMjEyNjRmZTM5Yzc1MzMyMTMyZDRjMzI2MjViMDVlNDdiNjBhZWIxYjc4NzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5OTZmOWY2MGVhZWFjZDU0MjUxOTFlMTkzYzczMWRlYjc0NWY5Yjg4YTE0ZDZhODkxOWExYWJjYTY1MmEzMzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_528c0db5969d45458f613f1250e464e0",
+      "statement": "The six SDK presets are bounded graph factories over Workflow rather than custom run loops; `reviewer_loop` is a fixed unrolled chain whose optional exit acceptance gates only the final review because PlanEngine lacks conditional skipping.",
+      "evidence": [
+        {
+          "resource": "repo://voly/sdk/presets.py#L1-L29",
+          "version": "repo-lines-v1:sha256:857ebeee4e0a12d5cf1b6af936553e741f17bc22ed13ac6d44825f0f45c900b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYTQxMGU2ZDlhNDNiYmYxYmQzYjkyNTI2MGZjZTNkMDU0MmVmZDU4YzNjMjQ3Nzc0OTgxOWM3MmJlMjZmODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMjkzNThiNTI5N2FlMjJiNjFkNWYzZGQyNThmMjdiNTExZTdiNDRhMmY1YzhhYmViYjEwY2RmNGFmNDJkMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZDg0MGQ2ZGJjYzUxZWIwZTNkNDE1Y2ZhNDUyYjIzNDM5YWYzMzI4Y2FmZTUyMDUwYzg2MTRmODM1YmMwYzQifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/presets.py#L130-L177",
+          "version": "repo-lines-v1:sha256:409090a2ade39ddab7a0177dee82286c4f92f2967e61f228971bff9a0e9bf1a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5MmUzNGFkY2Q2Y2YxYzUyNDA3MGJlY2EyZjBmZjVhZTk4MmU0MzQ4ZTc3YWRiM2ZhMjc3ZjFlYTNmNzA0N2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjOTAxN2ZkMGU2MDk0M2U4MTZmZjU5MWVjZjYwNDljODZmN2Y2YTdmNTZhYTYxOTRkM2E2ODUzMjIxMDliM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNGU0Y2E1MDdmZjJiMWFhYTg2ZDJmOTlmN2FhMDM2NGEyNThiNjE3ZWQzODgwODAxNTdhM2FiNjZkYzZiYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzOTVkZDM4NjkwODU5NjRiNTg2OGZiODFkNjI0ZjRkNzhhYjE1ZjYzZTE0Nzk2MjA5MzU4ZWJmNGQyNmFkZmMifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/presets.py#L180-L244",
+          "version": "repo-lines-v1:sha256:4522d5087faf92cba4a224a1e84608605283bf2973d2d6d6af3262c23a65e6b7:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiMzUyMjdiYTRiYWE3ZTM0N2FmODRkYzcyMTJkNjIwOWZlMDM3Y2UwMmUwODQ2ZTA0OTZlOGQ4ZmUxZWFiMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjOTAxN2ZkMGU2MDk0M2U4MTZmZjU5MWVjZjYwNDljODZmN2Y2YTdmNTZhYTYxOTRkM2E2ODUzMjIxMDliM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNGU0Y2E1MDdmZjJiMWFhYTg2ZDJmOTlmN2FhMDM2NGEyNThiNjE3ZWQzODgwODAxNTdhM2FiNjZkYzZiYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_50697871876e4cd7b7cb51f632debbab",
+      "statement": "Workflow YAML/JSON files are loaded as higher-level Agent-shaped Workflow definitions, distinct from already compiled Plan documents; the CLI provides `voly workflow validate`, `run`, `resume`, and `show`.",
+      "evidence": [
+        {
+          "resource": "repo://voly/cli/commands/workflow_cmd.py#L16-L34",
+          "version": "repo-lines-v1:sha256:bcb0827d65a20aa0db48426948760e19dfebba8361be02c5cfc1da929cdd9431:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ODQ1NDljZDg1OWI3OWFjNDE1YjYyMjQ5OGFiMTM1OGU5MGMxNjNlOTk5NmFhYTFhNWIzMDUzZWE5ODUxYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3NTI5OTYyMjJiNzg3NjNkNTUzZDAwM2UyZDkyZWEwZTJmODgzMGE0Mzk5Y2MzM2EwNjNmMjc3NmQ1MjdjMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0Yjc2ZmZiODdmNTU4NDM1MWFlN2M4NTk5ZWJhNGM4MDA4ZDE3ZGE3M2Y1M2FmOWU2MTM5NTEwN2JhYzllNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyNmYxZGYzNGUyZjAwYWM2NGNjM2I4ZmNhNzYyZTJkY2VjMjMzNzU5NWVjYmVlMjVlZWFmYzE4ZGIyYTc5OTEifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/workflow_cmd.py#L37-L84",
+          "version": "repo-lines-v1:sha256:fd2d4a202d5251f743dca45ba37b5c9faf461c656274b2c52c14283acd51c570:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OWY5Yzk5NGJmMzE3MjFkMDM4ZTM2ZTM0YjM1MzcxODJlM2JlNzJjNjhlYzJlZGZlMmI0MzM2NTQ4NDFjODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjODBkZmY4NjUwMzJjNjM0ODI5MzgyZDNkZGYxMDU1N2IxOWE5ZTc0YjE4M2VmMjA4ODEyN2MzZDc2NDllMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmYWNhMzE4YTUyNWU3YjA0ZTcxODkzMTRkYWU1NzI5N2EzNmJjN2E3MmFmOWYwYzcyNzcwOTJiOTZlYTRhYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2YjcxODAzNDU5ODIxYzg2MDAxZTI4MDdkYTI3YTI1NDQ1ZDIyMmI3ZWE2YWE3Y2M5YmQ5NmM4ZTI0Yzc0ZDYifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/workflow_cmd.py#L87-L165",
+          "version": "repo-lines-v1:sha256:0ac2b1d4b877c8d87afbeb3e822224688537c1df75afec6b4971f73382e6b0fa:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzOTUyMjBhOWJmMjRmMzU3ZjRhY2U4MWM2MzkyMzlhZjI5ODNlMjkwYWIyZTVjZTRjZjE5MWY2YmU4ZGVhYmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4MGRlYzNkNmM1Y2UxMDNjMGRjMTZlNjMzZjA3MTA3MzQxOTMxNzkxMDQ4YmI3NDYwOGE3NTk1OTdmNTkwNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NjI3YWI5YWE0YWM3MmRhNWE0YTZiOGM1ZjRjNDViZWEwNzI0ZTM0YTJiY2RkZTczNmQwYzQ0MTUyZWY2MDEifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/loader.py#L1-L10",
+          "version": "repo-lines-v1:sha256:5e48be9dfb4e43cb109141a390c551d9f068dec5b2873ae2a628da271989a9e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxNDY2ZWY0Y2UxNTAxYzgzYWE5MzExYjhkYTljNDdhNzBhMTQ1YjIyNmI3MTQyNzgzMjdjMzQ2Y2FhZTM5YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0Nzc0ZTU0ODYxZmZkM2YzYWU0MmY3MjVjNzk0OWEwOTlhZWNhZTE5YmI4M2FhOWEyYWI3NWFhMjM3YWVjYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhYWY3NjM3Y2I2ZTdlNWRiODVkNjM0Mjc0NjAxNGRmMDQxY2NkNTU4YTkyMGIyOWViNmFjNzE5ZDdiYWY1YzIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.0",
+    "at": "2026-09-06T11:56:59.124Z"
+  }
+}

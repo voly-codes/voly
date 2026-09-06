@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/architecture/overview.md": {
+      "pageVersion": "sha256:a4ef2d16acda67fb77a3df325d8db5ea7f058bbb1c69dddaa58a0cc44a865eb2",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    },
+    "/openwiki/governance/capabilities.md": {
+      "pageVersion": "sha256:47f5558cd2a1f7fb9f1b3faceb3a92f7867a0d4449b702fdb282f84715373a0a",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    },
+    "/openwiki/integrations/cloudflare-services.md": {
+      "pageVersion": "sha256:928cd8480ac79411a0948752e4a67faf3844f7c689f2c6896603f68b378325d2",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    },
+    "/openwiki/operations/entrypoints-and-safety.md": {
+      "pageVersion": "sha256:4ec52ee382e9a545fe6cba44d817e7808c5efb0537eae47107b4c21f09a5a5e0",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    },
+    "/openwiki/orchestration/a2a-and-pipeline.md": {
+      "pageVersion": "sha256:41cd3a460aea890c23d78b18baf497d4a2f036e8bd88078ada328bd9f2895146",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    },
+    "/openwiki/orchestration/durable-workflows.md": {
+      "pageVersion": "sha256:87c4e73c480aaa732b8b77e09ac8f41917f6f8b75f13a38c477730c92809ae61",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    },
+    "/openwiki/quickstart.md": {
+      "pageVersion": "sha256:547afc2dd0fcfcb3973819bccd6c0b3f6e893d8de1bff4b65de2e7912e629a4d",
+      "completedBy": "openwiki/0.5.0",
+      "completedRunId": "b5e3dad1-12be-424d-967b-95415feadf90",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:f1e465c2db976e5d0c11174abd66f99374210df53d0ad2faad3d3a8994e23b7e"
+    }
+  }
+}

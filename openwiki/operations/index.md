@@ -1,3 +1,3 @@
 # Files
 
-- [Entrypoints, configuration, and safety](entrypoints-and-safety.md) - Operational map for VOLY's CLI, FastAPI/Svelte UI, configuration, local runtime artifacts, security posture, and verification workflow.
+- [Entrypoints, configuration, and safety](entrypoints-and-safety.md) - How VOLY accepts operational work through its CLI, local web API, and pipeline server; resolves configuration and target projects; and applies executor rollback guardrails and focused verification.
