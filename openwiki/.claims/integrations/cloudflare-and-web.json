@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:373e6322b1a8145eb17dfa6c2915fbede235c8c60ba55d5665c56e563621e249",
+  "claims": [
+    {
+      "id": "claim_9cf81ceaf3ef4d6ebb8bf2583c8a5443",
+      "statement": "The open-core FastAPI UI has no authentication and configures permissive CORS; it is explicitly intended for localhost-only use, including its open run-start endpoint.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/server.py#L154-L173",
+          "version": "repo-lines-v1:sha256:37fa4a2ad29cede96819a12b8bde52c8b5ea91d9f6df9fbb67fc713ca1ccc696:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4N2M4YzU2YzY1MjAyMWU4ZGIxNDhiZTZhM2I0MDVlZjY3YTVkYjJjMzMxYzlhOWIzMGNhNDU0OWY5NWI5NTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmMmU1NTgyZDJjNGRjNmI0NTY5NmFkY2U3MDdkZmNjN2Y0MTA0NzA0YzRjNTRhYzI2MTYxNjRlZDc0NzU2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNzg1MTRkNjgwODI0YmRiYzM3NGU2MzliYTQ1NzcwYTc1YjFjNjA5MzI1OTM3ZWZjYTI4ZDcxMmZiZDRhNTMifQ"
+        },
+        {
+          "resource": "repo://voly/web/server.py#L197-L200",
+          "version": "repo-lines-v1:sha256:01860ae9397d6f19be028ecd4592f00eb6cbce88b7cfa427a6f500c4de64fbe0:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDZmZTRjNjNhYzUwYWM4ZmY2MzQ1YWYyYWRmNDFiZjBiYTQ3YTNmOWNiOTMzNDgzZmVmNzQ0N2VmZDIwM2QyNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTU1ZDVmYWI0MzhkM2M4ZWQ2YWE5M2U4YWYwYTBkOWUyZjUyMjljNzRhZjA4ZDU1ZmY0NWMxYzIwNjk3MjQzMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDJlNGE2MjBlZDJhZTE5MDljYjg1YWQ1ZmVlMmE0NGFkNWExNDBlMmQxMTZmMTEzZTI4OGZjYjEwZWI0YTMyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjJmZjUxNWE4YjIzMjcyMzRjNDAzYTZmMDI5ZTE4Y2I4OTUwMzMyYzNjMzlmMGJkOWM2YWQyODQ3YTg4NDdjNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f2ae78609e23402bbfb3ccd18822b53b",
+      "statement": "The FastAPI server stores configuration and the event-directory path in application state, includes the web routers, serves static UI assets when available, and adds a correlation identifier to responses.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/server.py#L154-L206",
+          "version": "repo-lines-v1:sha256:edccff13862d046a04491de847b9e23661bb4bebd842259a623320d9b7e8008f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4N2M4YzU2YzY1MjAyMWU4ZGIxNDhiZTZhM2I0MDVlZjY3YTVkYjJjMzMxYzlhOWIzMGNhNDU0OWY5NWI5NTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhMDExNDRiODY3YjY4YTQzNjJhZGYxNDZkMmUxYmM3YzkwMjFlOGM5NjE5ZGJkZDJjNjhhNDVhYjA2OTQ0ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmMmU1NTgyZDJjNGRjNmI0NTY5NmFkY2U3MDdkZmNjN2Y0MTA0NzA0YzRjNTRhYzI2MTYxNjRlZDc0NzU2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmIyOWM0MDI1NjM3OTcwNDY4YmZiZTEwODJjZjY2ZGVmMzM4ZDRlNDVmMzUzZmFiYmI5ZmViN2Q4Y2YwY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_43e497a02eeb4dbe9bc778ceada8db00",
+      "statement": "The web server starts a best-effort watchdog which periodically reaps stale RunTracker records using configured timeout and stale-factor values without allowing reaper errors to affect requests.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/server.py#L206-L208",
+          "version": "repo-lines-v1:sha256:636edad3b770005aec46f8679278e4556a960e5b9fb84045d38afd5b51e986cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGEwMTE0NGI4NjdiNjhhNDM2MmFkZjE0NmQyZTFiYzdjOTAyMWU4Yzk2MTlkYmRkMmM2OGE0NWFiMDY5NDRmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmQ2N2I0NjYzNzg3NWMzYmI3ZjkwM2IxZGI4NzM0YjRhMjk2Njg1ZGY0ZGJlNjZhNGY2Y2VmN2ZkYzQxMTYzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzUzMjUzOWZlMjVhY2YyNTkyNjBiOGFkMTJhOThiOWUzODdmY2IzMzEwMmY2NTQ0YzMzZTYwNmFiYjBiMDk5MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmZjZGUxYjI3MmI5MDY0M2MxNWE3NGE5MjU3MDBlODk1MzhmNTkwMGQwYWNkZGU0MDczOTgxMzkyYjFhZDY3MSJ9"
+        },
+        {
+          "resource": "repo://voly/web/server.py#L55-L85",
+          "version": "repo-lines-v1:sha256:e8e0b8370142db34d8ab514694a2fdda6c80ae7f28cca80368dba8aa4453a725:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3OTQyY2FkNTE1MmE2YzNjOTcxNjUyNjM2NTkwNTlmMDc1Y2U0ZWJiMTFjYmQ1NGMxN2QwZDBhN2IxNmZiM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkOWEwM2I1OWQxZDdhNTZiZWZiMWE5OWQ5N2Q0NzE0ZWYwMDNlNjczM2NmOGZmNzQ3ODUyOTc1MzJhMjU2MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzg0NWI3NGY0MjYwY2YyMGVkYWEyNmQ3MjZhZWViZWY3YzIzOTNjYmE4YjIxNmZiYzI3OTAwYTM4MTNkZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlZDdiNWRjZGJhNWI0ZmQwMWY5ZWQ5NWNjNDQwZjJkZTEyZmQzNTkzNDljZTNkMGE2NDI3YzdiMTMyMTQxOWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_00f20128a25b455cb00ca4f131845d58",
+      "statement": "VOLY separates in-flight RunTracker records in the runs sibling of the events directory from completed TaskEvent JSON files; local service functions expose bounded, safe reads of both stores and filter child runs by default.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/service.py#L151-L197",
+          "version": "repo-lines-v1:sha256:fac34946d5f313bd49ae1e5e08aaa580c22e70e60a7d146dbd6ecb2f8bd5f35e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4ZWQ3OGZhNGZjYmY1NjI1Y2JhZjQxNjk2MTM4MzkzYWU2YzBlMzZmYzM2ODYzNTAyMTQ3NjkxOTM1Y2ZjZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NDAxMzE4NTA2NGE4YjhjYThmNmU0OTIxNTk0ZGJhMWIzNWNmZjliNzUxMDQwMjE1M2ZjMzA1Yzc0NzA2NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmOGQ1ZWM2NGI3YjJkM2Y1NjIyZmNhNGMxMjI3ODNlODNjZTY4NDIxNzMyMTBiZWU2ZGQ2ODFlNmIxZWVmNTgifQ"
+        },
+        {
+          "resource": "repo://voly/web/service.py#L43-L45",
+          "version": "repo-lines-v1:sha256:fd153bee7e3a06797106c129c6906df85f7768cd2a203fff628d16b1d0c31384:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcwYzI3MGEzMjk1NDIyNGFlZmRmMDU1NTc1YTY1YTJjZDk3MmYxYTYzMWE5NWY4ODMyZjlhN2YzNzZmOGViOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODFiNWJhODY1ZDA2N2M1Y2ZjNmU2NzM1ZTFmZTBlZmExZjhkMGU4ZmQ0NDU3MThiY2MzMTk4MDUyNzhmMThhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWJkYWM0YjkxMGIxYjEyNThjNGY0YzY1NDYyNGZmNzFhMmQwYjI5ZGZkODcyZTcwY2M0NjJkMzcwOTE4YjFiNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmI2MDcwYTNhYTk0YWM3ZjNkYjZhYjk5ZDkwMzdmMTgyODI3ZTFkNzBjMWU2ZDljOTRiNDNmYjE4NWNlMWI4NSJ9"
+        },
+        {
+          "resource": "repo://voly/web/service.py#L60-L102",
+          "version": "repo-lines-v1:sha256:9425853720bd6e97c0b6253f889c2a0869488150ecbae85222ec77b59d0c9b5e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNjExNDkyNmIwYmI1YjRiZTZkYjI5ZDAyZWE4ODExNjc2Zjc4NjY2Mzc3ZTNjNTU5OWI3ODYxZmExMTM1ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhMDBjM2Y0NGM5NGNjY2Q0ZGU0NDZjYmRhNTQxZDBlMTJlMzZkYTBkOTFlY2UyZDExNzgxOTU3MzMwZGQ1YjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_67459b034c024f7a97c70bbb4f742699",
+      "statement": "POST /api/run creates a RunRecord, streams start and periodic heartbeat events while thread-pool work runs, then finishes the record and streams done or error; an SSE client disconnect stops only the stream, not an already-blocking executor call.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/run.py#L499-L625",
+          "version": "repo-lines-v1:sha256:33404137d30a322c0b16b0ec75a0a3baf7a37ab69b07c79d2b0c6647eb7373d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMTI1OWEzNWNiNzE3ODJhYTJhMDk4ZDEyMzkyMTQ0OTk1NDE1MzAwMjA5ZTYyN2FjYWM4ZWVhMThlZTM5NDUyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2MWUxZmY5NTIxNGRlZWY0Y2NlMTQwMzA5ZTVhMzQ1NDQyYzgwMWZiMzRjNDQ0MDY4MWRkYjMyOTFhZmIyOTQyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlNTkzNjhhN2ZhM2I0MWVhYWY3NTMyODNmYzhhNzY1ZWE0OTY4OTRkMTE0NzZmMmU5MjNkYjNlMzM5ZjJjNmYyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5YTE2MGRiZDU5MjhiZWZlYjIzMjdiZjBiMWRjNzU5ODNjMzg0ZjU0NjdmYWI5ZTYzZjE5OTZmOTNkMDRmZDVlIn0"
+        },
+        {
+          "resource": "repo://voly/web/routes/run.py#L628-L712",
+          "version": "repo-lines-v1:sha256:0e6aa45ea352d5880af60d4884fac094f8a4f3f70d29cd4974fdcc5fb2a6daea:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMmRiNWIyNGVhMjg4ZjBhZjkyNTNkYTBiNmFiOGRmN2VhYzdjYjZjYTkzOWQzN2M0YWY3NzI0NzdhNTA1ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmZDg0NWMxYzJjZGY3YjhmZmVjZmM0MjJiZjM3MDAzMDc0YWNmNGRiYTQ2NzllNGI4ZWU2MDY5YjljNmQwOTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1YWNiNWFiMzdjZjkxNGQxZjZhZDRlZTI4ODBlNzk4OWE3ODlkYjAyNTFkNTZmZWJlNWUxYjY0MWY2YzUxZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4e7f7ed8fde24953a9558c31df9aaeea",
+      "statement": "Run preparation keeps complex multi-capability tasks in the A2A pipeline, promotes code-generation pipeline tasks to claude-code, and otherwise leaves text-only work in the pipeline; review-until-clean rejects dry runs.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/run.py#L408-L462",
+          "version": "repo-lines-v1:sha256:5b673920ddcae6622f6f74f1cd4d239b5f51dc8439a284eaf874ab937ad02ef2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0NDA0Zjk5NDA3MjQ4NWYxZGZkMzRkYjFlMTA1ZjY0MjQ3OTJjODcwYWIyZjQ3OTgzNTUyOGJlZDhlZjQ0YjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMDg1MWFjNWEwNGQ5MDdlNjRjOTA4ZTUyMDQxMDI4YmI4M2ZkMGZlYWE3Y2ZlNTdjYjBjZmM4NjQxNDA2NTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiNDY4YWQwYWJkNWRmODYyMGJiOTRiZGZmZTg1ZjQyMTEwZWNkYThhZjc2NGE0ZDVjM2JhMDZiYWE1Zjc3M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMWRlNGI3MjEwNGVlZjM4MGI4NTVkODI4YzMyMjk3YTAyZGE2OWNhZmMxNmMyNGY1YjJlNTY3MmQ3ZTc3MjUifQ"
+        },
+        {
+          "resource": "repo://voly/web/routes/run.py#L473-L585",
+          "version": "repo-lines-v1:sha256:a505413574c39a220ea84ea25bfe6835f227f91df7afcb2eceac919182df451f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmNWE3ODM2MzdjNTM1MGNlM2Y5Mzc5MWI3OWJhMzJmYzFmYTU3YTk2MDU3NmVkNzA1Yzc5Yjc3NTNiNGVhZWE5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYzY0NzljYzIzMDQ0MGZkNDFlODIyNDIxODY3OTY5ODU1OWQyODkzYmQ2N2I0MzgwYWZhYjgxMWIzOGE1NWFhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyOGZkYTVhNzg1YzRhYmI0MDRmMDM3NjE2MjU1MTdkNDJlOTFiYjZhZGQyNzZiMjgyZmFmNTc3OGU0MjdlMjJiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxNWY4YTA0MWI1OTY0MTlkOTM5YzZhMzY1ZDkzNTk0Y2JjMzgyMGNiZTFiOWFlMTkyNGFkNTIyNzNkNDYxMzgyIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ce2b25638464858bf3aa9e84cd5a051",
+      "statement": "Run cancellation is cooperative: the API records a cancellation request but does not interrupt an active subprocess, and it returns conflict when the run is absent or no longer active.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/runs.py#L49-L61",
+          "version": "repo-lines-v1:sha256:f5dd6a9f7fed4ea9738a8d5dcb274515c04ca530efe66fbe32d0014263c4afdc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1MzI2OTVmZjkxMTMzNTM5M2YyZWMyMjNmYWE0OWMwZTFjNTJjNDU2YzQ3MmU0ZWE0MzkzYmRkMTNmZDgxOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiOTIxODc4YzE4ZTBkMzFhOTNmOGNmM2Y5NTA4NzRiYThiODVhZDI2NmZkZDQ0MDc3ZmMzYWNmZjY4MzNiNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/web/service.py#L190-L197",
+          "version": "repo-lines-v1:sha256:293a5d9ca5913a7cff1bb7ca8bf9849e2fe8b18f650254814f4481e0a44f081a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDYzY2FjY2MyODA3ZjFjNGZkMTAxZjIxMmMxNjJjOTFmYjg0Nzg4MTNiZjYzMTRjYTRhZTE3MDY4MGVlMTU0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjg0MDEzMTg1MDY0YThiOGNhOGY2ZTQ5MjE1OTRkYmExYjM1Y2ZmOWI3NTEwNDAyMTUzZmMzMDVjNzQ3MDY0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjc2MTcyNmEwY2MyNDFhMTQ3OWM1NWVkMDlmNGMyZjE1YzA1ZTYzNmZlYzJkY2NkMDk0ODE2Njc0MDYwMGI1OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Y4ZDVlYzY0YjdiMmQzZjU2MjJmY2E0YzEyMjc4M2U4M2NlNjg0MjE3MzIxMGJlZTZkZDY4MWU2YjFlZWY1OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_99ccfc7b3cdd4545847be1d29b01b346",
+      "statement": "The tasks SSE endpoint polls local event JSON files, marks its first snapshot as init, emits later additions as new, and sends five-second heartbeats when no event changes.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/tasks.py#L66-L117",
+          "version": "repo-lines-v1:sha256:3035c5d88099401ab305ce8201d2de2d1a4132994ca2902027a949e45a961a14:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3YTE1MDBkZGQzZTU1NjI1MDdhYzM5YzRjOWY5MjhlZTBjNjU0NTMzODdmODlhZjA0YTllNGY5ODNkOTUzMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MGUwMzM4MTdjNzRhZWQ3ZDRiOWY2NWRkMjJlOWY5OGFlMDliMzBhMjVlZmMzODFkODUzZDVkYWJlZDhiM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmMDNjY2IxMGM0NjhkNDU5YWE2YmNkYmYyYmUyYzY2ZmMzOTFmYWQ2NjIwNTNiMzAxOTEyMTBiOWYxODA3N2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_523d45101d424727972a4f900dd1396e",
+      "statement": "Workflow API execution and resume stream lifecycle changes by polling the same persisted PlanStore-backed SDK workflow plan read by list and detail endpoints; approval errors map to fail-closed 404, 409, and 400 HTTP responses.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/workflows.py#L119-L180",
+          "version": "repo-lines-v1:sha256:ed2c8239aa6445005eb55669be970ab8da1068d4acb04d921ba7a7e4460942bc:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZjQwMzE3MmE2NDk3YjliYmRhMmJmZWMyMWM4MzlkMWFjMjVjYjMzMjI0OWRmMDQ4Mzc1ZTEwZWU0YWYwOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYmRkYTExZDJmYjBiN2U0NmJkZTBiMDk2MjI5NDk4OTY3ZTNmOWI5NzY3NmEzMDlmNWMxMDE5MWJiNTBmZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4M2Y0ZjBjNjQxZjNiYTBmYmRjNDI2ZDk2ZDBkY2YxNGViNWZlMDM5Y2RlZWViOWE3M2RlZGRmY2NhY2M1NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwZWM4Mzc1ZjhjMTlmNTUyMGRkODQ3MDg4NmVlNzJkNGZmOTkyMjY5ZWM1N2Y0ODRmZWI2NDYzYTQ3Zjc5ZmQifQ"
+        },
+        {
+          "resource": "repo://voly/web/routes/workflows.py#L185-L263",
+          "version": "repo-lines-v1:sha256:348e0c90205865ea7674ed30d982cfe1814ae66e40c4d08eb42c0b9a4e8cfeb3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2MzU1YjY1ZGE1ZDgyZTIwY2U3MWViMzdmODUwN2VjZGU1OTI1NWZlODYzY2JmY2MzZmQ2OTNmYzFmZmEwMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2MTMwNmQyYjgxNDkwYTQ2ZmJhYzkxOTE4MjY0YmZhNjY1MTkwZDM5MzMxZjZhNGIyNzA3Y2JmMzMzOTAzNDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiNTFkNmI1YmZlYTljMjdiMjYyODJmZWQ0ZTE3MzIwMDc0M2ZmNzkyOWQ5NjEyMTdmYjM4ZjkyNmJkY2UwYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_17960bf622e04b6385baf1f99517f699",
+      "statement": "The Svelte run UI consumes run SSE frames, adds start events to its live-run store, refreshes after completion, and reads selected text attachments in the browser to append them to the task rather than uploading them.",
+      "evidence": [
+        {
+          "resource": "repo://ui/src/lib/api/client.js#L51-L70",
+          "version": "repo-lines-v1:sha256:4849d2025f3f09ef6e8432f164cd912e1db261ef7b7c8f57feab3f9243147985:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyNTg1NWM5NmQ0M2I1ODQ0YTcwMDg0MmIwZmJkZTA4MGE4MjY2ZWJlMmE1YmI4NDM0YWE2NzYzMDA0N2NmOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhZjliMjU0NTdiNjRmYmEyMjEyYjM4YmE4MTljNmY2M2U4ZTA1M2MzN2Q0OGM2YTZmNmFkODUyZmMxZWIwNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMDNlNWQ0YjhkMjFmZjA2NWY1N2Y2N2M4MjEzMzA5NDI3Y2VkMTY0NmY3NTBmM2I3NjA2ODM3OGM4NzVmZmIifQ"
+        },
+        {
+          "resource": "repo://ui/src/lib/components/tasks/RunPanel.svelte#L267-L295",
+          "version": "repo-lines-v1:sha256:c453c9e95bd136b184b5a4225d8bf408d3c6599245656f76139fa962449b4abe:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZWE0MDQ3ZWI5YjdjNWFiMzNiZDY0ODNhNDJmOTc2NmI3NzcwNWZhNmI1Y2EzZmY5MWMyYjg4MDE4ODM1NGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4YWQyYzM4NjFmOThkMzc5Zjg2YWVjNzNlMDRjNDI1MGI4NDEyNDk0MmZjZWZjZTlmNzhkNzI3NjU2MDg2YjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwY2IxZTg0MmMyYzAyOWVmZGJlMDI5MmNiOGJjNDg4ZTU3YTVkY2EzYzA0ODA1MTEwZjNlNDI3NTcxODcyMzEifQ"
+        },
+        {
+          "resource": "repo://ui/src/lib/components/tasks/RunPanel.svelte#L52-L90",
+          "version": "repo-lines-v1:sha256:48189d5b4e15b3a60b7b8e762fbbefa8dda2a40817541145eddb308034e3813c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZjI4YzhlZTE0NjRjZjhhODdlZWYwYjQ3MzFjMmM3MWNlZDlhNGExYzkwNjQ3NDMxMjAwNGY3ODRiMTNkN2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjMTg0ODkxZDM4MTkzZWMzYWJlMWE3YjZiOTQ4OWY5MGMzOTJjZGJlMDg5NWNhZjZhZWNiMDY3OGYwMjNiZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjZTE0NDYxMjE0NTk3ZDA3N2U4MmY4OGU4N2I4NDRkYWExNmU2YzM5ZDI0NmU4MDU5MWUyNmNlYzFmZDFlZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e70b5a23c2d7427cb360d4d8c918fd4b",
+      "statement": "The MCP server is a local transport facade over the shared web service: run starts return promptly and continue in the background for later polling, while annotations classify reads, destructive non-idempotent starts, and safe idempotent actions.",
+      "evidence": [
+        {
+          "resource": "repo://voly/mcp/server.py#L1-L27",
+          "version": "repo-lines-v1:sha256:9676e3aa67d70a36e4f3cb8291ce7b975c8730e190d7318c2d483a38ee8fa6e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2N2RhNTAzNWIxYmY0YmRhNGE5ZTU0YzU4NGIxYTc5YTg3MjZkMmU2M2MwYjZhNDgxNGVhZDNjNDI0ZTNjMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkOWE2MjUwYTUxMGFiYTU1M2YxMTIzZjA3Mjc0OGE0ODRkNzk4Mjg2N2Y1MjMyMTMyNTBiYmFhMzhjZmUxZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhYWY3NjM3Y2I2ZTdlNWRiODVkNjM0Mjc0NjAxNGRmMDQxY2NkNTU4YTkyMGIyOWViNmFjNzE5ZDdiYWY1YzIifQ"
+        },
+        {
+          "resource": "repo://voly/mcp/server.py#L204-L274",
+          "version": "repo-lines-v1:sha256:821796af30edad546f9bad47a03ed69cd0bd942ad9e6352ef9b8c26c093638eb:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZWMxMTUyODRkYTFjOWZjNmM5OWUxMjc2MGQ3YjAxNzE0ZjRjYTUwOTY2Yjc0YWZmNzU5NjBmMGYzYTg3NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjNkZWVmNWRiMzkyMzQwZjdlNzM1MmFkMmQ2YzAxNDM5YmU0ZjNkY2I5YTgzOThkNDZkYTk3ZjM2NTBhODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNDIzODFhZmI2YjBmNGQ2YjIyOTI2Mzg3NzNmYTg2MmQ0YTcyZGNkOTE0Njk4ZTg3YjFhMjI0NzIyOGY5NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkZWU2Njk5NzA3NDcwMzZiMWM0YzdjNTkxNGMyYjMyNTJiM2Q3NDE4ZjdjMDk3ZDE1MzI0OGQxZjVmYjE5ZjkifQ"
+        },
+        {
+          "resource": "repo://voly/mcp/server.py#L47-L61",
+          "version": "repo-lines-v1:sha256:a1bb397bbf6dc785e37ac18dba4af56d9c18fc10e29494929ef6acd19f83118f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5N2I4NDk0NzhkOWU3ZjczMTYyOWZkY2ZhYTJhMGZkNDFjYWE3MGZmOWViMDc1NzY1MzdkMDcyODcyMzRkZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwYmZlMDUwZDEyYmZkYTZmYmFkYTA5M2VmMGM5MWZkMDFiYjk4OGRkYWUxYzBkYjhjYjkwNjM4MmI0MDcxNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://voly/web/service.py#L202-L264",
+          "version": "repo-lines-v1:sha256:a9908f244317cabf9d19ca9dad589f9d776d6ad13389b0e410b257b1475d6582:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZjJiNjgxNjI5ZWE4N2Y3ZWZhMzZkN2Y3YzZmMzNjODRhMTQzNGU5MDI4NzUzZGZlYzRhYzc5YTg2ZGZiOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1NWE4M2JjNzhmOWEyOTkwYzFkMTk0N2U2NTJjMWZlMTQyYjc3NTEwOTQ4MjI3MzM5ZDkxN2EwYzZhNGY1YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NTYyMjE3OGI2MjEyMjU5NGU4Njk4MDVjMTBiZWE0MDEwODU0MDNjNDNiMTBhYTIzOGI2ZGI4NDIxYTY5OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3d30793f3a55467a92e72c82696a41ee",
+      "statement": "Cloudflare capability matching is advisory: Python attempts the configured Worker only for balanced routing and falls back to local profiles and scoring after errors or unsupported policy; the local web endpoint similarly proxies then falls back.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/capability/src/routes/match.ts#L12-L99",
+          "version": "repo-lines-v1:sha256:82fe28dbb7c367d09747d542cacad35d3ec1844153498b8862b2cd215cc25355:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyYmNjYWQyNzUxZjVlNGUwZmEwM2E1MGI2YzZiYWFjMDE2Zjc2NDAyZjQ4ODI5YWI5ZTIxODMxM2NhNzIwNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2ZjkwNjU4MjA3YWNjMDQ3Y2EyM2ZjNzY1Yjg2YjdhMjIxZmNmNjliZjQzYzNkZGFjOTdkMWIzODU5YzQ3OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://voly/capability/matcher.py#L33-L51",
+          "version": "repo-lines-v1:sha256:7747191547b144e8dcd5c23abd72a1375717028700d76ad3fc887f5b88761093:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4NjNlM2NjNzQ3MWE0MjQ2Mjc2ZmQ1OTY4OTJlNTY0MzIyY2M2N2U2YWY5Y2I3MDRjYWViNzJkNDk2MzgxOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZmQyM2ExY2I5NDczMmVlM2MxYjRhOWY2YTg3YzMxY2QwNTk1ZDdlM2Q1ZmI2ZDQxNzdmZDU3Y2QzYTBjODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwYjg2MDdkNmQ5MWYxMjI2ZDI3NTg1NzRmMDJkYjUzMWY4MjFlODVlOTdmOGI1MzI5MWM4OTU4ZmZhNzQ5N2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwN2ExMjMyYjAwN2VhOGI5MDcyZjdhMThmYzMzNGZiMjU3ZmZiMTQxNDFjZjhmM2MwNGE5NDBlNzFlYjZkMGQifQ"
+        },
+        {
+          "resource": "repo://voly/capability/matcher.py#L91-L141",
+          "version": "repo-lines-v1:sha256:ca007e566a7d0cd4967581d53cac62a2c726167aea7fc803bb617d1a4d54c36f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxNGQwMTE2OGNiOGFiMjQwNzFhODczNDkwMTU4NDlmYTUzNDM5M2ZjNTNiNmRjNzVjNzJjMDMxNjFjMGZlMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDc4MzkyZmZlOTM1MTNhNGNlYzA2MjQ2ODZhOTcyM2Y4MzgxYjM4YTNjNjBmYWQ0NmYzYjEwYTc2NjVlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmNzlhZGE0MzMxYWUzNGQ1MzcyMTBlZDY3NzQ3Njg1NDg5MmI0ZWVlMjEyOTI0MjgyZDNlYTEwNjVjNjRlZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZDZmOWU1OTZjOWY4NjhhOTM1MWI2Y2Q4YTY2YzM0YTc0MmYwMTNjZWI5ZWM2OWVjZTA4YWJjMWI4NzExZmMifQ"
+        },
+        {
+          "resource": "repo://voly/web/routes/capability_api.py#L33-L75",
+          "version": "repo-lines-v1:sha256:2ba9ea97df1c97dd1efef12196a6822c86a1b7bcfc9fd8ccf52c155af611d8d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NDM5NGNmMWU2MmNiZTFkY2FlYWZjMDRlYTM0ZmQ5MzZmZDEwM2E1YmRlYmM1ZTczYTM3OGI5OTQ1NGI5ODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZTgxMGVlZDk4ZDlkMjkwODZmZjA5YzhhN2NhNzcyOTk4NzQyZjZjMzE5OThmMjBkOGJhNmE3MTgxNjljMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiNDMxMTZmNmM2ZjVlMGE4MjkxMTgzOGMxN2E3Mzg0OTk2ZjY1NWVlNWNmMzFhNjIxOGIyMDhkODRlOTBiZDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d4e042f4bc714e0abf8a74d071a8a5ac",
+      "statement": "The Cloudflare memory Worker embeds and indexes memories in Vectorize while storing full data in D1 and a JSON copy in R2; the local MemoryStore writes SQLite before best-effort remote replication and falls back locally when remote search fails.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/memory/src/index.ts#L22-L130",
+          "version": "repo-lines-v1:sha256:fac5f21475f3e658ce728b2e146974034311559a1bfb5b663fd455fa7a0c68a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYjMyMTU0NWExOWQyNzUxYTc5YTM4Njg2ZWFkMTM4ZWY2MTkzYTM1YWM4ZmI0NmQ0NmU1N2ViOWEzMTBjYTE2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2YTBlMmU4YmE3ZmExNDQ2ZWYwNzhkNjIxYjUwNGY3YzBmZTAxZmY3MDJkYjQ5ZjJlMDU3MmU5ZWFiYWQ4OWI2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlY2Y4NjU4MDYyNmE4MDE2MjBmNDFhZmM2MWVmNzllYThkZjIwODcyYzM0ZGM3YWViNDQ4MTNkMDI3NmRjNTllIn0"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L151-L204",
+          "version": "repo-lines-v1:sha256:cffd6bd19115b563d4e4d3be01afe353f1128978c94b742ea31866dd951852b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYzE0YjY4M2Q4NjEwOWQxZmVhNDhlMGZlM2Q1ZmJkOThkNjBjYzYwZWM0YmFiNWNhZDY3YmRmMGRjYTdmZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYTVmMWZkZmY5YmFkY2M5OThjYTY2YWY5N2M0OTQ4MjYwNTU5YzQyOGM4ZjU5NTllZDU0MGE5ZjJlMGVjYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZWNhYzNmMDQyMDc5NmQzODYxZjM0MjgzNjAwNGIzMDQ4ODZiNjNlYjdjZjIxNGNjOWVkNmVjZjMyYzIxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNjVlODI0NWZmMDA5ZWZkNDgwYmY2MDc1YTEyMDZhYzAzNmEzMzU5OWYyNGRjNDFiMzA2NDk3ZmY0MWFhZjcifQ"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L238-L267",
+          "version": "repo-lines-v1:sha256:65c697b47e9a95772cade2254b241ad2ef334c87a90c5b540731cfc3e9977592:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NWY3ZjdhMTE5MmQ2ZjM4ZDhjOGY5M2JhZTFkNWY0Y2E2ZGYzYmMzZjczN2M2OGU1MjUzNzc3ODJlZWFlNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNzdhNTA5MzRjNWNlZmQ1Yzk0NDNmZjA3NTcyOTUwNDYwOGVjM2M5MmQxM2M1YTVhOTdjYjQxOGVkMGE0MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NzM2OGFjOTMwNWYzMzgzY2NmMmU5ZDA2ODhmZTJjZGVmZWJjNTE0MmRkOTAxMTVjNjljNDYxZjQ4MzQ2OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiMzAyOGU0NzY4MGEwMDQyY2YyZTZjY2QwNWJlNjNhNDFkYWNlNWQwM2ZiY2YxYTM1OTNhZjU4ZjgzNTliOGMifQ"
+        },
+        {
+          "resource": "repo://voly/memory/store.py#L327-L377",
+          "version": "repo-lines-v1:sha256:04c18ed9116e841c36d1ada1f32ecbb3584eff8af915a700ce15f1df64a00d1f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkMTg2NGIxODlkYTVhMDE1NWU0NTYyZjIyYTY4YjM3MDgzNzE1ZjkwYTQ3NmU3MzZiZGMzMmJhODk2ZjUyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmYzMzNzEwZTUwNWRhOGViMDFmN2JlODk5M2RlYjkzZTUwMGUzOTYyMmU1Y2Y5NDdiOGEzNmRiYzU1ZWI4OTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYzUxOTEyMDg3ODBiODYyNWY5NDQwNzMxN2I0NDY1ZGJmNjE4MDdlMDZmMDM5MTk4OWQzODA3NWY3Y2I0MWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZjY1MGZhYjVmMmM5MjFlODU0ZGFjZDcwYWQzMGQzOGJlOTk1YTQ4ZWRlYjcwMzU4ZGYwMmQ2NTY3ODI5MDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0aa3946db08545b09d39b327ff9507ea",
+      "statement": "VOLY persists a complete TaskEvent locally before optional cloud analytics delivery; remote telemetry records are allowlisted to exclude prompts, results, errors, repository paths, reports, artifacts, logs, and A2A assignments, and failed uploads do not fail local persistence.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/telemetry/src/index.ts#L76-L174",
+          "version": "repo-lines-v1:sha256:9167acb5cd24749e6bb3588f998f8326f7d870b9a2e287484f717a63650bf1ee:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MDZiNDgwNGJiYWUxOGVlM2YzMDMxMTMwNDQ5NWI0ZWM4NDk3MzRmNTk1ZmE3YTcyMjc5YTRlMzU1NmNjYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlNDRkNjQxMWI2MmUzNmI0NGYwY2ViMGQ0ZjU1MWI0MjI1MjVhM2FmMGIwYjBiNDQ3MGVjNGY2MWE2Nzk2NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwMjJlMjg2YjU4OWE5MjNjNTY4ZTQ4NDVlNTA1YTczZTgxNzlkYmUzZjQyMWUxOWJlODI0MTNjMmIwY2E4ZDQifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L269-L340",
+          "version": "repo-lines-v1:sha256:3159f7279888080656f330b8a04f1c95e3a9b347de75bc0943944e981a4b6438:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYmRiM2FmMzY2YjEyNzFkNGRhNmMwODllZWY2NGNmYjZhYTI0OTBiZmViMDlkOGJjN2NjOGExYmJkOWQ5MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZTg4OTVjMDk5YzM0NTFmODM1M2NmZjRmNTc1YmI2N2Y1NDQ0NGExM2UxM2E2NDQ1YTAzM2Q1MzdkZGI5YTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlNGQ1YTY2MTVmMzczNGRjOGI5OTk5OWI3NGI2ODIyMmQxZWE4MWUwN2FhMTUxNWVlNTNkOGJlNDExNGI4YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMGI1MDE4MjE2MDUzNGVlOGFlYjZiNDY5YWIzOTJmZDI1ZTAyMjNiNWY5YjZlODk1OGZhMDczMzJkZmE3ZWEifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L355-L390",
+          "version": "repo-lines-v1:sha256:3e3bfd756b71dfcdb78eeb2b03bc25a7044d26341c2b82c99261d185796ca5c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YTdjY2NiNzk5NDM3NDlkYWNkNThiNjljMGFkNGUyNTg4ZjEzN2RiZWZiZGFlMWI5ZDEyOWFjODlkZGM5NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYmRkZTZmOTJlODY4OWIyMGM5NDFkNWRkMGQxMmU5YjM5NjNhM2JjYjc0NjU3MWVmMWE5MWNmNDcwNWNhNTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_da2460363c80429aa78051766d6c559b",
+      "statement": "The Cloudflare spend Worker delegates accounting to a global SpendTracker Durable Object, while its AG-UI session Durable Object retains only the latest 200 events and broadcasts submitted or WebSocket events to peers.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/spend/src/agui-session.ts#L4-L85",
+          "version": "repo-lines-v1:sha256:92dc50f8c4430fa22efe588d19685d679cd35ae7ed1e5e604ff64a609b4aedd2:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwM2JhNzc1NWYyZjRiNTJlN2U2MGQ3ZTlhYTg2ZTk5M2ViYTQyYzNmNWI3YWNhZGY1MjYxZDZjZDU4Y2RkOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkZGUyYjhkYzhhOGY5ODEzNzY4Y2Y3NWU4MWRhMWYyYWM5YzE1ZGVlNWFhMGEyNTE0YjUwMDBhOGEwOGViYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwMWNhZmFjZDU2Y2ZhMmFmZGIzNDY3NTM2YzlhMzVjODc4MTJiMzQzZWZjN2M0ZDg3ZjkyOGM5YTIwNjg5MDYifQ"
+        },
+        {
+          "resource": "repo://cf-workers/spend/src/index.ts#L18-L114",
+          "version": "repo-lines-v1:sha256:8fce9e2713f1abcdd5190c4b9f5bf5d9306d37637e2b79aa53ecb383eb01c951:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3ZmQ3ZDFjYmY1YzQwMDRkMzI1Nzk2YzhmODhiOGI2ZTFkZTEwNWNiOTI4ZGRjNjRhMDZkNjVlOGViNTdhM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMGUyZThiYTdmYTE0NDZlZjA3OGQ2MjFiNTA0ZjdjMGZlMDFmZjcwMmRiNDlmMmUwNTcyZTllYWJhZDg5YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlZmFjZTQyMzg4ZGZmODRlODgxMTYyYmVkZWNhOWExNDJmOTA0MzMwZWQ4ZGRjMzlhYzVlZTkxZjE3NjIyZGEifQ"
+        },
+        {
+          "resource": "repo://cf-workers/spend/src/spend-tracker.ts#L24-L95",
+          "version": "repo-lines-v1:sha256:b037310df128894183eb67617b0908ed0bd46d2319b2a5867edf6c959020569e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2NzQ5YzBlYWRkMjZjYzI0NDMzYjU3NzBlNDYxMWM2NDg4ODQzZTQ5NDVkMDUxMmFkZmZiMmU2NmZhZTMzYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMzBjMWQzYTVmMGZkNzhmMzAwOGJhMDAwNjgzZDIyYTIyODQ5ZWVjZmRiYmE5MjM5MDhjMjJjZWExNTc1ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzM2VhYjg2ZDBkNWIyZDM3YzM2YWI3YmJjNTRlMGEwMzQ4MjUxODNiOGIzYTQ1MmJmZTY1YzU5MzdhMjA4ZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNzM5YTA2YzFjYmIxMjQ0ZTMzNjNkMzhiY2Y5ZmE1MGNlODRmZWQzOTljMjE5M2EzYzdmMDhkNTk5MThiMmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_41dea5c557bd4532a3d6c3af5b2594af",
+      "statement": "The Cloudflare A2A Worker persists tasks, queues asynchronous agent work, transitions a submitted task to working before dispatch, retries thrown queue processing failures, and records a failed task when an agent response is unsuccessful.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L196-L240",
+          "version": "repo-lines-v1:sha256:afbf4905aea0af6a5e43fb5d528b273f370235023a57eaa8f8531705180036bb:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYjVkZjVhODVmYzZjNzc1M2MzZTEyMWZmMzIxYmUxY2I1YWM1OTQxODNkOWQ5MzE0ZWYzZjlkZjBhM2U4MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkODk4NDAyZmM4YWNjYjc1NWI1MmRkMTljNGQ4ZmM3NTJiZDM3OGJlZjM2Y2UyM2NmOWI1NDFiY2JhM2JmZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzNTY5NzRiMDA2MzIwODg3ODQ2Zjc5Y2Q1Y2M0ZmRjOGRkMmJjMzM0ZTM4NWMzZDRlOWI0ZDNmZTE2ZGMyYTIifQ"
+        },
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L350-L421",
+          "version": "repo-lines-v1:sha256:bb0bb179d05a728b7f19145360b1ec859f8b1eda503d78b72e3b8d7a57081bcf:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZjA4NzQ3MDQyN2ZiNzk4Y2UxZWIxYTg4MTVjMGE3ZjhkMjNjOTRiMDFlYTgxMmY5NzMwYTA2M2Q4N2M2YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWNkMmZiNGYzZGY4ODQ1MTUyNTViMzk1MjNmMmY4YjU0NzJiZWVhOWY1NjZmZmNhMjA0ZGI4MDI1NjEwNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhODBiMGFkNjI1NjEzYzdjZDNjMGI5ODZhNWYwZjYyNzczZDYyMWJkZTA0ZWQ2NWFkZTEyZDczNjIxNDcyNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_afba1746c74047bbabcc2d1f09ff4adf",
+      "statement": "Headroom is an optional loopback context-compression proxy: the manager starts and health-checks it locally and returns original messages on compression failure; the agent-hooks plugin invokes headroom init hook ensure at session start/resume and before shell tool use.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/plugins/headroom-agent-hooks/README.md#L1-L11",
+          "version": "repo-lines-v1:sha256:67670d5c28a8e3deb80a40b0944fd0d3a150800f0ce3c3ddaa5d2cd96e761601:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNDUyZjZlNjk4N2M4ODI0Y2Y4YzYxNzcwZTYwZGM1YWJlMDU5NGJjN2M5NGVjZTU3ODNlZWQ1YjU1NmQxMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwY2UzMDZjZTNhZjBlNWU3ZGZmMjIzMTI4ZDVkNDc3ODFhNzVjOTY2NWM1YmRjMTEwOWMxZjJkMDgwYTFlN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://headroom/plugins/headroom-agent-hooks/hooks/hooks.json#L1-L29",
+          "version": "repo-lines-v1:sha256:ea8273bc39287631fca380461b7145f21dfe567c5b32e6e5105468a1006f05a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZWFlN2U2YTRkM2M3MWJjYzk2MzI4YzUxOWZiYTI5NDFlZTQ4Njk2OGE2ZDYzMjJmYjA4Y2ViNDRlM2VmZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/headroom/proxy.py#L151-L179",
+          "version": "repo-lines-v1:sha256:7c523c3d5909181a44ca922514110fe22a8620f078e6468032bdeeb5811a4ec1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwMmQyOWZhYjE4MTIwNjNhZmIxMjA2ZTEwNGE3ZWZjNjBjMTAzYjNjZDA3YTVjM2M4YmZjNzU4M2U3MGVkNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2MDllOTBjMjg4ZjkxZGMzZGU2Zjg5MTdjZWI2OTExODQzYmY3YjAzMWU0OTg2MDlhZTc5ZmFmMjUzMGQzZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiZjVhOTRjZjgwNzI1ZjYwNWI1OTllOTNmODBiOTUxZGJkMmU2NzkyYWY1N2Q0MWE1MzAyYTU0MzJiOTRmMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/headroom/proxy.py#L35-L97",
+          "version": "repo-lines-v1:sha256:2bcbbc157b7311cb80d00fe091a768c1d08aadfc4b0f51a674fa55392a89e297:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1NTU3Y2IxMWYyYWNjMzViMzBhNGJmMmU1MjJhZDU5NmQ1NmIxYzM2OTNiNjU2YThiN2QxMDlmZmFiZjFiY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwZTU1NWM3ZWEyMmY0ZTgwNDVjNzJjMmFjNGRmNjRiZWQ2NWQzZWZlNGIyNzgzY2IyZGQ0NDlhMDIzNDM3YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyZjI5YWZlNjg4YTNjNmQ4NGViZTc2NzQyMTg5MGNmYzUzZGEwODEwOWZjZmMwZGE2MDVjYzgzYmQyMzhiZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_48322f2b1d584a60a7fa6c142dee76c0",
+      "statement": "Focused API tests cover local status/tasks/artifact traversal, run visibility and cooperative cancellation, review-workflow dispatch, and MCP manager registration/configuration edge cases.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_mcp.py#L6-L83",
+          "version": "repo-lines-v1:sha256:586f51b977e182bb2b23b55c0fcadd37ca9ea81a89a589fa074f9f318ae481bf:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YmNjNzg5NDdiNmU2ZjFjYzg4MzU5NjZhN2ZhZTk5ODc3MTQzOWU1ZGMxOTA1ZjljNGQ0NjQ1MDJhMmFiZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYzZmMDE0MmViMTgxNTUzYTE1MjY4NjVmNjEzMGY1ODMwMmY3NGQ4MTRkMTU0OGNiM2IyN2YwYmE5NDMyYjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5ZTU0NmVkYWVlZDM3ZDg5MDU2N2ZjYTkzMDM2NTQyNDMyMmNmNWE4NGEzN2M2ODZiZjFiYTEyYjdiZTNkOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/test_runs_api.py#L32-L135",
+          "version": "repo-lines-v1:sha256:03ceaee7f53d6d0a58492d4ede0742cba2ed12c7b79f15e6dc67e2fa31b7528e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2OWQ3ZDQ5ZTZlOWVhZGU4YWNmOWMyNTM3MjI0YTk5ZmJmODkzMDJjMTcxZDllM2U3NzYyYjVhZjJjNjJiMjg5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMDc5OWI4ODBkMmYwZTI4Y2FjNGY5NmU4OTRiMTFmMDRmNjgxZjY3ZGI5NWQ1MDBiZDc0NWNiZDQwZjM3NDg3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkZTljM2MyZDg5ZjMwODQ4MTJjZWY0NWJkNGVjMGRkOTk5ZjQxZDE1N2FlNDAzZGUwMjY2YzRmMzc2MTgwZjg4In0"
+        },
+        {
+          "resource": "repo://tests/test_web_api.py#L47-L115",
+          "version": "repo-lines-v1:sha256:83c8612887abdde018024a3167385864b160f3bb52ee8ee3c87f55d92a80738b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhYjE3NTA4OTZhMGI2ODE4OTU4ZDY2ZGE1ZTljOTViMmZlN2QwYzkzYTZhMTdjMTFlNDYzOGU2Yjk2NTlkMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzOWQxMDEzOGQxOWU3NDJkNjMyYThmMDcxMTcyOGU5YTg4NDhlNjVmZTE5NThlMTk3YWY4ZWVhOGFkYjVlNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwNzk5Yjg4MGQyZjBlMjhjYWM0Zjk2ZTg5NGIxMWYwNGY2ODFmNjdkYjk1ZDUwMGJkNzQ1Y2JkNDBmMzc0ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4MTRkMDFkMDlmZDg0MzNhYjIzOTMzZTdlYWZlMGMxYTlkNTI0OThhNGFkNWNkOWE1ODk5ZjhiYWMzMjk0MTEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.1",
+    "at": "2026-09-12T11:58:19.578Z"
+  }
+}

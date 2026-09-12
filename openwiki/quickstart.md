@@ -1,50 +1,105 @@
 ---
-type: Project Guide
+type: change-routing guide
 title: VOLY OpenWiki quickstart
-description: Entry point for understanding VOLY, a self-hosted AI-agent control plane for project-agnostic execution, orchestration, governance, and observability.
-tags: [voly, control-plane, ai-agents, openwiki]
+description: A compact routing guide for safely changing VOLY. Start from its public surfaces, choose the governed chat or file-capable execution path, then use the focused architecture, runtime, orchestration, governance, integration, operations, and testing pages.
+tags: [voly, quickstart, change-routing, control-plane, testing]
+verified:
+  - by: openwiki/0.5.1
+    at: 2026-09-12T11:58:19.578Z
+sources:
+  - id: openwiki-source-8037e2358a2c4f9b2c722a11
+    resource: repo://AGENTS.md
+  - id: openwiki-source-a2371d6362e5db4bc834ad03
+    resource: repo://CLAUDE.md
+  - id: openwiki-source-05ccef8d4cf1698187f20464
+    resource: repo://pyproject.toml
+  - id: openwiki-source-23775c3de52f3ab95a13cb8b
+    resource: repo://README.md
+  - id: openwiki-source-81efd633b7a2af55b81ac9ad
+    resource: repo://tests/test_quickstart.py
+  - id: openwiki-source-d5ea337baaf9428410f42e17
+    resource: repo://voly/__init__.py
+  - id: openwiki-source-977fb78553c15ddb8fb9192d
+    resource: repo://voly/cli/commands/quickstart.py
+  - id: openwiki-source-3cbe083798ded0438463ec65
+    resource: repo://voly/cli/commands/run_cmd.py
+generated: { by: "openwiki/0.5.1", at: "2026-09-12T11:58:19.578Z" }
 ---
 
 # VOLY OpenWiki quickstart
 
-VOLY is a Python **control plane for AI coding agents**, rather than another agent. A caller supplies a task and target project (`--cwd` or configuration); VOLY chooses and coordinates model or file-capable execution, applies safety and cost controls, and emits run evidence and telemetry. The open-core repository includes the CLI, FastAPI API, Svelte UI, Cloudflare-worker integrations, and tests.
+VOLY is a project-agnostic control plane for AI-agent work. The target repository is supplied at runtime through `cwd` (normally `--cwd`), rather than encoded as product-specific behavior under `voly/`. Its public Python surface exports configuration, the `Pipeline`, routing, and the `Agent`/`Workflow` SDK; the installed operational surface is the `voly` CLI.
 
-The product distinction is two execution paths:
+**Use this page as a routing aid, not as a substitute for investigation.** Source code and tests are authoritative. Generated OpenWiki pages are optional just-in-time context: read the narrow linked page for the change, then follow its cited code and focused tests.
 
-- The **pipeline path** assembles context and handles inference through `AIGateway.chat()`.
-- The **executor path** uses `AgentRunner` and a file-capable backend to modify the supplied target project. Its fallback behavior, repository baseline, and work report are distinct from model-gateway routing.
+## Begin with the public surface
 
-[Architecture overview](architecture/overview.md) explains why this split exists and which contracts hold the pieces together. Complex pipeline tasks can become local or federated multi-agent work; [pipeline and A2A orchestration](orchestration/a2a-and-pipeline.md) explains that lifecycle. Capability selection and external-pack governance are deliberately separate from normal routing and live in [capability governance](governance/capabilities.md). [Operations, entrypoints, and safety](operations/entrypoints-and-safety.md) maps the commands, web surface, configuration, local state, and checks.
+| If the change starts at… | Start with | Then inspect |
+| --- | --- | --- |
+| A Python import or SDK `Agent`/`Workflow` behavior | [Control-plane architecture](architecture/overview.md) | [Plans, approvals, and bounded workflows](orchestration/plans-and-workflows.md) for durable workflow/approval behavior; [gateway and FinOps](runtime/gateway-and-finops.md) for chat calls. |
+| `voly` CLI, `voly.yaml`, environment/config discovery, hooks, `quickstart`, `serve`, or `ui` | [Entrypoints, configuration, and operational safety](operations/entrypoints-and-safety.md) | [Testing and compatibility](testing/verification-strategy.md) for command, packaging, and API checks. |
+| Web UI, FastAPI/SSE, MCP, or Cloudflare service boundary | [Web, Cloudflare, and external integrations](integrations/cloudflare-and-web.md) | [Entrypoints and safety](operations/entrypoints-and-safety.md) for local exposure/configuration and [testing](testing/verification-strategy.md) for API/run-state coverage. |
+| A prompt/model call, provider, cache, DLP, budget, BYOK, or gateway fallback | [Model gateway, provider routing, and FinOps](runtime/gateway-and-finops.md) | [Control-plane architecture](architecture/overview.md) for the model-versus-executor boundary. |
+| A file-writing agent/executor, `--cwd`, diff, dry-run, rollback, timeout, or executor billing fallback | [File-capable executor run lifecycle](runtime/executor-runs.md) | [Entrypoints and safety](operations/entrypoints-and-safety.md) and [testing](testing/verification-strategy.md). |
+| Pipeline dispatch, role decomposition, A2A, federation, hybrid work, dependency handoff, or judge | [Pipeline dispatch and A2A orchestration](orchestration/a2a-and-pipeline.md) | [Executor runs](runtime/executor-runs.md) for hybrid writer roles and [plans and workflows](orchestration/plans-and-workflows.md) for attached verification gates. |
+| Plan states, acceptance criteria, approval, SDK compilation, resume/cancel, or the review loop | [Plans, approvals, and bounded workflows](orchestration/plans-and-workflows.md) | [Testing](testing/verification-strategy.md) for plan failure and compatibility cases. |
+| Executor profiles, imported packs, evaluated routing, capability evidence, activation, or snapshot sync | [Capability registry and evaluated-pack governance](governance/capabilities.md) | [Evidence, evaluation, and durable run records](governance/evidence-and-evaluation.md) for distinct evidence and telemetry lifecycles. |
+| Repository baseline, evaluation policy/judge, human feedback, golden replay, telemetry, privacy, or live run records | [Evidence, evaluation, and durable run records](governance/evidence-and-evaluation.md) | [Testing](testing/verification-strategy.md) and [executor runs](runtime/executor-runs.md). |
+| Unsure which tests or validation scope applies | [Testing and compatibility strategy](testing/verification-strategy.md) | Return to the owning runtime/orchestration/governance page named above. |
 
-## Start here by task
+## Choose the execution path before changing it
 
-| Change area or user intent | Relevant wiki page | Exact source entry points | Important symbols or types | Focused tests | Minimal validation command |
-|---|---|---|---|---|---|
-| Understand product boundaries, telemetry, or model versus filesystem work | [Architecture overview](architecture/overview.md) | `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py`, `voly/telemetry.py` | `AIGateway.chat()`, `AgentRunner`, `TaskEvent` | `tests/test_ai_gateway.py`, `tests/test_executor_safety.py` | `pytest tests/test_ai_gateway.py -q` |
-| Change task decomposition, A2A, hybrid roles, or the agentic judge | [Pipeline and A2A orchestration](orchestration/a2a-and-pipeline.md) | `voly/pipeline/stages_a2a.py`, `voly/a2a/multiagent_run.py`, `voly/a2a/agentic_judge.py` | `Pipeline.run()`, `LeadOrchestrator`, `A2AOrchestrator.dispatch_parallel()` | `tests/test_a2a_p0.py`, `tests/test_hybrid_a2a.py`, `tests/test_agentic_judge.py` | `pytest tests/test_a2a_p0.py -q` |
-| Change model middleware, provider behavior, spending, or executor fallback | [Architecture overview](architecture/overview.md) | `voly/ai_gateway/gateway.py`, `voly/runner/agent_runner.py` | `AIGateway.chat()`, `AgentRunner` | `tests/test_ai_gateway.py`, `tests/test_gateway_provider_health.py`, `tests/test_executor_cwd_and_a2a_call.py` | `pytest tests/test_ai_gateway.py -q` |
-| Import, evaluate, activate, or publish capability packs | [Capability governance](governance/capabilities.md) | `voly/capability/evaluated_packs.py`, `voly/capability/pack_admission.py`, `voly/capability/remote_sync.py` | `ExecutorMatcher`, evaluated router | `tests/test_capability_pack_import.py`, `tests/test_evaluated_capability_packs.py`, `tests/test_capability_remote_sync.py` | `pytest tests/test_capability_pack_import.py -q` |
-| Change CLI/API/UI/configuration or run verification | [Operations, entrypoints, and safety](operations/entrypoints-and-safety.md) | `voly/cli/main.py`, `voly/web/server.py`, `ui/src/App.svelte`, `voly/config/` | `main`, `create_app()` | `tests/test_cli_contracts.py`, `tests/test_web_api.py` | `pytest tests/test_web_api.py -q` |
+`voly run` has two different paths. Without `--executor`, the command creates a `Pipeline`, passes optional `cwd` as context, and runs orchestration/inference; `--dry-run` is ignored on this path. With `--executor`, it creates `AgentRunner`, uses the supplied `cwd` (or process directory), and passes `dry_run` to the file-capable run. Do not treat either path's fallback, cost, or safety semantics as an implementation detail of the other.
 
-## Repository map
+| Path | Boundary to preserve | Focused reading |
+| --- | --- | --- |
+| **Pipeline / chat path** — `voly run "…"` without `--executor`; pipeline, A2A chat roles, and SDK chat work | `AIGateway.chat()` is the governed model-call boundary. Gateway controls and provider/model fallback are separate from executor fallback. | [Gateway and FinOps](runtime/gateway-and-finops.md) → [A2A and pipeline](orchestration/a2a-and-pipeline.md) → [architecture](architecture/overview.md) |
+| **File-capable executor path** — `voly run "…" --executor <name> --cwd <target>` | The executor acts on the concrete target directory. `AgentRunner` owns worktree reporting, safety policy, executor availability/billing fallback, and final run accounting. | [Executor runs](runtime/executor-runs.md) → [entrypoints and safety](operations/entrypoints-and-safety.md) → [evidence/evaluation](governance/evidence-and-evaluation.md) |
+| **Hybrid local A2A** — a pipeline graph with eligible roles and a concrete `cwd` | Chat roles stay on the gateway path; writer roles use the executor path and must not concurrently mutate the same checkout. | [A2A and pipeline](orchestration/a2a-and-pipeline.md) → [executor runs](runtime/executor-runs.md) → [plans and workflows](orchestration/plans-and-workflows.md) |
 
-- `voly/` — Python package: pipeline, A2A, gateway, executors, capability system, CLI, web API, telemetry, and supporting domains.
-- `ui/` — Svelte 5/Vite dashboard, bundled by the FastAPI server when build assets exist.
-- `cf-workers/` — Cloudflare workers, including the capability service and A2A integration boundary.
-- `docs/` — primary detailed engineering documentation. In particular, `docs/ARCHITECTURE.md` and `docs/backend/` are authoritative companions to this synthesis.
-- `tests/` — pytest behavior and contract suite; source of truth for many compatibility guarantees.
-- `.voly/` — ignored runtime output such as runs, events, evidence, episodes, caches, evaluated-pack state, and reports. It is not source.
+For an unfamiliar target, perform the read-only readiness check first:
 
-## Ground rules for changes
+```bash
+voly quickstart --check --cwd ~/my-project
+```
 
-1. Keep VOLY project-agnostic: target repository behavior belongs behind runtime `cwd`, not in product-specific logic under `voly/`.
-2. Preserve `AIGateway.chat()` as the model-call boundary; file-capable executors are intentionally separate.
-3. Treat public event, evidence, federation, and snapshot formats as contracts. Change docs and tests with shape changes.
-4. Treat imported capabilities as untrusted inputs. Discovery/staging, measured activation, and remote publication are separate controls.
-5. Do not read or commit live secrets. Use `.env.example` and configuration docs only for placeholder-based setup.
+It checks the supplied directory, reports non-Git rollback limitations, validates an existing target `voly.yaml`, detects a supported file-capable executor, and suggests a first command ending in `--dry-run`. A non-check invocation with `--yes` may create a missing target configuration without secrets; it does not overwrite an existing file.
 
-## Backlog
+## Safe change loop
 
-- **Memory, DSPy, research, reuse, and learning** — `voly/{memory,dspy,research,reuse,learning}/`; deferred because their independent behaviors exceed this initial map's five-page scope.
-- **Cloudflare-worker internals** — `cf-workers/`; deferred beyond the A2A and capability boundaries documented here because worker-specific deployment and storage designs need their own focused pass.
-- **Detailed frontend component/API map** — `ui/src/` and `voly/web/routes/`; deferred because the initial operations page documents the integration boundary rather than each dashboard feature.
+1. **Locate the contract.** Start from the relevant table row and read the linked focused page. Follow its source/test references; do not infer behavior from this navigation page or from a generated record.
+2. **Keep target locality.** Pass a concrete `--cwd` for target-repository work. Do not put target-product paths or logic in `voly/`.
+3. **Preserve the execution boundary.** Route chat-model callers through the configured gateway path; use `AgentRunner` for file-capable work. Keep model fallback, A2A tier fallback, and executor billing/availability fallback distinct.
+4. **Respect operational safety.** Treat `.env`, task text, diffs, and `.voly/` state as potentially sensitive. Use a dry run first when Git-backed rollback is available, inspect the returned diff/safety metadata, and do not commit generated `.voly/` state.
+5. **Validate narrowly, then escalate.** Run the owning focused pytest module(s) first. Add contract/failure coverage when changing public formats, safety, persistence, fallback, budgets, or integration boundaries; run the full suite for shared configuration or broad changes.
+6. **Keep project documentation synchronized.** A code-behavior change requires its matching `docs/backend/` or `docs/frontend/` update. Keep CLI/API/UI/result expectations aligned.
+
+## Focused checks and execution boundaries
+
+Use the exact module named by the relevant detailed page. Common first checks are:
+
+```bash
+pytest tests/test_ai_gateway.py -q
+pytest tests/test_executor_safety.py -q
+pytest tests/test_a2a_p0.py -q
+pytest tests/test_hybrid_a2a.py -q
+pytest tests/test_plan_verify.py -q
+pytest tests/test_capability_production_validation.py -q
+pytest tests/test_web_api.py -q
+```
+
+`pytest tests/ -q` is appropriate when a shared interface or broad refactor makes the focused result insufficient. The DSPy runtime smoke is required after changes:
+
+```bash
+pytest tests/test_dspy_runtime_smoke.py
+```
+
+Repository checks are designed to be hermetic. Run integration, multi-agent, and end-to-end work only in `/home/lanies/git/codeops/TEST_VOLY_JOB_MA/`, not in this repository; use an explicit target `--cwd` and favor a dry run before intentional real execution.
+
+## Invariants worth carrying into every review
+
+- **Project agnosticism:** runtime `cwd` selects the target; VOLY core does not encode a target product.
+- **Two execution boundaries:** governed chat uses `AIGateway.chat()`; file-capable work uses executors through `AgentRunner`.
+- **Local state and consent:** `.voly/` records are runtime artifacts. Local telemetry/evidence and optional remote projections have distinct purposes and privacy boundaries.
+- **Safe extensibility:** capability discovery/staging, measured activation, and Cloudflare snapshot publication are separate controls; remote services are optional integrations rather than the local source of truth.
+- **Tests and source win:** treat this OpenWiki map as optional context and verify behavior in source and focused tests before and after a change.

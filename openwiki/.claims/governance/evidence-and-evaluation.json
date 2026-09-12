@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:859d6a3da415285118c3e45da50bd3f7108bd8b9adc6410c8499b4537c21e7fc",
+  "claims": [
+    {
+      "id": "claim_6c995cbac2734867a42ec5d9f94ea6b4",
+      "statement": "When evidence is enabled, AgentRunner captures a repository baseline before invoking the file-capable executor; it saves an EvidenceRecord after execution, and only runs post-run evaluation when both evidence and evaluation are enabled.",
+      "evidence": [
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L153-L206",
+          "version": "repo-lines-v1:sha256:8ef65d0e41c2309d83f4fc2f8547dfc3a5d624aeb01418f23f3380d512d08d6e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YjdjM2UxMmI4YjJhZTljNzk0MjliNDRjNzg1Y2E3NTI3ZTdhMmNkZGM2NzM2YzZkOTkwNWRlMzk1YWE2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyMWQyYTg5MGRhMGMzMzVkNzE0YjE1NjVmY2Y0NmZmZmE3NzQ3MzY1NDY2MDdjZmM0ZDZmYmYwN2M3MzM4YmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwZGY5YzgwZDk3ZjkwMDlkYWI1YzY5OTk4MDU0M2VlNDNiYmRhMGJlYzdhMDgwMmIwMzA4NTNiYWNjNmY1YTYifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L451-L478",
+          "version": "repo-lines-v1:sha256:5287c87ba397ca043709628fca96f71de2f7998a49903239d868c89337e150f8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyOGRkMjNmMWI0ZmIyZDBiMDUyYzQ4ODRmMGRiZDgzMjRiNTkwNDg1Yjg1NjI0ZThiMDczYzZhNjQ4NGI5NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhNjU2MDg1OWNhOTdiYTgwZDZiYzgzN2Q3OTUyMTM5NmVlYThlMjdlYTJkNWE4ZWJkZGI2MTRiZTMzMDFhMDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhYjg5NjlkOTM1Y2MwYTg2ODIzYTE2NzBmMjFmNDQ0ZGVmYjljMzg0MjI1Yzg5NDdiOWM4NjVhMTQ1N2NjMjUifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L524-L574",
+          "version": "repo-lines-v1:sha256:d810eaca01ebb7f37f07127af0dda7ce2d9390c114bdd6ee816f45b1b04a7aae:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3NGRjYmMxYWI3YjA1OWJkZGQxZTAyMzg1NDVjMWM2NTI0NmIzN2NiYzBlMzFiZjY0ZWQ2ZWFhN2Q3NTFkMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMDM4YzQ4NDBlMGY4YWQzZDI1ZGFkYmQ0MDNmMTYyM2MxNTA0MTk3Zjc0M2M1MmU3M2FlMTY3Y2QwZTM3MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkY2FmOTBiNDllZmI3M2VmZDJlMzgwZDA1ZmVlNDZhNGZkN2RiN2FmOTJiNmEyYjA5NzU5NjVmZjc5ODYzNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c9a5e2f976144daa0ac6bc6ca2d1734",
+      "statement": "Repository baselines execute configured or auto-discovered commands as argv without a shell, preserve exact argv for replay, and distinguish healthy, metadata-only, preexisting-failure, and environment-failure states.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evidence/baseline.py#L106-L162",
+          "version": "repo-lines-v1:sha256:52699d06ca199822573c07e25595f0915c9e120e280805c3af0c2338c82b82bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMTVhZGJhMmNkMzg0Zjg0NzI5MjM0NzczMjM2NmMzMTBlZDVlZjI3Y2VhNTlkNjVlMTAzZGJiYWJhYmM2NGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4YjE2YTdhZjFkZDFlYzI4OTY3MWRhMWU5MmExY2UzN2I4MTA0YWFlYjZlYjU3MzY1NmU4NWVhMzU0YTNhY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiNzc0YjhmNzFkYzc1MDNmY2QzNTE4YmYzNDhjZGZlMzEyMzY4OWFlYzhjODIxOTYyZmU4MGFhNWU3YTMzNzQifQ"
+        },
+        {
+          "resource": "repo://voly/evidence/baseline.py#L165-L228",
+          "version": "repo-lines-v1:sha256:e7fcce2fa18c7d2fea8ff0f720225e66146a18d0d36cf5689e5232fbec495160:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmRiNWVhM2IzYjIzYjhkOTNjZGM4YWFiYmIwOTk2ZTIzYWY3ZjExMTg0N2U0ZDE3NzEyNDVmYzQzYjE4YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/evidence/baseline.py#L57-L103",
+          "version": "repo-lines-v1:sha256:1beb9ab5a65ae138e42b25eb170a38759ad025d87ae80f4ff2fac10524821a4b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZmFiOGVkZmZkYWE4NjlhYjRhYmU5ZDgzYTA2NmM5NTBkMTc2YzFlZTg3ZDVhMjU3MDViNGY3ZGU1NjU5YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNmQ2OGQ5YjUyMjFlYjU5NGVmOGJjN2JmZTNhYzVhNjM2ZjA2MjlmNmU1ZGNmNmE5NWEyMGZmMThhZDdmMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzMzUyNjhmZjNiMjFmNjY1MjdlY2Q3OWY2OWY3Y2E2NmUyOGJiMjMwNzBkZGQyYTA4MjhmN2UzYThkZTdkMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2N2IxMGM1NTQwYWUzYmIzZTlhYjVlOGM5MTA0MGQyNzE2ODY2ZmQyNGIwZDE4ODA5M2UxZDZiNjVmY2FjZmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_083f0738a0b343149ed0031f139f2af7",
+      "statement": "Evidence root-cause classification avoids agent blame for provider, tool, baseline repository, or environment failures; only remaining failures are agent failures with penalize_agent enabled.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_evidence_foundation.py#L81-L106",
+          "version": "repo-lines-v1:sha256:fe17100eaf3ae0a5cea459bc5e314ae73888be18ab80438c74f24881f7b39ddb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMzE0NGE5Y2EyYjEyMmRkM2E5MTMwZDY3Y2U1ZDkwZjUwZjMyYjNhNDk3Nzc5ZDJhMGM3YmZkZjI5MTFjNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYjcwZTVkMjU4OTA3NDA0MzJkNWJjMGEwMTZjNzI2N2IxYjJmNTkwMTU0OGM4YjVlNjY1YTVkODIxOTQzYjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliYzM2YzUyNTI1ZmJmMDQ2NjliMzI5YmVhMjlkNzc0NWViMTY0MDRlOWZlMjU3OWI4ODZkZjJjNjI2NjhjOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmN2ZmZjYwNGIwMjVlN2I1MTE4YWRmYjVhOGNiMjMzOTJmMWU2MWJlNjk4MjMwZTQ5MTJmNTQ0YmMyY2IyNDkifQ"
+        },
+        {
+          "resource": "repo://voly/evidence/classifier.py#L17-L42",
+          "version": "repo-lines-v1:sha256:dca09d9e5a319f855f4313c2e20c9fcdea2614718f56b8aa619c5d800be79813:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjMWE4YmI3YTQ1YWZjNjE4NDA0OTQ3Y2QyYTNjMmEyZDIwNWFkYTg0NDY1ODMxZDM5NzcwYjc4YzZhNWVhMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMmQ0ZDBmMWQ5NDgwNGMwNzI1M2UwZjEyYzU1ZDkwM2YxZTY1MmNkZWZiM2IyZjVmYTFiNTAzMjUxMGM1N2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlYTBmZWZlODBjMTM3MTVmYWNmYzFkYWZmODA1OWZkNjlhMjZiMGFlZTBkZjU0ZDIxYWU0OTFkMDc4NzA3YWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_baabe8b5cb834e5690a93f99b0e8b7f5",
+      "statement": "EvidenceRecord is a versioned local bundle with baseline, execution identity, outcome, optional evaluation, and human feedback; EvidenceStore validates task IDs and uses fsync plus atomic replacement to persist records.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evidence/schema.py#L10-L130",
+          "version": "repo-lines-v1:sha256:6be45b641ed55828fd96fec523406485263c33b0056f62678fbae59136787811:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MmI5OWJiYWU4ODZjZGE3NmQwOWYyZjRiM2EzMDkxNjVkMjYzZWFiYjU4ZThjNmY5MzUzMWY2ZDg0NTkyM2UzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjMTNiMTgyNjJiMGMxM2UxYzVhMzFkNTE4YWVmMzMwZWQ5MzA3YmU0NDczNzM5ZmM0NGExYzM1MDVjOWNiMjkxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJhNzY1MjQ4ZmVjZGJhZWM5YzExN2QzNTgyY2JkZjgxYWViZWE0MTEzZDBjMmE1ZDkzMTc3NjU2NjUxYTlkNGI2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIn0"
+        },
+        {
+          "resource": "repo://voly/evidence/store.py#L24-L66",
+          "version": "repo-lines-v1:sha256:288a55814ff7abefc91dc0ffb156daf5d0d89cbc875530fffbd232d49eec40b7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZTJkNTAzNDQ2ZTYwYWZjMmFlMDMyYzk0NGI5NzIyMDdlNTMyMmY4YTQzMTY3ZDQzZWYzOTljMzg2ZTQ4OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwNThkMGMxOTNlMTg1NjVhYTJmMmM4YzY4ZDkxYjA1NWQ3Zjg5NTNhZWJjM2QxOWU4YjkzM2UxZmNmYmYxNzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlNTFjZjBmOWM2OTVjN2JhNWZkMmU1YjBkMzYwYjA2ZDYzN2ZlZTRjNzA1MWJiMmY5NTEzNWE1MGEyMzNhZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1ZDlhNzM4MDQzY2ZmZWVlNDdlZDRiNGIwYTIzOWY2NDVkN2NhNDRhNTE1MGRkMjIzYTM3MjdlNzMzOWMxOTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_63212892acfc42cbae9a31462bd3d34e",
+      "statement": "Evaluation policies use required-check outcomes to derive verified_success, partial_success, or soft_failure; executor failure stops later checks, while baseline replay skips commands that did not pass originally or lack exact argv.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evaluation/engine.py#L134-L182",
+          "version": "repo-lines-v1:sha256:683f04d414be4d51eb7f7ba2ee7f2361b237d4b46aeff8571f5da921493ad1b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMjZlZmEwZmNkMmEyMzlkMDI2NmQ2MDFhOTdkZTQ4NDE4NDBlOWFjOGVkYjE0YTRmYjViMmVkMzJjMzFkM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2ZGQ5ZTQwZmJhMzQ3OGM1ZjA1MGQyOWI3Y2JiYWQ3YzE5MDI2YTRmYjA3YzIzYzg5YTY0MzE4YTg4ZGJmNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MWU2NTg1YTA3M2IxY2NjYTI4MTVmOThkODdkMTBiYzc0NGZmYTc5YmNiN2UzNTE5MjYxMzQ4MTdlYzI4OWYifQ"
+        },
+        {
+          "resource": "repo://voly/evaluation/engine.py#L49-L57",
+          "version": "repo-lines-v1:sha256:0ee45ee244fa3e4d72d8fd2851ed9816c8a3359be7adf7fdcf24efab4c9b0590:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTA2MjJmMDlkZGJhN2FjNzllM2I2ZTEwNDM4YzAxZjhjNjU3ZTZiOTFlNTZlNjJkY2QwZmRjYmVmY2NiMGRkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGNjMDkwNjZmYTNmMGVjYmFjODM3OWNmMWUxZGQxN2VhMzNmN2ZkZTZhNWEzYTYxZTQwODhhY2ZmZjg4ZjVkNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmNmZmE2MzQ0ZjRmZTc2YjE1OGIyYjNiMTc1Nzc4Zjg1NDdjOWY4YTZhNDU1NjQ5YmUzOTA2NjgzNTFkMjU2NSJ9"
+        },
+        {
+          "resource": "repo://voly/evaluation/engine.py#L85-L98",
+          "version": "repo-lines-v1:sha256:4d27a57dacfcd2f724f86916dde52025ff75f009cfcdf7126a2c26f2700a5be5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhNzJiNjdhNjFkYTVhNTRlNzI3YzI5MTVhOWE1NGNlYTNkZTQ0ZWY3ODBlNTE3YzJlMDA0MDdhYTk3N2E1ZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxYmQ1OWJhZjEwOThhZTk2ZmQ3ODY0ZjM2ZTg4MjJjNTExMWFlMGZkNzBmNmFiODI2MzZmZWUyZTg1ZjRhYjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2YjNhOWRkZmZiMjJjMTJhMTdiNzFiMzUxYmRkMDUyM2RmODcxYjhlYWY4OGYzYzA2MTgzN2Q5ZjFlZDlkOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2NTY0MjVjM2E5NzU5NTkwMzZjYzE1ZjRmZDc0NmNhNzM0YmJhZDgzMzNkMDZiMDEzMmUyMDRlNzNiZTUwMDYifQ"
+        },
+        {
+          "resource": "repo://voly/evaluation/registry.py#L9-L50",
+          "version": "repo-lines-v1:sha256:63805a8c8cd1887e630b0cbd94f8daf2ddf2a0302ff166677f3a7c7a9c731db2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MzcxMjE0MzMwMTAyNjI3Nzk4YTFkMDZjODY1MjA0YTQwODg0N2Q0NTVmMTI3MmNjMzg4ZjNiYTgxN2UyMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkMzRhOWRmNzc5Yjk1NjZiMDRhZDJiOWU2Y2RkZTNiMWQ1ZTZjMWE4YzhiOTdhYjdjMjhhN2IxM2EzM2JkNmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwN2IxOTMxNWZjNGZhZTlkMjYyNjI1MmE4NDE5N2NlN2JhNDE0ZTliY2FhZmRiZGVhOGY3OGQ3ZmViYzE0ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1ZTU2OWY2OTYwMjA1ZDQ1MzUyMDQ3ZDY5NmI5NDBkOTNiYzU1MzRkMzU2ODVhYmMwZTNhOWVkODBkYmUwNTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c96252dd16b345f3b136dfc3efc45e73",
+      "statement": "Human feedback is appended under a constrained vocabulary; it resolves pending human-review checks and records LLM-judge/human agreement calibration without overwriting the judge decision.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evaluation/engine.py#L276-L307",
+          "version": "repo-lines-v1:sha256:91a8fc7b5df9c029fedf77d0d6b49d81636035f39a582c8f40191ed55cbf6ef5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNDg4ZjVjZTM1YjlhNWEzNDg4OTU3NmRlNWJhZDM4YWVjYjJiMDIxMjA3OTNjZTJjZWIyZWUzMzU5YjFlZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0N2NhZjZhODRkZmM5MmJjZDRkMWFiZDBkYWFiNmNlZWY0MWY5MGY0MWU5NTM1OWI0MTE1NDZhZmQxYWE0MmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/evidence/store.py#L68-L115",
+          "version": "repo-lines-v1:sha256:81ddfd9b9f73af7bd5206c218d72d0f05924a5e62d7ff02629648b9c2989643a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NmVhNWUzOTM4ZWU5ZDViYmJiNWZlODEwMTJiM2RmMzg0MGNlZmQ2OWZhMjVjZTgwODcxYzAyZDhlNGE5YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkYTg5ZjU2MTFhMjczYjhjYmIxNmViMmI5OGQ3Nzk5NDkxOGE5ZjQ5NjU2MTE4ODk2N2EwY2UwM2YxNzM5MTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZDQ3ZDZiMjQ1NDNiNjBjZmI4MDA1MWVjNzI2NGIwODEyYTM5YzBmMjUyMWFiZjA4Y2EwNzJiNGEzMGQyMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9ed278d4f4148cebf7f45f5b02aca88",
+      "statement": "The optional LLM judge has shadow and required policy modes, bounds and treats evaluated text as untrusted, prevents provider rerouting, strictly validates its JSON rubric response, and skips malformed, uncertain, or gateway-failed judgments.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evaluation/judge.py#L158-L265",
+          "version": "repo-lines-v1:sha256:b9c07507f0d62aa0d47d5d8c1826fcaa80a3852fb2550be127b5e736eefbd773:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZDRlYjBjMWJlMDg3ZmMwYjgzN2JkZDY1OGM5YmExNDM4ZmJmY2UzZjcyOTc0MjUwNjljZTcxOTVjZjI3YTQ1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3YWRkNTc5MmM0ZTI5MTg0OWQ4ZmM4ZjBmYzFhMjgyZmI0Zjk0N2VjN2VjYmM3YjNmOGY4MzYwMWVhN2UxMmNmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNzkyZDY3N2E2NDU5NjJlMmFjMmU0Y2I0YjZmNzllYjQxMDIyMTE5NTdkMjhkYTYxOThiNzU1MmZjZmEwZDg3In0"
+        },
+        {
+          "resource": "repo://voly/evaluation/judge.py#L80-L155",
+          "version": "repo-lines-v1:sha256:7da9785ec743f4a3f5a9253d47f50c6c3d146ea99caccb20399bef25a56dc4ac:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZWM2ZGI2NmM0NmJlYmVjNjM3ODA2YzYwZWRhYTQ5ZjMzNWVlMjgwZWMwMDcxOTRiMTgzOTg0Mjg1MDQ2M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzY2NzNmOGExM2NhODljN2EwZGE3Mzg0OTFiYzk3Mjg2MzJjMjI4MzZlNDNjZjY1Yzg0ZjYyOGIxOWE2MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwYTljZGRhNTcwODk3ZGRkOGM0MTEzZWZjYjBkNjZhYTQyNTBjOTU2ODg0YWI1ZGNmZTVmNTc5NzUwY2M2NzUifQ"
+        },
+        {
+          "resource": "repo://voly/evaluation/registry.py#L67-L106",
+          "version": "repo-lines-v1:sha256:52b006f988230458ea445d1d12fab81cf525eb8677e99b27fc6520ce0d82b4de:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhZjU4N2MxODM2YzlkN2QzY2I1M2I4YjY5ODQ3MjRhOTU3OTJmZjYxYmJiNTQ3OGNjN2E3YTdjZTkwZTg4YmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2M2Y3Nzc4M2M3NDYwZGYzZTRiZWQzMTM5MmFmNWJjOTZlZjU4MDJhNTViYzg2NGQyNTc2ZTdlM2M0OWUyZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d2caa0289a54c419e2fcfa6c0e7ffab",
+      "statement": "Golden evaluation validates a closed, versioned dataset and contained non-symlink fixtures, fingerprints both dataset and fixture content, then replays each fixture copy with shell disabled, credentials removed, bounded output and timeout; its report explicitly says network policy is not enforced.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evaluation/golden.py#L19-L44",
+          "version": "repo-lines-v1:sha256:5a0928009e224f9ba2eaf323a40047de976b99949b06e4a4e0f3594acd13e2e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhMjQxZGVjM2YzNmRhYmU2MDYwYzdkZjhiNjQ1MTU5NDIyY2Y5ODU2ZDZmNWNkOTY4MDYxNzZlZTZkZDcyNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiNjdmODg5ZDBlZmZkNjZiM2QzMGQ5OTRmZGJkZjI5YzJlMTBiMjRmYmRhYmRlMDNlOGNlMzQ3NWVlYWFmMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2ZjBjYTJmNjgzYTkzYzdhZTNjZmNmZDE3MTA0NjAyNjZjNTM5MmY1YmZjNjVkODQ5Y2YzN2M4ODM2ZThiMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0OWY3NzU3YzA3NGVjYzA2YmE1YzI0MmM3MmFmNjdhNzc2NDNhZjA5NzExY2ZlZTA0NTcxM2M4NGFlMmI2NWIifQ"
+        },
+        {
+          "resource": "repo://voly/evaluation/golden.py#L224-L302",
+          "version": "repo-lines-v1:sha256:1c71225f145fc08918b10d73416621630355ee4df16692847394de299ede7eb6:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNDBkNTgwNGZmMWFjMjRmMTBmMWZmNWM3MTQ1NWNjNDZmYWE0NmI5OTY0NWNkZGJiMGZlMjM1NDcxZWJlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMzI5N2MwMGJkOGU1Y2ZhZTAyNGFlYTAwZmVkNWQ5NjExZjI2OWM2ZDhmOGE2OTdmMWMxMDU3MjRhYTc5MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzNDJkMzUxYjI5MDcyZmQ1ZjRhYmE5MWNjYWMzOWY3NjM3NDI4NzIxZmFhMzk1M2VmYzQ5OTI1N2NmNjc2ODUifQ"
+        },
+        {
+          "resource": "repo://voly/evaluation/golden.py#L419-L505",
+          "version": "repo-lines-v1:sha256:19ca30209b397b535db3e151378e1c3ba9b0fb7f140cde0472f50f8b9ac09862:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZTE2YTE2MGEzMjZhOTY5YzE5MDY2ZmRhNDE5ODNiNzlmY2Q0NDllYzg1MTBlM2NiNmJkYjEwYWE4MTFiOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxYzM4YzhiODA0ZGU0MWQ2Y2JmNmUwMjdiNmZhMGE2Njc1MjIyOWQ3NmYxYWE3OWU1OGVmYjdmZTU0ZDY4MDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyM2MyYTM4ZGNiMGUxNzdjYzMwODc0YWMyOGI5ZDVhZDQ5MjFlZTdlNzM2MDk2NTM3MmE2YjI2ODk0YjFiNDMifQ"
+        },
+        {
+          "resource": "repo://voly/evaluation/golden.py#L508-L546",
+          "version": "repo-lines-v1:sha256:9f45b98cb464b3d7e9d7ffd55f44adbb1535866fa497a7952ed1b5833a262922:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjODU5Y2ZjNGQ3ZjdmN2NmMTQ3MWE1NDQ1ODJlYzU4ZWZkMTUwMTI4MzVlMmVlYWMyYWYyNzQ3ZWVlYjQ1OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2MWJjYjhkYjk4MWVlYjdhNDkyNjZhODlkZTQ1MDNjNTYxZDNlZDY5ZWM3YmU4NDVkOTcyN2VkNGY4NWFkZjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d6af23d23114af09c1e7f53ff2142f7",
+      "statement": "RunRecord heartbeat tracking is mutable best-effort state stored atomically and can be marked stale by a watchdog, whereas TaskEvent is completed-task telemetry that is written locally before optional explicitly-consented sanitized remote delivery.",
+      "evidence": [
+        {
+          "resource": "repo://voly/runtime/runs.py#L261-L290",
+          "version": "repo-lines-v1:sha256:680ef1c9710e51a4ca865ced833c970aea19b65f61ae059ed331258962975949:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwNWMzZGIyODAzMWE4OWE2ZmFlZjNkYTFjMGQwM2IwMDc1MDc1MjAzNzA5MmI1MTE2NTgwMWQxN2U1N2VhZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzOGU4MmEyYjE4ZjA0ZjgyMjk3M2RhOTA1YzUwZDg3YzcxODExM2Y2NDYzOWE0ZmQyMTc3NjM1YTlkNTE1MjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwZGJmZWY4NTE5OTg4MDcxNTQwNWI2NTUyZTUxMjRkNjA5ZTc5MjM1MWUwZmM4NWNjYzU4OTMyNTgxYzY1YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjOTZjNmJjYzkzMDU3ZDE5YjU2ZjJjZTQ2MmJmNWI1NDVhYTE3ZDNlNmIzYmQ0NzI2OGYyODlmYWU5YzViY2IifQ"
+        },
+        {
+          "resource": "repo://voly/runtime/runs.py#L74-L125",
+          "version": "repo-lines-v1:sha256:a129768c9982ba74881ecd069c9046046a68c1254ad926007167ecd4a60eb7f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMTkzYjY3NDMxMjdkZGNjZGNkYTg5NTdkMzY1YzIyNGJlYzBkZGYwMzY1NjA5MmRmNjk5ZmQ5MGU2YzgzYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3ODliOTU2NDVmNWJmZjY2MmZlNGYwNGU3MDg2ZTRmYThlNmQ1N2JiM2U2NTViNmNmMTI2ZDQ5ZmMxZmRiYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3NTNjYTYwYmVkMjgwYWQ0NzlhYzRkYTE5NDJhN2I3MWE0MDA4MjRhYzAwNTgzMGU5ODZjYTc2YTQyMzdlYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YTQwNjRjYjBjZWNkNDE4Yjk2Y2JiZTQ5ZTAwMzc2ZWNlYzI5M2U4M2MyNWQyZmE2OTE5NGM3NzExYTdjZDAifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L269-L311",
+          "version": "repo-lines-v1:sha256:07b6954f6f4f52edcbfed44351681d706e61a188ef10588acf5083a91dc0e33d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYmRiM2FmMzY2YjEyNzFkNGRhNmMwODllZWY2NGNmYjZhYTI0OTBiZmViMDlkOGJjN2NjOGExYmJkOWQ5MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlNGQ1YTY2MTVmMzczNGRjOGI5OTk5OWI3NGI2ODIyMmQxZWE4MWUwN2FhMTUxNWVlNTNkOGJlNDExNGI4YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOWU4MGMwNDliZTZjN2FlNTMzMmM5MmE4NGI5ZjU4YmRkOTkzYzJmOGZmZGI4MTU4NGFkM2FjMTQzMGNjODIifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L355-L425",
+          "version": "repo-lines-v1:sha256:d332329cda7eafec8fadc86d1a09343d42d692d3661455fcf2f550c1eb8871a3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YTdjY2NiNzk5NDM3NDlkYWNkNThiNjljMGFkNGUyNTg4ZjEzN2RiZWZiZGFlMWI5ZDEyOWFjODlkZGM5NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjNDAwYTBhYzRmMGY2YWQ1YzUyMDljM2MxMDQ4MTVlMmUyNjFiZTMzNDM4ZGI5MDMwMWFjM2E4YzA3OGQ3MGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_433ae500cddb4ddab968ac372a7c3d6c",
+      "statement": "Remote telemetry and evidence use separate allowlisted schemas with hashed identifiers and exclude raw task identifiers and repository observations; remote telemetry delivery is gated by cloud analytics consent.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_evidence_foundation.py#L199-L266",
+          "version": "repo-lines-v1:sha256:b58de1f822f33fcde76b6487f74182cd0066905655a9f9fb61ec0f5c315e9594:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhZDgxZDczZDM2ZjdkN2FjYzM0ZGJlMDNhZmUzODUzZTY5Y2YzMGJhZmY5NDhkNGQyZDc2MzdjZWIyM2IzMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0Mzk5ZmVkNGQzM2FhMjdlYTA5M2M5NDM2YmMwY2E3MThiZWNiMDkyOTQwZDIxZWNkZTYwZWE0NmQ1OTkwOGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1YTRkMDc0MGNkMDEyZGZjZmFmODAwY2U0NDAyZmY2NWYyZGNlYWE3MjVhZDJkZjFkMGQ4MzkxNjY5N2UxZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/test_telemetry.py#L57-L91",
+          "version": "repo-lines-v1:sha256:8cfd0435b76b9df14a9bae5a0014c5ec5dd2a9f9f2d35109cfd97ac29f74e59c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzODllMTczMzAyZTVlZGJiMmY3ODFiZjc5NTU3ZTBhMDc0NTM4OTY3MzM5ZDFhZGNmNzdjOTcyYTY1MmFkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1Yzc1YjkyMTYwOGY2ZGVmYzNmNjFiMGJkZTZhMzEwMzdhMWE0MzU4OGM0YWU0Y2ExYTQ1MmMzZmMyMWVmNzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczN2U0YjMzZTA3MmRiODQxMzY4NWJkNzFhYjJkMzhlOGRlODI3ZDA0NjViM2Y3NjFiOTllYzI5MmY0MWJiMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5ZWM4YTE1Mzc2NTM0MmQ5NDM0ZjU1YzgxZGE3NTYxYmUzZDExZmM3NWRhMDM2MjA0ODUwMGEwMzEzNTVlOTMifQ"
+        },
+        {
+          "resource": "repo://voly/evidence/privacy.py#L13-L95",
+          "version": "repo-lines-v1:sha256:323583ac7fc2d70101ab610f0a57814f7abb13ce9d53f6b1c2913391dbc0e7b9:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4MTExM2Q0YzYyNWVjYjk0YzdlZDIzNTFmNTAzYjY2YjNkNmI0M2E2YTgxNzg5ODM4MmRiYWY3ZDlhNWMzNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZjIwOWI5MzRmY2ZlYjQzNDYxOGMyMzViY2NlOWVmNjdhMzgxOTZhYTJkMzViYTM0NDljMmI4YWQxOTIzNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L269-L311",
+          "version": "repo-lines-v1:sha256:07b6954f6f4f52edcbfed44351681d706e61a188ef10588acf5083a91dc0e33d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYmRiM2FmMzY2YjEyNzFkNGRhNmMwODllZWY2NGNmYjZhYTI0OTBiZmViMDlkOGJjN2NjOGExYmJkOWQ5MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlNGQ1YTY2MTVmMzczNGRjOGI5OTk5OWI3NGI2ODIyMmQxZWE4MWUwN2FhMTUxNWVlNTNkOGJlNDExNGI4YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOWU4MGMwNDliZTZjN2FlNTMzMmM5MmE4NGI5ZjU4YmRkOTkzYzJmOGZmZGI4MTU4NGFkM2FjMTQzMGNjODIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.1",
+    "at": "2026-09-12T11:58:19.578Z"
+  }
+}

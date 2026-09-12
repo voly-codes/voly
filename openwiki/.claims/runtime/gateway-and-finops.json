@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:89a3d9f096fc913a3711ac77049b41af17cddee95f3f927821d1ff19f9bdcdc4",
+  "claims": [
+    {
+      "id": "claim_dcf19291067e4928b3667ff08fadecef",
+      "statement": "AIGateway.chat() is the governed chat-model boundary: when enabled it applies DLP, optional health rerouting, cache lookup, local rate and spend checks, transport routing, then success-only accounting/caching; when disabled it directly calls the requested provider without those middleware controls.",
+      "evidence": [
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L87-L181",
+          "version": "repo-lines-v1:sha256:090a5ec3485fb3b058fd64e951ff0b316090c5feae56e9c0eeb4bdd9f34e17f7:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjMDc1Y2ZhNzZkZGViZjliYzAyNWFiMWQwNTA4NGYxN2E3NGQ4YzBhNTJlN2VlMWIzZWQ1YzY1YzUwN2E2YjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmY5Njk1Yzc0NjdjNzQ3NzNjOWNlN2ZjNDI5YzVkMGQwZTQ4N2YzYzUxZDE1ZDY2NjhhM2QyNDA3MmJiOTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiMGRhM2FkNmMzMTRmMjlmNmE0OTE1NjdkNWEyYTk3ZjZiOGZjODM5MWVjNjljNTNjYjhiMmJhN2UzNjYxNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NGZmY2E0ODdiY2RiMTFjNmJmMThiNTkyYzI3YWY5MTE4YmZjNjNkYzBlZTQ4ZmY1OWY4ZTFkMTA1ZjMxZDIifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/models.py#L169-L277",
+          "version": "repo-lines-v1:sha256:eaf83d3266b1dd180eb7331a5a6a1ae41c0bff1e1c9bfca6fd829d4ca8c11a5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiNmZiYWUwYjkxZDQ0ZmMwZDQ5ZjVkZTY5MWRhNmZjNDMxZjI2MDEzNGJmNzMxZTBlMjFmNzY0ODA5NDMzNGNiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlNmIwNDQ5MTQ2OTcyMmU4MzYzYTk0ZTQwNDQ1MzhlMDEzYTJhMjE3ZTM2YjFlNTY4YmE2MGFjYjdiNGM4ZjJlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwZjhjZjZlNjIwYzA4NmQwMzEyMmMyMTU4ZDE2Njg2ZDJiM2MwZGRhN2I2NWQ3ZDI3OGI1ZDVhZThhNjAzMTJiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ba9070546e346b9a8a5500776d025e8",
+      "statement": "Gateway cache keys include messages, model, provider, system prompt, extra arguments, and an optional scope; successful normalized responses may be persisted with expiry, and configured gateways derive a repository-state scope so identical tasks do not hit across repository changes or projects.",
+      "evidence": [
+        {
+          "resource": "repo://voly/ai_gateway/factory.py#L57-L63",
+          "version": "repo-lines-v1:sha256:33b57c5a9d1c9533f314c09bc35022c0e971d0a5db899d564bfea378d00ea4dc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDE4N2QzOTJjYWRjYzRmZTA0YmNjODA1MjhhMmRiMjQ0NWM3ZDIwMjJkMGJkOTcyOTJhNjk4OThhMDNjYTU4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWQ0ODMyZWUxZTVmMjdiZmU4ZTk1NWI2NTQxNTQ4NjZlOGE2ZGZkZjUyZTI4M2ZhNjU5N2M2MTUxNzU1Y2M4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWM5ODAxMGUyNmYwMDQ0NmEzYzMxYWE4OWQ2YWRlZWIzZWUzNDAxOGVmNDA2ZDlkZjhjYjFiNzRjMTA0MzFjMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTQyMDlhNTk3ZGVjMjQ5NGFmMTE1ZDU2ZmIzMjVlZWY5NDY4MmFmMDFlYWVkNzg3OTQ4ZGQ2MjNkNTE4NzJiZiJ9"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L131-L143",
+          "version": "repo-lines-v1:sha256:99e4be6bb611b602e3de6fb89ec4582acce5158fead9fc899d35b20ca8d6e727:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMDRjYTQ1NTA2ZjM3YWEwODEyMzQ1ZDQ5ZjMzZjcwOGRkN2ZjODQyMWY2ZjVmOWU1NWE3OTEzMmE4MDIzOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5YTI2ODgzMzA3ZGM2ODRmM2RiZGEzN2UyZjYzMWRhMzBmNTliN2Y5YjBjZTQ4ZmMxMmIyYmEwOTE3YTA5NWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlMWQ3MGFiMDY3ZGExMzRjMDkxMWQ0NWU0NmQ5MjNhMDVhZmM4MzRjMjkyMWFhNmM2ZjZjZDFlMTdmZjNmMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjMzljMzA5MDUwODQ3MTBkYTRmNWI2MDc3MTZhNTYzMTUyYzE0ZmQ0OWRiNDI3NDRiODYyNTg0NjU2OGQyNjcifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L449-L457",
+          "version": "repo-lines-v1:sha256:daa15ce8b19e1f7f6daf737ee8d2fe75ee3d66bb9537ca2d1995458b0a06e655:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA3ZWQ4MTM0ODYzMzY1NDEzNzI1MTQ1MjlmZTBjZjhjNmI4N2E4YTgwMTk0NjY5YzE3YzE4NjhiZWNmYmZhMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTQ4YjA0ZWQ2NjczYjVkNzQ4NjE5MzNhZWE0OWMyMjg3YWFlODFkOTI0NTY3ZDdkMDhhYjcyNTc5ZTkxNmRjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWNkMDdjOTVjN2Y2OTg4ZTQ2YzNiMWM0NjFjMDQ0ZWFkMWI1ZWNiN2U5Y2JkOGE4OGI5Mjk5OThiZjZlMTlmOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTI3OTBiODk0YTg1ODI1Y2ZmOTJkYmUyMTMzN2M5YTBlYmRjZWZkNWE3YjZmMmU1NWFiOTRlYTE2Yzk2ZTk5ZCJ9"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/models.py#L79-L143",
+          "version": "repo-lines-v1:sha256:988fbe40a8f59f17a1059a98c28582c7478fe348f9f8f0e46f004913700b96e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjM2JjY2FhZjg1YzQwMWVlYTcwMWEwYzEzYWEzMDc4ZjNlNDFmNzU5OWMwZWFjOGY3ODkxZjQ5ZjkzZTkxZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmOGNmNmU2MjBjMDg2ZDAzMTIyYzIxNThkMTY2ODZkMmIzYzBkZGE3YjY1ZDdkMjc4YjVkNWFlOGE2MDMxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwYzQyODA0ZWMwNmYxZTYwYTMxY2ZjMzlmNWNjNzAyODlmMmUzM2M2MTc2ZTg4YzJhY2JlYzA1MTYzMTk0YzEifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/project_state.py#L58-L90",
+          "version": "repo-lines-v1:sha256:291b3e86178d5c3b15a81562f93621f6fa3117d8f8b5b9bfdf444fd5e727a93c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NDI4YTRlOGZlMzY1Y2JjNzIzMDU5YzA2ZTcxNjVmN2I4ODJiMjVhNWIwMTIyOWZjOWMzM2NjZjJmNDcyMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0NDI4YTRjYzhhYTMyNzE5OGVmOGUzMzBhMTVjZDlmNmQyYTA4Zjk2YTRkNWQ2Y2ZhNjY1OTg4N2Y5ZTM3NzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxZDk2ZDBlN2FiMDYxODZhMzYxMWY4NGRhMDBiMDJkYjU4MGQyOWE5MzY1MTcwOTk0NzQ4NzlhMGFlYWI2ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f89525670a0d44c09dc48c0afb331acf",
+      "statement": "DLP scans serialized request messages before cache and transport; a detected secret, PII, or custom-pattern violation returns a dlp_blocked response without making a provider request.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L260-L285",
+          "version": "repo-lines-v1:sha256:5e54724ee437bf03251005571eadf72602447559537f36cf46ee7fbb42fa4f10:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYjhjNmQ0Y2M1MzA4ZDAxOGZjNjNkMzQyMmQ5ODdhNmY2YzgwNzg3ODhlODJkYzRjZjk4MTE2YWMxNjJjZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlMTFlZjc1MjJkYWNmOWMwMDRmYjg2NjEyMjg4YmU3M2E2YjgwNWI5YWM3ZDRjYWUzMWQ5NDZjYjMxYzhmMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczZmRhNDU1MmE1MmMyZTEyMzE2YjU4NGU3MzE3YTcxNGQwZDAyMmUwZTMzMmZhZGI2OTBlNThkM2JhMTQ1YjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYjk3YjMxYzU3ODljMzhjZTljMTU0ZTA4MTk4ZjRiMTM2ZTI5YWYwMGU2NGY1M2Y4N2VlMDEyZDMxZjNlNDUifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L101-L108",
+          "version": "repo-lines-v1:sha256:ed5dd761bdc8246f5487511dda485197e0297206b1ea1624386186a325c8fe87:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1YzFlYTI0Njk4NDc5MjE4NmEwZmI0NTA3YmQ3NWNmZjhjNDMwYmJhZTE2YzM0NTNlYmNlZDNhYmUyMmQ5OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGZiODcwMzg1Zjc0YmIwNGNhOWRjMzY4OGVkZmI0MjE0MDczNmQyNDEzZTA0MmY5YjMxMmE5ZmUxMzUyYWVkYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWZkMDhiOGZhODQ2NWQ4OTE5YmE1MzQxMmJlMGI2NmNlMTc0OGZmYmVhZDgzMWRhM2EzZDhlMDIwMDM5YzJhMCJ9"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/models.py#L169-L205",
+          "version": "repo-lines-v1:sha256:d5ef83e038cf4bab44f5099d02636b828545b3448e541bd413ce8a41055af556:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1Y2VhYjMzNWE0MjYwZTZhMjE4OWFiMDYxYWYxMDQ3MWEzZThiNzZlZDVhYjQwMDE5OTdkM2ZjMTIyODA3NDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmOGNmNmU2MjBjMDg2ZDAzMTIyYzIxNThkMTY2ODZkMmIzYzBkZGE3YjY1ZDdkMjc4YjVkNWFlOGE2MDMxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwYzQyODA0ZWMwNmYxZTYwYTMxY2ZjMzlmNWNjNzAyODlmMmUzM2M2MTc2ZTg4YzJhY2JlYzA1MTYzMTk0YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_25db1580e0bd40db8c82abd2ab22a6ad",
+      "statement": "Gateway spend limits reject estimated requests that exceed daily or per-agent budgets, but charge only successful calls—using returned token usage when present and otherwise the estimate—so failed calls do not inflate local spend counters.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L353-L417",
+          "version": "repo-lines-v1:sha256:6f6cf7915cc589270c55fb243571fb5e9159147d0db520a75d356be68e5ec61e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNWE3YmU1NGI5Yzg4ZDU1ZmQzNWYxYmFmZGIxMjkzNjI4N2FhNzQxNzRkMzg1N2E0NzU0Y2NkOTgzZmI0MjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YjM5OWY1MmE3M2JlMmUwMmIyYzg3OGQ4MmVlMDYyY2JjYjA2NjcwOTRjYTdkODNkNWMyYmU2NGM3YWE2MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxMGEyZGNhMDU2NzQxODE3YWE5ODdjYzRiZmI3YTkwMzE2MGJjNTg1OTVhODc1ZjEzNmVkYjc3MGQyMWIyMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYjU2ZjhlNGY5MjE2ZmQ4MjU5NTA5MzBjNmM2ZTQyY2EzMWI5M2ZlZDJiZmU5ZDRhOWZmNGE4ZTQyZDU0NDMifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L149-L175",
+          "version": "repo-lines-v1:sha256:a00444ec618aa24c6e23030e1f5853db92d107649e3cb1f95c0f5839a44e27d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NDMxZTFjODM1NDA5YTI0NTIzZjQzYWE2ZjE1ZmE5Y2E2ZGExZGNiYzk3OTk4NjlmN2YwZjQxMDJkYjhmNGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2YjlkMDY5NjM3ZDcxOWM1MWJkOTRlNWNjODU3NjA2MGYzYjUxZmQzY2ZlODI1YTM2M2IwNmNiMWUxNjQ1MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2M2QzOTI4MTYwMTg1NDE5YTI3M2NkZWUwMGNmNmIwZTU3ZTQ5YzZiOTI0ZjBiNDE2ZWNmZjNkNTZiYzA4ZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNTFkYTYwM2EyMmVhYmNlYjNlYmMxMmI3MDE0OWE3ZmMwNTM2ZDZiM2MzZGQ0MjQxYzhlMTA2NmJkNzE2NmMifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/models.py#L37-L76",
+          "version": "repo-lines-v1:sha256:755e05415dd96dba39262084fa1acd106ed0d38eb198b18962c8e13ca3577caa:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4MTYzMDgzOWIyYTAwNTQxNDhhN2ViYzkxYzljMDVjYjFiNzQwMzM0Mjg3YzkwZDUxMmViMzNhMzEwZGY5MDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ac4b915e195469781b66f51201de413",
+      "statement": "Cloudflare-addressable requests for anthropic, openai, google-ai-studio, or deepseek use the Cloudflare gateway fallback loop; other requests use configured upstream delegation or direct adapters, with configured provider/model fallback and health exclusions in both paths.",
+      "evidence": [
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L153-L156",
+          "version": "repo-lines-v1:sha256:cde3c4e3a5017cce2e121e822dd09f95935162e5af00265eb66a848724ddebfd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2RhNjMwOGExMjBiYzZjN2U4ODcyNjA2NGMyNDJlNjBhZmRhODhlMjEwZDg3MzYzMjZhNzI5MTMwYTNkYzlmYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzA3NTQ4YmJhZDJkZDE0OTIxMGE0NTMyYWZjMGM0ODcxMDg4OTQ3MWJkOThmZTU3MjBiZjVjNjA2OWUyYzNhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTRkM2VhYTkzMDJkNDk1MmEwNTIyOTAwMDYwMTcyNDlhZmQ1Y2IyZTQyNTUzZDEyMGExNjVhYjk4YWExYjg3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2RmYjhjNzA4MmM1MGJmZTM3ZmZlMDQxZGEwZmMxOTBlYTdkYmNjOTJlMGVkOGY4MTZhOGE4YzA3MDg0NWZkNyJ9"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L23-L24",
+          "version": "repo-lines-v1:sha256:5884f1dca947307c2e777267d22b8ad3f2a56fc7fdaf9bf602f3751b6f935824:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDI0ZmM0ZWU1YTUxYzZmN2UzM2Y4OWEyOGE0YTdmNmM5ZGJiMmVkZWI5YWFhNjZiNmY1ZmZhMTJlNjdmMTdiMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDA3NDVhNjc4OGUyN2Q0MGFiOGI1OTM1MzNlMjhiYzMwYmJmOTc3N2VjYzhiYjBhYTVhNGYwOGNlNTk2OWViNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWNlZDY5MzI5ZDEzMDJhMGRhNTkyMmY1ZDhlNjZkMjhkZjAzNGM4YjliMThiNTYyNTU4MGNmM2MzMzBhMDI4ZSJ9"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L297-L350",
+          "version": "repo-lines-v1:sha256:4d7dffe73f548e2303f368ecd67d50cb85d24612aee43464e07717bd0384daa4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3Zjk5Mjc3NmVjZGQ2OTRiOTJmODU1N2U2YTllOGIyZmQ1ZjRhMjUzNmNmMTliNGI3OWRlMWViM2RlOTVlNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwOTcyNzZhNmZkYmRmZThkNmE3ZGUzZjk2M2E0ZDRlNDEzZmZlODY2MmVmMTZiNGQxYTczZDVmZjJlOTc1NDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMWI4N2VhYjFmNDRhZWNjMDkzZDMxYmY5Y2U2OGI1OGYwYzhjNzQzNDI1N2M1ZWU2MzFhMjU3ODVkNzQzZWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1MWI4NDIyYjNkMjFjMmJmOTVmNjBjMTJkNzQyYmRmZmMyNWEwNjhlZTkxMWQ1ZDdhMjUyYTRjMGZmMzdjNTMifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L395-L445",
+          "version": "repo-lines-v1:sha256:2bb00bdc1122a041206ab061171fefbf5610aaee697330990b372672534fe631:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwMzI3Y2QwMjE1MzhiZDAyNGY1OWQxODRlZmVkOWE5OGEyYmIyMmI2MDBkN2YzMDE2NmVjZmZiNGY3NWY3ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4NDhlZWIwNWMxYzZlNmFjNjRiZDQ3NWM3YzBkMmE4YzE5M2FhNjBlYjBjMGEwZGQwMjIzMGEyMGFmZTI0ZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlODEzMzc5MTdkMWY4YjgyODc5NjBmMjk5OGVmZTY2NjNhMjI2ZjAwYmEzZjhmZmFmMzg3Y2VlNzQwMjI5ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjZDA3Yzk1YzdmNjk4OGU0NmMzYjFjNDYxYzA0NGVhZDFiNWVjYjdlOWNiZDhhODhiOTI5OTk4YmY2ZTE5ZjgifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/providers.py#L505-L590",
+          "version": "repo-lines-v1:sha256:45485911455ee71178de6d782e96d4e2da325c929339c58215e1d78d5aba4536:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZjY0ZDlmZjM5NDRmY2NjZjNkMTdmNTliMGUzMjQzNWYxMDlmMmM5NThmNjQ2NTJhMWZhNjViZTg2ZjQ1ODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMGRjODdlMmQ3ODJiNzhlZTE2ZmRlZDE0ZGUzYmNmYjU3MzczNTBkYTFiMWMwMDVlZDI1MDlmOGE1MmFhZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YzRjMjdmN2VhNmM1N2VkYjI4NzM0YjgzMmZlOTNiZTQ3MWRmZDkwNDc0NDkzOTQwMTM2NjllYzA3MjliODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8986778e2d99434fb3d75f21213507c0",
+      "statement": "When an upstream is configured, non-upstream requests go to that upstream first with an optional model override; an upstream error or fake empty response normally falls back to the original provider's direct adapter, while an explicit upstream request avoids a second hop.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L429-L506",
+          "version": "repo-lines-v1:sha256:8d653e522842e90dbdf75098825d179141a95b0f7993887056a1d45b66f4a4f0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxNjcwNGExNDVhYTBmZjA5Y2M2ZGYyOTNhZjMwNGM0MTM1YTFmMTk5OWMxMzZiMDM2NTFjZDY5ZGNhNDQzOWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4OTJkY2E5NDE3MmExMDUzZDcwOTc2N2FmMWQ3ZGQ1M2NjNjhmNDFlYTk5M2MxMmJlMWVhOWY5YWZhOTNjMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2MWI1YjZkYTUyMWQxN2VhNDA4ZTVmOWFhYTA3NTZmNzRlZDI4YjNmZTExODFjNmNmOTM1NDNhNmFjN2JhMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzNmY1NDFmZDJjNGNhNTRkZDlmMDAxNDk1NDQ5OTUyNmYyZDY1MTFhZGQ3MmU4NzYyZjExYzMzZDU1YTQ0ZDgifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L185-L228",
+          "version": "repo-lines-v1:sha256:a6a966cfbcbed77ee3cc18d2962f9b27fafd6712a22d2954f93bf46699c88b68:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYmZkMDBjNGEwOTViMTFhYmMxMGRhNDA4NWQ5NzZlYjgxN2JkMTMxZGY4M2FjMTdlYTBkM2UwYmE4ZjRlZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4MzI4MTEzNGNiNDBhMWE1OTQwZDRmZjBjY2EzMGQxNzdmYTY1ZmVkNzMwN2Y5YTI3MTVmNWI5MjcyNGZlYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0NGZmY2E0ODdiY2RiMTFjNmJmMThiNTkyYzI3YWY5MTE4YmZjNjNkYzBlZTQ4ZmY1OWY4ZTFkMTA1ZjMxZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1NDM4NzI4MjRkYjJlNjQ0M2MwZmIxMTE4YTY1ODIxOTk3Y2Y2MzliOWJiMDM2NTk5NzhmYWNiNDMyYjdkZWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1a30d5eed16b4084b59b704cf0e2f88b",
+      "statement": "The gateway treats a provider response with empty usable content as an error eligible for model fallback, except for recognized terminal truncation or tool-call stop reasons, which remain successful turns.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L298-L350",
+          "version": "repo-lines-v1:sha256:77abf6ced08dfe8c6d710700a17b427e529c122492c67958945df3a8741080c9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNDljMmUxZTEwYzM5Y2M5YjViZTc5OGUzNzA2OGM3NjE3MzUwOGY0NGZjODkwZmNjYzBkZmQ3OGI5OWFkMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMDRmMDljMmZhYzc5YWEwOTdjNTcwNzVhZjM0YmVkOGJjYWJmNzgyN2Q4ZjI1ZWQ4YjM4OWEyYzY3NDdlNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNjYyNWQ4NTVkYjcyMGE2MmYzYjI5ZGU2ODUyZGEwYzhkZjFmNmU1NmFhNmVhMTgyYzAzNjlhOWIxZjdkYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwZTdiZTBmMTA1YTc4OWU2ZDgzYjk4OTQ5MWZhMTRiYzYwNWQ5NjEwY2RjZGVhNTliZDc5ZjE4Yjk4MWRiOTkifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/error_classifier.py#L227-L287",
+          "version": "repo-lines-v1:sha256:8b054d95550368d57c916e64c9199cf221e767e6d56b6c53793632d2b735d980:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiZGFhZjNhOWQyNTk1MmUxMTMyY2JmNDJhZGYxNzA5ZGIyMWFhMWRjOWI0MzZmMjFiZjk2YWU2OGVmNjVhZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YmM0NzExZWNjYTA0NTBhZmM4MzI3NzlhODg2NzZhN2M2OTYwZmEzZGE1YWY0MTBlZTAyZDFlMDE1MTU5MWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4YjQwYWJkYTVkYTQwZjRiZmY5NzMwMmJkODViZTlkMTY3ZTgxZDBlNGEzY2VhYjU4Mjk3MTlkM2JlODRjMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzMDhmMDI3MGQzZGI1NTcyNDUxMDcxYTRkYjZjY2E2MzU0NTg3N2Y1ZWM2NzJlMzgzMDJiOGQyYTYyZWNlNWUifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L248-L273",
+          "version": "repo-lines-v1:sha256:f5673815778afa64eab495bce4ca5bbed93d639022b48215ddc62ba00d224fb6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4M2U0MDVhMjJiMGYxYWY3ZmE1OGMxMGFhMTFkNmRhZGZkYzc1MTU1OThlZDQzOWQzMjRkMWJmN2FjNjU2ZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYTcwMDJiM2M4NTY3NWUwY2Q5MTIwNjM0ZDZkNzY5ZWNhN2Q4NzJjMGJmMWNiZmEwYmZlM2U2NmVjYmMyMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwNmNhMDA1Nzk5MWRhZjZjY2NhNDdiNWE4YjYzYzg5NDk2MWY5NTBiNzBmNTE0Nzk0MzU3YzMzMzhkMzMzMTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_84d3b488ae62469480ba2ff53b739c11",
+      "statement": "Provider health is process-wide: missing credential signals or runtime exclusion makes a provider unhealthy, exclusions expire after a configurable default 900 seconds, and gateway billing/auth errors mark affected providers unhealthy to avoid repeated calls.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_gateway_provider_health.py#L9-L64",
+          "version": "repo-lines-v1:sha256:68fcce8358e14c97a7e1a9d1162b170eb3ace99d788c221ee9f580b6dcc759f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjUwYzdiODRiZDRjMzYyNTEzZDM3OGEzOWNmMmFiNzYyMzE2YzhmNWEyMTBlZWU1MjlkZDE3NGRkMmNmYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ZWRiNDA4Nzg1YzcyZjg4NjliNTdjNjUxYzBiNzcxYTAxZWZiMzZiNDMwODJiMzI5ZTYxODc4YmMyMGRkYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjNTY5Zjg4MWNjNTYzMjZkZTQwOGQxZTJjNmFlZjQyYWM4NmQ3ODEwZTc0MmQ3YjkwMmM0YTZkNGIxN2NjYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L277-L295",
+          "version": "repo-lines-v1:sha256:67263043e18dba5f6f982b232cb6e33289cf05c5d8759854e0e954ea6f1da816:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzZmMjYyMmZlMTgzNTkyOWIyZjU5ZWVlMTYzOWY3NTQ5YWYwYTM3NWI1NDZmYTQ1YTZhMmVkMzE1YmE0NDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwZTJlNmZkN2ZlZTVkZjYxZmVjYTExOTAwMDY0OGI3YzU1MTQwZDgzODRmMGQyMzRmNzE1ZTA1OTY2ZWMxZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwNmNhMDA1Nzk5MWRhZjZjY2NhNDdiNWE4YjYzYzg5NDk2MWY5NTBiNzBmNTE0Nzk0MzU3YzMzMzhkMzMzMTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZjRjNmVhNjVmYjEzZWI5M2NlY2E4YjRhNTYxNzIxMDNhMjBmOTdiZjQyNWEzOTg3MTQ0NTA1YmUzNDczYmMifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/health.py#L16-L27",
+          "version": "repo-lines-v1:sha256:f8f0f80efed80deb65705923b673b84fed33473de6446464092b1ea1e4e0fe33:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4YjRiNmY5MDBjYzkwMTVhMjI3YzFiNGU2ODlhMTVjZmZhYWQyMWIyOWM1YmUyMThhZTYzNjQwNDE5N2QzZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYzUyM2Q4MGFlNTU0YjZjMGNhNGNkYzMwMTg0ZTliYmM3NWQwNzMzZGE1NGNkMmFiNjY4OWFmZjY4ZmJlODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyZDg4OWE3NGZjMzkwNWJjOGNjYTNhMjNkZTIwZDdmOTRjZDJmNmM1MjM0MmUyZmZjZGE2YzkxMTljZTlhZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/health.py#L73-L176",
+          "version": "repo-lines-v1:sha256:b40d0db76474f2f86269de956322d3c0a1351aa8a8a202f2fda827922b473874:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZGM2MDk2YmFlNjJmNmVlNTc4YzkwMjBjNDg2ZDNhN2M3MGJlNmQ4ZTc2YmI2YTcyNDIxODQxNjJiODYyMmZkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2Njg1YWQzNjUzYWIzZGM0NGEwYWRlNzQzZGE2YWIyY2UxYTNkN2NlYmIzYzYyZWExYzgyZGMzMmJjZTRhZDcxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4ZDJjZjMzNjEyYTAyNmY0M2YyNjU3N2ZhYzE3YzVhOGMwOWI4NThlODY5NDlhNjFiNGE5OGNhOWY3M2QzMTM1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmN2I5YmE5NDRmM2E0OWM0MjZiZGQxOWZkMjM3YmJmZTdjODM0ZDNkYzgyMjJjMWE4YzI2OWFhNWY1YzdmNTcwIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_c47555ffc23a42d6bd33e28486ee69f4",
+      "statement": "A2A chat fallback owns tier/role-scoped provider iteration and calls gateway.chat with allow_provider_reroute=False, preventing the gateway's global provider-priority reroute from silently changing the tier-selected provider; it stops on a spend-limited response.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/chat_fallback.py#L17-L89",
+          "version": "repo-lines-v1:sha256:625c1d91d08167669ee2fbb946a0c9c98814a6b089eabb5ca47207520cbaf421:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkZTlhNGIyZTIwOGY0ZTM5M2Y3Y2IzNGQwMDM5YjAwYzhkOGMyOWZhZDY4YTcxMzkwMzQwODE4YTAyZjcxNDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOGJkYjljOTEwNGQ4OTFkOWUxNWFhNDY2MmQwMzdmOTdiMzk2NTkyOWMwMGZkMmU0MDIxMzcyYTU4NTg4NTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyNmQ0MGEwNTM0MmM4NjJmNTIzOGQ4Nzg2M2QyZGYyODY0YTRjODQ3NjQ5YWM1ODA5MjQ5YjBjMWQ3OWI1ZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L109-L130",
+          "version": "repo-lines-v1:sha256:a79eaa10c80415d6459b947fb9795fc44ee48f767fdc4ee6783d1a44cb267db8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNWM1ZmMyMzlhNDU2YTQwNGNjODM2M2FlY2VjOWJjOWUwYWE1NzUzOWM5ZDU5YzA4YWU4NTRiNWI1ODEwZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwNTE3YTk4ZDJjMmExNDBkNGRhZmI4NWVkM2QxZjY3Yjg3YmI4ZGE5MjgyMGFkZTcxNmI2MDczMjhiOWQwOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmZTZhZjBmMzFiMTZlYzVjMTk5Mzc4OGYyM2M1Yzg2NjQyNjA4ZTU4YzNiMWUxYzI3YjRjZDliZWM4OTU4YmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6ff80058b2c7455498339b72291eb2b9",
+      "statement": "BYOK is opt-in and limited to Anthropic, OpenAI, Google AI Studio, and DeepSeek: supported direct calls are routed through Cloudflare using provider-slug/model identifiers so provider keys are resolved from Secrets Store rather than read or sent locally; unsupported providers retain direct environment-key routing.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_byok_credentials.py#L231-L275",
+          "version": "repo-lines-v1:sha256:9f95598194f4b27858c6aa1da6e8163f35584922060da40953c435f4ec29be9c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZmQ0ZGFjYmQwMzk2ZDZiM2I4ZTY3ZGNlZDRiZGM3OTJkM2VhN2Q4YzU0MmE1MWY4YjI4YzYxZTIwZWM2ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YWJlOTFhZmNhNjcxODY2M2YxMDJkYzQ2NDU0ODMwZjc4MDg5ZjM5NWEyYzlhMWYwNDZmODkzNTMwZGNhM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2ZGQwY2FmMTUzNTNlYmUxY2E4YTc3NGM1ZWFlMmEwODI5MjBkNDA5NjM4YjI2NDM5MTk4YjZiNzJhY2VhNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYTFmYmJiMzVlNDlkNjZkMDMyZGZjOTYzMzE2YzExZDMzNzk1ZWIxMGE1YWJkN2RhNDBlMWM4NjdhYjAyNDkifQ"
+        },
+        {
+          "resource": "repo://tests/test_byok_credentials.py#L95-L138",
+          "version": "repo-lines-v1:sha256:7910ff415cd2edba31640ccd87faef75c6581496a9c164017a875f16f684ba15:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNzJlODVhZTEzM2NmZWM4ODE0M2U3NWZkMDYyMmU2OTBmODdmNmZlYjM0OWJkNTEyNGQ4NGI3MjJjMDgwODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczZjJjYjk1YzhmYjY1ODAzOTI2YWFhMmQwM2NmM2M3NmFiZTRhNzVhODBlMDE2YmJkZjQ4ODZjM2VjMGU1NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0M2Y5YWRmOWQ4N2E0YTk3MDYzYzFlYWZjYjNlMzI0MjNiOTQyZjQ4YWMzZjkzNDZkOGI3N2Q5ZDMxZGFhZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjM2EyOGRlMGNiNmMyOWM2N2I3ZTU2ZTE5MDA3NmEyYmI0YThmNDViOWE1ZGU5MjJkZjczY2RjZmEzZWE2ZWMifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/cf_secrets.py#L1-L11",
+          "version": "repo-lines-v1:sha256:9a42cdbbf9ccbf36f2018d6078736df9b1e7fc0e770f5d1679012fbf03f065dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMzlkOTYxZGZkYzk5YjM5NDdhYWMyMDE4NzgxZTgyMzg5YmM5M2Q0ZTU5ZGVjZjJjNGVmMTY1YzRlNGMzZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYWQzNDI5YzAzZDRmMDJhMjE4MjdmMjY2MWZjZGFiZDk0YjA0ZTU5YTJmNTNhZDgwYzg0NzI3NDZjMWEwMDgifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/credentials.py#L1-L75",
+          "version": "repo-lines-v1:sha256:225fe993f04ca01f7d49460bbd44bf8ed1f80326ecab79cd6fc9586137440305:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ZjU0OGRiYjViZGE4Zjk5M2YwYjg2OTNkN2RjMDM2ZWUxMDMyMTYxMDliN2U5Y2VlYTc5MDFjMGI1NWI2ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNTZhNWUzOWRlMWQ3OWJkNWMyNTg4MGY4YTcwZjdiZTg0ZjE3MmQ1NTVjOTU0NDJlMTc1YmU1MTFjY2IzZTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/providers.py#L515-L586",
+          "version": "repo-lines-v1:sha256:69cea1060ca1446dfd76fa850879b1d4166e4dab8d733eabdfc48d4fea2f4818:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmOWQxNTkxYWJiNDA5NDRjNGM2YzVjMDNlYTM2MzI4NDc1M2M5NTFmZDBkOGM1OGYzZDEyOWJmMDJkYzliYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmNjMmNkOGI0NjgwNGM4NjNjMTgyNGZjYzJlZDQ0NWUyNGFkMjdiZDc2MzNlNDNlNDE0MTI4YjI0YmZmYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyMmJjY2U3MjRhODBkZGE5ZjhjZGI4NDA4NDBkOTRiYzFlYmU0OGM3YTU3NjRhMGNhOWVlZjQ0OTQ0YmMzNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1Yjk4MzBhNzIzMmNlYjkxOTFmYjk3M2Q2NGE5OGE2YjUyMzVkYTgxMDE5MDAwZDQ0ODAwM2Q5ZDA1Y2QyYTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_de08ffc7be8440c3967e31bf6169a4fc",
+      "statement": "BYOK-aware health configuration considers a supported provider healthy with Cloudflare credentials even when its local provider key is absent, while unsupported providers still use normal credential checks.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_byok_credentials.py#L278-L327",
+          "version": "repo-lines-v1:sha256:8961eac2529f1b9234850a01694f183213701d62ce4d8e8a85fa1e01415d5420:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NjhmMTZiYjdkYTJlNTIwNWNkZTc4ZjVmMzczMmViMGM0MTYxNGI4M2UyNTc3NWUyNjg1Y2M2NmExN2U0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ZWRiNDA4Nzg1YzcyZjg4NjliNTdjNjUxYzBiNzcxYTAxZWZiMzZiNDMwODJiMzI5ZTYxODc4YmMyMGRkYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2NzE5OWEzNTZjZWUxOTdkMjBhNzc1NThlNmI1Y2Y1NTk1MzU5M2VjNmQxYTk2NDk5ZTM4NTk3MGJjNzZjZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1OTJhNzI3NjllYmZhODFmMWU2MDE0ZTUzNTcwZTI1ZWQxMWJhYTk3N2MyNGI0ZmY3ZjRmODYzZGJmZGUyNjIifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/factory.py#L49-L55",
+          "version": "repo-lines-v1:sha256:c42937164fad4b20fd5e03db6834e2c36f828d24a10e7c77e1055bf40554685d:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU3YzUzMjhkZjkyYWVhOGUwZjhkZjc1YjdjMzhiMzNhNmEzMjA5NzEwMzI4ZGM3ODY2NWUzMjcwNDgyNjMxZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGI2OTNhNmM0NGU0MjUxZDU2ZDU0YjZjMmQ0OGQzZDQxZWRiNmMzZGFjMjk1YmNmMGMzMjRkOWM5MDE2YjFmNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YwZTI4YmFkMDIxODRmNWI2MTEzNmM4OGU3NzZlM2I5YzdjYjY0ZTU2NTdmMWFkN2U4ZjMxZmM5NjMyZWE5MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGU1OWI2M2E4MTI5N2Q1MDMyOTI5ZDcxMzg5ZGMxYmZkYjA0NjFhNjk0ZmI3MmU4MzVhMTkxNjZjN2ZhMTZhNiJ9"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/health.py#L96-L157",
+          "version": "repo-lines-v1:sha256:e63a9317c97811410d4df9bfab4ddb3dd9cc742eb9f860f420ca29abf984927f:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MTE5MWFkYWM0YzViNDA1NmI4MzdiYjRlZTMzYWNhYmRiMzRkNWU5ZGIwNGM1YmVlY2YwNWFlMjY5ZWE5MmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMDhkZDIwZjkxODdhOTYzYjAwODRiZDAyNmJjYTY1MTBhMTkzNzEwYzljZmJmMzRjYmRkZDk5OGI4ZTE5MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyYjdiZTY5MDQyODBjMmU0YjgyMGY2NTYyYjRjZTA1Mzc5OWQ4M2VhZTNiZWUwMDM5NjUwMTIyNDJmMTMxMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5MmJjZTI1MTgyMmEzY2RjNGY0NzlkNjJmNTEwNzBmOWM5MjY1ZGVkM2Y5ODZmOTU2MTU1NjVmZmY1MjIzMjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed0730eea11243f5b89eba7cd2726ab6",
+      "statement": "Model selection/cost policy occurs before gateway execution: the pipeline can replace a route's model and provider with a configured cheaper mapping based on task patterns, while gateway SpendLimit is the pre-call budget guard.",
+      "evidence": [
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L145-L156",
+          "version": "repo-lines-v1:sha256:e763eae8bef55c4e7133308bfe7c5dbce2c47a96c0eae69765e517b4dc9c426f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmYzY3ZWJkZTQyNDcxYjMxNmMzYWNmYmVlYzBjMzgzNjM4MGE4YmUyMmFkMTEyNDE2NWM0ZWJmN2MxY2FkNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwNzU0OGJiYWQyZGQxNDkyMTBhNDUzMmFmYzBjNDg3MTA4ODk0NzFiZDk4ZmU1NzIwYmY1YzYwNjllMmMzYTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2OTRhNTFjODRlYzZjNTM3NDhkYTE2YzUyYzY2ZjhiZTIyYjgxMGU1ZDk1ZWY5ZTAyYmUzN2Q4Yzg0NDM2OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkZmI4YzcwODJjNTBiZmUzN2ZmZTA0MWRhMGZjMTkwZWE3ZGJjYzkyZTBlZDhmODE2YThhOGMwNzA4NDVmZDcifQ"
+        },
+        {
+          "resource": "repo://voly/cost_policy.py#L13-L98",
+          "version": "repo-lines-v1:sha256:404ad94d00111e2640db5ed989fa51abb38543ca1c875620ab2ae287afa131de:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlMDczM2I2ZmJjMjdkMGRkMWEwMmE2MTBlMzBmY2EyNTlkYTExZjk5YTMxMmFkZDUwMjg4NWZjOGNhMDZjZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyNTBmZmJiNjdhNTljODc3YzI3N2NjYWVhYzIxMmUwNjM1ZmNmNGNhM2E2MWNkOTEzOTNkNGMwZGJlODdmNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5YzJiOWZhMTA4MDQyZTc3MDMyNjBlYjY2MzNhMDgyOTU5MmYwZGU2OWQxNjI5MTg2ZTY4NTk1MGRlYjNhZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzNmQwOTY5ZDFkZDBhYzBiZjZlNzNkZGQyYWIxMjNhYWNmMzdmMGY1NzRkMzM4MjM3YWJlYTE1NTg5OWZjZDgifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_route.py#L14-L40",
+          "version": "repo-lines-v1:sha256:6ed278fdaf9880de6c40ae4842b155a277eb8683c3eb5db2422ae0b3ce4bfb1b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2OGJhYTI4MzRkMWQ4ZjU5NzY2N2VlM2VkNTNhOGJkMzMyZWVjOTMwY2JkZjVkZjllMzM2MGIyMTZjYjQ3MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NzBlNDcxYTc3NTliZmE5OTMwMGEwMjRkMzk1OTg1YTEyODg3OTEyZDVhMzhmYmRhMjg4ZTJhNjJhOTlhZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzNmY4ZWFjZDU5ZTBmMTcwYjEyNTA1NTlmM2Y4MjNhNzljODYyMDMwYWQ2Mzc1Mzg2YzU1NTViMzg5ZDFkNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyZjczMGRiYTk4ZWM3MmRkZWUyMTdkODI2MTMzNGQwNDM3YmI2NDU4YzFlMmIwYjk5OTIyYjAzYTA1YjRmNzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_edc1b3baae334b309e5bdf8f0c9b9e51",
+      "statement": "Gateway provider routing must remain distinct from file-capable executor billing fallback: error classification treats bare HTTP 429 as transient rate limiting and only quota exhaustion/account deactivation as terminal billing, while executor/runner retry accounting folds abandoned executor attempts into task totals.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_retry_cost.py#L1-L8",
+          "version": "repo-lines-v1:sha256:48eb747240ce25c2bb714d012a18f6fb3b534ba3ef5fa352588036d75828f80f:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk1ZmU2ZTM3OTZjM2Q5MDUzZmI4Y2FkZTBiNmE2OWJhYzcxNzg2NGYwZTRmMzNhZjhmOGNkNWUyN2E1MjI2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
+        },
+        {
+          "resource": "repo://tests/test_retry_cost.py#L92-L126",
+          "version": "repo-lines-v1:sha256:d21fbeedc371f60aa82a3bc145bdda8bd6e97683f5a84034f49b164a19e4b081:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwMDUyMmFhMjI1ODVhY2E2ZGYxNTM4MzYyM2QxYzRkZTAwY2FjNmM0NzdjYzBiM2ZlNzU4NDgwODJlZjY4YzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyNjEwNGQ0ZTY3NWE2OTFkNzhkNDVhM2ViMmUzNmFhMDJjNjFmYWEwOTZmN2U5YjUyMzI3NDMyYzEzY2YwM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmOTgxN2QyODJlNGIzZjk0NjgyYzFlZjA3ZmE0MjdmNTQ2MjA4ZWI1MDEwODcyZTYyNTU4ZDZhYmUxYjgyZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmZDQ4YzVlYWM4NDEwODA4MDQ0YjllMjljNTM1NDc0M2UwNDZmYTAyZDJjYjBiZTc3YzQwZGQyNzVmNGVkMjEifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/error_classifier.py#L305-L363",
+          "version": "repo-lines-v1:sha256:3834475fadeb5d70e110c3d0037f2bc2baa21b4af22387e23120c0cffbd44ccd:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiM2RmMzc4N2RjOTZhZTE2ODc3NWQ2MmRmNGU1YzcxNTRmZjlkNGRkZWU2NGM3OTA0NjEzYTQzNDIyNDRmNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwNjgxMTZkNWFiNGIwYzM1ODZkMDg5MmE1NzJkMzVjMDRhNTFhNGJhNWZkYTgxZmM5MGViOGJkZmVkMGZmNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiOTAxOTYyMzRkZDJjYTRiZWZlMTBiZDhhM2Q1MDBlYjkxNjgxMWZmNWFiODBiOGE2ZWUwNDgxMjM0MWFjNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/error_classifier.py#L44-L49",
+          "version": "repo-lines-v1:sha256:992bfb078b2666908668b11626d8efa4d3d46936759643f57096f8f212570bfd:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmIyNTk5ZTA0MTMwOWFmNGViMmFmMTY2YTVkNTkwOGQ4MzVmYTJkMjI0MTYwZmRkOGE1ZGQwMjJkOGI3ZjY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFmYmEwNTI3YzM5NTNjNGI2ZTBlNWI1NzM5YmE4MzYxMmY4MDUzYmNkYzk0NjY3MzAxOTNjZDFkNTkwYjQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjIzNGUxY2Y1ZGJkOTFhZmIyODgwZjQxY2QzZTU1YzFkM2M0OGIwNDA1ZWE0OGE2MzhmNWM1NDU4YTE0OTMwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDQyZWYzYWQzM2U2ZWVlMjVlYWE4ZDhmMWM2YTlmMDAxNDk1ODc4MDRjYjA5Y2MyZGQ4MWRkMDUyYTEzZmQ4MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f7cbbca09dc45498adb2124b7fe4248",
+      "statement": "Pipeline.gateway lazily constructs and configures AIGateway, and gateway_from_config provides equivalent policy wiring for non-pipeline callers including SDK and plan execution.",
+      "evidence": [
+        {
+          "resource": "repo://voly/ai_gateway/factory.py#L1-L64",
+          "version": "repo-lines-v1:sha256:38b5c69afa5629cbfa3c447f02e262821e5f7aab968934348db55508a3094984:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3Y2ZjNTlmMDNhODFhNmFjMTFhZTNjZWExZmQ4MTIzYWViZWQ3ZjY5MWU5OWMwMjkxZmFlOWE2NmVmM2JmYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MjA5YTU5N2RlYzI0OTRhZjExNWQ1NmZiMzI1ZWVmOTQ2ODJhZjAxZWFlZDc4Nzk0OGRkNjIzZDUxODcyYmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L114-L163",
+          "version": "repo-lines-v1:sha256:63a4a4547407c356cf8b4cee559057b12608137f6c6ab45796667baefdec27a4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZDAwY2YyNzA5NjRkNDRhMTNkZmFjODc1MmIwOWZjYzQzNWIwZjE5YjMxNmFiY2Y4MWE3YWE2NGJiMTIyZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkMTY4Mjk2YmZhZDE4ZGI5YzZjMzBhNDY1ZTRmZmE3ZDY3MzRiZjliNDkxNmEyN2UwMzI2NjFjMjBkNzU4NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzMGI4NzUwMDYxMzY3MjM0ZGQ4MzFhMDI0MjczNDRhMDQ2ZWRjN2Y4ZjZkYzEzNmIwODlkNmNkN2Y3N2EzNGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzMzY2YjU2OWI5ZjNhMTZmY2QzYjU0MTM4OGFhY2E2YWFiMzgyNWU2ZTRkNDQzOTM1NWQyODg1ZWI1YmZmZWUifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L637-L656",
+          "version": "repo-lines-v1:sha256:79ae500cc71f7654ee710d7c83a7201d48b74193d9108e9f2559938fbb8860d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2MjhhYjBmMjk2Nzg5MDhhMzQyYWI5Y2RlZTQxZDM4OTcxMjIwNjNiMzE5N2Y3M2JhNmE0NWVjYzg4MWY1ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyNTI1MjI4YWY2ODFjZWQ5YTQ5Mzc2NDhiNGNhMDE2N2YyOGU2ODhmYWRiODAwNjRmYjMwNTExZDBlYWMzMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ODk1M2Y2MzZiZTY5OTE1MTBiMTE0NjFmMGY5MWFjZmM5ZjMxOTQwYjNhZjU1OWFhZmExNjJhMDkzMTM2ZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5NzgxYjQ1NWY3ZTRkNzAwMWRiZTY0ZTljOGRmMjgyMjMwOGI4NDczODZhZjYyMmFiODdlMTdiMjJkNTViMGIifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/agent.py#L229-L252",
+          "version": "repo-lines-v1:sha256:7f55fb9cfff85f41a0153a903d11613601abc60e6719f8750369a5326e7ab11a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2MjhhYjBmMjk2Nzg5MDhhMzQyYWI5Y2RlZTQxZDM4OTcxMjIwNjNiMzE5N2Y3M2JhNmE0NWVjYzg4MWY1ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmMjczOWE0YmM2YThlMTM1ZDZmNWEwNTc5NjNkNDZkYzA3OGQxYmE5OTQyMDQ1MTQwY2FmMmEzN2ExZTQzMWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxZGU4ZWZjMzcxYWU2NWE2NjNjNjc2MzM1ZTNlZDBmZjI2MTkxMTRiZTA2Nzk5MTYxOWNmMWNmZjJjYWMwMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NGVjZWJhMDQ4OWE3MTRlOGNiYjhhOTZlYWQ2NzU3MGEzODc2NTdkZmM2YjQ1OWY1ZmQ4MTZkYjI1MTJlNzgifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.1",
+    "at": "2026-09-12T11:58:19.578Z"
+  }
+}

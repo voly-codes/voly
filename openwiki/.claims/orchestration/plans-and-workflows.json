@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3b7ce65ccef8411c3809822378c8fc5d5515191c5d302325a42049a5df519989",
+  "claims": [
+    {
+      "id": "claim_124a702a4d1d490c8824c0baa15f0e8e",
+      "statement": "A Plan is a persisted, validated DAG of steps whose legal statuses and transitions are enforced by PlanEngine; a step may enter running only when all declared dependencies are verified, not merely done.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/engine.py#L118-L138",
+          "version": "repo-lines-v1:sha256:9e4cbb2b6526ffd9fea7fc841c0f64aa4e47dd4fb3f6e6eb02c840b25619ef2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1YmE2ODJjNzJiYTA5Y2EzOWVhOTBhYmI0NWY5NWFhM2NkNzNiZWM2ODc5YThjYmFjOTgzMDNjNGY2ODczOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTc3Nzg2OTNhZjY4ZjQ4Njc5NTE3OTdjNWIwNjBhMTdjNTFkZDFkYTBmNzUyMWEzMzBlYWVmMTU1YThlNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjMTRmZjgyYjJkZjEwMGYwZDQ4NGM0NzFlNGEzYTQ0NjdjZjAyNDVjNGVkZmE0MWFhNjRmMjkzMmIyYzM1ZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiYjc5NzA2Y2MwNWQyMmY3ODUyZjdjZjZkMjRiZjlmNDMzNGU5Zjc4NWMzZjI5ZjE2OGQ0YzM1Y2RlNzlkZDkifQ"
+        },
+        {
+          "resource": "repo://voly/plan/engine.py#L151-L226",
+          "version": "repo-lines-v1:sha256:8e7c7989f1666eb0818f20c3ec85068240b24268ec152d5aec571bb4cd779775:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhODU3YmE1MzJiNWE3NDRhMmU5NTMzYzMxOGIzZDBjZjdiYzUyNzA3NmE5ODFjZGMwYmRjNmQ4OWQxZWQxMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDZkNmU5YWM4ZjI1ZjU3Y2IxNDQzNWRjOTU0MDQ0MmNiNTJmYzMzZmU0N2I0ODcwZDk2MmE3MDhlYTkyMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2ZWY2MjFlMmVjOGEwOWU1OWRlZGMzZTNhYjQwYTUyMDZhZDdkMzUwZTMyZTAwYjc4ZTY2MTg4N2Q4YWM4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyYTI4NDA1NTRjOGY2NGQyZTY3ZmZiNTlhODQ0NTA0MGE3NGQ2YzI2Y2E3OGE4MmNkNmZlYTYyMjQ2NGVlZjIifQ"
+        },
+        {
+          "resource": "repo://voly/plan/engine.py#L41-L69",
+          "version": "repo-lines-v1:sha256:e9dca3576316477c30e74967c427cb9a746c78a2bef32286a3b2b4b11d03bb2e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOGJhOGYwY2VkY2Q4ZGJlZDFiZmVkMWFiMzc2ZjBmM2M4MTE4ZTI4MWJiNjM1NjRhOWI5Y2ZmNmFjNDgxZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyOWM1MjQ0MzRjMDA5YWFmMGQ3ZmU5ZTJmZmU3MjJiMTcwY2Y4ZWIxYzhjMTU3NWU0ZTNiZDUxZTkyNmM3MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMjBlMDU4N2EzZDlmNDJmNDZhMDI1MDVkN2ZhYjVjYzc3MWJjOTY2NmUyY2FjZTk5YTUyMTcwMjEyMjJmZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYzljMjYzMjI2Yzc3N2Q1ODZhMjM2YmQyZjdjZWZkNmIyZDU2OWY3MTNiNGM3ODMwY2IxZmUxYWEwZWY4YTEifQ"
+        },
+        {
+          "resource": "repo://voly/plan/types.py#L14-L59",
+          "version": "repo-lines-v1:sha256:c71e11b5674b3d9215653d29051c321a5a931fcc0c50cf1120dea0f98b512a59:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiNTE2Y2JiMTc0MTE2ZjQ0ZGU1MzM4MzY1MjMxYmZjZTQ0NTZkMDBkYzg5N2U0MzkxNmQ0OTMxMjE0YjNjMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0OTI2M2MzM2VjYTQ2MGNhYjUxNTgyMjllYTVjYjA3NzQ1Y2UzZmVhMWU5YzFhZGZiZjcyZjA5NmI3OGZlMDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkMjNmN2E5MzNlM2QyMmNlOTdiN2FhN2ZjMzRjMTM1YTMyMjlkZDUzNjE1NmVkYjBjNjNlZGI3YmYzOGI1YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2YmFlNjM1ZTE2Y2VkZjBkZTU0YjUwOWFjNjIzNjcyYzdlNGRmMTc2MWE0NTZmMTNmNzVjZjE1MWQzNzBkOWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1fde5bbb6a44e89ab95c89e43436bcf",
+      "statement": "PlanStore is the durable source of truth for plan gates: it atomically replaces JSON plan files, raises persistence errors, and rejects unsafe plan IDs that could traverse its storage directory.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/store.py#L1-L58",
+          "version": "repo-lines-v1:sha256:7103e51a69c78985299f7528817e8fbf859f0765990297326feabcfab89f6b04:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMjdmZTNjNjdlOGY3MjRjNjI3ZWRjOWMyMTVmYWZmZjQ1NzU1YjkwNmFmYWQzZjFlZDIzOTk5OWE2MGI4NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNjg3MWYxNTg5MTdmYTYwODk5ZjMxYzE0ZWVjODgxZWNhOWNiODhkMjNlNGYzOTFjMWZkOTc1YmFjNThhZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3NTJmZTY0YWI2ZTc4NTVlNTlhYjU4NGNjNDc3ZThjMzBmZGQ0NTk3YTY2YjE4MmQ3YjQ4NDIxMWRiMTc1YzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd7fbab3926c4496921d14d1ad30735f",
+      "statement": "The plan lifecycle distinguishes execution completion from acceptance completion: successful steps advance from done to verified only with no acceptance checks, otherwise enter verifying; terminal verified/skipped states determine completed versus all-skipped failed plans, while abort is sticky.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/engine.py#L228-L308",
+          "version": "repo-lines-v1:sha256:11240f17b3bedca28393110381b183ef414b26077a0465d4d0eb04fa210064ef:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ZWZjYjY0MDEzYmMxYmRjZDY4YzdjMTdhMTQ2NzQ3MzNhOWE5YjQ0ZGU3NmI2YjQ2ZDBhZDA0MGM0OGZjN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzMjAyZmJjYjdiNjBmNDkzOGM5N2RmMGU2NWIwMWRmNWFjZDU1OGVkNWNlZTY0MDJiNDFlNjY0NWEwZjkxMDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc0ODQ3M2I5ODU4MWY5OTI5N2JlOWU2NDJmODJmODg0NTQzYzc2Zjc3ZDFlNGUxOWQ2M2JlZjExMTNmYWNmNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzM2M4ZjUwNjEyNzMyNzM2NDMzZjMxNjJkMzIxOWIyMTU1Yzg2NTg1MWJiYzQ1YjEyNTg4NDcyNDUxN2IyMjUifQ"
+        },
+        {
+          "resource": "repo://voly/plan/engine.py#L310-L336",
+          "version": "repo-lines-v1:sha256:91de4c8a64516a1dbbbc48d978eeebc32e86021bdcc94ce7f72b119a837e247a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZmVhMmFlZTM1MTZhZjAzOTZkOTIwYjE4ZjhhZWZmYTcyYmIyNDMyMjJmOWY4MTY3ZGVhYmI0NTk1YmUzOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NDljMzQ2ZmYyYmE5YmE4MjQ3YmRjNjMyYTM5YzQ4NzY3NTBmNmFhYjIyZTE1NzY5ZmM5ZDM1NGY2NjI2N2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzNTkxYmI5YWE0NjFjNzhjNzNhNDc2NWRkZDhkMDllZGY2ZTZhNmUxYzE4MjUwYTQ4ZjVmYzZiMGU2YmI1ZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2ODg2NjJlZDhlMTNiMTFiNmQ2Y2UzNTlmN2U4MWU4NmFjMjZmMmQ3NjUzYmM4YzIzOGZjNWIwOGY2YTJjZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7995e05c5b944c87b563a1faa5c31f16",
+      "statement": "PlanRunner executes chat steps through AIGateway.chat and executor steps through AgentRunner, while business-mode steps fail closed because they must be driven by DecisionService rather than the generic loop.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/runner.py#L496-L580",
+          "version": "repo-lines-v1:sha256:1108e3352afca9837d79aaf5459860bb023effb19f79af06d413bd054e3ac671:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyM2FkNWIyM2E2NDMyNWE2YTBjOWQ5ZTMxOGRhOTczNGQ0MjIxMWFjNTBiNWUyMTI0OWRjYzdmNmYyM2UxNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhZDhhODgzMDRkMDc3ZDI4OTA2MWUzMjY3NzE3YjA3NGRhYzk3YjdlYzFmMzk4NjA2ZmIyYzY1Y2M1ZGVjMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1NDU5NWNlZjVkZGNjNTYzNzIzYmI3MzdiOWRmOTQ0MzNjZTBiNDYwOTFiZTNlMjlhMDVkNWQxMWQwZGEzZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MWZiZjBiNzk2OWVhZDU3MTNlMGI4YjliYmU5NGRjMWFhM2RlYTJjOTRjZDI4NGQ1YzhiNWQ2Yzg5MzMwNTUifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L631-L727",
+          "version": "repo-lines-v1:sha256:a8acccf235a1451694d47f168b09bd998c7326a553a6800f6a1c030dbfca6614:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiZmM2NGYzNWIzMmZmOGUwNGViY2YxYTAyZWM1ODNhYTg0ZGUwYmVjZTk1ZmNhMzUzNGI3MjRmOGIwMWUyOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNjUxNDM5N2ZlYTIyM2ViMTM3NmUxZTU4NGE1Y2VlNmVjMTJkMTI3M2ZiMDI1YTgxMGIxZmM0YTllOTZhOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3YTgwNDEyM2ZlZDdmNzAzMGNmN2EyMzkwN2I0MjlhYTMwNTk3ZTQ0ZDdmNDUzMDM1MWQyODA5YjdlMWFlYWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmZWZjMGUyMmI5YWE1ZmNmMDUyZGNkNzVjZGZlMWVmYWRkYzRhODIxZmZmNTkzNzIyNDg4MTJiYTBiNDE0ODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d623ea595614772888548d2bbe9c57b",
+      "statement": "PlanRunner can execute only independent chat steps in bounded parallel waves; executor steps remain on the sequential path because they share the plan cwd, and plan-level transitions and verification are applied deterministically after chat workers return.",
+      "evidence": [
+        {
+          "resource": "repo://voly/config/_types.py#L431-L453",
+          "version": "repo-lines-v1:sha256:cf376c855b2aededd6ad14af7ca0532e7cbbed4179cf1f29a03340239f1af24f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYzRhOTQxNjA4OTBhMmNiZDY4YzRmYmY5NzVmNTA2OGUxNDBkY2ZhOTg0NDVlODQwMmM1MWUyZTMwNjBiMDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NzY2YWMwNTY4NzQyZGQ5ZTVkMGJlZWU0ZjEyZmMxYTg2Y2RiZDBhNjFkYzdkMGRlNTM4YjE1NDhjNmRlZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L160-L244",
+          "version": "repo-lines-v1:sha256:53e6984c1d6fe42c3d0f14e1aa3778b26419e43f08233fcbfb2197710359e377:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjM2EyNGM1OWM2YTUwMDA2NjM1NDlhOTk3MzEyODBmMzNlOWMxYjA4ZjI3NjcwODVjOWI5NDY2NWNmNzczNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYTFlYmJlMzIzNGYwMGU4YzQ4ODVhNDRkN2FkYjBlNWRmOTdjOGI2ZGM3MWQwYWJlYmY0MDUxOTczZDNlNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwMTkwZGFlZjkwYjI2YWM0ZDNjMDk5ZTQ1Y2U3MGNhZDdkMmU2ZTAzZGIxMTg5MjcwOWY0Y2ZjZmY0YjI4ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllZTZkNGIzMTgwNTI0ZjRlOGNlNTcxZTFhYWZlM2U0ODZjZjYxNzc2NDI3YWIxNTBmOTJhNjZiYzgwMzE3YTEifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L412-L452",
+          "version": "repo-lines-v1:sha256:bf09c056de28ba395e57769bfe48b69498093b5a690a93fd265aed296ee53f1b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYWRmZjM3NjU0ZjQwZDNiZThjNzAwYjA5ZWJlMTIyMmFmZDUzYWJjMTAxNDkxZDYxZjY1ZTU4OGNkNDNiZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwNjc2NGU0MzNhOWU1MWYwYjE3OTVmYTBiNGFlNTg2MmY3ZDU1OGE2ODgxYWI0NzQ4MjQ3NzQxNjYyYTFhZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNTc2NDk0MjlhNmVjNGRmODcwMWQ3ZWNkYjhhOGUxODNkNmExNThkOGJkY2ZlMDc1ODE5YzQ3OTFmMGMxMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjOTg1ZGM5YzlkMWI5NWE2NjA3N2M5ZjUxNjZhMGMzYzA4ZjFiNzJlNTQ4NTNiMDc3ZWE5Y2Y0NDE2M2IzOTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ebf831feb74c44ab98216f0fce6c4871",
+      "statement": "Plan runs checkpoint state through PlanStore, can stop at a call-level timeout without failing a nonterminal plan, recover stale persisted running steps to failed on a later run/resume, and support cooperative cross-process cancellation only between steps or waves rather than mid-call.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/runner.py#L126-L158",
+          "version": "repo-lines-v1:sha256:e1d60c7244c5aa519119ab1fb83933dff850da694704f93f2a2a6fc765097f11:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOGNkOTc5NjliOTRmN2NhYmQ5YWI4NTJjZGVjZGM5Y2U5OWU1MmQ3MmVjMWNkMThiOGFlY2EyOWE5ZTJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwZDUyYWZlNzA4YWZjMjRkY2Q0NmFlYzM3YzcxYWU4ZTAxYzFkZjM2Y2M5OGJlNjFmMWQzMzBmZTUyZjVlYWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2YjUzYWEzYzM0MTJkYjMwMDMwZjM2MTM3ZGU2MGUxNDljNTNlNmU3ODFkODU5NTljZjE2MzM3MDc5N2IyZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhODliMmVlMWVjMDQwN2FjNTI5NzhlMjI5ZWU0NmVjZWYyOTBjOGVhZjBlY2ExMDQ0MTY1ODRmOTFjYTBjNzcifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L170-L277",
+          "version": "repo-lines-v1:sha256:7b0d410e2cf0fd796d20331c6f3dc8282b1e5b0326b15c8107e2261ca418b8f8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiNTY5Y2IwOTI4MGVlMDc4MTk0NWU0OGQ0MDQxYmQyZGZhYWU2OTFhZDJlYWJmNWQzY2JhMDg0NmM3MjE2Y2FhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5MDI5ZDYwYjY0OGM2NWQ2OGMxYjliODc0NzMzMGRjODk2NzUyM2EzYTY1OGVhNmUzNjE1Nzk0MDY3YTI0MWE1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2NzYzMTQ4MGFlNDYwNDRmNmUzZmMxYThjMDY4ZjA1MzBkZmYyZWY5YTM4OTZkYzQ5ZWUxMDFkNGEzYTczZmJiIn0"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L279-L358",
+          "version": "repo-lines-v1:sha256:4259ebbb18dbe8f4e240ccac82e325058a5d0b6d6c7c62384c451b6348aed60a:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNzI1NWU0YmIwYzI0MGI2NDQwNmZiYmE2NDU4ZDcxNjY0MzE4MzkxOGZmOTYwODE4M2Q3OTk1YmQ0NGZjMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5N2M3MTI0N2FmM2NkMWVkZjU1NWE3ZDEwNzU5MzE1N2Y2ZGMyYTIyYWYwZGU4MmU3Nzc0YWJmMTBmOGFkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNmU5NTljOWRjY2YyYTZkZDQ4MzAyZTA4NDU3MTAzMGVhMGIyYzJhMmU2ZmUwM2FlNmRlZGFkMDhhN2ZiODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5OTZmOWY2MGVhZWFjZDU0MjUxOTFlMTkzYzczMWRlYjc0NWY5Yjg4YTE0ZDZhODkxOWExYWJjYTY1MmEzMzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_51fffb6acd71452fab578aa26b7b3499",
+      "statement": "Plan verification uses declared evidence checks rather than model self-report, including cwd-confined file tests, shell-free tokenized commands with timeouts, git/output checks, and changed-file line limits with generated-file exclusions and strictly marked architect-approved increases; unknown check types fail closed.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/verify.py#L115-L185",
+          "version": "repo-lines-v1:sha256:da8f6dc7f5ee97edfd19689cd021b0f838567baa6e961174a6dfc05fef45e71f:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmODRmNmEzOGRlNzA3MWMxMzQ4NjY1NDg2NGNmZjU2NjMwZGQ2ZWZkMmVjMjViNjY0ODgxMjg1Zjk5MDIwZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1ZjgwZDRkYzI5MTMwOTkwY2U0N2QyMThhMGYyMzE0YjgwMGVhMWE3ZmI2YWI0ZDg0YjM3OGFlNmM4MjlkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1ZTM0YTUzOTZhNTFhYzJkMzk4YzVhMzdiNmY2ZWQ0NzEzNmRiZmM3NTZjYjE5NjkyM2U4NjI1YTM1MjQ0YjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/plan/verify_checks.py#L331-L454",
+          "version": "repo-lines-v1:sha256:d31de154a9eb18ff8cc6367cdb863d00b8baddbd0bb58fc0e2607d235b031d8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjNzJhODEyNjU0ZWY3ZDlkNGZkZDYyNzJjYjMxOWU5Mjg2ODk2ZDUwMjJjMTBhZmQ0NzA5YjE5OWIxZDgzNmU2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3MTQ3YTBmZjA4OTMyMWQyZjg3ZDQ3MmY1N2MzMWRiODc2MjI4NTZmNTI3NTYyNzFhNDMxOWU0Yjg3ZTliODcxIn0"
+        },
+        {
+          "resource": "repo://voly/plan/verify_checks.py#L506-L537",
+          "version": "repo-lines-v1:sha256:c6f2f40a576006a4703a11e337e6a1828cd5bf238d8b8b8f82bc1d808e0b39e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMGQ0MTI4NWQ0NjFlN2Q0NWM4MmRiZjJiYzZlZDE2NGZkZDExMTc1NjYwYmUyYjM3MmUyZGIzNWI4ODZjZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZDBjMzMwODNmNmU1YjQ3MjNmYzQ1ODgxMDY5ODdmMjM2ZDVmYmE3ZmI1YzBiMTFiMTk3ZjlmMDA2ODAxNzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZjkzMDgzYzE5NzEyMWI5ODI3MDBiYThhZmFiZDE3MjJjZjFkM2U3NDA0NTA5ZTgwZWZhMjcyNDdmNjJmMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/plan/verify_checks.py#L77-L298",
+          "version": "repo-lines-v1:sha256:3f029f60c310b68f019b2cf9c5e7bac8a23e2f7827798d12bd3cbb2c9bdfbf3f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiNGQ3ZjI3YmYzOGIxODY5Zjg1NjU2Mjc2YjdkYWQ2ODEyYjBlZDFjNGVlODgwMDJmOTc0ZDgyMDc1NGRlYWQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5YjhjYmY0ZDVlODBiYmU1ZTQ4YzU3ZjRmY2I3MzU2NzNkNjA3NzQwYjQyYTdhYjZjOTIzNmUzNzJhOWY1M2UwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzNDFhZTM2OWY3MmMyNmZjNTNiYjgxNThjYmY3NzBhODJlYjlhMDM4MzM0M2E2ZTYxMDQyMjAwYWQyY2I3ZjBhIn0"
+        },
+        {
+          "resource": "repo://voly/plan/verify_types.py#L8-L68",
+          "version": "repo-lines-v1:sha256:a709c553eadfb63b722233e94684bac14529501089071b277f9e773bc0ac624a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYzllYTE1ZDk3N2I4MmFhNDhiNWE2OTA1MDBiMzlmYjFhNWI0NzU3ODQ2MTA0NTZlMDI1ZTFlY2E5MWE5OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkMmFkNThiMjRjZTRmZmUzNjhkMDE3YWRlMWU1MWUzYWM0NzY5YTFlZjllNThmZGNhY2Y1MTc2NWM0NmFlZDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjZGQ3MDdjZTYyNmYzODJjZjExYTk0OTdkMmM4YWI4ZTBmYTAzNDNiNmJhZTg3MmJmYzRjMjAyNDZjOWJkZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZmViMWM3ZjIxMTg4NTQ5ZWNmNWI4OTliZTBlZjlkN2ZhNGYwN2I0ZTc3MGQxZDRhZTYxNzIzY2U0NThkMmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ea7478197067494dad14c0ef8d4f4f9a",
+      "statement": "Active verification leaves a failed step closed unless its configured failure policy retries or continues, whereas shadow soft-opens ordinary verification failures; externally resolved human_review and action_succeeded checks are parked at verifying and are not bypassed by shadow mode.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_plan_approval.py#L79-L120",
+          "version": "repo-lines-v1:sha256:9434f73cfbaa1468d6f893158047009df49275bce113f0aa039482ad23d01154:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MzJkOTA2MTNkZGVmZjkzNjYxMzZlODJjNzhkMjhjYWFjZGFhZWJiYTQ3NDQxZjA5NDlmMDk0M2JjOWM5NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMDMzZTlkYzg3MzllNjc0ZWIwMjY0YzU4NTFiZmEwMzI1MzE1YWM3NTU0Nzg1ZWQzOGQ3Yjg1ZjA4MzJkMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4OTRiMjU2ZDc3YTkxMmJmNGFhMmJmZmIzN2M3YTdjNWUwYzZkMDhkNzRkMzUxZWQ0OTVlOWVjZGU1MmQ1NDAifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L360-L410",
+          "version": "repo-lines-v1:sha256:cf602cc0614eb4f9a347010ea5b3d783d2809d9d862c242b47746dc8976912af:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViOGFhZTc3MGQ4Mjc4NThiZDNiYzRjNjkwZWRjNDMwMmYzMWExODg5MmEyMTZlNGM1YWZhNjcwYWVlYWIwNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5N2M3MTI0N2FmM2NkMWVkZjU1NWE3ZDEwNzU5MzE1N2Y2ZGMyYTIyYWYwZGU4MmU3Nzc0YWJmMTBmOGFkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhZGFmYWE5Yjg3MWY1MGNiYjQ1MDg1YTMxM2Q0Yjk0ZjI1ZDM4NzAzMDYyZWRmZjcxZTlkNjEyMjRlZDRlZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzZTAwYjRjOTEwMDM0YWQwMTk3ZWI3MmM2MTFiYTBmMDA2MDI3NjIxNDhiYjMyZjkzOTE2YzU5YTU1YzhiNDkifQ"
+        },
+        {
+          "resource": "repo://voly/plan/runner.py#L582-L629",
+          "version": "repo-lines-v1:sha256:22dcb9de7304054d14c0d03851cc00c2d6e20fca80f36403715d46c90033d689:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNDlkMDE5MDMwNzNiZjE1NGQ5YjJlYTk4OGI1OTE2ZmEyZWIzNjg3NzNlMjkzODdkMTdhOTZiMjBlZWE3MzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5N2M3MTI0N2FmM2NkMWVkZjU1NWE3ZDEwNzU5MzE1N2Y2ZGMyYTIyYWYwZGU4MmU3Nzc0YWJmMTBmOGFkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiZWZkMTE4MWE4YzFmNGM4NjBhOTAwMzNjNzNlZDIyYzgxZTIzMDY2NTExZjc4MTAxOGU5M2M2ZmExZTBiMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNDFkNmMxMGVhZjc1MWM0MmZlNGQxZDUyYTI5YzgyNjNjMjQxNTE2YmZjN2VjYjNmODg2MzJlNDNiNzEwMzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_14f8822d76bd45da92ab2d6536a48732",
+      "statement": "The general human-review decision API only resolves a human_review step while it is verifying, persists approval as verified or rejection as failed, is idempotent for a repeated identical decision, and fails closed on conflicting, premature, or inapplicable decisions.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_plan_approval.py#L122-L202",
+          "version": "repo-lines-v1:sha256:9ed785bd12ca070a097a2bb41f5c3eba9159c1176078492e135958a667b88a69:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MjhjZjYyNzMzYzY3MGMyNDg0NjY1MzE2NzE3N2IzNzZiMDA0YzJlOTlkYTZiMDc2YTc5ODU0NjVhYTJhMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4NDVlNGQyZTc5MWNlZWE3YjkwODQ3Zjc2ZTIyNzRjYTA5MDcxNGU1ZThhMjRjNGM5Y2ExYTk3N2QzZTY4Y2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1ODUyNDYyMDI3NTZmMTQzMzMxMDJkNTI2YmE4M2M0NTkzODcyNTI4NjY5M2FjNTY4Y2YzZGU4N2Q1ZmNjZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhZmI1NzJmZDMzZDhjYTQyMjJhNTc5Yjk2NmZkODY4NTY5ZmZiZjNjZjQ3M2FlMGFmNGQ0MzM3ZDBiYjJkMzYifQ"
+        },
+        {
+          "resource": "repo://voly/plan/approval.py#L45-L99",
+          "version": "repo-lines-v1:sha256:f7aede86857332bad85cf4f670872eefa705fc8a66743d244223cf1bec89c204:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4YzNmOWFhMzEwMTdjZWY1MGIxNzQ5NDUxY2Q5MWY4OTkxZGVkYzhjNTcyOTUxNzgwNmEyYWRmNmFmOTI5NzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxZTE1ZWY5M2RjNmZhNWYxMjBiYzJlMjIzYTgwZDdlNzQ4Y2Y5ZGI1NTQwMjFlNWRmOGZmZDUxYjc3MmFiYzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhNGMxZWIxNzEyZDE4ZTkxZmZmMjYzMWQxOTQ2YjZmNGNmZGU4OGRiNTM4NzhkOGFlM2ZhYjMzNzI4MzBjNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_632a68f4976349d8af185ebc93bd8d65",
+      "statement": "When enabled, the A2A bridge compiles local lead assignments into a persisted Plan with mapped dependency and execution metadata, supplies conservative role-based acceptance defaults, and synchronizes plan outcomes back to assignments; it attaches gates to the existing A2A runtime rather than replacing its scheduler.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/multiagent_plan.py#L102-L186",
+          "version": "repo-lines-v1:sha256:3089f848a6731872f466eb706bff3ae799b132e214d59c82f0a6f04c4a4915af:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViYzE1NTFlOTY0ZmRkZWZjMWI3ODI0Njc4OTIyNzcwODY3YTI3OWQ0MzU3ZjZmMGVlZDJiODJmZDgxZWY5ODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NjZlNzQxNmMyOGM0ZmZiZDljZmY4N2E3OWZmMTAyNTA0ZjY3OGVhYzgzN2IyZTMwMTQzYmIyOTA4YzA0YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwN2QxNTY2YjZmNzRmMjc4YzUwZWNjY2NmMjg4ODM5YzIwMjI1NmFiZWRkYzkxMDQ4MDkxNGY0MzI3ZjcxZDQifQ"
+        },
+        {
+          "resource": "repo://voly/plan/bridge.py#L21-L150",
+          "version": "repo-lines-v1:sha256:6d4a0b7d1af5f12ea07283de8bf0657bc557d8bf91ee526a3dbe0ca70cfb053d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxMzFiZTQ2YzIxMTYzNmJmN2VjNjRmNDUyZmI4NzQ3MWY1ZmZiYjUzNzU5ZjJiOWFiZjFjNzY5Y2M3YWY3YTc1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiNzllNWQwOTZmMGE3YWQ0NmEwMzdmNjI2OWIxZjg5YzdlYmU1ODc4YzVhZDIzYTNlOGU1YWU4YzVhZGUwMjNhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJhOGE5N2U4ZDJiODc1MWI4ZGU0MzUyMTc4Njk4NWYyMmUyYjQ5MWI0Y2VlMmNjMjM3MTc5MjEwM2FmYWRmNDYyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhZGViNGQyODU2YWJkYjNkMzIyNjY3YjlmZGQyYjNlYjE1ZjFhOWUxNTA5YWM0ZjNjZmE1NWYxNzc1M2RhNWM4In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_be18668c1c04435197b6e6677f8c4e17",
+      "statement": "SDK Workflow is a builder rather than a second runtime: it compiles nodes to a validated Plan tagged sdk_workflow, runs and resumes through PlanRunner/PlanStore, and rebuilds result nodes from persisted PlanStep state; its resume-by-task-text option is intentionally unsupported because each compilation mints a fresh plan ID.",
+      "evidence": [
+        {
+          "resource": "repo://voly/sdk/workflow.py#L1-L8",
+          "version": "repo-lines-v1:sha256:d527c169e4807ac0413631a896466bf7e80591d2c8993cba710adf3a9a0b4fca:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2QyNmRjMzk0YzAwYTA0Njg0ZWRmZDNlN2UzMGJmY2Q1MmZlMmMwMjAxOGFlMjk0MzQyZGM2Yjk1ZTQ4N2ZjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZlZGIxZDI0ZTA1MTNlMGJhMDY4OTBmZWM3ZWNhZmJlY2E4ODEzMDNlMzhhYWNlMjY0NDMzNzhkMzc5OWIyMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFhZjc2MzdjYjZlN2U1ZGI4NWQ2MzQyNzQ2MDE0ZGYwNDFjY2Q1NThhOTIwYjI5ZWI2YWM3MTlkN2JhZjVjMiJ9"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L112-L140",
+          "version": "repo-lines-v1:sha256:6055f214c7c6054752d8c493f9a8b46de7730357db50cf23008a4b356f1085dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MzY4Y2UzYjI4ZTFiMzc2NzA2ZDliMDBjODBiMWVkN2Q4MGIxZjEyOTRjZWYzMzQxMzgzMzdjY2ViNjViOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwNzQ1YTVlYThmMDgxNjRjZDIxYjFlODRiNWI2NWFhZTY3Y2ZkYTgxZmE3OWYzZWExMGEwYWVhOTQxYmY5ZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MTA5YzcwNTliNjQxMjQxZDgzOThlNjAzMDY2Y2I1MTk0ZjE0MTdhYmZiMWUwMDYxOTM4NTcyMzQzZTUwOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZWJmZjQ3YTk5MDNlMzlhYmEwN2QwOGNhMzMxYWZlYThlZDlhMjkyYjhjNTUzNjVjYjIwN2YwYTY1ZDk0ZTgifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L174-L267",
+          "version": "repo-lines-v1:sha256:b0c44cf9b494f18e1e849435cfc63d4fe7a3e7f08bcf56494fec5eea44576eb9:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOGNkOTc5NjliOTRmN2NhYmQ5YWI4NTJjZGVjZGM5Y2U5OWU1MmQ3MmVjMWNkMThiOGFlY2EyOWE5ZTJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzZjExYzBjY2RjNmQ2NTk2OTFlYzIzNjMwNGRlMTAyMmI3ZWUwMDQ5MzMxYzNmYWE4MDU0NjU2MzZjZTFjMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc7b5854123f443aa6384a0677d0cbbf",
+      "statement": "SDK Agent preserves the runtime boundary by delegating chat mode to AIGateway.chat and executor mode to AgentRunner, with executor operation requiring an explicit cwd.",
+      "evidence": [
+        {
+          "resource": "repo://voly/sdk/agent.py#L1-L14",
+          "version": "repo-lines-v1:sha256:480fe867dc6167691f3ee5183def77ebfda95643d35ccb0adc46203ce8e65935:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkNzRiZTNjZDJmZDY1NDA1MTczN2U1MTUxZTgxYzE4ZThlMWI0YTA4MTZlMWJhNGIwZDUzYzhiYjBkMjJlM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ZDgzOTI3OTcxMjJiZGQzZWQ2NmNlNDI0ODQ2YjEwNTkwMjU4YzliMmQ4MzQyY2I4MzczNzZjMjQxMjU3OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2NWNkZDVkOTNiYTVmZWQ1MDRmMDJhY2NkMjZmZTdhZjA4Y2MxODdmMzJiMGI3OTA3ODU2MjJiYjdhM2M0NWEifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/agent.py#L137-L166",
+          "version": "repo-lines-v1:sha256:acc8bfabda24225dd894fbbbb92fe738a33bb00c1f04442724bd693b722e7bbc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOGNkOTc5NjliOTRmN2NhYmQ5YWI4NTJjZGVjZGM5Y2U5OWU1MmQ3MmVjMWNkMThiOGFlY2EyOWE5ZTJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxMjQ4YWQ5NTRlYjZmN2ZjNTI0ZDY5OWUzZTMxNzRkYTg5NjQ0MzZhOWZlMmViZDMyNmFhNDhiNmE1OTVhNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2QwODNhNjM0ZWU1Y2FiNzkyY2NmYTMwYmIxMzcxOTA1MTdjY2U1NDM0NmI3ODE5MmExY2IzYWQ3MzFiYzkifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/agent.py#L228-L334",
+          "version": "repo-lines-v1:sha256:ac2fed6c80ac527ce96bde796cbcd9211571f662fd417785035ed55e549a9b0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5OWExOTZmNzAxMDM2YWRkMWU5ZmExMGRiN2I5MDdmZTlmM2U5NGM4ODEzNGIwNGFiZmQzMGZiYjgzY2I1MWIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2NWQ1MjUwZjljNGY4M2QyZThiMzZkN2IzZjllNTIzNGI3ZmFhMGM3ZmZkNjZmOGFlNjFlYjM0YjcyMWRkMmFkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmYzkwZjYzNzA1MzE5NGFhMjZiYWM4MjRmYWZjMWFhZDNkNTJmZGQwNzkxMmUwZmRkMDMwYWNiMTNmNDlhNjZiIn0"
+        },
+        {
+          "resource": "repo://voly/sdk/agent.py#L336-L389",
+          "version": "repo-lines-v1:sha256:518d3ed7ecb3db0e550cc2eff422445b42f1dfce1ec5e052304ff98ac4e20807:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwYjIyYTc2NWMwYzQxZWU1OTFkYWIyOWQ1ZTk5ZTQ2ZWY2NDAzNjE2OGUzNDE4YTRiMGM0OTc2YTFjYzI1NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxYWM1NTBmNTQxMmU0ZTE3OTQyNmM0N2JmYTJjY2I3NGU5NTU2MjgzYjRkOWJjMTUxYjNlYTE5YmI4ZjMxMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwN2U0MDZhYjdkMmMwNWFiNzc4NDgzZDNhOTYyNDE2NWIzNjUyNmQ1ODExMmIyMjllZDY5MmYxY2FhYzg4NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_49c841851829441b99728bad5ae42cdd",
+      "statement": "SDK presets are bounded graph factories over Workflow; reviewer_loop is a fixed unrolled chain whose rounds all execute because the Plan FSM has no conditional early-exit primitive.",
+      "evidence": [
+        {
+          "resource": "repo://voly/sdk/presets.py#L1-L14",
+          "version": "repo-lines-v1:sha256:3ccc048c562bc08ad037b2091898ced3b4f1a081760e755f308d41cb6b4b143a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYTQxMGU2ZDlhNDNiYmYxYmQzYjkyNTI2MGZjZTNkMDU0MmVmZDU4YzNjMjQ3Nzc0OTgxOWM3MmJlMjZmODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZDg3NzFjZTMwOGM2OTNlNjI3ZjEwZjg1YTg1ZWM2YTkzNDBlZTU3YTRiNTRhMmRjNTliYTkzMzU5NzIxZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhYWY3NjM3Y2I2ZTdlNWRiODVkNjM0Mjc0NjAxNGRmMDQxY2NkNTU4YTkyMGIyOWViNmFjNzE5ZDdiYWY1YzIifQ"
+        },
+        {
+          "resource": "repo://voly/sdk/presets.py#L130-L177",
+          "version": "repo-lines-v1:sha256:409090a2ade39ddab7a0177dee82286c4f92f2967e61f228971bff9a0e9bf1a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5MmUzNGFkY2Q2Y2YxYzUyNDA3MGJlY2EyZjBmZjVhZTk4MmU0MzQ4ZTc3YWRiM2ZhMjc3ZjFlYTNmNzA0N2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjOTAxN2ZkMGU2MDk0M2U4MTZmZjU5MWVjZjYwNDljODZmN2Y2YTdmNTZhYTYxOTRkM2E2ODUzMjIxMDliM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNGU0Y2E1MDdmZjJiMWFhYTg2ZDJmOTlmN2FhMDM2NGEyNThiNjE3ZWQzODgwODAxNTdhM2FiNjZkYzZiYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzOTVkZDM4NjkwODU5NjRiNTg2OGZiODFkNjI0ZjRkNzhhYjE1ZjYzZTE0Nzk2MjA5MzU4ZWJmNGQyNmFkZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_50f17494631a427e88f5fee90d862202",
+      "statement": "ReviewUntilClean is a specific bounded developer/reviewer repair loop: it runs file changes through AgentRunner, reviews output and git-diff evidence through AIGateway.chat, validates clean/blocking JSON verdicts fail-closed, feeds blocking findings into the next developer task, and returns explicit stop reasons including cancellation, deadline, spend limit, and maximum rounds.",
+      "evidence": [
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L1-L6",
+          "version": "repo-lines-v1:sha256:2ee83e4288f8b66fa69f936a26f8ebb8238070ac3275014da19b90d11561298a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjg1ODYzNDE4MzIwYzkzYTdjZWY2ZmYzM2UzODIxNGFhZDczMTkzMTQ0ZGRjZjljOWJmNzI2MTA0MmMzMWQ3MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
+        },
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L121-L303",
+          "version": "repo-lines-v1:sha256:1fa0df08fed8676b320377ff498b721cec2f39dae63afbdf1568ad2334812eda:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwMDhjZDk3OTY5Yjk0ZjdjYWJkOWFiODUyY2RlY2RjOWNlOTllNTJkNzJlYzFjZDE4YjhhZWNhMjlhOWUyYmUyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3ZDFlYThjOWExMTZiZDU1ZmFmNzljNGEyMzM3ZTI0Nzc4Y2RmMTU1YTYxMGE2YTUzMTM4NzEwMGViYjQ1MGJiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlODRkYWE2MDU1Y2IwYjE0ODMyOWU4ZWRmNTdlOTA2NzFmNDE4YTc1NzEyZDA4OTI5ZDNjNzdlZDU5MmM2MjlhIn0"
+        },
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L23-L104",
+          "version": "repo-lines-v1:sha256:c842e5a43896074befbe66a20844575bca0e421ff8e9cc4ac5b091c89a8fe601:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiNTAyNTM4NzQ3ZTY4YTFjMTU2ZDFiZjE4ZjZhMmQ0MzI5Y2Y1NjMxZTkyMzJmYWYzMzdlNzM3ZDljYTEwNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzODNlNjM1MzU0OTlmNmQ5ZWJkNTY5MDJhM2Y1ZWQ5YmQzZTU4YTE4YzNhNTFiMjE1MjJmYzQzNmJmMTA2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkZWI2NzQxNDRlZGY1MjdiMTY4ZmNmZWI5MzdjZjQ4NDY4ODE4MTlmMzlhYTM3NTUxYTdlOTk0N2VjMWYyMWUifQ"
+        },
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L460-L526",
+          "version": "repo-lines-v1:sha256:c578872a67ecfb16e3ea3456893e121dd28c33e37abab03e73ae8e42a18027d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxYWJjZDBjYzY5MTNkNGY1MWViMjFlNGY1YWZjMmU5MGY4NmQzNmE0NTBiYjQyY2IwNWM2ZjNlMGQ3MDZmOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlM2QwNDZmN2MxNjU2OTQyMzk3NTY4Mjc1NmY3YzhhZDcxNTMwNjUyN2E5NWRmZjQxOGE3ZWE2ZTI2ZTIwYmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhYzg5Yzg1YTBlMzg2YTE4YTY0MjhiZjJlYjczZWM3ODE1N2YyNGUyOTU4N2MyMjI2YzI5OTM2NzgyMTc0NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3740b0613bf345a788fe13bb949d7ff9",
+      "statement": "ReviewUntilClean uses cooperative cancellation checks before and between laps, and with a RunTracker records workflow transitions, graph state, stop reason, and aggregate per-lap metrics while suppressing individual executor event/evidence collection.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_review_until_clean.py#L177-L235",
+          "version": "repo-lines-v1:sha256:97f08cdf0ef53602f04519b249d14401f41db42fa1d01b9fa959ed8bfceb9436:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMjg0OTRmODZlZTVlNTQxNWNmZTFhOGQyY2M4MjBlZDFkMjY2ZGFmNmEyOWIyOGQ1Y2NmNTIxNWE3MjRiMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5NTJkMzZiNTM4OTRmMDJmOGQ3MDNiY2Q1ZDcxNjU3OGJjNjIyZmU2OTllYmJkNzkzNWM0MzgwN2M4OGMzOWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyZTliMWQxMDgxZjk3M2NmZTg3ZTRkMTY0NDY2Y2I5YjhlN2JhMWE4OTE0MmM0NmNhNTI2ZjU4ZGEwYTFmOWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjMGI4NGQzMDUwMzk2NWNhOWQ1MWU4ZmMwZDgwYjM4MGE0NWM2MzkyMmI0ZmEyNGE4NzUyZmZmMTNmODM1ZjYifQ"
+        },
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L150-L179",
+          "version": "repo-lines-v1:sha256:acf4bc161845fc7a170786421a75507786d3d8ce3cd5da9f3067665aa7e50592:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzOTkwMTE3OGU2MmQ0NzQzMDc2NDFkN2QzOTA1NmQyMTE5NThmMjRlOWE1ZTQ5ZmZhYmFhYWJjZjIyNzIwMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmZjc5NjNlYWZkZTcwNjdmMzRlNWZmYWIzODU2ZmQ1ZDNhMTViNmRjNjI2N2RlNTlmNjM1MzFhMTQ3OGI0YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiNmYxMzJjMzhjYjdmZDU2NjMzMTNlNThhNzFmY2UxMTFiZWU3MDA0NGExOTMxYzc3YjM0ZDA2NDJiZWU5M2QifQ"
+        },
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L192-L204",
+          "version": "repo-lines-v1:sha256:f71e18d406a071eb1f8448209bff888445c64cef23fadf46de021dfd2a70401c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MjYzMzgwNzk4ZjRhNWRjNzdiOTVlZTZhMzQwMjAzMDRkNWFhNWQ4NDI1Zjg2YzkyMDFkZGFjZWJiYTgzMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkOTczYTU1YzJkNTMwOTJiZjVlZGMyZWZjOTI2NTA3NmJjOGZmMDY3ZjU0MTYxNTMwMjkzZmNmYWI2NzFhZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViZGIxY2Q2NTg4ZWM5YjgwZjg2ZTFmMzNiNjJiOTQ3ZmRkNjI2MTdiNmFjNzQyZWI2NmIzMTc5MjgxY2E5YmIifQ"
+        },
+        {
+          "resource": "repo://voly/workflow/review_until_clean.py#L305-L425",
+          "version": "repo-lines-v1:sha256:4003d685e532473e2530bfe98f40735338775a0735559a32c960fcdc0b25fd47:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MWFiY2QwY2M2OTEzZDRmNTFlYjIxZTRmNWFmYzJlOTBmODZkMzZhNDUwYmI0MmNiMDVjNmYzZTBkNzA2ZjhjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1NTAzMmU5NjRkMDkzMjM1MWU1ZDE4NTI2OTI4MWIxNzFhM2EwOWIwOGIyODZlNjYxZWE0NzAzMjNjODJlYjRkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2NDI1OTU5NWE1OTQyMzU2Yzk5NzI2OGZkZGNmMTA2NzkyNDg4ZmMyNmQ0OWMxZWQwYzlkYzdhYWFmNWYyNDc0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyOGZhMDMxNDhjZDA0NDc1YmExM2EwYWExNTk1ZWQwYTE0NmE1NTUwMDYxYTBlYjg4YzRkMGRkZGJhYWQ2YzIzIn0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.1",
+    "at": "2026-09-12T11:58:19.578Z"
+  }
+}
