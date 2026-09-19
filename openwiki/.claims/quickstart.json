@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:7b417fc8dd01f787a93018e8e08fb63f3fcf45f0dfa137375e12465a39d26dc8",
+  "claims": [
+    {
+      "id": "claim_d05325df7f534efbb6ef6b0dfb19e440",
+      "statement": "VOLY is a project-agnostic AI-agent control plane: callers supply a target repository through `--cwd` or configuration, while the control plane handles routing, orchestration, cost controls, and telemetry.",
+      "evidence": [
+        {
+          "resource": "repo://CLAUDE.md#L7-L22",
+          "version": "repo-lines-v1:sha256:67052120ae67f3bbfe167106d952c9742c75575df41f75da63d9897d98353d3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzZmFjNTI1OTM5YTVlNmIxYTBhNTI4OGE2NjljOTBmNzUzMzUyYWYxZmQzZDRhODEwZTQ3OWYzY2VlNjNiNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhYzNkY2M4MDJmNzFlZjU0ZjE2ZjYxNGM3Zjc0ZmI2OWVhYzNhZDYwZmJlOTEzYzUwYjRlNDgzNjg0N2ZjZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhMmI1MTUyMzNlMTQxNzdkNzM0ZWI5ZGZmMTk1OGNhYmU5MmU1OGUyYWRhNmYxYjViNTZjZWFmNzllYjZmZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEifQ"
+        },
+        {
+          "resource": "repo://docs/ARCHITECTURE.md#L3-L6",
+          "version": "repo-lines-v1:sha256:7d90f764c23b54dd10850f7857fbfba7d5fb30e9b7bb3b40470a8fe6551031bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjY3YmZmMGUyODA2YTg4MTAzZTQ3NGE0ZjczMTE0ZjJlYjZjM2Q3MTAzZTEyMzI1NDIyZDJmMzEyODExN2MwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODE4NGVlZDA0OTExYzc1ZjViZDc4YTE3MGM2YmI0MWMzZWY3ODEzOTI0NmM2YjFkOGRiMDI1MmVkODVlNzc1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDM2OGE0YTVmYTM3YTY4ZWQxZjQ0OTM2MjUzZDQ5MDU3ZWIwMjNhMGVmZmRiYTE0NDliZWQ2MDkyZjg5YzM0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODc1ZDYxY2ViZjkxZjdjNjFhYWU2NDgzZDFmYWNiZjE4MmQ3NzJjODY3YzAyYWRmMjYxM2YwNDUxODBkZDA1OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d4bdc156432345c0a8b9fe9a3c189c0e",
+      "statement": "VOLY deliberately separates the pipeline/chat path from file-capable executor work: `Pipeline.run()` sends normal inference through `AIGateway.chat()`, whereas `AgentRunner.run()` invokes an executor in the supplied `cwd` and produces executor-specific reports and events.",
+      "evidence": [
+        {
+          "resource": "repo://CLAUDE.md#L28-L34",
+          "version": "repo-lines-v1:sha256:ec9d81105eb498fca3241fd2dc4c288b5c7d46d8b1dc0187fbf73de33e5c8789:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFjNzcyNmM3NjA3MzFjNjczZDY5YTQ2ODgxMGVmMWEwNjZiZGQ2ZjViZmEzYjczYzM2Nzg5YWQ5ZTI5N2ViZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmU4ZDNlNzFlZTEwZjE3ZWI1Y2E5NjA3YzljYTY5ZDdhMmM5YmRiYjY2Yjc2NTNkNzczOTliZWNhMTgyZWM4ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY1NjZjOThiNmI1MzE1OTYyZWUxNWNhOTUwMmUyYTA4NDFkYTRiNWQ1MzM3MTgwZGQ0NzExYWM1NjYwNWQ0OSJ9"
+        },
+        {
+          "resource": "repo://docs/ARCHITECTURE.md#L185-L197",
+          "version": "repo-lines-v1:sha256:97da4ace2f36c600a44b760140b21fcb3efe6527d80bfd8e1e496cdf3bb8a896:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ZGY4NjU1YjMyYWVkNjVjYzhmNGE4OGVmYmRlNGNkOTUxZDZmNGNmODk4YTI0MTBlMmZlYTI1Mzk0N2U0NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjMDEzOWJiYjQzMjU0NzBmMDNhN2E0NjJhZGZmMTdkNDBiMDAzNjY1MzcwNDgwNGRkZTZkZjgwMTFlNDA0NjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZjZlODA5YTI4NTUyYzc5NWM1ZjcwNDFjNDA5MzBlZGUwNTI2MmI5NWE1ZWE1NmI5NzM0OTkxM2JkYzI2NjEifQ"
+        },
+        {
+          "resource": "repo://docs/ARCHITECTURE.md#L8-L44",
+          "version": "repo-lines-v1:sha256:8d21219451e5b8dca5303e9c91aae9b4933917995e2e7b7770fb6b3c67f5d195:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1ZTQ3OWM5Y2YyYTMyMWE5MjNjNzcyNjY2MWMwYzYxMWM5NDljNTM4MWFkZTQ3OTk5NTk2NmViZmEyYzZlOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlZjk1ZTY0OTFiMWVkYTA2MmQ0ZGE1NDFiMTkwMDc3MmM4N2YwNjYyMDZhMWQzNzIwZjI4MWI4MzgzZTkzZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5Y2Q0MmI3NTVhZWQ0NWMwYWU0YjFjYjdjODAxMTRmZWNhZDVkMzJiYTEyYjM3MzEwZTU3ZTMyYjI5ODdmNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3MGE2ZTE4ZWEzYWY3NDljNThmNDRlMzJkZTJiNDQ4NWIwMTM5MDIzYjUyOTI1NzYzYTA5NjFkOThiZTA4YjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_00451c82da294ca9adf559b5cb1f648b",
+      "statement": "`AIGateway.chat()` is the required normal model-egress boundary for pipeline, DSPy, and chat subagents; file-capable executors are the intentional exception rather than model providers.",
+      "evidence": [
+        {
+          "resource": "repo://CLAUDE.md#L28-L34",
+          "version": "repo-lines-v1:sha256:ec9d81105eb498fca3241fd2dc4c288b5c7d46d8b1dc0187fbf73de33e5c8789:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFjNzcyNmM3NjA3MzFjNjczZDY5YTQ2ODgxMGVmMWEwNjZiZGQ2ZjViZmEzYjczYzM2Nzg5YWQ5ZTI5N2ViZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmU4ZDNlNzFlZTEwZjE3ZWI1Y2E5NjA3YzljYTY5ZDdhMmM5YmRiYjY2Yjc2NTNkNzczOTliZWNhMTgyZWM4ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmY1NjZjOThiNmI1MzE1OTYyZWUxNWNhOTUwMmUyYTA4NDFkYTRiNWQ1MzM3MTgwZGQ0NzExYWM1NjYwNWQ0OSJ9"
+        },
+        {
+          "resource": "repo://docs/ARCHITECTURE.md#L67-L74",
+          "version": "repo-lines-v1:sha256:6795ac9b34509790ca019394f199ae79493553966d737b41e75af9e446b96381:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZiY2M1YjJjOTA4MTllNGQ1YTVlM2VjMmU1ZGYzZDE1ZGZmNmM5ZGQ0Mzk3NTY0ZmJhMjAzNjU4NWRmYzJhOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM4MGJkNDA5MjEyNGExN2Q4YTdiNGEyN2FjYzU1ZDRjZmQwYzY1MDIzZDlmNGYxNGU0NWM5YTMzZDc4YTg4YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDAxZjJlYzE3NTkzYzEwNTRlYjQ2MzY3ZDg0NTNlZjI0YTE3M2NlOTZiNzExN2Q5MWY5YTY4ZDQ0ZmVmOGIwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzVjMTdkMmYwMjZlMjZiNGZmYjIxNDBhZWU4YjYxNjQwYWRhZTYzYjU2MTY2MTZiYTJkOTQzNzI5NzQ2YjE4ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_114865e28c9e490abcc53044629741b7",
+      "statement": "The packaged `voly` command is the `voly.cli.main:main` console entry point, and optional dependency groups provide UI, MCP, DSPy, and Cursor integrations.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L43-L82",
+          "version": "repo-lines-v1:sha256:0b3912c7bde899fb7617c2df3c342fdcad2b6f5fc18e5f0ae161dcecc4d433e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MjE4ZGM0Y2U5NzFjYmUzZDM4ZDc3NDMwZTYzOTkxODg4NGRkNzdkNzE4NGM3YjkzZGZkYzJlOTk4NjkxYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NzcwYjM2ZDhjZTRmY2QzZmNlYmY1Y2IzMTMwYzc5Mzk5NzM1MTRjNGRkNTNmNGI3YTU2NmYwMDgxOGI3ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3NTUzMmRhZWFjNmI3YzFiNzliZWJkZDJiNWY0YzZiMzVmOTg5NGRlM2JiNGNjOGVmMTQ2NWE2YjgwMjg3NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5ZTg5OWYwYmYyNTFhY2ZmODY0NDM4MGJjOWIxMzU0OTA5MGI1MTJmMTMzNGMzMGM0ZWU4ZjNiMmJiZGQ0OTAifQ"
+        },
+        {
+          "resource": "repo://voly/cli/main.py#L67-L142",
+          "version": "repo-lines-v1:sha256:eb4887a333f0528981ca83c30bf9473e0127f87e9664f5d8a5a90645f6d0cd4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MTA2MDg5N2ExMjQ4N2YzNjFiMjlmZGJiZmUyYThjNWIwZTZjNTM1ODIyYThiZTBjNThmNjVhMzhlZDliY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZTk5MjMyY2QzYTMwOWY1MGNiZDZmNjYyMTI3ZWVhYWZjZTFmNzM2MjkyZGVmYjExM2Q5ODFhMjBjN2Q4NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMDc2MWQ0MzBiMTY1ZjA5ODc2MjNmMTgzNWIwOGM4Y2U1MzM2ODJmY2NlMmZkMjMwZjU0YThiY2U1YzA4M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_38b8602109714d7b8c5d6f7a9c661af7",
+      "statement": "The public Python surface exports `Agent` and `Workflow` together with workflow result types and reusable graph factories from the top-level `voly` package.",
+      "evidence": [
+        {
+          "resource": "repo://voly/__init__.py#L35-L60",
+          "version": "repo-lines-v1:sha256:c7ef8927649915b59ae3f7dbf241dd746002ce61304c4d49b2e19da28f0d0338:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhOWY0YjUwMzJiODljMGE4YmFlNDUxMzZmMDBjYjliNmIyZDg0MzBiZDY2YjA1ZWE5MzYwYjhlNWMxMjJhN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OWFjMjgwMTczNmRiMWJiZjVhYjk0ZDQxYjAzZjhmZjk2NWJiN2NiNzA1ZTY3NmNjOThkMzM5OTA5ZjA2OTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4NTdmOTE2MjY4NTY4MzlhYjFhYjcwOTZhMGM4YWVjOTJhZWFkYTRkZjIzNDBhNzQ1YTg0MDlkNzJkMmU3N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_aeaa84de18e44ba2ae1c6c4f18e3fc79",
+      "statement": "The repository's test configuration discovers `test_*.py` under `tests`, and the documented baseline validation includes the DSPy runtime smoke test and the full pytest suite.",
+      "evidence": [
+        {
+          "resource": "repo://CLAUDE.md#L210-L217",
+          "version": "repo-lines-v1:sha256:f889958b7899af19cb929d2ab35f4302f25532614906558a941b1aebfdf4db1b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTVlODZmNjg3ZWExZWEwNGJhOTZjYzg3OWYyZmY5MjkyODA0NTg1ZWZhNTg2ZTc2MDc4NjA3ODg1ZWM5MzAyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjMDZjNTYxZDVjMzI3MzQzNjg1MjY4YTQ2YjMzOTFmMzk5OGVlZTg5MGQyYmU1MWYwZDIxY2M0YTUzYWU2ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDAxZjJlYzE3NTkzYzEwNTRlYjQ2MzY3ZDg0NTNlZjI0YTE3M2NlOTZiNzExN2Q5MWY5YTY4ZDQ0ZmVmOGIwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDAxZjJlYzE3NTkzYzEwNTRlYjQ2MzY3ZDg0NTNlZjI0YTE3M2NlOTZiNzExN2Q5MWY5YTY4ZDQ0ZmVmOGIwMSJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L156-L162",
+          "version": "repo-lines-v1:sha256:c50807fef31d56b8496acf363a37c98992d99c9980e33ccce0c34b442ac7e232:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODY3NmU2NDE0NjVhNjU1MWU5ZTljZmZkN2ZhYTFlNmE0MmY5YjcyNDgwOTgxM2M5MDNkN2VkY2I1MmYzMDA2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDAzMWRjZTkzNzE1ODk2YTdhMmEzNGUxMDM1YWM3ZjFhMGY5NzBjNzhlN2NkYWI1ZTk4YTFmZWJjMjRjZmEyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWNhMDRhOTM3ZTA1YjQ4ZjE5ODNhZThlNDAxNzNiYWRlZDVmZDQxZGRiZTM3ZGZmMWUzYTY3OGMxNmNjMjEwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-19T12:16:57.591Z"
+  }
+}

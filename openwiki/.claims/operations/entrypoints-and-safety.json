@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:f5a3d987cc288eb4e8ffcfc10d376936e8554dfdd0b859f7987dab2b4b2655a4",
+  "claims": [
+    {
+      "id": "claim_314cb9835ff640c8819613f11a43cdbb",
+      "statement": "The installed `voly` console script calls `voly.cli.main:main`; the Click root loads configuration into its context, supports `--config` and `--verbose`, registers `run` and `ui`, and runs capability startup sync when a worker URL is configured except for `quickstart`.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L81-L82",
+          "version": "repo-lines-v1:sha256:d6b3403e807f0001aa73528e1b8d5738d10a8e15b40af2347287de587f68ddf1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVhYjRlYzYzZGU1MTdkYTRjZDhlNWM4MzA3ZmIyYzc3MzdkMzkxOTBhYjY5ZjMyYTVlOWVmODFlYTQ0MTZkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTY3NzBiMzZkOGNlNGZjZDNmY2ViZjVjYjMxMzBjNzkzOTk3MzUxNGM0ZGQ1M2Y0YjdhNTY2ZjAwODE4YjdlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzllZDAwNWVmNzhkOTlkYzQ0ZTE1ZThkZjhhZmVhMTYxYzBhMWUyNTk5OWYyOGY0ZDY1ZGZiYzAzZTkyZDJmNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjllODk5ZjBiZjI1MWFjZmY4NjQ0MzgwYmM5YjEzNTQ5MDkwYjUxMmYxMzM0YzMwYzRlZThmM2IyYmJkZDQ5MCJ9"
+        },
+        {
+          "resource": "repo://voly/cli/main.py#L130-L138",
+          "version": "repo-lines-v1:sha256:d68665ab4e8066a153e557db9176d4c56a34e480cbbc5266ab3fd972612757e4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmQyNTQ3N2NkMzE5NTM1MzgyZTMyYWM2N2EzOWI2ZTcyMjcyZjZiN2NmODYwZDA4MzdlNmU0Njk2YjM0MzUwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2ZhMjU1ZDAyODViYWVlYmUwNmYwNTE0MTkwMGJkNGYwODk3ZWU2ZjdmYjhlYmEyOTY1NWNkMDE4ODUwNWYxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGM0OTAyMzQ2ZTkyMTg1NWJiZTRkOThjNDdmYjNhODk4NTQ2YzUyOGJhZTFmN2VjOTU1YzdjYWExZTZhYjcyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MTM0MGNjMjM5YTE1OWNlOWI2MDIyZTlmNjMyMjgzMmUyZWFkNzZjYWU5ZTQ3NTRkMjEwZWI4ZmI2ZDVlOCJ9"
+        },
+        {
+          "resource": "repo://voly/cli/main.py#L67-L89",
+          "version": "repo-lines-v1:sha256:ca0387ebb5a70d52d94c76e6f165c92d9b15c4271dc0fc35ff4fb0bf73d7d713:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MTA2MDg5N2ExMjQ4N2YzNjFiMjlmZGJiZmUyYThjNWIwZTZjNTM1ODIyYThiZTBjNThmNjVhMzhlZDliY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NDMxMDllYmJiMTc4NjIzOWIzMmIwYWRiNGY3MjNkNmU1YmJiYTkxYzM2YmU3YzA4ZTk0NzgzOTg0MDhhM2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMDc2MWQ0MzBiMTY1ZjA5ODc2MjNmMTgzNWIwOGM4Y2U1MzM2ODJmY2NlMmZkMjMwZjU0YThiY2U1YzA4M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2NmU5ODIwM2EwZjMxNzFlOGYyNTk2ODMxNjJhYzRhNGQyYmI2MjEzMmI0YjdlYmU0YWU5M2UyZWEzNjcyYmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_12f6dcb68aac4875b4c41c851f397f73",
+      "statement": "`voly run` uses `Pipeline` when no executor is selected and passes cwd/repository and routing options as context, while an explicit executor invokes `AgentRunner` in the requested cwd or the process cwd; `--dry-run` is ignored on the pipeline path and is passed to executor runs.",
+      "evidence": [
+        {
+          "resource": "repo://voly/cli/commands/run_cmd.py#L15-L91",
+          "version": "repo-lines-v1:sha256:e59f56da2882a04c0e45ad33145ec5f77c34b70083a347f3eae56142ec400b2c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjA2ZmE2NzY5Njk2MzNkZWY3ODg1MDQ3YmM5NDAzOTk2NDllOGMxNDU3NGVjODlmZDM3ZDk2ZTA0ZDJjZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ODI2ZGYyNTIyYmY1NDAyMjA0NGZiNjBjNWY0Y2JkMDMxOTFkYjIzMzgzZjRlNGY5NTU3MGFmM2RmNTZlMDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZjE5Y2IzMTc5ZDExZjc5OTUyYzdkODUxYmEwYjkyMjNkNmExNzQyMTIzMzAwMTliYWViY2IwYTdkMzg5NGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3YWMzMjdiY2EzMmJiYzZiMmI5NzhkN2ZiNWI2NWFmNzBkZmIxMGM3YTc4N2Y1YTQxOGE4YTQwMmU4MGE0Y2QifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/run_cmd.py#L168-L201",
+          "version": "repo-lines-v1:sha256:9eb3891ad120d4f3e2ec8bc351064773a57a6ac4584878fb559665a30f8a6188:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmM2NiNDZkYzBmMDU5ZmViY2U3MDlmMDMxNmIxNzI0MzgyZTgzOTQwOWQ5MDkzYzFlY2E3MWU3ZWYzNjA3MmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmYTIwODU4YWY2NDI0N2FhNDdmMzFkMWUwMDQ0ZjcxMDc1NmJkMjc0Y2Y1MmYwODk3ZjgxNTU3YzU1MjViZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNGUxZmIwZWM3OTJhMDdlOGFmZTcyOGJiZTc5MzA3NjdiNzk4NDA4ZTcwNDQ1MjkxMzY5ZDA2OTY1YmJhOWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxZTcwOThmYjkwN2I5ZDgwOTMwYTJlZDNhODU1NGVjMzcyZDJjN2E5MDkyY2EzMTZjMjQ1N2VhNDE5Y2I1MDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9ef84720a6384bec8191c0aa86812452",
+      "statement": "The optional `voly[ui]` extra supplies FastAPI, Uvicorn, and HTTPX; `voly ui` defaults to `127.0.0.1:7788`, serves a built static UI in production, and uses Vite in development.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L56-L60",
+          "version": "repo-lines-v1:sha256:4ab91adb99e10b0d815829d68c2ec431c988af3e14befddfc7b83e747ed83318:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjcyNmFiNTY5MTRmM2MwNjRkMTI3Njg5M2FmZjAyNzg2OWYxNzEyYWEwYzM2MGNjNjRmOGQwZmI3MGM5ZGEzNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk0MTZlMDlmNzhiYTMxNmMwMzI1NjgyMTNiODU1ZWU3NTZlNDE1NjVkOTE4ZjA5NTE5YzgxZmQ2MjBmNDA2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDI2ZGE3Yzk1MGMwOGQ3YzMzY2QzNjExZDM0M2JiZDhhMjc5ZDhlMzM1MWVhYjA4NWJkYWU4NDNhYjQ2N2E1NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzg1NmFhZDE5M2MwZjY1YzRlNTU4MTZkMWY0YzIwNzgzMTkwMzE4OGQxYWU2MGQ1NTM3ZmY3Y2NhMGIwMWZlZiJ9"
+        },
+        {
+          "resource": "repo://voly/cli/commands/ui_cmd.py#L100-L119",
+          "version": "repo-lines-v1:sha256:e0f5afb3a5f06925c05b0f9380e42fb1739e59366c1c82ef683dd7a6b323c71d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4YzQxZTBiYTI3YmRjNzY0MmZlMjAzMDlmZWI4ZjllNDk0NTEzNWU3ODdiMmJlZGZlODRlMjllMTIzMDNjODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZTcxM2M4ZDYwZDQyMTk3NGRkMDA1ZWMzMTI3OGQ1YTFkOTUzZjhiOTU1NGZhNjUxMTExYjliYmMwNzI5OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0YTliOGEzNzU1ZGM3MjFhMGI5MWQ5NzllYmQ2NmYxYzYxNWM1NGJhYzY4MTY0OTBmMGE1NTIzM2M4NzZhZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/ui_cmd.py#L12-L18",
+          "version": "repo-lines-v1:sha256:52665117fc5d5dde0252ed63930a54d1f60b733968349b4fc44b94bfe297a251:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzM0ZjU1YzdiNmEwODdmZTA3YmY0YzcwMmQxNGUxODBkYjAzYjgzMzI0OTBiY2Q4NzY0ZGU2Y2U3MTBhOTRmMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTEwZDgxMzI2NzIyZjUwYzIwY2EyMjU4YmFmYTM2Y2IxNWI5N2UwZTAwMmYwYjM0N2IyODljNDhjM2UxMjI1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGI3NTQ3MmM1MTBkMTUzZTczMTM2NmZlYmMxNjgxMGQzOTYzNTVkZGRhZGYxN2QxZDIxZGNhNjkzYTA5MzY5NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjMyNmI0ODdmMzI3YmY3ZDQ1ODkxMTJlMjkwNTM1NmM5YzA1ZmU5M2JjNDk3NDc1YmZjOTU2ZmY0ODA1ZDI0ZSJ9"
+        },
+        {
+          "resource": "repo://voly/cli/commands/ui_cmd.py#L63-L97",
+          "version": "repo-lines-v1:sha256:211335a36f7a0a9ea2f87a865e1bc38a7a9ae1e5f7c7e0117c54cece8ce4574b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxYmJkNWQ4MmI4YjY0M2JlNWNkZGQ3NTA1MjIxNjMzOGZlYTNlYmRiNDViMGRiNGExNDBhMGQ4NGNkNzI0MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3OWE3OWUxNjg0ZmJjNzYxMjJlZDhiMzIyMWYxMGU4ZmFjNzQyNTc3ZTU0ZTdmYTQ4YjIwZTAxOTQ1ZWVmY2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3MzczMWJmYWY4ZjRhYjY0MDhiMmMxNTU4M2RkYzY1ODI3OWQ2NDY0MmQzOTMxYjZjNTU2NzU2ZWFiYzdhZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiODJhNzFkMzU4NjViZjc1OTgzYzMzYWY4ODIzODY0NjU5ODVmNDlmMzdkZGMwYjY5N2RiZDA2NTQ3YzM2YmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c8a9a7f6b4b434d8a84557b4490e532",
+      "statement": "The open-core FastAPI application has no authentication, allows all CORS origins, and is intended for localhost-only use; correlation middleware assigns/returns a correlation ID, while the application wires run and task routes and starts a watchdog reaper.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/server.py#L154-L206",
+          "version": "repo-lines-v1:sha256:edccff13862d046a04491de847b9e23661bb4bebd842259a623320d9b7e8008f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4N2M4YzU2YzY1MjAyMWU4ZGIxNDhiZTZhM2I0MDVlZjY3YTVkYjJjMzMxYzlhOWIzMGNhNDU0OWY5NWI5NTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhMDExNDRiODY3YjY4YTQzNjJhZGYxNDZkMmUxYmM3YzkwMjFlOGM5NjE5ZGJkZDJjNjhhNDVhYjA2OTQ0ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmMmU1NTgyZDJjNGRjNmI0NTY5NmFkY2U3MDdkZmNjN2Y0MTA0NzA0YzRjNTRhYzI2MTYxNjRlZDc0NzU2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmIyOWM0MDI1NjM3OTcwNDY4YmZiZTEwODJjZjY2ZGVmMzM4ZDRlNDVmMzUzZmFiYmI5ZmViN2Q4Y2YwY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_66a010d118a2480485809743ddce3787",
+      "statement": "`POST /api/run` creates a RunRecord before dispatch, streams SSE start/heartbeat/done or error events, runs blocking work in a configurable shared thread pool, and does not cancel underlying blocking work when the SSE client disconnects.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/run.py#L21-L32",
+          "version": "repo-lines-v1:sha256:3ad83551bfa8353bcb6e9be209b3e8dcbb7c3967315003c6ba8d0e7caf4af472:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyNjA0MjYxYWM4MGM5ZDIzYjk2ZmNmMjZjOTVmNDNmMzMxZWY5NTU2NjJlNWYyNjY1ZmVhYmVjYjM4YzVmNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ZDYzMmI2ZWRhYTIyOGIzNzUyYzk5ZGVkNWQyZjdhMTEyMTBhZGI3NGY2MWFhNTliOTUwNTZlOTY2OTYxMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxMjUwY2YzNGJhNTMzOTA0NThiMzg5ZTlhYzEwNmJkYTQzOWNlOWQzMTZmY2QyYWI3ODRlZjcwMDg4YmYyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3YjVkMTY1NDE5YzQxZjZjNDIwZTYyMTQ1MmY0OGU4MDhhNGVkNmFjMGIxYzUyNzYxZjU5MWQ4NDExYzcwNTEifQ"
+        },
+        {
+          "resource": "repo://voly/web/routes/run.py#L499-L625",
+          "version": "repo-lines-v1:sha256:33404137d30a322c0b16b0ec75a0a3baf7a37ab69b07c79d2b0c6647eb7373d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMTI1OWEzNWNiNzE3ODJhYTJhMDk4ZDEyMzkyMTQ0OTk1NDE1MzAwMjA5ZTYyN2FjYWM4ZWVhMThlZTM5NDUyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2MWUxZmY5NTIxNGRlZWY0Y2NlMTQwMzA5ZTVhMzQ1NDQyYzgwMWZiMzRjNDQ0MDY4MWRkYjMyOTFhZmIyOTQyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlNTkzNjhhN2ZhM2I0MWVhYWY3NTMyODNmYzhhNzY1ZWE0OTY4OTRkMTE0NzZmMmU5MjNkYjNlMzM5ZjJjNmYyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5YTE2MGRiZDU5MjhiZWZlYjIzMjdiZjBiMWRjNzU5ODNjMzg0ZjU0NjdmYWI5ZTYzZjE5OTZmOTNkMDRmZDVlIn0"
+        },
+        {
+          "resource": "repo://voly/web/routes/run.py#L628-L712",
+          "version": "repo-lines-v1:sha256:0e6aa45ea352d5880af60d4884fac094f8a4f3f70d29cd4974fdcc5fb2a6daea:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMmRiNWIyNGVhMjg4ZjBhZjkyNTNkYTBiNmFiOGRmN2VhYzdjYjZjYTkzOWQzN2M0YWY3NzI0NzdhNTA1ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmZDg0NWMxYzJjZGY3YjhmZmVjZmM0MjJiZjM3MDAzMDc0YWNmNGRiYTQ2NzllNGI4ZWU2MDY5YjljNmQwOTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1YWNiNWFiMzdjZjkxNGQxZjZhZDRlZTI4ODBlNzk4OWE3ODlkYjAyNTFkNTZmZWJlNWUxYjY0MWY2YzUxZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9c437e2c68ff41528e8bb9d939f5b94a",
+      "statement": "For a default pipeline request, web dispatch preserves complex A2A work in the pipeline, promotes code-generation work to `claude-code` so executor fallback can apply, and leaves text-only work in the pipeline; cwd is resolved from request, config, or `VOLY_PROJECT_CWD`.",
+      "evidence": [
+        {
+          "resource": "repo://voly/web/routes/run.py#L465-L494",
+          "version": "repo-lines-v1:sha256:d045f63bac06c097aa55d95aea9d9df04b6724375b5793ee6a14c29109fbc263:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMjMwMTg5ZWY4YzVlMzI3YjU4MGQ1OTU0MmE5ZmQxNjNkOGI1OTcwODFhNWNmYjU3YmNiMjgyODE4NWE0NzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiNGQzNTFjZDhmODQxMjRkNmI4Y2QzYzBlZTg2OTVlOWNlNDU3NTIxYzUwMjU0N2U0NGE0OGJiYjBiZjRlY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMTg0NGZhZDI3Nzc4N2MzZjhkZjViMzQxZWNmNzIyM2Y1NTQ5Yzg0ZjI3MmUxOTdjYjE0MTI2ZjAyYzc3NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5OTVmZjBkNjg0MTljODU5NDA4ZGUyN2Q2ODA1ZTg4MDMzMDhmZTMzZjI1ZGY3YTM2MjZlMjA1ZTgxMGMwNzgifQ"
+        },
+        {
+          "resource": "repo://voly/web/routes/run.py#L511-L587",
+          "version": "repo-lines-v1:sha256:68b648c1b0c4efbe0a91d8f38e620b64ca810d7cda84b565d7ee7f7c572afea2:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NWFjMzIwMDNiNWM4ZTBjZDUzOWE0YzdmNWZiNjk1MmUzYzYzMWMyYmQyODk3NGFhNWUwZTZjNzNmMDk4ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwZDZkODUzMDI1OTgxMzQwNWUzOTI1YzU0YmNmMjMzODgzNDM0NGUzZWFmZjE0NGUxYTFkNDRjYWZkNDY3YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljYTc0ZWM0YjU4ZDk1OWJhOGZlMmIxZDBmNjkzNjNkZWViZWJkNzkxYzZhZGUxYmRkNjk4ZTFlNDI1NzQ4YmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjMjg3YWE4NzgwOWU1N2EzOGQwOTQ4ODE4OTA5ODk5YTRhZDg3YmNmYzA2YzQzNzA4YzE2NjM2Njk5MjM5MjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d7906b69d9e24c8595e510c4adbf1aad",
+      "statement": "The Svelte dashboard posts run requests to `/api/run`, consumes SSE events, adds start events to the live task view, and combines task event streaming with fallback polling plus two-second polling of active RunRecords.",
+      "evidence": [
+        {
+          "resource": "repo://ui/src/lib/api/client.js#L51-L70",
+          "version": "repo-lines-v1:sha256:4849d2025f3f09ef6e8432f164cd912e1db261ef7b7c8f57feab3f9243147985:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyNTg1NWM5NmQ0M2I1ODQ0YTcwMDg0MmIwZmJkZTA4MGE4MjY2ZWJlMmE1YmI4NDM0YWE2NzYzMDA0N2NmOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhZjliMjU0NTdiNjRmYmEyMjEyYjM4YmE4MTljNmY2M2U4ZTA1M2MzN2Q0OGM2YTZmNmFkODUyZmMxZWIwNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMDNlNWQ0YjhkMjFmZjA2NWY1N2Y2N2M4MjEzMzA5NDI3Y2VkMTY0NmY3NTBmM2I3NjA2ODM3OGM4NzVmZmIifQ"
+        },
+        {
+          "resource": "repo://ui/src/lib/components/tasks/RunPanel.svelte#L243-L295",
+          "version": "repo-lines-v1:sha256:113edab06a54cef02294206d9c23fffbee50f94af5657401b50011f20e9c60ba:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4MGY5YmE2OWZmZTc4NDA0M2IxODlkZmFhNTBkNjNmMDk3ODMzOTU2NTRiMGEzZGI0ZDU4MTU5MmZlMWU3OGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmMjg3YjJkZWFjMDUzNzNmODQ4ZGJlYWIyYzZlMTYzOTMyZTk5YjAyMWJjZDNjNGNkMWRlYmU5Mjg3M2Q5YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwY2IxZTg0MmMyYzAyOWVmZGJlMDI5MmNiOGJjNDg4ZTU3YTVkY2EzYzA0ODA1MTEwZjNlNDI3NTcxODcyMzEifQ"
+        },
+        {
+          "resource": "repo://ui/src/lib/stores/tasksStore.svelte.ts#L102-L131",
+          "version": "repo-lines-v1:sha256:fa2b2245f1bf8db817f2846560e858bc172a3a8b508d5f545b07644d541ab3a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NTk1ZjRlZTVmZjYzZDUwOTUwNDE5ZGMzNDQxNDUxMzg1MWRjOTczNmZkMTdhNGY3YmZhOTMwYjI2MWI2ZjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNmEzMmI5MzgzMzVhNTI5NTM0ZGE3MThjZTk5NWQ2NmNlMGJjNGY0ZDFhNjhmYjYzNDU0MDZjNDZlY2VlZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmYjcwNjdmZDdlYjI4N2JlODI4MTE2MTU3N2NmYmQ0MWE4ZjZkZGU4NzEyNTMzNjQyMjAzYTQ4ZDhiOTA2Y2MifQ"
+        },
+        {
+          "resource": "repo://ui/src/lib/stores/tasksStore.svelte.ts#L13-L24",
+          "version": "repo-lines-v1:sha256:5a61acc2a4ade36565428dd8fa9b9bada16ff450589971f2cc3ca6441f69420d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkODk0OGUyM2YzNWJkODUxZjFhMWExNjU1OTA4YzY2MjY4MTM1ZmQ1ZGRiZjNlNDEwNzhjYTljYTY4ZjE4MmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjZDIxNDhiNWUxNjdkZTdiNjk0ODdmNGIzMmE0NjZhYTdkZTEzYzZmZmM1MzcyOTAwMWMwZjlkZTM3YjZlYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhMTUzMzEyMWMzOGYxOGU4MDc3YmU0NGE4N2ZkZTMxODA5NTE5YzZlYjI4Njc1ZTdjMjE0NDBjYjQ1OWE0MmQifQ"
+        },
+        {
+          "resource": "repo://ui/src/lib/stores/tasksStore.svelte.ts#L169-L210",
+          "version": "repo-lines-v1:sha256:3a8c6dc710bb7694314e368f4f34a1054f01cd878dd737fddf39b6ca349148db:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjNTQ0NjlmZGYwZjViMzgyMmVlZDdjMTQxNDkzNjA5Y2U1YmNjN2YyOWMxYzlkNzQyMWE3NzAwOTMwMTU3M2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwODAxODA4YjZkZjI0YTM2ZGRlZDRlYTNmZjAyYmRlZTNmYTk2ODJlMDllYjZhNDc5NzI5MWIyYWRlMjFhN2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZDY4MGRlYzIwZjlmZDA3NTBjZmM2NTQzMjFmYTkyMmRlNzFiMTM2OTAyZGJmOWJiNGM3N2FmMDZmZjAxOTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjY2VkYWQ1MDVmYTY2OTgzOTgxZjIxYmM1NjkzNjM2MjQ4ZDM4Y2Q2NTE4ZjFhOTZhZDkwNjE2MzlkNTFkNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9eede58355a84703a2169481792a7c29",
+      "statement": "Configuration discovery is bounded at the target repository root to avoid loading unrelated ancestor `voly.yaml` or `.env` files; `.env` values are loaded before YAML expansion with existing environment variables taking precedence.",
+      "evidence": [
+        {
+          "resource": "repo://voly/config/_loader.py#L14-L39",
+          "version": "repo-lines-v1:sha256:072582db77208f3353f0f0da6279844fe654028429cc36671026e4d3ce2a83b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2NTY1MTE4MDlhNTNlMTVjNDA2Mzg1NTZkNDhhMzA4ZWY5MjQ2OTc4NzRhNDdmNmU2MmFhMDYyOGFhMTM2YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTYwMGE3M2QyZTAyZjM1MmI5MGZlZjFkOGQ2MzgxMWJhNGE4ZWUwYzFiZWFhN2FlNDY1OGYzNmFhMmUxOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5NWI2OGM0MmIwYTZiYjllOWZiODQ5Yzc3Yzk5OTA0ZmMzOTA3NWRmNGU2ZWU0ZDFjYjgyMDZlY2JmY2YxYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyN2FhNjA1MTI2NDFjMTkyNWQ1NzgwMzU0ZjM4M2NiZjkxOGM4ZjU4M2Q0ZDM0OTljYzMyZTlhNjY0ZjJhNjQifQ"
+        },
+        {
+          "resource": "repo://voly/config/_loader.py#L42-L96",
+          "version": "repo-lines-v1:sha256:9744b301184214e68e27f409344ae3cd564e86a0d60d8996665892966b287730:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4OTg2NWE3OWVlNjJjOWFmNTUzOTIyYzlkNjcxMDM2NGVmNzIzMTdhNGUzNmU0NDlmOTMzZGVlZjBlODYzYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NzhmYTFjMmEyNzQ0MzIxNGQ4MjYwZWVkYzFiMGYzODc0MmNkY2M3ZTMwMjk3ZjYyYWU2YjczYThmM2VkNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MDE0OWUwNjlhZDY3ZWNjZjQ3MzY0NmZmMWM3NTAwNTBkMzI5ZDExMDAxOGRjNTc2Njg3OGVhZmExZDYwN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e6d06dd3ea3a44d99cff611cdd350f59",
+      "statement": "Run tracking persists atomic, best-effort JSON RunRecords with heartbeat state; its watchdog marks a running record stale after `task_timeout × stale_factor`.",
+      "evidence": [
+        {
+          "resource": "repo://voly/runtime/runs.py#L1-L18",
+          "version": "repo-lines-v1:sha256:75ef51c57ee6b27bd1e8a3bc17c1ec8db374532ddd185a383c10e301e346f3ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZjU3Yzc5ZTQ4MDUxZjQ0OThkODhiZjNlNGE4MDlhYTE2ZTRjZTY0MTUzNjljNDU5ZDcyMDkzMTQ1NTc0NzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxODQyMDQyZWIyYTNmODU3YzZiMjQ1MDIwOTQ2OWFmMDFjNWFhYTVjNzIxNTliNzg5NWZjMjRhYjRmOTI5OGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhYWY3NjM3Y2I2ZTdlNWRiODVkNjM0Mjc0NjAxNGRmMDQxY2NkNTU4YTkyMGIyOWViNmFjNzE5ZDdiYWY1YzIifQ"
+        },
+        {
+          "resource": "repo://voly/runtime/runs.py#L261-L290",
+          "version": "repo-lines-v1:sha256:680ef1c9710e51a4ca865ced833c970aea19b65f61ae059ed331258962975949:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwNWMzZGIyODAzMWE4OWE2ZmFlZjNkYTFjMGQwM2IwMDc1MDc1MjAzNzA5MmI1MTE2NTgwMWQxN2U1N2VhZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzOGU4MmEyYjE4ZjA0ZjgyMjk3M2RhOTA1YzUwZDg3YzcxODExM2Y2NDYzOWE0ZmQyMTc3NjM1YTlkNTE1MjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwZGJmZWY4NTE5OTg4MDcxNTQwNWI2NTUyZTUxMjRkNjA5ZTc5MjM1MWUwZmM4NWNjYzU4OTMyNTgxYzY1YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjOTZjNmJjYzkzMDU3ZDE5YjU2ZjJjZTQ2MmJmNWI1NDVhYTE3ZDNlNmIzYmQ0NzI2OGYyODlmYWU5YzViY2IifQ"
+        },
+        {
+          "resource": "repo://voly/runtime/runs.py#L74-L125",
+          "version": "repo-lines-v1:sha256:a129768c9982ba74881ecd069c9046046a68c1254ad926007167ecd4a60eb7f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMTkzYjY3NDMxMjdkZGNjZGNkYTg5NTdkMzY1YzIyNGJlYzBkZGYwMzY1NjA5MmRmNjk5ZmQ5MGU2YzgzYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3ODliOTU2NDVmNWJmZjY2MmZlNGYwNGU3MDg2ZTRmYThlNmQ1N2JiM2U2NTViNmNmMTI2ZDQ5ZmMxZmRiYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3NTNjYTYwYmVkMjgwYWQ0NzlhYzRkYTE5NDJhN2I3MWE0MDA4MjRhYzAwNTgzMGU5ODZjYTc2YTQyMzdlYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YTQwNjRjYjBjZWNkNDE4Yjk2Y2JiZTQ5ZTAwMzc2ZWNlYzI5M2U4M2MyNWQyZmE2OTE5NGM3NzExYTdjZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eb25d916585b4962a71c4f7bba58c4a1",
+      "statement": "AgentRunner's executor fallback chain is ordered `claude-code`, `cursor`, `deepseek`, `wrangler`, `opencode`, `zen` and is entered only for billing or availability failures; unavailable alternatives are skipped and retry spend/tokens are folded into task totals.",
+      "evidence": [
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L271-L363",
+          "version": "repo-lines-v1:sha256:e9dcc461ee5722768b8cda7e0b92efcef50ce3aa67b0b32749f31ddb2c4cc351:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZDRkYjI4MjZhNzEyOWRlNDQ5NzRkYWY3ZGVlMjBmYjE5MzYxNDI4OGEyZDVkYjEzNmNjZjY0MTE0ZmQ2NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjMjRhMWY0MmY2Yjc2NGNjNWI4ODcwY2M5YzcyOWE1MzBjZmY0ZGZkMWZjYjNmNjY2MjY5NGVhMDkxZWFiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1YWY3ZjVlOTViYmU5ZGRiMDc3NDA0YTAzNGRjOWVkMWNlMDVkNGM3MDRjNDdkZjZjZjkzNGMwMjQ2NTk0MGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3M2ZlYzMyZmY4YmUwMzFkZWE4ZjAzMzQxNWMzMWViOGQxYTg0OGNjZDk3NzQyYTljZDZlZDkyOTE0Y2I3YWMifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L508-L516",
+          "version": "repo-lines-v1:sha256:a4f0066da064ce4a27764d6d7abc8e31c745d82bfe162b9d226aa11e1e57197d:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjlkMzE1ZjZkODJkYjRlNWU3YmRlZjkyZjBmMTM0NTEyOWFhMGIyNzRlZGU3MWEzMzY5YjVjNWE2N2Y4ZTAyZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmU3N2Q1NzUyZWY4OGNhNjc5NWYxNTc5OTk3OGYzZGUyM2FjZjZlNWQ2MWE2ZmMxMDE3ZjExMmJlNDM0ODg0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2FiODg2MDM4YzMzNzc5YmIwMmYwNGQyNjUwNmQ3NjdkZGNjOGNjNDMxNjJhZDgyMzI0ZDc3ZDg3ZDBkMDkwNSJ9"
+        },
+        {
+          "resource": "repo://voly/runner/executor_factory.py#L11-L27",
+          "version": "repo-lines-v1:sha256:65c1e6a9ba73b8118082d1e3a4f2ba8b95544109e268440884c7d784a1e06a0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYjhkNzdhNGU2NjEyYzY3NzBhMjhkMDM5N2NhYWZmZjM1MjliNzVkMjdkMTgyZjhlNmViOGUyYWI2MmEyZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNjkwZmFmNWZhMGI5NzAxMzA5NmU5MjBiMzQxM2E0YzkwN2ZlYjZmNTQ5ZTMxNDAzY2VjYmQxZDJhNGVjMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4MGYzZDcwNDJkODJkZWQzOTU2NTVlYjRjMTYwMGMyMWJhOWI1YzkxMDBiNGNiN2FiZTRhYjk0MWJmZWZlMzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliMjFiZDNjMmIwYTU2ZDQwYzlhZDIwYjJiNmZhMTFmNzIxNGQ1OWY4ODQxMmJjZmJmY2QzOGJkMDE3NDIzYzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_58bd16378f9247cda4f82060e1c9818c",
+      "statement": "Executor safety uses a non-mutating pre-run git snapshot and content comparison to identify run changes, protects secret/key and git paths while allowing committed env templates, restores only affected files, rolls back all run changes in dry-run mode, and degrades to a warning without rollback outside a git repository.",
+      "evidence": [
+        {
+          "resource": "repo://voly/executor/safety.py#L1-L15",
+          "version": "repo-lines-v1:sha256:a30e123a6b79487a8d76519c769be764c5655f56535836e0b3aa56bb3143da88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkNDE2MWEzZmE0MTMzMmYzNmE1ZTllOWFlNTJmNDhmOWQ3NGI2MzhlNTBlNzI0MGVhZDgwMThlNmQ0M2RhMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4MTE4NmFlYmViYjg4NDhlYWMyYjZlMWQwZDNlYjExNmZiZjAyMWJiNzUzMTA0YWE1ZTgyMTExYzA2NmQ5YTYifQ"
+        },
+        {
+          "resource": "repo://voly/executor/safety.py#L205-L268",
+          "version": "repo-lines-v1:sha256:bf96e48033b7e375669daaef4efb06be71a41f8123ed8d10f3d7838adc40bf6c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4YTA5ZjQ2MGE5ZGExMWJhOTVkNWM1OTVjOGE2NTI2YTAwODZkNWVjMDE4ODE1YTI5YmNhMGFkMmJiNTFjZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NTI2YWZkNzhlMmJiZGM0N2QwODZmNjliOTdhZjYwZTQ5MjAzZDNjNDlhMTAwMDNmNTQxNzEyODlmOTYxZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyOWE1NjkxOWEyNTUzMzAyZmRmMjMyNjk5YmMyYTQ1ZTY0MzdmZTA5M2Q2YzQ1MDUzMzE1MjUyZTFhOTZiOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/executor/safety.py#L27-L45",
+          "version": "repo-lines-v1:sha256:c7011ab9c8cea4d1b9da3ca82977677af265590ec07e978808c80d95246fd236:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyZTgyYmRhNDExNzc3NmMwYzNkZTk4NWJkODg2MTZkMTIwNzI5YzE1YzZhODQwMGM1MjY0NjZiZWUwYTEwMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1ODBiNzY1MThkYWU5NzlmYWViZDAyMzY3YTI5MjkyYTUwZDk3NjA5MjI1MWEzOGE2Y2UzMDg4MGJhNDI4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwMGJhNDdhMmI5ZDA3ZGQxZTg5ZjdiMTE0YzZkOTg5MjIxM2FjZTdjYjVhZjk2N2VjYTYyMjM1MDkyZTc3NzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzZWM2Y2VhYjVlZmFlZjA2YWE1Y2E1NTNkZWQ2YTU5MmNhYjM5NTUzZWJjMmE4ZDlhOGU4NmFjMzYzODQ4ZGIifQ"
+        },
+        {
+          "resource": "repo://voly/executor/safety.py#L94-L148",
+          "version": "repo-lines-v1:sha256:f7ce747ac724f500d8fad5a3c2d920979bc0b3e5ae9550b763b09ca2b03d4eb5:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYzFlYzMwYjQwODdiNzEzMjU5MjZhOTk0YzE4NjczMjA1ODkyMDM5ZDNmNDhkMDA2YmE1M2Q0N2FkN2IwZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYWFhYzdiOTVkNzAzNWMyYTEyY2RjNzMyZTc4YzA3MGQwMDQ4ZDA5Y2I1YzgyNmIxZjdkNmVlZWIxZjY1ZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0NzI2ZTUwMTBkNDdjY2U5ZThlMDY2YjVkNDg0MzhiODY0NTExOTVjMTgxOGU5NzE3ZjRiYzI3YzM0OTFjMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3OTUxNTZjMjkzMjZlYzU0OGNkYjcwMGFhOGFiOGVmNWQ3ODZkOGFmYzUxMGNiMjg0ZWMzOWRkOWVkNDk0YTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fabb471d017d4315bbbe6ec41ad79533",
+      "statement": "After applying safety policy, AgentRunner hard-fails a run when a file limit is violated or no useful changes remain after protected-path rollback; otherwise it records a soft safety result while retaining unprotected changes.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_executor_safety.py#L227-L297",
+          "version": "repo-lines-v1:sha256:c03f415c33b119ddffc694354090356ed9c6363cd72f9edbf514aaf27af7ed09:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYzY4ZmMzMWRjOGIzMjMzYjVlMzFkNjY3Y2RmMDI4MTAyMWU4MmFmMzljMDJlODA2YmI3MDcwNDc3NzFlMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiYzQxYWVjYzQ5Njk3NDExZTJjZjA3MTM2MWFmYmZjYTFjZWMyYTdlZTg5MjlhZDQ1Yjc2MDA4OWYwNzE0NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDExMWU1YjBmZTc1NDRmYTQyMDQ1YjI2ZjI0ODdlMWI4NDU4NjZiZjQ4MzQzNzk4NmM5MTM4ZjE5ODM1NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0MTJhNTY4M2FmNjVmMjllNGEzYmQ1MzFmZGI0N2ViMjE5ZTE3NWNmMjBkY2EyOGYyYzE1MGFmMGIwNmY0Y2IifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L388-L435",
+          "version": "repo-lines-v1:sha256:151ddf75cfac3804b8480166acac9da9f8706d9c3d961947f067519185751b71:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0YjI1OGU1NjgwNmJkYmFiMGNiYjQ0MzFkODE1ZWFiN2I1MmM2OTg2Y2ZhMzI1Y2E3NTgxYThiY2U4NDZhNGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjMzFlMzZhNDljZjBlZjY4ZmJmZTE5ZWEwMDRjNTIxOWVhZTdlZjRkODJkODVlODZkNGM3NDAwODY0MTk3NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjNjNjYWY2YzE0NzZmYmY3M2Y1OWFmYzFiOThhMmM0ZDZkYjAwY2M3OWFjN2NkZGRiNzkzNzkxNGU2MDY0YWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5aab1aab4daf457ead58c5cbbc51cceb",
+      "statement": "The focused tests cover CLI parser/billing contracts, executor rollback including dirty-worktree dry runs, fallback and spend failure paths, and FastAPI tasks/status/artifact API behavior.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_cli_contracts.py#L62-L170",
+          "version": "repo-lines-v1:sha256:46a9e1b5dc327d3a632536c71804d66c40d30cc3fab8fb76996446886f094762:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3YjliMmY4NGY0MDhiN2E1NjJlZjk2NjhjZTYzMmFjYmViMDRlNDJiNDZiZDdjOTlmMzQyNzRiNjhlNmY2ZGNiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxOTM0MGQzMzc4MWFiYzU5ZTY2NWYxYWY1M2ZlNmMwMmE0MTBjZThjYzFjNmE4NDAyMzgxOWE3ZWNkMWUxN2ZkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiNmFjMTcyMzk5Yzk0NzAwMDExZWUwM2ViNDE4Y2VhOTYzZTkyYjIxYjFjMDg0ZDE3ZWU1YmJjMjA4N2UzNjg2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxNDRlMmNiMmYyODQ0NjA1NzFkMjlkMjI3N2UyNDMwNjA3Y2M3YzUyY2E3MzE5N2Y2NTk4MDcyMmY5MGUyOTFhIn0"
+        },
+        {
+          "resource": "repo://tests/test_executor_safety.py#L99-L224",
+          "version": "repo-lines-v1:sha256:1a7f5765badf6e75d4299c763b3aaf7fac13a219ab132c367fb38383d5c26045:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYzIxN2MzNTYwZGY1ODY4ZGExZjkxOTM0NTg3NTViZTYxZDZlODBhMmM3MzEzMWI3OTMwY2YxOGE2NDUyZGIwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJkNmM0NTE5YjBiYzgyNjhiMDI4ZTI4YjA1NzBiYjI0NTc1YzY1NDVmN2RkYTAwOTk3NmU3N2FiODZiN2I4YWFhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMDJhZmI0NGVlNjE5MTY2ZGYyNDRmMzkzYjNmNGFlMTA5YzY5ZjJjZDYyNGRkNTFiNTVjM2VlNTY4Mjg5NjI3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyZTgxZjBkYzRlOTI1NjAwMDlmMWZhOWYyM2QyMzc2ZjgzYzNkOGJiY2ZlZmJiYjYwYThhOTJiZmI2OWI2NDc3In0"
+        },
+        {
+          "resource": "repo://tests/test_failure_paths.py#L64-L201",
+          "version": "repo-lines-v1:sha256:b3598097d4342cb32ff36f20d3899bf1148c73c4cf5f2099dcd78073adb61e0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjYzlkZDc3NDFiNDM3YWM3ZGZkMzYzYTYxYWVjMjg5YWQ5ODM4NWI3NDQwN2FkZmNjMmI0MTM4ZTUwMTVkMmQwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiNGFkOGVhYjNiYzE2MTlmMTJlOThiMzI3YzZjMDMwNmJkMjNiODEyYjQxMTMwYTJjNDJjN2NiMjA4NTBhOGQzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0N2Q0NGM2ODljNTVkOGZlMjU0YjQ2MWFhOGI2NzRhODlhY2Y5M2M2NTAyMDJjN2ZlMjM2MzM2NWQ0NGE5MmI2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzODc3YjExZDYwYWRjODY1MzM2MTAyYzQ1MmVjZGViNjczMmRjOTlkNWFmYzU0ZTg0MTQ1MGViOTM0N2YyNGE0In0"
+        },
+        {
+          "resource": "repo://tests/test_web_api.py#L47-L115",
+          "version": "repo-lines-v1:sha256:83c8612887abdde018024a3167385864b160f3bb52ee8ee3c87f55d92a80738b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhYjE3NTA4OTZhMGI2ODE4OTU4ZDY2ZGE1ZTljOTViMmZlN2QwYzkzYTZhMTdjMTFlNDYzOGU2Yjk2NTlkMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzOWQxMDEzOGQxOWU3NDJkNjMyYThmMDcxMTcyOGU5YTg4NDhlNjVmZTE5NThlMTk3YWY4ZWVhOGFkYjVlNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwNzk5Yjg4MGQyZjBlMjhjYWM0Zjk2ZTg5NGIxMWYwNGY2ODFmNjdkYjk1ZDUwMGJkNzQ1Y2JkNDBmMzc0ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4MTRkMDFkMDlmZDg0MzNhYjIzOTMzZTdlYWZlMGMxYTlkNTI0OThhNGFkNWNkOWE1ODk5ZjhiYWMzMjk0MTEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-19T12:16:57.591Z"
+  }
+}
