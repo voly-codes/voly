@@ -1,3 +1,3 @@
 # Files
 
-- [Capability governance and evaluated packs](capabilities.md) - Explains VOLY's executor capability matching, untrusted external-pack intake, measured evaluated-pack activation, and verified Cloudflare snapshot publication.
+- [Capability governance and evaluated packs](capabilities.md) - Describes executor capability matching, inert external-pack staging, evidence-gated evaluated-pack activation, native fallback, and verified evaluated snapshot publication.

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2bb555dcfb4aac7364baedfb96ab23a9e31d06b2ea3b6bd7cf245a89a66ffe38",
+  "claims": [
+    {
+      "id": "claim_d933dc77dc894d8db9fd404b607d8af4",
+      "statement": "VOLY is packaged for Python 3.10+ and installs the `voly` console command at `voly.cli.main:main`; its top-level package exports `VOLYConfig`, `Pipeline`, `AgentRouter`, and the public workflow SDK types and graph factories.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L5-L10",
+          "version": "repo-lines-v1:sha256:ae27171ca0b405d5db520a82f37b3aba31d70ae15dda723f577af8eb0d88aea8:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAyYTgxYzM4MzZlZGVmMmQwYmExMWQyMzUzZmI2ZGFiYzc3NzE1MGE3Y2E4M2VhMGQ5ZTlhNzAzMTNmZWFiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTA4NGZlNWUyM2E3OTgwNGY3MWMzMWUyNGYxZDA3OGI0ZTVhMjAyNjY1ZDU4YmU0ZTgyN2Q4MjJhNTI3Yzg1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTVhZDE4NmUzY2NmMzZkNmJhNjBkMzk2Mzk0ZjQxOTM5Nzc4YWMzMzZlNjJmY2JlYzM1ZDFiYjI4Yzk2ZTc2ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRiMjkxOTBmYjRjMDg0MjVmZGRkMTVjZDU3NGRmYjI1ZDQzNzIwMTYxMjNiOTAzMDdhYTg5MTNkYTY3ZDE2YyJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L81-L82",
+          "version": "repo-lines-v1:sha256:d6b3403e807f0001aa73528e1b8d5738d10a8e15b40af2347287de587f68ddf1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVhYjRlYzYzZGU1MTdkYTRjZDhlNWM4MzA3ZmIyYzc3MzdkMzkxOTBhYjY5ZjMyYTVlOWVmODFlYTQ0MTZkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTY3NzBiMzZkOGNlNGZjZDNmY2ViZjVjYjMxMzBjNzkzOTk3MzUxNGM0ZGQ1M2Y0YjdhNTY2ZjAwODE4YjdlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzllZDAwNWVmNzhkOTlkYzQ0ZTE1ZThkZjhhZmVhMTYxYzBhMWUyNTk5OWYyOGY0ZDY1ZGZiYzAzZTkyZDJmNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjllODk5ZjBiZjI1MWFjZmY4NjQ0MzgwYmM5YjEzNTQ5MDkwYjUxMmYxMzM0YzMwYzRlZThmM2IyYmJkZDQ5MCJ9"
+        },
+        {
+          "resource": "repo://voly/__init__.py#L33-L60",
+          "version": "repo-lines-v1:sha256:d289d161cacb7029af4e3cd2012d7a14f1d6366b79dc6c3623c689ba09fe822f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNDQ3OTQ0MDE1Y2VjNzA5ZThhYTc2NTVmN2U5ZDY0ZTFlNDUwOGU3MDIzYTU3ZmUzNzQ2OTExYzBmYzZmZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OWFjMjgwMTczNmRiMWJiZjVhYjk0ZDQxYjAzZjhmZjk2NWJiN2NiNzA1ZTY3NmNjOThkMzM5OTA5ZjA2OTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkZjMxNjdjYTU4YWQwYzJjZmJmNDM5YmFjOThlZTVmZTIzNWIwZjIxYzAwZDk5YzdhNTM2Zjc2MjgyNTU3MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c641ec5adf7c4b04868fdfba42a586ec",
+      "statement": "The root Click command loads configuration once, registers the operational command families including `quickstart` and `run`, and skips capability startup sync specifically for the `quickstart` subcommand.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_quickstart.py#L99-L111",
+          "version": "repo-lines-v1:sha256:c6ac720fc80dc2b010ce666058254b3eb78a2d82cc17e4c25a89aeca516c4f46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNmVkNmE2MzBiOWVmOTk4MmIyYzNhNjdjNzZjYjA5Y2EzZGY5Yjc3ODE2YjY5ZjE4MjkwOTEyZWE1NDYyZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ZmMxOTg0MGVjMDE3YTQ1YmY3ZDFjOGFlNmU0NTJiMGY5ZmRjNDZiNzg0YzkwNTRmMDJhNmE1NjA4NmQ3ZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5YjNhYThjNmYxODYyOTA2NTdkMjA2MTE2YTY1Njk4MWI5NGE1MmYyYzc4MjMxYmYxZDY1Yzk0MWMxYWE4N2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/cli/main.py#L67-L89",
+          "version": "repo-lines-v1:sha256:ca0387ebb5a70d52d94c76e6f165c92d9b15c4271dc0fc35ff4fb0bf73d7d713:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MTA2MDg5N2ExMjQ4N2YzNjFiMjlmZGJiZmUyYThjNWIwZTZjNTM1ODIyYThiZTBjNThmNjVhMzhlZDliY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NDMxMDllYmJiMTc4NjIzOWIzMmIwYWRiNGY3MjNkNmU1YmJiYTkxYzM2YmU3YzA4ZTk0NzgzOTg0MDhhM2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMDc2MWQ0MzBiMTY1ZjA5ODc2MjNmMTgzNWIwOGM4Y2U1MzM2ODJmY2NlMmZkMjMwZjU0YThiY2U1YzA4M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2NmU5ODIwM2EwZjMxNzFlOGYyNTk2ODMxNjJhYzRhNGQyYmI2MjEzMmI0YjdlYmU0YWU5M2UyZWEzNjcyYmIifQ"
+        },
+        {
+          "resource": "repo://voly/cli/main.py#L92-L137",
+          "version": "repo-lines-v1:sha256:d8f26aa74fe528c20e6dc91786afc8180d404bd5e08dc99cdd7ba33448b77a31:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmYjVlMmNjNDUxNjM2Yzc3M2RmNmE4MmU1ODU1NDM3Y2YzOWE4ZWViMjU1ODZmZjFkMDJiOTBkMGVhMGRlOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwYzA5MGU2MDkxMDYyNDdjYzZhOWQ0Mzg2MTA3MWM5YzIyM2E4YzA1OTczNGY2NmFjYzU0MWUxNjczZWFmN2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiMjM1NTg4OWI1MmQyMGFkMjFjNjExMmNiMmZmYjY2NWRhOGE4NDAwYjg5OGVkNjNkMDUzZTk0MGFiN2ZhMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZjg4MjcwZGYxY2IyNzIwOWNlZTRkYzQ3ZDMzMmIxNzZkZTgxYWJiNzZkMDkzMjQ4NGQzNjcwNzVjZGRiNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8778b65ba0a34b2bbe5f5675d42b3838",
+      "statement": "`voly quickstart --check` performs a readiness assessment of the selected directory, Git presence, configuration, and available executors, prints a dry-run executor recommendation when ready, and does not create a missing configuration; blockers cause exit status 1.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_quickstart.py#L30-L68",
+          "version": "repo-lines-v1:sha256:cf1e72861a0efaf9d066542db793ebfcc60fa989e301219a68c8b1a4b1557fc4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjOWU5NTUyMzU1Yzk4ZTQ1YjM0NWQwMzM2YzZhMzk3OTgzYjliNjI3ODJmM2Y4NDJiYjM2ODg5YWUyODA2ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkYzJjM2E2YjNmYTM4ZjY5ZDc2NDZiYjEyNWYwMzIxMWIwMjI3MGIzZjgxMjI4N2M2NTI3NjE2Y2M3ZjJjYmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3MWYyZTQyOTc3ZjVjZmI0YTg2ZDM0YThmMDk4ZThhYzI4YjUzOWNhZjY5YTZhYjhlN2Y5N2JkNTQ0NWQwMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzMzI3MDc2NDZmMTlkOTM0ZmRiYTQyMmU4YmYyMjk3ZDBlYTdlNDZmY2NhZDU3N2RlZTdlZmI1ZDQ5MDgzYWEifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/quickstart.py#L129-L165",
+          "version": "repo-lines-v1:sha256:05e6807aa2973fb474bfa3ade91b57060b59a41aded9c35a5a5ee11a24d2bb52:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjA2ZmE2NzY5Njk2MzNkZWY3ODg1MDQ3YmM5NDAzOTk2NDllOGMxNDU3NGVjODlmZDM3ZDk2ZTA0ZDJjZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4MzY1Y2VlNWIzZGUyNWEwZTA2MjgyNDU0YjgzODY3MDA1ZDY2MTA5MDZiYjZiZTFmOTAxMmU0OWNlZGEyMzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MGFiZjA0ZjhkMzQzYmY1YmFhODc0ZjM2MzQwNGQ1ODkzNmEzMjIxODE4ZWRkYjRlODQzYzBhYThhZjdhNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/quickstart.py#L45-L95",
+          "version": "repo-lines-v1:sha256:e4d6b6bbc9cdd141308856e84331f2da6b2bd17b60bea63c22b16564b69cc016:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxMjI1NjQ0MTdhZDRhMTM1MDBkODY1YzM2ZjdhN2Y1ZGUzZWMzNWFkOTcwZjA3Yjc4NGM3YjUzOGMzMzhkNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0YjI5NTc3MWZiZjU2YjBiYjA0MzZmMjg0MjMxYzkyNmI4MGMyN2QxYTZhOGY0OTI0ZTUwMGQ4YTgxNmQ5NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5MzFmYTc4MWY4NjJmZTgzNzdkYmNmNDI5NGViZTU4NWJjN2RhZDhhOGRmNThjNjc3ZTY5NWZhNWQ0ZmEwOGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d59d4aecd193475fb98665ab137e284c",
+      "statement": "Without `--check`, quickstart can create a missing `voly.yaml` only when there are no blockers and the user confirms or supplies `--yes`; an existing configuration is left intact.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_quickstart.py#L71-L96",
+          "version": "repo-lines-v1:sha256:c04679f0d4efe223f3bb673c7c50a74ffc64c38026a30776f74f4043fae4c50c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjOWQxYWNkNjRiNDYyOTJlODE4NmRjMThjZmRiYmZhOGY4YmExNDFiZDgxMTRjMmFlMjgwNDZhNzkwZTZjZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYTE2M2U1YmI2OTE3ZjkyMGUyZDdjMWQxNDMxZTRkODFjM2EyMGM3Yzg1OWYwZjczNTY1ZDVmNGExYjZjMDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2OWNmOTNlYmQ0MGMzZTY4N2Y2MWM3ZmUzMGYyOGViYWEyNTJkNjU1M2RhZDU4YzQ1MzYwMjQxODJiODk0ZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiZmM4N2ZjOTk0YmZhNmI3YWI1NTliMjNkN2Q2ZGUxNGQ4OGQxYWFhNDNkYzYyOTExNDlhZjAwM2VlZGEyNjUifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/quickstart.py#L147-L157",
+          "version": "repo-lines-v1:sha256:9c5dad0256cde5185c2d1665b728338a8d77d9c595cd06fe214d252a02602ea3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNmI0N2M0ZDhkMGM4MTk0MDExMmY5MmM0M2M1MWQwMTJiZDcyZWU2ZDI2YjU2MDdiZTY3YTJmMTFjZGU5YTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1NGE3MjJlYjUyMzBiMjViNTVmNmVhZWE1MWE2NzU4MjdmNTFkYTQ5ZmRlOWNkZTQ1MjYxODcyN2M4Zjc2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1NTVhYWEyNzE3M2JkMDYyZmFhOGZlNDE0NGVhM2M4NWU0NzY2NWY5NDc3NWRjM2M3Mjk3NzZmOWMwMDg4OWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9ea645aded7b4e4ca21ca635baa1de92",
+      "statement": "The CLI has distinct pipeline and executor paths: `--executor` invokes `AgentRunner` with the supplied or process working directory and passes `--dry-run`, while the no-executor path invokes `Pipeline` with optional `cwd` context and warns that dry-run is ignored.",
+      "evidence": [
+        {
+          "resource": "repo://voly/cli/commands/run_cmd.py#L168-L198",
+          "version": "repo-lines-v1:sha256:6021e0486cc190f98d0a9ef690b4b0477f3edafa38706b8bf5dc5e1344b70c65:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmM2NiNDZkYzBmMDU5ZmViY2U3MDlmMDMxNmIxNzI0MzgyZTgzOTQwOWQ5MDkzYzFlY2E3MWU3ZWYzNjA3MmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNGUxZmIwZWM3OTJhMDdlOGFmZTcyOGJiZTc5MzA3NjdiNzk4NDA4ZTcwNDQ1MjkxMzY5ZDA2OTY1YmJhOWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3YjcyZGEwMTFhMzc0MzI4MDRhM2IyZTcxNTRmMzA5MDcxNmQ2YWMzMGUwZGU0MmY5ZWEwZWIyYTgxMjhkOTcifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/run_cmd.py#L57-L91",
+          "version": "repo-lines-v1:sha256:4370957dff75c683bdd7af72834753dbe4b634f3e2d04685f22c31eb11c0ee2a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyYzMzOGIwZDIxY2JhNWI2YzA2NjBmZWMyMDUwNzJmYWZjOGY1ZjFlYmZlMGFiZTY3MThhMDE4MzA2ZGQ0OGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ODI2ZGYyNTIyYmY1NDAyMjA0NGZiNjBjNWY0Y2JkMDMxOTFkYjIzMzgzZjRlNGY5NTU3MGFmM2RmNTZlMDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZDhkMTk4ZjYxMmZmN2M1OTVjZWZiODllZDg1Yzk2MWY2MjBhOGQ0ZTM4ZTkzYWE1N2MyMGQxZmVjNzcwNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3YWMzMjdiY2EzMmJiYzZiMmI5NzhkN2ZiNWI2NWFmNzBkZmIxMGM3YTc4N2Y1YTQxOGE4YTQwMmU4MGE0Y2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0a07ec2b44734de9b8580adf7774a1f2",
+      "statement": "The smoke suite is a no-network/no-external-service import and CLI check; it covers core module imports, help/version/init/status and other CLI commands, package declarations, and selected telemetry behavior.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_smoke.py#L1-L16",
+          "version": "repo-lines-v1:sha256:6b784be8bf56a7974346f3340b4c32b4928dca73260a3155bc986cfafe772531:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkZmE4M2FjZGRkNGQ0ZTkwYWY3NDQxOTIyZDZiZWI5YTRhMzQ5MWJiYmMwNjYxYzBiMDcwMTMwZTcwNjlkNDQifQ"
+        },
+        {
+          "resource": "repo://tests/test_smoke.py#L207-L269",
+          "version": "repo-lines-v1:sha256:cfac6e487962900f285b63e81ac7c982b89d9ddb4a393ff57fd8bcf2a514a265:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiZWYzNjFjMTJjNjNmZjYyNjQ0ZDJhZGI2MzFjN2M5YzE0OTdhNTIxMWZhM2JjYzVlMmI3MDZhMmVmODk1NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzYjZmZjIxNzAxMDhkOWNmODQwMmQ1NWNlNDRjYWFhOTlkZmQ2OTA5MWRhOGE2Y2RiODc1ZDE0M2MwNWNiNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MjY3NmM4ODhjMWE0ZDlmYTc3MmZjZGMzMDJmNzczYmM3MjkwZWViZmY5ZGEzNmEzOWY0NGMzMjExOTgzODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4YjA2NjY1Y2Y0NTkwOWFiOWQ0ZjQ5MmExMTgzMDg0Njg3MTFjZTYyNjYyZTBiY2JhNTZhMzUxM2VmNTlkMWEifQ"
+        },
+        {
+          "resource": "repo://tests/test_smoke.py#L23-L71",
+          "version": "repo-lines-v1:sha256:c29456c386203cb98ab9d676c70f736616429facb0ee1b0627798563a2b255f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmYzQ1MTgwYmY0MDQxZjEyNTZmNzZiMjQwYWEzZjlkMmY2Y2MyMWM3ZWQ5MzExN2NkMDAwOTljNzRlNjBmMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2OGJlOWE3MDY1ZjY0NmY0NWFiYWQ2MjEzNjI4NTIzOTE5MzRhM2NhMzRjMmRiNGYyYWU5MzI4MjhlYjJhZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MjY3NmM4ODhjMWE0ZDlmYTc3MmZjZGMzMDJmNzczYmM3MjkwZWViZmY5ZGEzNmEzOWY0NGMzMjExOTgzODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhYzM5ZDU1YjFjNDA5YWVlN2MzMThhZThmZWU0ZjEyOWVlODM1OWViMjczNjU3NWJlYmI4MDcxN2E1Mzk2OWQifQ"
+        },
+        {
+          "resource": "repo://tests/test_smoke.py#L278-L337",
+          "version": "repo-lines-v1:sha256:b4bf873f41694bd67be68b9ac4fc5c551ba00f997871a892d2a8fd77e4040468:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkZDgwZDBmZDNlMzQxODYxZDY0M2IzNTM1NmRhOWI5NDg3OTUwNjZlNzg1YjM2ZDQwNzk5MTU1MTNlZDc4YmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YTJhODNmOWE3ODkzN2M3NjkzYzYwMDBiN2NjMGVlN2Y2NTY4MTE3N2Q3ZDUyNWE4MzEzODlmYTg2NDc1MGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4MjY3NmM4ODhjMWE0ZDlmYTc3MmZjZGMzMDJmNzczYmM3MjkwZWViZmY5ZGEzNmEzOWY0NGMzMjExOTgzODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczNTRiZTAwNjczODY5OWYwZWQ4NTcyNjZkMDJmYWNlOGI3ODdlZDVlOWVhOTEzMDI5ZWRhMDU0YTZhYTZmZjIifQ"
+        },
+        {
+          "resource": "repo://tests/test_smoke.py#L74-L199",
+          "version": "repo-lines-v1:sha256:bce15099def250968a8f0ca934f53c8bac0ab058405e2787c69aac3e39878c92:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYTBjMjFhZWMyOGU2NjIwZmVjMjI0NTg5ZTlhMDI0Njk5ZWYzYmU4ZWZjYWRkYWExNmI0MzUzYmVhYjJlNTVlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlY2E1YzczNDg0YTVkMmYzOGFlZDM0MWFmNjEzNTIzNzRjMGNiNDgxNjU5MmFjMzJhYzFlYWZjZDVlNThhZTcyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5ZWRkNDgxMWE3OTllOWQ5YjU5MDlkOWVmOTgyYjhlNjdkOGE3MGM1OTE3OTFjNzEyYzlhY2MwYjExODQwMWVhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjYWMzOWQ1NWIxYzQwOWFlZTdjMzE4YWU4ZmVlNGYxMjllZTgzNTllYjI3MzY1NzViZWJiODA3MTdhNTM5NjlkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_bfd9cda62baa47faa92384380f776887",
+      "statement": "Repository-wide agent rules require model calls to use `AIGateway.chat()` except for file-capable executors, require target work through `--cwd`, and designate generated OpenWiki as optional just-in-time context while source and tests remain authoritative.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L23-L34",
+          "version": "repo-lines-v1:sha256:074524ea157a9d9c948e8d2d6f957709a896968012729b0841b5f5e1a47a0e2c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ODM2ZWQ3ZTAwNTM3NzVhMGE5NjZjZTg2MTM0YjIzNDdkODUxYTdiMDJmNDgxMmJlYjJjNTlkMWM2OGQ1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNTM5NTNiZmI3MmMxMjYyYmJhZTJlYWNhNzJjYWJmMWFmNDk5MjdhMGJiYTExNTdiMmQ1YmRiMjg1YzRiZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImViMWJjNWJjNGEyMzdmNTc4ZTZhZjRhNDE1ZDA2NDdmOTkxMGIwM2IzNjRlMWUyN2MxZjFkYmFhNzQzZDAzYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwODlkZjkzZjhiYTU3YTRkZGJmZDhmMDEzOTYyYzM5NzhjZTRkYjY4MTk5YzRkYTY2NjY0OWIwOTk2Y2VkYTkifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md#L7-L15",
+          "version": "repo-lines-v1:sha256:d94fe159689623c69b0733459c316098aea2df50b94ffb0798168b0307a1b1ca:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmI3NTZhNDJjYzY2MjJiY2NiNGE1N2NmZjVmNDhhYzhiNWYxNjJlOWRhNzc2ZjI2ZDVmMjIzN2I5NmQzZWU4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGZkZTFjZmVhM2U3NWI3YjlhNWZkODAwYzgwMWYwMmVhMGU2NzNlMGFlYWJmZTgyMDkzNzA4N2IyNGVhMGMwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGUwNDgxNjc5NDk1Y2NjMDRiZmJjZDdiZjllYmM3YmMzMWI5MGQyZmI1NDUyZDZjNTk2ODY3NWI1OTgyNTMxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGQ5MzkyMmNkMzM5ZjYyM2UwNzM4ZTkyODUyM2IwMWExOTE5NjQ1MGQyNzhhMjI2OTM3YWJiMmZmNjJiMjU4YSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-26T12:39:44.580Z"
+  }
+}

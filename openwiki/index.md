@@ -1,10 +1,10 @@
 ---
-okf_version: "0.1"
+okf_version: "0.2"
 ---
 
 # Files
 
-- [VOLY OpenWiki quickstart](quickstart.md) - Entry point for understanding VOLY, a self-hosted AI-agent control plane for project-agnostic execution, orchestration, governance, and observability.
+- [VOLY OpenWiki quickstart](quickstart.md) - Task-routing guide for VOLY coding agents. Use it to identify the smallest authoritative architecture, orchestration, workflow, governance, or operations guide, then start from the relevant source and focused tests.
 
 # Directories
 
@@ -12,3 +12,4 @@ okf_version: "0.1"
 - [governance](governance/)
 - [operations](operations/)
 - [orchestration](orchestration/)
+- [workflows](workflows/)

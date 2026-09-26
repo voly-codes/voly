@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:b8c54badb81e9a4a006485764460ef351d9b5cce4d6ca94e0b10ee8d726e9f7a",
+  "claims": [
+    {
+      "id": "claim_c3bdfbd376894655a1203ef963c24712",
+      "statement": "`Pipeline.run()` performs repository intelligence and optional AG-UI startup before routing; explicit A2A delegation creates one protocol task and returns early only when it is completed or working, otherwise normal routing continues.",
+      "evidence": [
+        {
+          "resource": "repo://voly/pipeline/core.py#L339-L442",
+          "version": "repo-lines-v1:sha256:25166b315d2b9e9fbc0c19e3e8fd53f169945257ec9171c8a95061b182afb027:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwMDhjZDk3OTY5Yjk0ZjdjYWJkOWFiODUyY2RlY2RjOWNlOTllNTJkNzJlYzFjZDE4YjhhZWNhMjlhOWUyYmUyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0YjRiMDFlOGI0ZWJmYzJjYjllMDU1NGFkOWY2Mzk5NjE3MDg2ZGRiZDEzMjhmOWMwMDE5YmM3ZGZlMDVjNjhkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0NmNhYjlhZjE0YTUzYjQ0YWU5NzQ3ZjE1OTM5ZmQyODY0OWYzMzk2N2EwZjU2ZDk4NzJjMjQwMDQ0ZGNmNWI0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxZDY5YTllOTZkOTNkNjM1MmYyNmNiMDA5NTRkZGM1YThkZGJlMWY2NDVhYTk2OTY0YWExYTIzODQ3YjM1ZDk4In0"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_a2a.py#L33-L56",
+          "version": "repo-lines-v1:sha256:7dc4d7dfe96aedf943250eddbb4881b67e03d505b8843e75363ba719cad079a9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwYzQ2ZTkzYjEyY2UxM2I3ZWYxMmNiMjZiOTc1NzczYzY4NDczY2QxYjVhNmRjOTg0MGZlYzkwOTRlZDg0N2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjNmU0OTFkODA0ZmZkODRmMWVkYjliODA4MzgxNzFiZTUyZjZiN2NiYzNkMmY3YjZkYjNiYmQ3NjExZDQ2MmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3NTQ3YmU0ZDE3MWFkZjQ4MGJiYWIyMmQxYjE3OTAxODcxYzkyMzk4ZTA2ODZlNjZjMzhhMTkzZDFmMjk1NTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b897627ba83b4fc0a7fb4ed7ea61b4d8",
+      "statement": "Automatic A2A dispatch is separate from explicit delegation: it requires enabled auto-dispatch, a non-nested request, and either high complexity or a configurable number of code-generation/review/testing/deployment flags; it proceeds only when decomposition produces at least two subtasks.",
+      "evidence": [
+        {
+          "resource": "repo://voly/pipeline/core.py#L422-L442",
+          "version": "repo-lines-v1:sha256:6dff63b8246b2f4cc0dd65074aa74917bfca7a81997d1478cebec058e528a75d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhZDA5NzNiMzI5MGQwYmUxNzkyMjQ3NDIzYWFjMDRhNDAzYTgzMGNkMzdmYTU5MDU2NDNlMDA4ZmZmYmJhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNGIwMWU4YjRlYmZjMmNiOWUwNTU0YWQ5ZjYzOTk2MTcwODZkZGJkMTMyOGY5YzAwMTliYzdkZmUwNWM2OGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyOWYzODg4ODI3YzdiMWQ5ODNkMjAxYWYzYzYxOTZlYzBjNDU4NTBjMzVmYWFlY2Y0ZjAzZWRjOTk5NThkOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkNjlhOWU5NmQ5M2Q2MzUyZjI2Y2IwMDk1NGRkYzVhOGRkYmUxZjY0NWFhOTY5NjRhYTFhMjM4NDdiMzVkOTgifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_a2a.py#L58-L113",
+          "version": "repo-lines-v1:sha256:533e80d8c7505f7cef03d34823a033e4128e57defb3841de794d0a3bb4b066db:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNWFmYzJmNDA5MzZhMmZhNmVlOGRjYjJhMzA4ZDM1NzBlYjc2MzMxY2NlYjE0MWQ1YTJjZGVhNzlkNGZlYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkNmM0NTMxODJkNmViMmY0N2RhZDM0MGIwMDQ3MWRhYmIwY2FmMjE4MzU0NTQ3ODg1NTEzYWJmYTFhOGYyYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiNmNlYTgwZjE4YTM3ODMyOWM3ZTUwYTMyZThkOTJmN2VkNmU5MzI0NTg5NmZlNWFmNmU0ZTJlNGY3NDVkZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_97751d9248e64b43b41c1d50f18b94c3",
+      "statement": "The automatic-dispatch recursion guard treats `VOLY_A2A_NESTED=1` or `a2a_parent_task_id` context as nested, and pipeline-server tests cover propagation from a subtask task ID or explicit parent marker.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_a2a_p0.py#L16-L50",
+          "version": "repo-lines-v1:sha256:ba560d2397e6940ff036986c80cdbd1265eb1dcf31c3a70e9e49cd8c6b3cd60d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMjA0OTcwZjkxN2QxZGIwNGNmZjExODY2Y2VjNGVlNDRmNjEwYzYyM2EyMTNlMTRjYWM4OTdjOTQ4ZDExMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZDVkYzcwYjdkZmMyN2RiY2U4MWU4OTIwMTY5NGQ3MjEyMWI5NzczZTVmNjI3ZjBlNzlkNmQwZjU1NTc3N2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzNjIwZmRjYzJhM2MyMmRlNGE4NTFkNTliZTAxNzhiOTc3OWMzMDgyOTMzNWU2NGJiZTFlOWY4NmFhNzZkNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3M2ZhNGY4OThlNjRmNmJmYzBiZTVlZGMwOTU3YmQ5YmU5MTc5ZWU4MWZlNzQ0MTgyMTFiZDM2NDU1OTI0MWIifQ"
+        },
+        {
+          "resource": "repo://tests/test_a2a_p0.py#L78-L105",
+          "version": "repo-lines-v1:sha256:4608cd0b521ae9a1629f066cf4ab430740667132ff45ebd580a6e09127ff5135:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzYjJhYmYzYzE0YzBlZThlMmUwOGI3NGI3YjRjMmFjNjgyZGQ4ZDc0Y2Q1ZDgwZTQ4MGI2OWJmNjExY2E2ZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliMjU5OGRiYzY2N2RjZjVlZTY4MDE4NDViNzU1ODhlMzZmYjEwYzgyZTg2MzIwMjc4Mjc1NjFhYjFhMWI1YmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxMGQ5MzVhMGNkMDcxNTcyYmJhZmYzODNiM2RlZjA2NzAzYjhlZmY5N2UwYjM1YWExNjk4MTc1NDlhN2Y3NGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmNzc0ZjU5NDRlMThmMzMzMzAxMjEwZmI3MGQzOTcwODBkN2MyNjRlNTE0NzhlZThiOGU3Zjk3NjAzZWNkMTgifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L329-L337",
+          "version": "repo-lines-v1:sha256:63f902005f820fe3c9dd8f560ef5ce4b4d7c84841415d0a6223342073fbfbbef:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQ5OGM0MjhkMGI5ZTdhN2JjNzBiOGUxYWVmMGU0ODJkYWQ0M2YzZjFlZWI2YjU3NzVkN2Q2ZDQyYmU4YmUwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjUwMGQyMTc1ODk2MWYwY2Q0ZmUxNzBmNzJjMzY1NjY3OGY2OTQ3YTE1Y2NkZmQ4MTdkNDVhNTU0ZmM5ZWUwNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWMxYjU1Y2E2NGFiYmQxZWI5YjYzMDkzYjBjMjlmYzRhYjUxODVhYTNkYjJmOTMxYjQ4NmJiMGI0MmNmZDMxNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTY5NzIxNjQ1NjZjOTk1ZTdlMDQxNmE1ZjY0YTk1ZTExZGY4MDUwNDkwNDY4YTM1MGZjMjE5YTA1YTY0MGEwMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_df6ceb343a994407ba456484b2b3f0db",
+      "statement": "Local decomposition creates role subtasks with dependency indices, can add signal-driven roles, and injects bounded predecessor output/file summaries labeled untrusted context for dependent roles.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/decomposer.py#L173-L193",
+          "version": "repo-lines-v1:sha256:0adf56ccd0f618bc604a0e82338f2a452455e6e4689c7b1e841800808006640d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNjhhNDEzZmE2MmIzNGZiMjdhMzc1Yzk1ZjJlM2ExMDc3YTlkODBmZDY3N2MyODhlZWRhZTc0NTBhNTUyZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ODk2ZmU3NGZiNTEyMzc1ZTQ5ZGRhNWM0YzQwNDc5MGM5YzcyYTJiOTNlZGM4MTEzMjkyOTZmNzgwNGIzY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YTcwYzRkNWYxODdlMjQwZWEyMjQ2NGUyZTYxOGIwZWU3M2EzYTNjMzNmY2YwZmViOWI2YWRjMjczZGU0ZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3MmY5Njk1Yzc0NjdjNzQ3NzNjOWNlN2ZjNDI5YzVkMGQwZTQ4N2YzYzUxZDE1ZDY2NjhhM2QyNDA3MmJiOTUifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/decomposer.py#L18-L69",
+          "version": "repo-lines-v1:sha256:32863666d98925a78ef51239cce15b31ca4b170a3e4ab83785a7021e08d7e1e4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNTA4ZGI2YzE2NzI0OTFkYjZmMWFlYmE1YmM3NTZjZWUyNWQ2NjFlYjc1ZjFkZTU5ZDg1MWFmZjkzN2E1YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZmNhNTgxZjA4NjlkYTU5OTY1ZTVjODAxZmJjZWZhNDllNDU2NWE1OTRmZjM0M2U2YWVjZjc1ZTk0Y2I2NGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc0NjQ5ODdiYzhiMDA1ODk1Y2E5NjQzNGRhYjA0OTRhYjcyMDM0ZTY2ZDhkODk2Y2RjZjBhOGU5YjBhMzZlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4ZjA5NGE0NmI2ZWY0NTI0ZTdmZjVhZGYzY2FmZTFiMWVjYjU1YWU3MDMyZWQwZTRlMGVmNmQ3NjgyZmEzMmMifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/decomposer.py#L71-L145",
+          "version": "repo-lines-v1:sha256:00e35f13b130c5f1727da0751bb144d238e0a9f20d0b8f8011ae836bbb6eb7e1:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzYzkzZWYzYTFkZDgyYTE5M2FmOTYwM2I5ODNjMzQzZjM0ZjAzODk3ZWQxNTg1ODZjOTI3MmIzNTlhOWUyZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2ZTViODE3OTBkZWQ2M2MzY2MyOWE4ZWI0N2M1MWVmYjdjODYxYzFlZmQzNDE0NTJkZjU3Yjk2MWJlOTUwOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjMTE2MGQzMGUwMGNhZGZmYzFhOGI3Nzg2YTcxZWEwZjc4NjY5MDlmOWYzNmUwMDg0MTQ0NTc2MzU1MDdjMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4NDY0N2ExYjg5MTUyNDFkZGFlMDQ2MjVkYmU2YTlmOTE1ZGJkZTNlNjY3N2Q5OTA3ZmFhNmYwMjY5ZjFiZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_74af37cd750740e69b1e94988035b5c1",
+      "statement": "Lead assignment selects tiers, models/providers, skills, and permitted execution modes; deterministic mode never calls a lead model, LLM mode always does, auto mode calls it only for non-standard or larger decompositions, and malformed or failed lead calls fall back to deterministic assignment.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/lead.py#L163-L215",
+          "version": "repo-lines-v1:sha256:b79efcef00cfa457cd837df2a4e8cc4a7d801f1826ba844e24571a5510329a44:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2MWM2ZDA5MDI2YzhmMTZjYWNlNzZlYjA2OWViODMyOTc3ZWYwMGFlZDJjM2VkZjJlNGZkNjI4ZGUyNzNlYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNWYxMjI0YzZkNDJlNjVhZWMzNmY2ZGNiMGIxNzZjYWQwYmNiNTQzZTVmMzcwMzM4ZDhmNjNmOTRkYTBlYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNTM5OGUxYTk5NTE2MTU1OTMwMDRjMGFjODQwN2MzMTU2OGNlYjRiODIxNzg1NmE1ZWE5ZDlkZTYzZWUwMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5YjZlOGQ3NzViNjJhMzkxZWM5ZjY2NWYxZGZiNjdmODMzMGI0MWJmNGYwZTIyMTJkMTFmZWE1MTU1MWZiOWQifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/lead.py#L218-L282",
+          "version": "repo-lines-v1:sha256:80b9fab143f0fadf275f57a49b3f32974e1ed7f074ad655575d95f7fdaa928ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMGQ4ODUxZmFmM2I4ODE2YTY3NDcyY2Q4MWJlYTdiZGNiNjA3YjcwYjc0NmM3NTkyYTc3YmQ3NzYxOGNkNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2ODg2NjJlZDhlMTNiMTFiNmQ2Y2UzNTlmN2U4MWU4NmFjMjZmMmQ3NjUzYmM4YzIzOGZjNWIwOGY2YTJjZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3YWE1YTk3ZTFiMTY5ODQwMDYzOTEyOGU2ZjhlMjk5NzZmYmU0MTc1ZjBlOTI0ZjQzN2ZlMmIwMzBkYTI1OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZjFiZTRlYzM0NzM2ZjA3NGM5MDM2Mjg1ZjNmMWMxMWZiNDRhNGMyZWRlZjExY2E3NTM3ZDNlZWE3ZjQ5NTUifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/lead.py#L44-L84",
+          "version": "repo-lines-v1:sha256:cd138f9abad0169c58b104ba3c81a859def7bab17c1011f5a1af11933f39c45f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzOTU0YmMxOWQ4ZmUyYzYyMzEyNTQ2NjRkNzVjOWFkN2M4NDg2NDEwNWI0Yzk1ZDQxZjg1MTg4YTE2ZGZlZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMjUxODc4OTYxZmNlNTEzYjU0MWUyM2FmODYzNDI3OWU4MDcyNGUyMWExN2UzNjljYWNiZjlhZDhjMWE4NjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzMzEwODIzNDkxNTQ4YjVmNWM2Yzc5MDA4YjkxNzJhMTkyODVkZTc5MDUwMTRlMDMwYmY2NDdiMTRhNjFiNDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9bf9df3b006b408db8ae2d5a6e84d988",
+      "statement": "Local execution uses dependency waves, concurrently runs independent chat assignments only within the configured worker limit, serially runs executor items, degrades cyclic dependency graphs to sequential waves, and stops the remaining chain without more gateway calls after a spend-limit response.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/multiagent_run.py#L124-L220",
+          "version": "repo-lines-v1:sha256:d22112c5a2d1fa36cd29e90ba7e6f8f52a3ac097d6f7a927620f7d2f86b002d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzMDBhNmJjOTFlNmQ4NjhlOTc0NGU0MmUxMTVkYWJhNzE4ZjQ4NzgwZWM3MzIxNDlhYjA0Yzk4ZjA1ZGViMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzYmNmNzM1ZjZlYjA2MTVhYjFhZGQ1YmIyNGE3NjRhZjQ4ZTY2ODNiMmE1MWEzMzNhYTM2MGMwOGRmOWM5NDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2Y2Q4MDk3OWUzY2M4ODc2YTkzYjkwMDZmNmJmOWE5MTU3MmI0OGFkMjFhMTU0ZTQxYzc3ZmFjNDViNGQyMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NzU0ZGNiNzQ5MzgyZjVjODkzMTYyOTBmNTY2ZDcxNWQwM2IzYThkODM5ZDkxMzEwNTk3ZjVmZTVmOGZlY2UifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/waves.py#L11-L32",
+          "version": "repo-lines-v1:sha256:01b8011a5857c8573341c80d25869aa19d7fcdceff31833635b648f7e55c8427:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhZTA5YThkZTQ0N2QwZDRkMDA1MWYzOTVkMjNmNTFjMmM3Njk2OTEwYWUxYzhhOWMxOWM2NDU3NTg5MjdmYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNzdhZjkyNDE1NTFlZDg0Y2QyYzE4NWM4YjkwYTI2ZDBlODQ3ZTNiY2ZkZjUyMzNmZWVkODg1N2U0M2Y4OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEwZTkxOGYxOGE1YmY1ZjBkZDQ2MTQ1ODgwYThkY2ZmYzg1MDJhNjIzZGEyMjYzODY5ODk5ODVhZTEwOTFlOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_12c62d82c6c74074ab6b227159113bd1",
+      "statement": "Hybrid execution requires enabled hybrid mode and normally a cwd; default executor roles are developer, bugfixer, tester, and devops, while executor promotion is denied for non-capable roles and testers remain chat for non-code-generation tasks.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_hybrid_a2a.py#L46-L82",
+          "version": "repo-lines-v1:sha256:d07de134d64aa98e8c5609d59b62b64d82ffef1c0f6abfd1cce66ea140dc2798:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZjdlNGRlYjljYTA3MjFhNTc4NGE4MmE5MTUxNjNmOTdhNjVhNzJlNzE0Y2U4NmIxNjAxYjU2NWE1MmQ0ZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzYmE0ODQ2YmQ2ZmNiNDM0MGMxNWIyYmE5MjBlMTg0YzJiZDFjYWFiZDQwZGQ3ODUxZGM0ZjM0ZGJkMzBhZWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmOGNmNmU2MjBjMDg2ZDAzMTIyYzIxNThkMTY2ODZkMmIzYzBkZGE3YjY1ZDdkMjc4YjVkNWFlOGE2MDMxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NjE5NzZhNTU0ZTA3YTMxOWY4NzAzNTM4NTc3ZTllNmMzOTRkMjYzMjM1NjQ2MmU0MjllZDY2MGIwNmJkMDMifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/hybrid.py#L15-L27",
+          "version": "repo-lines-v1:sha256:3f8f3a335d19bec40a3bde357549224565fe8f09bf03bbe056ec2bc8dbc06279:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYjgyNTFiMmNkNTQ1YzY1NDRlODM2YmUxMWJjNjMwYTgxMjA2YWM4OWEzZDk1ZGVlOWFjODUzN2I2MmZjMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1MjVhYjdjNjYwZTg0MGMyYTc4MTVlMzMwMGE2MTFkYzI1NjY0YjFkNjA5M2QzMDhiNzZhMWFjMGU4ZTZiYTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1MWVlNzUxZTE5OGViYTFkYTg2NmY4NzE1MTJlNjcyNWRmNWQxY2VjZDg5MmQyMDcwOWE2OTA1M2RhMjM5MTIifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/hybrid.py#L54-L65",
+          "version": "repo-lines-v1:sha256:f3124edf4621abf8099d1a01e20527de91f72dc9e74be836cb23d7844d494f50:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0YjNiNzJjNDc0NDE2MzBjYzcwYzYxZTdlZDM5YWMwNTJlYmM4ZWVhMGFlZWYyOTc2Mjg0MThkYzM1MGVjOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwZTJhNDY1MDA5NWZhOTVkMGUyYmI0MWIyZGIyOTA5NGQzNDA0ZDI4Y2UxMjMzOWVjODhiYjRiNWM1YmU4ZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiNjA4ZTA5NTlmZGQ5OTE2YjBkNjBjMjYxYzczMGYxZDBiMmVmMzUxOGZkZjQwM2Y4OTQ2ZjQ2ZmUzYWY5N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmNmU5OGM3NmUzMzRmMWMwMjVlY2M0MTA0ZmVkZmI5NTZiZjExZDU1OTI0Mjk2NDkxOTc0OTA2MjZhZTUwYjAifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/hybrid.py#L90-L129",
+          "version": "repo-lines-v1:sha256:025ea9c05787e82eb24d8438807fb0105cf18ac00796cfa91ef87803704d2980:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1YTI5MWQyMzFkNDQ3ZTYxZjYwNTg3MDA0OTFlYWI5MzczYTI4OTk5MDk0MjU1NGEzZmNhNzcyMzE1YTI0ZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxYzg0MDg1ODBlN2IzMWU5OTA1ZDhmZGY1NmFiNDY4ODlmOWY4NjQ1NTAyMTcwYzJkNTAxYWZlYTAxZDFmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzN2RmOTJiMDA2N2FhM2JjNjU1ZWM1MTcyYjNjMDJhZTI2NzE4YTg4OTI4NzE4YjMzZmQ4YmM4NWRhYWRkMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3YTVhNzc0M2Q1NDVmNjI5ZmIwOWNhMDNlOTkzZmM1MzBlNjkzYjE1YTA5Y2Y3ODc3ZDU5NDk4YWY5ZDU1YzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7341149169944453ba7965a26273beea",
+      "statement": "Hybrid `AgentRunner` work is locked per cwd across processes using `<cwd>/.voly/executor.lock`, while chat-only waves remain lock-free; stale locks can be removed when their owner PID is gone.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/cwd_lock.py#L15-L78",
+          "version": "repo-lines-v1:sha256:1b9a2c65111720b97d62b7d16df2449b839576107baaa4305090ddf64d63a445:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2MWYzM2MxMzI1NjlhNzQ5NDZiMmZjZjU0NmNhM2M0NDI1ZGEwY2E1Y2Y2YjY4NmMyNjA5MGZhYTlkMTEyYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMDg2OGQ4NjJlNTk2ZTFmYTBhMGE1ODc4YjA1MGVlYWZjNmUzNGQwZTE2MmJlMzhjNmFmM2IxY2JhY2U4ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhNDc5MWQ1ODNkMGM4NjVkZWQwYjg4YWQ1ODI0MGUyNWI5YzBkNmVmNjIxZDQ5MjlmMzU5ZjdmZDk3MjM0NTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/hybrid.py#L150-L211",
+          "version": "repo-lines-v1:sha256:d598f172fa668b23e8e8c3e15adf139752c8226a6dee4dc29a141384648aa9bb:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMjBhNWM2MTRlODllOGI4M2FiZjllZTU0MDU5Y2U0MTNkMzczM2ZmM2YyNGQwNTJkYjNmMTFmZTY2NGMyODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNGI1NzFmZmEyMTQ4ZGE5YzVmYWE4ZDNlNTQyMTJkMmE3ZGVmNWViYzgxZjZmYzQ5YjNiNmZlNzhlNjU5Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyYWJmNTVkY2MxNmY1NzA3OTZlYjg3ZWY2MjY5OTllZjU2N2RkMTE4MzhlNjlkYjc4ODU0MDY3MjFhOTdlNmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed5b828bfd914bfca315d7903aa6efc4",
+      "statement": "Non-local automatic dispatch sends subtasks in parallel, polls until a timeout, merges results, persists an A2A report, and reports aggregate success only when every dispatched task completed; otherwise its aggregate status is partial or failed.",
+      "evidence": [
+        {
+          "resource": "repo://voly/pipeline/stages_a2a.py#L115-L207",
+          "version": "repo-lines-v1:sha256:5fd3de8579c09b354f67902af69252d282b6a83e9d5120c740cb109b4b8f5adc:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNDQ4Yjk5MmI1OThiMTA0MGQ1NWNhYTZkNzcyZDgxMjNmODUzNDE1NDU1MDRiY2JhZjUyN2MwNGY5NTRmZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1MDYzYjZlNTczZTBiZWRkZDJmOTM2Yjg1ZWM2YTRlYjA4Y2M2NDMwNThmZjk0MWVmYzI2Mjk4OWI3YjYyMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MzM1OTc0YjczZmIwYjM2YjZmYjZhNzU1ZTM4NTA4MGFhMWRmNjljYTdiZTRkM2ZiMzRkYzg5ZmYxNjIxZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_865ba3e852454029b7eb383c94ad0f1a",
+      "statement": "The Cloudflare A2A worker persists task and agent-card records in D1, queues eligible submitted tasks, transitions submitted work to working before agent delivery, marks HTTP delivery failures failed, retries thrown queue-handler failures, and exposes idempotent completion for already completed tasks.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L134-L240",
+          "version": "repo-lines-v1:sha256:da22791b243d28bfa96b87f8d8c98ad49647ab66423409e50f3d1fc146ac9904:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5OTM3N2ZjODQ5NzA2MGZmMDMxNWU0MGI4YzY2YjAzYjQzNzg1ZTlkMjE3N2IyMWQyZDdjYTEyNmJhYmNlZmRmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwMjFkNjA3N2Q0OGMwZGUwMDZmNGYzYWRjMDVkOWUwZDM3NmE4ODI1ZDA2MTBlZmFjNTU2ZDgyOTkxYTU5NWI5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjMzU2OTc0YjAwNjMyMDg4Nzg0NmY3OWNkNWNjNGZkYzhkZDJiYzMzNGUzODVjM2Q0ZTliNGQzZmUxNmRjMmEyIn0"
+        },
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L279-L328",
+          "version": "repo-lines-v1:sha256:23407794f60154f95d1315ad3db0b37e82f501a60c790d1a75fb3560d7216c96:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYzAzOWViODhlYTZhNTU1ZjMxMGJiNjY1MmQwYWQwZDkyY2M0OGFiYjg2MzU5OTNmNjg4YTNkMzkzNWEyNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwODcwMGQ1NjE3MjZhNmU1MWZlZmVmMzMwMjRjNjlmODNkMjBjYTE4NzNkNmIyMWRlMGEyMjk2ZTRjZDRmNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5Y2NkOWYyZjZjMzZmM2U4ZGE2MjEwYmNkNWNhZGIzMmM1YmU3MzIyOTE3MGZhOTM3OTdkNWZlMTVkZjI2NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiYTUwMzI2ZTNjMzQ5ZWU1MGFmNjMyMDhhNjY4ODI5ZjZkZDEyYjAwMjU5MDk0NjhiYTUyOGE0N2Q2M2ZlZWUifQ"
+        },
+        {
+          "resource": "repo://cf-workers/a2a/src/index.ts#L350-L421",
+          "version": "repo-lines-v1:sha256:bb0bb179d05a728b7f19145360b1ec859f8b1eda503d78b72e3b8d7a57081bcf:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZjA4NzQ3MDQyN2ZiNzk4Y2UxZWIxYTg4MTVjMGE3ZjhkMjNjOTRiMDFlYTgxMmY5NzMwYTA2M2Q4N2M2YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWNkMmZiNGYzZGY4ODQ1MTUyNTViMzk1MjNmMmY4YjU0NzJiZWVhOWY1NjZmZmNhMjA0ZGI4MDI1NjEwNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhODBiMGFkNjI1NjEzYzdjZDNjMGI5ODZhNWYwZjYyNzczZDYyMWJkZTA0ZWQ2NWFkZTEyZDczNjIxNDcyNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64e8f724b51a49f4ae8a7b78a626f7cc",
+      "statement": "A local multi-agent episode is a versioned orchestration record with role traces and linked artifacts/decisions/metrics, persisted atomically as `<cwd>/.voly/episodes/<task_id>.json`; it is distinct from executor EvidenceRecord and EvalReport contracts.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/episode.py#L1-L6",
+          "version": "repo-lines-v1:sha256:4eb160a4a6f22dfa11b7aa797d98327d5ef81730d081f1147c2691d6f6ca5496:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmM0YmYzYzE2YmE3OTE2NDExNzIwMzdiOTgzNmJjYTdkMWVhYzdjNDAwYjY2NmY1YWJhOGQ5MjY1MzBiYzliMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
+        },
+        {
+          "resource": "repo://voly/a2a/episode.py#L131-L186",
+          "version": "repo-lines-v1:sha256:65fb25c4e2ac782e2c39bef6380dfa36795028cbd25386883276c87594b365b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0ZTVlM2E3ODE3OGJlY2U0NzkzMGE1NzgxNjM3ZWNjNjhlYjc2MzZiZjNhMGVhNDVjYTRjNzBlNTI3YTIwMTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1ZDI4M2U0NzRlMjcyNTc3YzM1NGY0N2IwMWFjNTVmNTNiOGM2YTIwZjBjMTIyMTllYjQzYmVlZGRlYmMxMDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2ZmM2NjFlOTdkYmRkNWQ2YzY3NzY5OWEzMzRjZTFhOWRmNmFmYjExMDU0MjBlMzAxNjJiMzg5OWJhOTI1ZDIifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/episode.py#L189-L284",
+          "version": "repo-lines-v1:sha256:c1b3c189160514488b1b3cb117aa776744a6f742f8cbffe0d252277f04d00dc8:eyJzZWxlY3RlZExpbmVDb3VudCI6OTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhZTY3NTVlOTM3MjkyNTNhNTMxOGE1ZjNiOWIyNTJkMGRhNDA2NDM0NTViODMyYzAwYjcwZTFjYmQzOGVmZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YTQ4ZTk5MTE5ZGJkNjQ4ODcxYzE5MjA2NjMyZTJjYjhjN2MxMGQ1ODhkMzRiNGRiNGNlNDgzNzZjMDFhY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3NTUyYTYwM2RkNTQ2MGQwYmYzODE0OGNmNTE4MzQxMmIzZjM3OWJiZjgxNTk1NmMzN2QwZjBjMWIwNDk5MWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_a2a.py#L386-L460",
+          "version": "repo-lines-v1:sha256:8b5b4ddf0a7ed5b1d60a157ccb1c3da7d05fd777a21dce0261eae631898c0be1:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmOWFkNzBlN2NjNzEzYTM5MGE0ODU4M2UzYjA4YjE2Yjk5NTdiYWM3NTU4OTcxNDdmY2VkMzFmODk3N2E5MzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmYTI2ZWQ2NmQ0NjdkYTVkNjg1NGI2ZWJiZmFmMTQ0ZDg5MTM5ZmY1NTM1YTViMmIwOGE5MzMxNWM0NWNkMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzMzBhNGNkMzI0YmRjNjAwZmE1NDlmOTZmZDdjMDMwYWI5N2FhNzA2Mzk0YmE1OGUzYzI2YWJjYTBkMzE2OGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_223837b9b8bd4b10843bf4ca14adc6ec",
+      "statement": "When enabled in shadow or required mode for a local cwd, the agentic judge receives episode context and parent traces, is limited to a path-confined read-only inspection surface, and required mode fails the aggregate outcome unless the judge completes with a pass verdict.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/agentic_judge.py#L26-L95",
+          "version": "repo-lines-v1:sha256:ad64ff4ab1e66e398cb25da1b71b97693f72dc2e66f57c3461120a237904d4df:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YTg3MzllMzRmNzk1ZWYxOWQwYjI0NTU1YzVkMWE5MGVjZGJiMGI3ODk1NjgzMjkwOTkxYjg2MmEwYzY1YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwMjk3NmRkOTUxMTkwOWI3MDA5MTMxZmRjYTQ2N2Y1MjUzZmJhNzc2ZjI2MWI0ZmQ2NjZlZTYxYWQwMzE5NDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZTIyZGI4MDZiMzgxNDVkNjNhMGIxZWM0NDcxNDIzYjMyNGYyNDEyYjk2OWY3MTkxNmZmMzAwYjlhZDhhYzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3Mjc0Yjg0NDk1NmY3ZGFkZTYzYWFhYTI4OTBjNTE3NWYyYzMyYzYxMmQ0NTkwODNkZWJmOTE0ZDFhMDlkYzUifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_a2a.py#L396-L469",
+          "version": "repo-lines-v1:sha256:efffbbc0884290a926f36701aecf2571edd8b076d6b4d3183368c0e1648588e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5NDQwZTlkZTRkZDEyMGYwMzVlNmY4MjkzYzQ0M2JhNDI4YTlmNjExYjI0ODc5MWQ4OGQzMjRkM2E0NTI5ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTI0ZmNjYWJjNDE3ZTIzMTdjY2M4NjFmNmU5NGE5OTc5ZWU3ZWU0YTg5YjgzZDJkMDQ2ZGFhNTBhZDc2OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyZTNlNzA4MDdjMjM3MTg4MTM5NGVlMThkYmMzNzZiYmU0NTJiNGI0NDdmMDYwZmM1OGIyNjFmODNlZDIzN2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxOTI4YWViMDA3YTEyZDlhYjhlOWNhYjQxODc3Yjc0OWM3N2NhMmMwOWI5OGU4ZTIyY2U0NGY1ZWFhMzg3Y2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b85cae63d1a4c77bee26d3ce28425f6",
+      "statement": "The agentic judge has a bounded interaction loop, disables provider rerouting, and accepts only JSON containing a verdict plus all five constrained role metrics; invalid output produces a failed trace.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_agentic_judge.py#L24-L71",
+          "version": "repo-lines-v1:sha256:8ceb95e4e7e3263d4a0e7af8d16d3ce5fc4a63ef33eba22a287b19abcdf1a084:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4ZTQzZDQ0MGYyZGI1NjhhZjQ2YTRmN2M0ZGE4OWIyZGRkM2IzZjcxYzAzNTQ1ZWFmNTU5OWY2ZGUxMzliNmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/agentic_judge.py#L134-L229",
+          "version": "repo-lines-v1:sha256:94f7f864d788a21d67a3987557d1766014ff2987df24cd7dc3d6430923b6911d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNGFkOTQ1YjFlNzZlMjY1Y2I4Zjc5NjliOTM2OWI0ZDI1NDZiMmJhNjg1NjFmMjk5MGRiZWNjNzUzNjc0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMjdmOWM4OTliMjU3N2VmZTY3MGYyY2M0N2Y4NjQyOTJlYjBmMjYyMTc4YmExZTZkZDI5NDYzOTJkMmZlMDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzZDE3MWRlNzU0MzFhMDIxYTBkOTRmYTc2ZmFiZjBkNzEzOWM4OThjMWEwYjQ0YjQzY2E2MDkwM2ZhMWI4NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3OGFiZDc0M2FmOTJjYzQzNzU1ODY0YjBmYWNhZDM3ZTEyMWUwYzY2N2FhNjgyNDAzNTBhMmQ2ODQ3NDdkNzEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-26T12:39:44.580Z"
+  }
+}

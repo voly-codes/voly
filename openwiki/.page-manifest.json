@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/architecture/overview.md": {
+      "pageVersion": "sha256:633724b518c45f5e9822aebd7fc1475c9ac80ef168725dbb95ab6e8eebc600cf",
+      "completedBy": "openwiki/0.6.0",
+      "completedRunId": "30d40807-7b04-48cd-b0b8-4ba56e5ccff2",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/governance/capabilities.md": {
+      "pageVersion": "sha256:154aa1192a5a9d0a6b81e1fae20cb1b54933db4076c53d7908cdfad01a1e450c",
+      "completedBy": "openwiki/0.6.0",
+      "completedRunId": "30d40807-7b04-48cd-b0b8-4ba56e5ccff2",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/operations/entrypoints-and-safety.md": {
+      "pageVersion": "sha256:274cadd0ebe25d67fe93f7b3e95d50e953c6257fcf20c25fe45eee4c7a094844",
+      "completedBy": "openwiki/0.6.0",
+      "completedRunId": "30d40807-7b04-48cd-b0b8-4ba56e5ccff2",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/orchestration/a2a-and-pipeline.md": {
+      "pageVersion": "sha256:b8c54badb81e9a4a006485764460ef351d9b5cce4d6ca94e0b10ee8d726e9f7a",
+      "completedBy": "openwiki/0.6.0",
+      "completedRunId": "30d40807-7b04-48cd-b0b8-4ba56e5ccff2",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/quickstart.md": {
+      "pageVersion": "sha256:2bb555dcfb4aac7364baedfb96ab23a9e31d06b2ea3b6bd7cf245a89a66ffe38",
+      "completedBy": "openwiki/0.6.0",
+      "completedRunId": "30d40807-7b04-48cd-b0b8-4ba56e5ccff2",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/workflows/sdk-and-plan-execution.md": {
+      "pageVersion": "sha256:df4181ad0f2326819d987b561f49406e3fba6e4c46665a4fc09902a9317f9915",
+      "completedBy": "openwiki/0.6.0",
+      "completedRunId": "30d40807-7b04-48cd-b0b8-4ba56e5ccff2",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    }
+  }
+}
