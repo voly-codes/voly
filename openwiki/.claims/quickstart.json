@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1a781c8621c2a7fa8ce6a8620f65f9f219b533e43289ac46b5e57faad33c6bf3",
+  "claims": [
+    {
+      "id": "claim_7d03f93901554a87a09e1ed1ee708149",
+      "statement": "VOLY separates governed inference/orchestration through Pipeline from file-capable execution through AgentRunner; file work requires an explicit target-project cwd and retains separate safety and fallback semantics.",
+      "evidence": [
+        {
+          "resource": "repo://voly/pipeline/core.py",
+          "version": "repo-file-v1:sha256:40a61b9f02ca6bfd0dbd75341d8ee65fa12ad9ace5689a272e0cc361b22f0fa0"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L74-L101",
+          "version": "repo-lines-v1:sha256:eb589e5c4f34770156f4d5341b5494e33c6f965a1888a3239143a602b939ecad:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZWE3YjkyMWY2MzZlYTZiZDdhMjM1NTE2ZjBhNDUyM2RiZTU4MTRkOTIzN2Y2NDU0ZjY3ZWM5MjYxYjBmYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmMzY2N2YwYjZkYTk2YjhmNWQ0OGM0OGQ5ODY3MzE2Zjg0YzM0NzAxNDZmOGM3ZTUxOGJlMTA4Zjk4OGU0NTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxOWE5NWQ4YmRmNzg5YTM3NzFjNWFiYWMxNWYyMTA0MGVmM2JiYWY1OWIzODZmOTM4MDA4ZTUwOWRkMGI2MzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZWViYTQwNmZiYTZkMzhmYTc3ZTJjN2M3Njg4Y2ViMTdiNGU3MDFhNTQ1MjI4ZmNjM2YyNjk5YTdkNWJmNTAifQ"
+        },
+        {
+          "resource": "repo://voly/runner/executor_factory.py",
+          "version": "repo-file-v1:sha256:a8b7ba88a4ccf57eaeda1f41b4e196b953dd6a1b83785447e775a63430dfdffc"
+        }
+      ]
+    },
+    {
+      "id": "claim_76d7127fc11c423b9868d596e501ccc7",
+      "statement": "The installed `voly` command is a Click command group, while the public Python package exports the control-plane configuration/pipeline/router and Agent/Workflow SDK facade.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L81-L82",
+          "version": "repo-lines-v1:sha256:d6b3403e807f0001aa73528e1b8d5738d10a8e15b40af2347287de587f68ddf1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVhYjRlYzYzZGU1MTdkYTRjZDhlNWM4MzA3ZmIyYzc3MzdkMzkxOTBhYjY5ZjMyYTVlOWVmODFlYTQ0MTZkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTY3NzBiMzZkOGNlNGZjZDNmY2ViZjVjYjMxMzBjNzkzOTk3MzUxNGM0ZGQ1M2Y0YjdhNTY2ZjAwODE4YjdlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzllZDAwNWVmNzhkOTlkYzQ0ZTE1ZThkZjhhZmVhMTYxYzBhMWUyNTk5OWYyOGY0ZDY1ZGZiYzAzZTkyZDJmNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjllODk5ZjBiZjI1MWFjZmY4NjQ0MzgwYmM5YjEzNTQ5MDkwYjUxMmYxMzM0YzMwYzRlZThmM2IyYmJkZDQ5MCJ9"
+        },
+        {
+          "resource": "repo://voly/__init__.py#L35-L60",
+          "version": "repo-lines-v1:sha256:c7ef8927649915b59ae3f7dbf241dd746002ce61304c4d49b2e19da28f0d0338:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhOWY0YjUwMzJiODljMGE4YmFlNDUxMzZmMDBjYjliNmIyZDg0MzBiZDY2YjA1ZWE5MzYwYjhlNWMxMjJhN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OWFjMjgwMTczNmRiMWJiZjVhYjk0ZDQxYjAzZjhmZjk2NWJiN2NiNzA1ZTY3NmNjOThkMzM5OTA5ZjA2OTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4NTdmOTE2MjY4NTY4MzlhYjFhYjcwOTZhMGM4YWVjOTJhZWFkYTRkZjIzNDBhNzQ1YTg0MDlkNzJkMmU3N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAifQ"
+        },
+        {
+          "resource": "repo://voly/cli/main.py#L67-L87",
+          "version": "repo-lines-v1:sha256:df112ab2919012eec92babfae9a324375b54628256ce1ba782b4f6f5812f2aa1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MTA2MDg5N2ExMjQ4N2YzNjFiMjlmZGJiZmUyYThjNWIwZTZjNTM1ODIyYThiZTBjNThmNjVhMzhlZDliY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZDI0YWYzZGIyYmYwNGU1NTMyNGE5ZjFiM2Y4OWJjMWU0YzBmMDM0NTFlZWQ4MTBiNTYwMmU2MmMxMDVjZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMDc2MWQ0MzBiMTY1ZjA5ODc2MjNmMTgzNWIwOGM4Y2U1MzM2ODJmY2NlMmZkMjMwZjU0YThiY2U1YzA4M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZWE4MWYyODM1YTI4MjBmMGViMjk5NTgwOWI2ODI3Y2JjODgzZGI1MTE5YjFkYjFjMzMyOWRmZTgzZDM4NzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cb9a76200688485aaf550e2c5ad7f2a0",
+      "statement": "Evaluated capability packs are a layer over ordinary executor matching and have distinct pilot, active, and retired states, so capability routing and evaluated-pack lifecycle must be treated as separate change boundaries.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/evaluated_packs.py#L14-L20",
+          "version": "repo-lines-v1:sha256:af78787866329d0a12d7bd55852c344023348f0432c30e0347cf6f36a67acb5e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZlNWJkYzgxYWJkMWNkZDUxZTM5ZWExMDNkZWQ4MzAzZTMxZWIxY2JjZjg5YmVjZTA4MGQyNDYzM2JiZWRiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZmMTIyYzhmOTU1ZDEzZTU4OWYzZjYzYWYxY2ZmNGY0NjE2YjIzNzMzM2Y5M2M4MGE5ZGY1MDhiZDE0OTc3ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmM2NWQ5ZGQ3OTQyOTk0MjY0N2QxYzYwMWQ3MzA5OWRlMDc3MjZhMjM5M2VhYzc2NzE1MGJjNGVhNDFlNGIwZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjZTNmMjRhYjQ3YzJmNWE5ZDMzN2YzNzdlZDg1NzNmYTU2NTg0MDc2NDAyZjFhZjA1NGEzZGVkNjE5NDYyZiJ9"
+        },
+        {
+          "resource": "repo://voly/capability/matcher.py",
+          "version": "repo-file-v1:sha256:16870166b9728a9b1764ce67c95de114772ff7041a60670ad05e91229ae70bdf"
+        },
+        {
+          "resource": "repo://voly/capability/routing.py",
+          "version": "repo-file-v1:sha256:f8685f4d32ff97ddbf2476fc3d0cd59f73f03526cb9a67c1126be0ae2c558654"
+        }
+      ]
+    },
+    {
+      "id": "claim_b900d421944e43f390a2bb39197b7742",
+      "statement": "SDK Workflow is a declaration layer that compiles nodes to the shared Plan runtime; PlanRunner and PlanStore own execution and persistence rather than the SDK maintaining a second scheduler.",
+      "evidence": [
+        {
+          "resource": "repo://voly/plan/runner.py",
+          "version": "repo-file-v1:sha256:8e5bab37ecc706ce9a8ea305416090f501ed1113283201bbd9e51a4585675739"
+        },
+        {
+          "resource": "repo://voly/plan/store.py",
+          "version": "repo-file-v1:sha256:2793ce912b00f36d58cc18135c3bd740b5f0b191bf59b22ce692627a05ec04e0"
+        },
+        {
+          "resource": "repo://voly/sdk/workflow.py#L1-L8",
+          "version": "repo-lines-v1:sha256:d527c169e4807ac0413631a896466bf7e80591d2c8993cba710adf3a9a0b4fca:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2QyNmRjMzk0YzAwYTA0Njg0ZWRmZDNlN2UzMGJmY2Q1MmZlMmMwMjAxOGFlMjk0MzQyZGM2Yjk1ZTQ4N2ZjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZlZGIxZDI0ZTA1MTNlMGJhMDY4OTBmZWM3ZWNhZmJlY2E4ODEzMDNlMzhhYWNlMjY0NDMzNzhkMzc5OWIyMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFhZjc2MzdjYjZlN2U1ZGI4NWQ2MzQyNzQ2MDE0ZGYwNDFjY2Q1NThhOTIwYjI5ZWI2YWM3MTlkN2JhZjVjMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ed1743b4f6a479c9b38910efb9ea280",
+      "statement": "VOLY's remote integrations are optional boundaries: configuration can select federation, capability sync, memory, spend, telemetry, and AI Gateway/BYOK services without replacing the local runtime's authority.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/federation.py",
+          "version": "repo-file-v1:sha256:d63fc7d6d5b9efe438f4ead260613be263bbfbc6d56eba632e6d5f821d115ed4"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py",
+          "version": "repo-file-v1:sha256:23e11bb7f27f551a73772c9612d61606399b5e857eee6281c1c31e6014f93546"
+        },
+        {
+          "resource": "repo://voly/capability/remote_sync.py",
+          "version": "repo-file-v1:sha256:a58ba753d9d965406c7a0852448143d6ece02ebf2610e778b35d7876c6fff166"
+        },
+        {
+          "resource": "repo://voly/memory/store.py",
+          "version": "repo-file-v1:sha256:d4b5f632ef47596d150a9f8e749121afe1327a75346a60bd44593ef37541c39e"
+        }
+      ]
+    },
+    {
+      "id": "claim_a82732557f084bbfb66f8cc96abb6cb0",
+      "statement": "The routing guide directs changes to focused subsystem pages and corresponding regression tests, while treating source code and tests as authoritative verification rather than wiki prose.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L23-L32",
+          "version": "repo-lines-v1:sha256:45569094b674c0e87f0bbccddf34bef5399304df484372cdf49db04320d90d26:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ODM2ZWQ3ZTAwNTM3NzVhMGE5NjZjZTg2MTM0YjIzNDdkODUxYTdiMDJmNDgxMmJlYjJjNTlkMWM2OGQ1MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYjMwNWRjYjE0ZGNiNDE1M2UxYTNmMjU5NDY1Y2VhZGFkYzliMDQ0YTc5M2RhNDI3ZDJjNDNkM2EwOWQ0OTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImViMWJjNWJjNGEyMzdmNTc4ZTZhZjRhNDE1ZDA2NDdmOTkxMGIwM2IzNjRlMWUyN2MxZjFkYmFhNzQzZDAzYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1NTI0OGI2MmY1NTJmNmNiNmY3MTEwOWM4M2NhNDlmZTk1NTJlOTY2MmEwYWZjY2U3YzY2OWEyYmJhMGVjMGEifQ"
+        },
+        {
+          "resource": "repo://tests/test_a2a_p0.py",
+          "version": "repo-file-v1:sha256:fe1df32210339c8baba5377212f2ba61102cc42bcd9ec1ea8a653b9362dedfc5"
+        },
+        {
+          "resource": "repo://tests/test_executor_safety.py",
+          "version": "repo-file-v1:sha256:b565e87cad02cebe4fa3c8d97698d8e775f66d4d976893a72eda985564b2f402"
+        },
+        {
+          "resource": "repo://tests/test_sdk_workflow.py",
+          "version": "repo-file-v1:sha256:5feb3c8b28132af52843096c3ec46dfc4c098d5ce48dbdc2c96e717c3d7a0a75"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:26:27.558Z"
+  }
+}

@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ecbdf9412af8a3f29f9920e06b5cdb27f719ef753830b5a16882a05d4cf9a58c",
+  "claims": [
+    {
+      "id": "claim_f3fdc5870eee45f28c1874c9d4a644e0",
+      "statement": "Ordinary capability routing is optional and best-effort: `capability_route` returns no hint when disabled, no role/profile is available, or matcher/registry processing fails, so callers retain static resolution.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/routing.py#L16-L20",
+          "version": "repo-lines-v1:sha256:6c780a14eded6ac2d503442275ad1c6c5c82df06e088afd84c5e24b253ba25e1:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTFhY2NjNzk5MTY1OWRkMWE3OWFhYjgwZmY3YTkwZjZjNTA4MWViOTc4ODk2NmQ1NGExOGNhZjhlN2NkMjgwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJlNGJkOTliNDA2ZDUzYWY0Y2U5NzA3NGIwMzZjMjQ1MmI1OGNhMTQ4MzIyNDI3MmZlYjQ3OGY5Njk3ZDRmNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTIyYTYyMDgzMTBmMmZkN2YzZjA5MDA0Y2QzOWQwODhhYWNmOGU4YjljNTE1ZDAxYjMwMGQzODU0YjhmY2IzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFhZjc2MzdjYjZlN2U1ZGI4NWQ2MzQyNzQ2MDE0ZGYwNDFjY2Q1NThhOTIwYjI5ZWI2YWM3MTlkN2JhZjVjMiJ9"
+        },
+        {
+          "resource": "repo://voly/capability/routing.py#L37-L49",
+          "version": "repo-lines-v1:sha256:a5a4f10adf867a09e0d199cb165bf4ae3e62b8c9a65c175ca69f6be02b51650f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZDQ4YzgyZjE0MjdmY2NiNmEwZjE1MTEwNzdjNWJjYmQzZDg1ZjUyMzE4Njk3M2U5YzI2NWQyZmRmNGI4ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhYTg3ODJiY2NjYjRkYjc0ODZkMmFiYjc0ODg5OTU5MDRhZDg2NWI0YjUyYjgxNTRlYWZhMmNjNGYyOWZiYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzMmEzYjU2MTM0NmM2ZGRlNWFmZThkOWY5MTZmNTg3NzA2NWVmYzhkOTlhY2ZkYzhkMDhmZGI2ZjkwOTAwYTEifQ"
+        },
+        {
+          "resource": "repo://voly/capability/routing.py#L74-L84",
+          "version": "repo-lines-v1:sha256:0d45c70ed8d8ab1ae675354abfa6e34e90c60232edb9f69000d6b57f763251a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExNjY4NTI1YmJkZjM4YWZjYmM1ZmM5ZWQzMzY0ZTRiZGQzMWQ3YWMwOWU5MTdjN2Y2MWUyMTZlZWFkY2E3ZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMWQ1N2Y4OGM3N2E3NmY0YjMyNWE3NWY4ZWNkOWRiZmM5NTNhYTdiMWUzNDE1NzliZjJkM2I0OWI4MjIyNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_653dc0be249e408ebffbb484a9cc7789",
+      "statement": "For balanced policy, `ExecutorMatcher` may use the capability Worker `/match`, but any remote failure falls back to local ranking; non-balanced policies use local scoring, which hard-excludes incompatible tool requirements and returns a degraded no-recommendation result when no candidate remains.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/matcher.py#L143-L191",
+          "version": "repo-lines-v1:sha256:6a97076924ceeb5462f1edde80596c3341b1b6b9104c8bfbb8ab4242b780c48d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MDBlNWFkNzEzYTAxNzlmZmNhMzBhMmU1MjQzYzk3ZWM1MDcyNjcyNzY4MTUyOTM3OTc1NTU3YjVkNDc4ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNjYxZjYzYzMwM2QwM2QzMjY3ZjVjMzFiZmRiNzBkMTJlMGMwNjM0YWE0MzgxMTU2NTE5NjkwYzUyMGIzM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxM2Q4ZjljM2JmZjUzNTlkMGI3NWMwMzc0ZjQ1ZmUzYmI3Y2ViYWVjMWM2YzY1OWE1NzQ4MzkwNjA0ZmJiM2IifQ"
+        },
+        {
+          "resource": "repo://voly/capability/matcher.py#L33-L51",
+          "version": "repo-lines-v1:sha256:7747191547b144e8dcd5c23abd72a1375717028700d76ad3fc887f5b88761093:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4NjNlM2NjNzQ3MWE0MjQ2Mjc2ZmQ1OTY4OTJlNTY0MzIyY2M2N2U2YWY5Y2I3MDRjYWViNzJkNDk2MzgxOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZmQyM2ExY2I5NDczMmVlM2MxYjRhOWY2YTg3YzMxY2QwNTk1ZDdlM2Q1ZmI2ZDQxNzdmZDU3Y2QzYTBjODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwYjg2MDdkNmQ5MWYxMjI2ZDI3NTg1NzRmMDJkYjUzMWY4MjFlODVlOTdmOGI1MzI5MWM4OTU4ZmZhNzQ5N2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIwN2ExMjMyYjAwN2VhOGI5MDcyZjdhMThmYzMzNGZiMjU3ZmZiMTQxNDFjZjhmM2MwNGE5NDBlNzFlYjZkMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9de7eb917f864a5d8ec3d4c85696f944",
+      "statement": "ECC discovery is read-only and dry-run: it inventories supported layouts and provenance without importing modules, executing hooks, starting MCP servers, or copying files; the CLI rejects imports that omit `--dry-run`.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/packs.py#L1-L5",
+          "version": "repo-lines-v1:sha256:1cd96691c5c8a5e8139dc5fefe9dddd0874794e13841341d0d1189852c5d9494:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmU5MmM3Njg3ZTc0ZTdkMzdiN2JiYTJiMTlhOGIyZDlkN2E5ODZjMTQ3NDBlNDVlMmNmNTM1ZTM4Yzk0Zjc2NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
+        },
+        {
+          "resource": "repo://voly/capability/packs.py#L66-L112",
+          "version": "repo-lines-v1:sha256:1ef3026961418b8aedae2ab53f1b2f3821db3a97ba89722798730a457c827879:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNzc3MjdhN2JiODM1YWRiOTE1NjlmZTJjYmU1YTM2NDYxMWMwODg5MDFjNWM2YTU1ZmYyMGIwM2RhYWM3ODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5YWJhMDA3ZTU2MTIwMzVmNDFlMDdjYTJhYTUzNDAxMTc3MGVjYzhiY2I0MTQzZThhN2IxYjEyNDhjZWVlY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwYTY1NmE4MGVkM2VjMzg1YmRlNmYwYzI0OTAwMmJiMWRmMzQzYmM2MzJkMTZlZDhlZDFhNGVlN2FiMDkzODYifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/capability_cmd.py#L142-L177",
+          "version": "repo-lines-v1:sha256:0c66d8fbd3a27b0445a17841217817ba41b4351ab2d6531f4df8372aaea53c07:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZDJlZDM2NDI5MDgzMjNlODY3Y2I3MDc3MDI5Y2ZkM2E2MGIxZmI5Mjc0MGNmYTE3YmJhZWZjODExMDE5YWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZmNmZDNiZmRlOWYzYjdlMzcyNTllZGQyMzIzNzYxM2M1NWQ3OTE2Y2I5OTA5NjEyMTdkMTViY2QzMDY3YjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyZTA0ZTdkNTA1M2JiZTg5ODAxNDkzZWQ2N2JmYjc4NWZhZWNkMjczOTBmNjFkN2VlMmZkMDFlZGViMmRiMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1OWIxNTk2NzU4ZTdmNTkyNzAxNDJiZTBmM2UyODFjZjQ5NDA3YWNmNzQyYTFlOTA0ZGViNmRjYTk2ZWNhNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2139fe4046d44078b73bd59a0f13d85e",
+      "statement": "External-pack admission scans bounded components without execution, rejects source-path escapes, validates MCP JSON shape, records findings and inferred permissions, and quarantines packs whose highest finding severity is high or critical.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/pack_admission.py#L107-L146",
+          "version": "repo-lines-v1:sha256:e3e0742ee30db9bc973ce824690e4d1d43b6dd8b9e3881025e3f81409814660d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmOWE0ZWI4MjVmNjA2NTM1NjQ4YjQ4OGI4ZThhOWVkZTU4NzZmNjlkZTU1NGE3OWE1Mzg5NWM3NjMxNjUwZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1Yzg2ZWY3NzhjMTBmYTE5YmYyYTM5NmM1MjE0ZDgwOWQxYjhjMzVlMGU5ZGJjYzE4NjMzNmQwNjNiMmFlM2YifQ"
+        },
+        {
+          "resource": "repo://voly/capability/pack_admission.py#L13-L16",
+          "version": "repo-lines-v1:sha256:36d7123664524c6f92548d69038bb96595417987bbd56c1733566eb191379cd0:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RlNzFlYTNlZTQwNTUyNDNmYjdlNGRlMmE5MWQ3ZDllNDc1ZTcwMTMxZDBlMmY1ODBjMWQ1ZDM3ODExM2E1MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDUzYmYwNzZiMGFjMzE1YTU2ZjU0YTczMmMyOTk2YzJjZDc3MzgyODMwYjU5OTViMmNlNzJkNWJlMjkzMDNkYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmViOTNiMzA2ZWEzZGI1ZTljNjIyMTExYjczMmY5N2UzYzc0MjBkY2U5YzkyYWY2OGU0NWM4MzYxMTc3OWRlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjZTNmMjRhYjQ3YzJmNWE5ZDMzN2YzNzdlZDg1NzNmYTU2NTg0MDc2NDAyZjFhZjA1NGEzZGVkNjE5NDYyZiJ9"
+        },
+        {
+          "resource": "repo://voly/capability/pack_admission.py#L177-L227",
+          "version": "repo-lines-v1:sha256:8befddb7850568738ff756e630c17c50ec4d1924b00ce8e5b79ad02ab6360807:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhYmUzZWFmODZmOTc5NGVlYTkzZjAzMDAxNWFkMjY2YjVhNDliNmNjMTZiMTY5ZWNkNmMxYjlkYjk4OWFkODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhYzI1ZWYzYTAyODAzYjE3Y2M0M2E4ZWVmMmJjYmQ5MmY5ZDRmZmIxYWNlMDhkMmM5NDgzNDNmOTRjMmI3N2UifQ"
+        },
+        {
+          "resource": "repo://voly/capability/pack_admission.py#L62-L104",
+          "version": "repo-lines-v1:sha256:f459409672b68acc1058a3658aa5e39c542c174e3821b0e9c20d4056a4285f34:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmYTBkMmU5Mzk2YTVlMGY4NjEyMzA0MDQwYzhkY2MyYzI2NTViNWEyOTdmNWIzOThjODhjM2Y2NzI4OWY3OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5YWJhMDA3ZTU2MTIwMzVmNDFlMDdjYTJhYTUzNDAxMTc3MGVjYzhiY2I0MTQzZThhN2IxYjEyNDhjZWVlY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjQxYmMxZTFhNGVjZDc2YzczZmNlZTk3ODhmOGJmYjRlZWE3YmJmNDVmNGM0Yzk1ZDE4YTM5NjdiZjQwYzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_69e41cb25feb4613aff9227b148f488f",
+      "statement": "Pack installation atomically stages only non-quarantined manifest components and writes a manifest checksum; verification detects checksum failures, missing or modified components, unexpected files, and path escapes.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/pack_manifest.py#L82-L122",
+          "version": "repo-lines-v1:sha256:b2902a527e1ed3b2430e7fffb675b8c553fe3a3be48dc74915391fb1f18fca16:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWE5MmY1YjNhNGZhOWNkN2RiZTZkOTc0YTljNjliYzQ4NDIyMDlhNzgzZTYxYjM3MjYwZmYwMmIzYTUyZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhOTZhOGIwN2RmODhkYThmNWYwZDk1YWVkMjNkNmE5NDkxYjcxMTZhZDQyMzM4MDdiZGE4MWMzNzJmZTllZWUifQ"
+        },
+        {
+          "resource": "repo://voly/capability/pack_store.py#L43-L68",
+          "version": "repo-lines-v1:sha256:f46e0c0989dae7f5287dafc285610bfbc59866fb871b50256fbf69397dd85dc1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNTZlNDA4OWZjNmM4NzQzOTM4YmJjYTkyZDcxNzMzZDRiYWM2NGU0ZDdkYmQwZmMxYzlhZGVkMjU5NGRhNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMDhjNDU4ZmI4MmY4ODBkYzk3MzQwZmY2ZmYzMjQ0M2M3Y2ZlNmFhNzY0Yjc4Njc3YWYxODEwMzE5NzU1NWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ZDRiMTM5Y2QyOTQ1OGE0ZWQ4NTUwMTNkYjhhMzg3NzM3NThiNDBhMzlkYTkwZTczNTYyMmYzNjg1Y2IyYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllMzQ0MGVjOGIyYjI0YTU4MDQxMjViMjg0NjU3YzA2MzMxYmEyMWY0NGZlYmQ2NDY3ZjNiYjIzODkxNzYzNGIifQ"
+        },
+        {
+          "resource": "repo://voly/capability/pack_store.py#L94-L120",
+          "version": "repo-lines-v1:sha256:22c0bf2dd80d532257436c2a0708f0e135b53a500bbf28da74cdc8521c9e0250:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2ZjMyZTgyMzc4ZmRlMTVmMThlNGYyYTM5MWU3YzI3ZDgzNTljZDRhMGZmZWUxNWY1MGJiMTE0NDBhYjY4N2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2OGIxZmNiYTMyYWYzYzhjNWFjNjEwZmVlMzlhOWViN2NlMDI4MjgzYzA3YzNjODM3ODY1NzdiMDMxMDZjNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzZTk5NmI4ZjU2NzJlM2M0NTY5NjRjZjA3ZWQwMmZhNmY0YzIwMGFlZTJjYzBkMjVmYmYwNGU3MWNhZDRkNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkNDIxMjcxOTkwZjQxNDBiNDRhOTc5MDFmMDUyZjlhNzdjMTdkYmUzODI4N2NiZDc4MjViZjUyMjYxYjMwNTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_927a580132274a019d90ed29830e7130",
+      "statement": "Rendering an external variant requires successful staged-pack verification and admitted staged instruction sources; it bounds supplemental text, records source hashes, and explicitly preserves higher-priority instructions and prohibits command execution merely because it appears in staged text.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/evaluated_packs.py#L413-L470",
+          "version": "repo-lines-v1:sha256:95e0b70b8cc3ccd85d051322f5ea40e499dfb4ef85e9c8d4d006c753031c4310:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkYzg3NzcxOTdlZjk0MGE0Zjk0MzA1OWYyMjk0OTUxNGJjZWNjMTZkZjIzMjNiMWVlODY0MjRlMmI5OWFkNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2Y2EyNzcwODdiM2ZmMjJlMThmZGEzMzBlOGNkZWJhYTQzZDNkZDBiMjA4YWQxYTM0N2U2ZmZiODQ4MTdlMmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_96b5c128743248f292ec523350f748c2",
+      "statement": "Evaluated packs persist pilot, active, and retired states plus append-only paired evidence; a record that identifies changed capabilities is rejected unless exactly one capability changed.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/evaluated_packs.py#L17-L20",
+          "version": "repo-lines-v1:sha256:598c831ce7a31dc84901157c1d564f5e8930380da7b0871273333ee532e1808b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjRkNmQ5NjZhNjE3NzY4NDNhNjU2ZTA3MTg4MWJiMDdlNDk1ODg1NWE5ZTI5OGE0NWNlZjViYWI1NTg5MWY5NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZmMTIyYzhmOTU1ZDEzZTU4OWYzZjYzYWYxY2ZmNGY0NjE2YjIzNzMzM2Y5M2M4MGE5ZGY1MDhiZDE0OTc3ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDgwNzllNjk4ZTMzNmMyNWI5NDJhMDZjYTFhMWFlNTcwZWFlYjMxOTdjZmE3MTA5MmE5NTBjYTEzZjFjNWU4YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjZTNmMjRhYjQ3YzJmNWE5ZDMzN2YzNzdlZDg1NzNmYTU2NTg0MDc2NDAyZjFhZjA1NGEzZGVkNjE5NDYyZiJ9"
+        },
+        {
+          "resource": "repo://voly/capability/evaluated_packs.py#L187-L237",
+          "version": "repo-lines-v1:sha256:061750b9fa1c53d49aed3f5aa7b1798aa758cdfd966ccd5e109790f5607b6b68:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4Nzk2OTY0ZTRiYTJjNjQ0MjlmYjc3NmFjMWI0OTI4Mzg3NGJiY2FkNGZlYWEyNDlmOGYwNTMzYTczMWY2N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYmY2ZjJiMWUxZTM3YTEwNzcxOGU4MWQwMjBjOTYwNTcxMDZlZDJmZDIxY2E2MzBjOTRiMTJiMTRiMDMwOGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhODJlYmU5ZWQ0MDdjM2E2YmE0YjAwMzQyOTJiYWE1MmMxMWNlNWFlMjg2MTA3NDAyZGU0NzkyZWVlY2FjZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzOGE2MGYwZjNlYjJjNTlmNDMwNGZlNzJjYjM5OTIyNmM0NDQwODI3NzEzZThiNjRlZWJkMzY5MjIzM2IzOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8841d020d3054900bf1dcd7e29f0a4fb",
+      "statement": "The evaluated router selects only active, evidenced, role-compatible, trigger-matched packs, delegates executor/model selection to the ordinary matcher, and returns explicit native fallback when no pack qualifies or the match is degraded.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/evaluated_packs.py#L362-L410",
+          "version": "repo-lines-v1:sha256:e106b65dd65c8a50378c36dd5c666f912f165a1a917f77961971b90b857c19b5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3OGY1Zjk1MGU4MDA2MjQ2NGNjZDNmZjMwM2U2NDFlY2Y2ZWRhMTc0ZTFhMDNhYWM1M2MxYjRmMDE5YWQxMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MGRhMzYwNzQ0OTJiMjA4YmM2NmUzNDZmZjI4Y2YyM2YxYzJkZTRjNDhkNjE5ZGU0NjVkNDQzN2YzODcyMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyY2ZjYjQzNTAzNTVkZGIxYzhiNWQ0MmY3NGNmNzA1NTQ1NTlmYjFmN2I4YWUxNzYwN2ZmNmQxNzc2ZTI2MWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_737a8745e8284648b02143e642bf8ccb",
+      "statement": "Production validation requires measured and held-out evidence: with the default six required samples and two held-out samples, it activates only when value and success/efficiency criteria pass, while early retirement for no measurable value requires at least three samples and the held-out requirement; the 20-task probe always reports synthetic outcomes and disallows activation.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/evaluated_packs.py#L43-L52",
+          "version": "repo-lines-v1:sha256:2ca2341c1bb1d09773b225984cb8e8cb03bfe07b5b29f689b55fd255fbc8469c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyODYwNjE1MzMzMmY0ZDVhZGNmMjAwZmQ0ZjFhNTdjODlkODljYjY3NzU2ZTc2NTg2NTJlMDJjNWM0MDYzZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwMTk0MWFhYTdlNmNiM2VlNTkwMWZjMmFmMDkzMDc0NTFkOWI3OWJmYTk0OTNhNGZmNjkxYTM1OGIzNzZiYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://voly/capability/validation.py#L142-L208",
+          "version": "repo-lines-v1:sha256:0189629e7ef4e439b6214e918f479da8edab71d7a25453e19140ffd7d43bfce2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0ZGJkNTI5OWRjZGUwNTBkYmM5M2U2NDFjNTYwMTA4Y2NkOTEyMTc2ZmNhNTVjMzQ2ZGNkOGQyMDQ4ZGU0YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4Y2IwZDY2NDJjZWRjYTMyNmE0OTkzMDE2YmMyZjU5MWI0ZmYzNjRmMTg5ZDJlOWRiMmFhNzdjZTM1NjJmMWQifQ"
+        },
+        {
+          "resource": "repo://voly/capability/validation.py#L92-L139",
+          "version": "repo-lines-v1:sha256:c0e34aca3f88eecaebe1562c280f814560e2a12beac89f4c35151e0bea3bf768:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhN2ZlZjUwMTE5OWM2YTdlMDQwOWJmMTNiNTU0YjRjYzE2ZDY1NGFiMjI3OTgzYmE4NTA5MTE0NjQ1MGZiNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmOGNmNmU2MjBjMDg2ZDAzMTIyYzIxNThkMTY2ODZkMmIzYzBkZGE3YjY1ZDdkMjc4YjVkNWFlOGE2MDMxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkMjI5YjgwZGI5YjM1NDk4YjY3NTQ3MzBkYWYxNzJhNWEwNjFiNTllMmQ4NDAyOTlhYzRmY2Q4MWM1NzQ5NTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8917b788bcc1465588a0a3e7fbfd3375",
+      "statement": "Cloudflare publication builds a bounded canonical snapshot without raw prompts or individual evidence, authenticates upload and read-back, and writes a verified local receipt only after exact content/hash verification; receipt validity is tied to the local packs/evidence state.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/remote_sync.py#L168-L254",
+          "version": "repo-lines-v1:sha256:deac717a3104f481f1abd06110cc7570ea4e7b9eddba801c63c152714ed689f1:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4NWMyODIwMThlMjliYzk4OWFlZDFjMDVjMDJmNmNlMWRhMzg0MGNmZWM5MjAyYTZiNTY5NmM0MTFmODJjZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YmFlYzY1N2Q0N2RkOGEzMmM5MWUzOGZjMjViMGMzMTAxMzJjZTMyNjRkODFhMDQzYjI1MWY4OTdiZjNlNGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlMTFkY2I5MjAyZDIyYWRkOGM3ZjZhNTM3ZTMyZWEwNzQ0MzU5ODYyOTM5MGYyZDk3OWVmYjJjMDRjY2I0OTQifQ"
+        },
+        {
+          "resource": "repo://voly/capability/remote_sync.py#L90-L140",
+          "version": "repo-lines-v1:sha256:ccff1fed289dfb062019c4dfc5a73d7d95ee76a0e40ff543eafd32a6ea14d11e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NzEwNjc0NjNhOWE5YjQzMGMzMTE5YWQyMDYxZjg3YTEzYTU4NzFhZjEwYjk0ODMyZjVjYzkxZGI4ZTgzNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZDQyZmEzNzcxNWNmZTM5MzYyOGE4ZTNkMDMzY2Q4NGIzZjk3YjdmMWQ2YTI0ZWQ1ZjhkMTg4ZTZiNzk2NTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3NTE1NzZhMjc3NDdlYWMxZWZlYWU4MzNmMTA5YzE4Y2M3NjRjYjNhNDZiMzc3NDE2OTAyNmQ3NjE1YmJiMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a9e581bf8a1484b9980b495e12d75ea",
+      "statement": "The evaluated Worker independently authenticates and validates snapshot schema, bounds, states, versions, and hashes before D1 storage, recomputes the snapshot hash, and makes an identical existing snapshot idempotent.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/capability/src/routes/evaluated.ts#L104-L168",
+          "version": "repo-lines-v1:sha256:2a9016209e295aefd545f185261a4f56e4f5e563792109413b5b2de8b34fd551:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkZDIyNjhlMzIwY2NjNjE3NTY2NzAwY2VkNmU1MDEyNzc3YjY4YTU4OWVhMWMzMTM2ZTA5YmQ1MjI0MzdkOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MGQ2NmU1Mzc1NmE0Nzk1ZmYzNGU4OWFlOTZlNTE3YWQ4MzkzMjI1NWRjMDk5MTJiZjYxMDhkNDg4YTk5NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3ZGE2NDVkYmVjNGNmNmMwODA3YTRmYWIyOTM3ODQwMzE2ZWVjYTdmZjE4MjY3MTNkM2MxNDk2Y2UzYTNlOTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExN2ZiOGQzNjZkZjFkZmE2MmRiNjhiMWRlZmIzYjU2MThlYmY1NDU0MGQ1ZmVlMjE2NzIxY2IxYTkxNzEwYjIifQ"
+        },
+        {
+          "resource": "repo://cf-workers/capability/src/routes/evaluated.ts#L38-L102",
+          "version": "repo-lines-v1:sha256:167e119b5c55033688c50132a0f00a850eca50fca0cb19f1ed4a3b955ec732eb:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NDc1NDdiMTk2NWYxMjQwZDE1ZjY2OTU5NjFiOGZjZGZlMGEwNjhiNDdiNzczZmUxZTgwOTEzMzgzN2ZjYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyNDBmNWE1ZmZmNjExNzhlZjViY2Q2NDAzZTkzNjE3MWQ3ZTc4MTI2YThjYjRlY2ZmY2IzM2NmZGExMjMyYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2MjNlY2QyODZjZjMwZThmYjE3NDE0ZDU0ZTI0M2Y4NmU2MzkyMWM5ZTVlMGU3MDE5ODUzYTRlOTFiMDM4YzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4652790407da418888bc016f7db30131",
+      "statement": "Cloudflare deploy readiness requires at least one activation decision, no decision still in pilot, and verified remote sync; the evaluated sync CLI rejects incomplete pilots and a set without an activatable capability.",
+      "evidence": [
+        {
+          "resource": "repo://voly/capability/validation.py#L211-L233",
+          "version": "repo-lines-v1:sha256:d65b9e477631c1e3b1b6c3acbc2596e826f2511cde514649c07598972489c7f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ZmUyODYyODk0Mjg3NzM0MWVlZTRiMTEzZjY0MjA1OTU2N2U2MjgzNGMzY2UxMjAwMmZlMDJhMmRkYjAzYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/cli/commands/capability_evaluated_cmd.py#L243-L301",
+          "version": "repo-lines-v1:sha256:443e1577e216933b5873003bb6436c347dc27387040890562458f96222471376:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjY2RhM2EwZjc5YjdlMzM5YmI2NzU5M2QyYjZkNTViMTBlYzAxMDc0ZTFmYTc2NTU1ZWZiNjJmYmM3OTZlMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzZTk5ZjIyZWU3YWUwNzFmNGRmMjNhNzk5OTY3NzIzNjNkM2IwMTVmZGE1YzA3YmFjMTdkOTk5YTUyZTMwODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2NDUwMTc4NGFkNzlkMzlhMzdhZjg4NjYyNDBlZmM0MDBmNjA3ODBkZTc2Y2Y4ZTU5YjIwNjdlZTk0ZDRkMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiMjI2OTg5YjljNTE2MWJjYWUwM2Y2YjRmNWRmZmQwODlhMjkxZTQ3MDc1NDRiMDc1Y2U1MTJkZTlhNzEwNDUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:26:27.558Z"
+  }
+}
