@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3877ee4b26e851606ede6dafe8af5c7a34f336a6d9be8fdc15892c985f514e7a",
+  "claims": [
+    {
+      "id": "claim_baf7628c00fa42118aeae7e3dd01f411",
+      "statement": "VOLY's HeadroomManager is a local loopback proxy adapter: it checks the configured localhost port, starts `python -m headroom.cli proxy --port <port>` with a `headroom` CLI fallback, and exposes health and compression access rather than installing or governing Headroom integrations.",
+      "evidence": [
+        {
+          "resource": "repo://voly/headroom/proxy.py#L109-L169",
+          "version": "repo-lines-v1:sha256:41cf0fc6609644903317c9aba63bd06bb55b165238678397f0d3e99b1da2eb68:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNGQzYjA4MDkyYzJkMTY1OWRiMjMxNmIwNGNmMjUxY2FkYWQ2NTEzNDM0ZmU3MTQ0ZTI0YTRlY2MwZjFkZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NjMxOWY1OWRmOTI0ZTFiNTkwZDQ5OTBmMzA3MGZhMjE5OGFhYmYyNjM5OGEwZDE5YjMxMjc5NTEyN2Q2MzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMzkyODQyY2VhODlmNmMyMGY5MmFiY2Y2NGI4Zjg3YzcxZDMzOTdhNjc4NDdlODViZTg2NGQ4NDg0MTYzZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiODk3ZDRhNzA0YjFkZjU2ZDQwOTA0MmRlNDE2NjBhMDM1YjA2YmU3ZDdkZGE3MDhkNmEyNzlhZjZiMDI3MmQifQ"
+        },
+        {
+          "resource": "repo://voly/headroom/proxy.py#L35-L97",
+          "version": "repo-lines-v1:sha256:2bcbbc157b7311cb80d00fe091a768c1d08aadfc4b0f51a674fa55392a89e297:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1NTU3Y2IxMWYyYWNjMzViMzBhNGJmMmU1MjJhZDU5NmQ1NmIxYzM2OTNiNjU2YThiN2QxMDlmZmFiZjFiY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwZTU1NWM3ZWEyMmY0ZTgwNDVjNzJjMmFjNGRmNjRiZWQ2NWQzZWZlNGIyNzgzY2IyZGQ0NDlhMDIzNDM3YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyZjI5YWZlNjg4YTNjNmQ4NGViZTc2NzQyMTg5MGNmYzUzZGEwODEwOWZjZmMwZGE2MDVjYzgzYmQyMzhiZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5efaa40339594eba8f5ee0da93cd4afd",
+      "statement": "VOLY configuration defaults Headroom to enabled on port 8787 with the `agent-90` savings profile, and pipeline setup passes port, savings profile, memory, and code-graph options to the local manager; `lean_ctx` is parsed as configuration but is not passed in that setup.",
+      "evidence": [
+        {
+          "resource": "repo://voly/config/_parser.py#L95-L104",
+          "version": "repo-lines-v1:sha256:1ea2ea791125d2e617bea52de88a0d4bcb731f66e86ea260d7a2fde7a9c6251d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3MTQ2ODRmZDU1OWRiMjc4ZTMyYmI1YzUzNTJkMzUzMGE4ZDc0N2JhNmYxZTJmNmZmZTFhN2EyZGQwMjNhMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5Njk2MzI5YzQ2MzQxYTcyYTJmMjczZDJiZTYzMzc5Zjc5ZDY5NmMzN2QxOWU3MTg1NWQ4YmE3ZGJlMjQ3NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxYzNjYmRkMWFiMTdiNWUzOGE1NGVhN2Y3ZTI4NjQ5NmRiMzdiNTk2ZTdhOGUxNjdkMTlmMDFlNTZiMzM3NzMifQ"
+        },
+        {
+          "resource": "repo://voly/config/_types.py#L61-L68",
+          "version": "repo-lines-v1:sha256:ec57fbf7d803937bf5372e3f5c22be0dace2e2fda8aa44e0f642f013b24769c9:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjZmYmFlMGI5MWQ0NGZjMGQ0OWY1ZGU2OTFkYTZmYzQzMWYyNjAxMzRiZjczMWUwZTIxZjc2NDgwOTQzMzRjYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTcwNTMwNjUxZDYwMDM2ZTdkZGM5NGUzYWMzNWU4YjJhNjI5NzY2Mzk3YmU0YmFlMTQyODlkZDcwM2QxZDNkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWQyZTlhYTdmZTVmNGJlOGM5NjljODU1ZDBhMTg0MzQ5YWY5N2JiYjNlZDM5ZWE5YTFhNWY0ZjRlODVhNjA2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmMxZjAyZmQ3ZWMxZDQ2MmMwY2I4MThiOTQ4ZmZlNGY3MTViMmMyYzQzMjYzMGMyMzJkZmUzNGQ0Mjc0M2ZhOSJ9"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L227-L248",
+          "version": "repo-lines-v1:sha256:7710fb0b9ad3a824d7cd533bf7fc234397dd56008e0ea8e3d4d7a5c18f970da0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMmIyODg0ZDc2NjgwYWQ3MzZjMTgyY2IzZjI3N2U0YjUxYmNkYTZjNjkwZDFlMGFlMGVmYWQ2ZTkwNTcxMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkY2E2MDFhZDExMTdjNmZmZGZkMDhkM2UxMWUxNDE0YTNmMTdkYjg1ZDQwYzc1NjZhZTEzNGI5YWI3Nzg0OWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkMjQ1MTJkOTJjZmU1NTlmMTBhMTA4NjVjY2U2NjliMzlkZGY3MDkyOTYxYzRjZjlhZjY3YzM4YzY0OTNhOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiMWE2ZTc4MzRhZmViMmJiNDM3ZGZhNDM3ZTc1NDY1ODhiMWFhMjI5NGQwM2JlMWNkN2M0NWYxYWNkY2EyMTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e53eabef36c34901b78d82a9a9779e0e",
+      "statement": "In the ordinary VOLY pipeline path, assembled messages are compressed before inference only when the Headroom manager is running; unavailable or failed compression retains the original messages and zero savings, while shutdown stops the manager's tracked process.",
+      "evidence": [
+        {
+          "resource": "repo://voly/pipeline/core.py#L303-L306",
+          "version": "repo-lines-v1:sha256:77574590dfc81ffd173ba0723525c1def6866bf6097f4925f2d4e4c82c7c51b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY1NjcyNzY0ZDU2YjQ4ODQ1N2Y5ZmM5ZDhmOTI1NDkyMTQzZmM3YTkzOTA1NjQ3ZTFmZTkxZWYzN2JjOGRkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGJiZWNiNTQ1OTU0MzRiNGY5ZjI0MDQ0MDFlNTYzNTAyNDJhN2I2NzZjNGM4ZjgwODE5ZTg2Yjk2ZjM3ZWEwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDBlMzE4M2U0MzM3Y2U1MTU0OTZmODcxMGRmMDZmNGU0YzE3MDg0Njg4NzExZGQ3NWY5Yzk2NzI4ZGYwMzNjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWQ0YzM2YTQzM2NjOWNiYjFhZDRjYWM0MzE0M2Q4MzViNzMyYWQ4ZWQwMmZhYWVjMmE4YjYwODlhODMxZTczZSJ9"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L450-L474",
+          "version": "repo-lines-v1:sha256:04784a2527dbdebad365dd04bc224190561347725a356bf5823b0206a0969a08:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmOWY1YjdkNzgyNzJiMDg3YWE3Y2RkNDJiOGNlZGRiM2Y3NmZiYzU0ZGI0NzY3MmQ2MTU0M2Y2MThkN2IwYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NmM2NWJjMjU3MWVkODE1MTljNDY3NTNmY2Q3YzNmOWE5Nzc1ZmQ1NTkxMTExNGZiN2IyMDM3YjM1NzFlYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzMTQwZDQyYjJhOTMxY2I3Y2YzY2M3NmI1YWVmMTMwMjFjNjY4MjA2MGY0MmYzZTNlZDEwZDg3ZjAxOTQ5NTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjMTk2OTJhYTU3YWUyZWI1MWI3NDY0Nzc4ZjJlMjFjNzVkOTMwOTZlNjIxMGE3MDZjZmM4ODg1MTRlOWRiODEifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_context.py#L137-L153",
+          "version": "repo-lines-v1:sha256:dcd2499504514b318ae2d180dc0a9d7d18738e3e5205593005d3d5f22bdf05b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3ZWRkYTQzMmI4ZmIwZGJjZTYwYjE1MzgzYjM2ODg2MmIyODZlY2MzZjI4ZDRkMjU3MGU4YjFhZTQ4MDgzYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwYTA1OTZiN2JjMjliZWVmOWRkZGViZjRmYmQ1MDQ1ZmFhZjg4Mzc3NGRhZGU1M2I5YzhmMDJmNDEzYTYxMmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiNWJmMmE4Nzg1NjJjZWVhOTM0MGJkYzFjNjVjZjkwOTJhY2Y0Nzc2OTJjZGM2NzRlOTUyNWEyMzI2OGU0ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0OGVhMGQwNjVhMDYwYjEwZDY1YTAxYzUxOTg0ZGZlNGRmZTgzODMwMzljNGQzMjkyNTBmMTdjYzZlNjRlZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e4b3b90f54f4f17a69597afa822d607",
+      "statement": "The bundled Headroom marketplace publishes the `headroom` plugin from `plugins/headroom-agent-hooks`; its generic hooks invoke `headroom init hook ensure` for startup/resume and before Bash or PowerShell tool use, each with a 15-second timeout.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/.claude-plugin/marketplace.json#L1-L29",
+          "version": "repo-lines-v1:sha256:2f8b13561fdab18f5b7b974c5c0b080135dfd309cbf2a9ab83961bb361f2cccf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNjQ4Zjc3ZmQ1YTljNjNiM2NkZDBhZjQ5ZGFhMTI5OTIyMGI3NTQxZTg4Y2ExN2VmZTFhNmExMTRiOWZmMmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://headroom/plugins/headroom-agent-hooks/README.md#L1-L11",
+          "version": "repo-lines-v1:sha256:67670d5c28a8e3deb80a40b0944fd0d3a150800f0ce3c3ddaa5d2cd96e761601:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNDUyZjZlNjk4N2M4ODI0Y2Y4YzYxNzcwZTYwZGM1YWJlMDU5NGJjN2M5NGVjZTU3ODNlZWQ1YjU1NmQxMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwY2UzMDZjZTNhZjBlNWU3ZGZmMjIzMTI4ZDVkNDc3ODFhNzVjOTY2NWM1YmRjMTEwOWMxZjJkMDgwYTFlN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://headroom/plugins/headroom-agent-hooks/hooks/hooks.json#L1-L29",
+          "version": "repo-lines-v1:sha256:ea8273bc39287631fca380461b7145f21dfe567c5b32e6e5105468a1006f05a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZWFlN2U2YTRkM2M3MWJjYzk2MzI4YzUxOWZiYTI5NDFlZTQ4Njk2OGE2ZDYzMjJmYjA4Y2ViNDRlM2VmZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyMmZhYTUzNWJkMmVhM2Q1MmU3NDFlZDQ1NDQzNWI3ZmU0OWU4MzU4NmU5NDNkOThkODJiYmZiMjRkMWY1YzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e43f9f17813049e2a1dbbbb3ae5ca41a",
+      "statement": "Headroom's hidden `init hook ensure` command is best-effort durable-runtime recovery: it selects an explicit profile or an existing local/global manifest, suppresses hook output, locks startup, rechecks readiness, handles stale running state, and starts the configured runtime when necessary.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/headroom/cli/init.py#L1026-L1047",
+          "version": "repo-lines-v1:sha256:d6a8c80288022b87ee3509fde828ae1dea8f05b5860bdc00b3246737b6699ccc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxZDYzYzliZTczZGZiMDVjMzY0YjY3ZTY0ZGUxOGEwMWNhZmI3ZDQ1ODY4MmU3YTg2NjQwNWU4ZDg5MDQxYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3MTdjM2FlYWExNzgzMGQ5MmYyOWM0MTFmYTRmNDA2MDVkMjAzZDRkZWViZWRkMjQ1ZTYzYmM0MGJjOGIyNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://headroom/headroom/cli/init.py#L661-L708",
+          "version": "repo-lines-v1:sha256:7d34ea0c159c95905a62a5a44be1c515698ffccdf580303f7bfc09d095444f59:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2MWYzM2MxMzI1NjlhNzQ5NDZiMmZjZjU0NmNhM2M0NDI1ZGEwY2E1Y2Y2YjY4NmMyNjA5MGZhYTlkMTEyYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlN2JjZDM2ZWY1M2I0NDUyM2U2NWU5OGQxOTQ0OTkzZTBmZjE3NDZmNTUzNmMxYTUxMTc0NmYzZTAxZTc1NmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxZDNlZTM4ZTNiNTY4MjQ0YTIyNmU0NzJkNDEwMTc0ZjA2MzJmMThkYWYxYTBiNWIzOTJlYTQzOWQ5MDkwNDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_34179a99d5514c4892db8632163099f9",
+      "statement": "Headroom's PR governance validator checks required PR-body sections and substantive fields, permits complete drafts without readiness checks, classifies valid non-drafts with self-review and ready checks as review-ready, and exempts authors whose login ends in `[bot]`.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/scripts/pr-governance.py#L139-L208",
+          "version": "repo-lines-v1:sha256:19380aee510c134e74314d70f2c120dee6d3a027a8008b98bc8f9d9979ed8ffa:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4MjI5NWFlYmFmMTlmM2UzYmE3YTViZmFhMTYzNjliMzA5ZmQ0ODE4YzI3NDlkNDMwOGVlNWExZWIxOTgyYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0NDk2M2RiZGI3MWRjMjY5OTNmN2Q1NzQ2OTA0NzZiODQwZjY2YmQwOTZmZGQ3OGVmYTkwOWM3ZjJkNGJmMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4NzhjZDMwMzA5NWMwM2YwMzExOWI4NjI1YTE2YTkxMWYyOTQxNDgyMTA3N2Q2OWM1ODMxZGQyOTU3MjhmZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4MmE5YTJjODBmOTE5YmExYTM5ZmU4Yjk4ZTFjZTczM2VhZWQ1MmVhNmY2YjY2OThlMmU2MWEzY2U5MmY0MWYifQ"
+        },
+        {
+          "resource": "repo://headroom/scripts/pr-governance.py#L19-L37",
+          "version": "repo-lines-v1:sha256:86f279e6cb929d6cea601142857715e4c4008688e033159bfc6dcb2686760057:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczZjAzNDY4OTg2NzcxZGZkNmIwNzZmNjNiMTkwZDE3ZjBjY2JlN2QyZjc3OTYyZGNiM2QxYTBiYjdkNzY4Y2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZGJhYmYzOGM4NTYzZTU0YjhkMjI4NGU3Yjc2ZTFlODM3YWExNzI5MTVkYzEzNDVmYmIzN2ZhNDViNjAzZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzN2Y0NTM5MDhjNDg1NDNmZDMyMzVjOTVhZTFjZDNmMTY4ZmU2ZWIxMGUwODViMGY4NDdjZmMzZjcxODE2MzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhOTIxMGRhZjFiODQwOTFkNjkxZWRiNzI1MjM5NzBhMWNhYTIxYWUzNmY5ODk5M2U3MGY3NzY0MTQzN2RjYjgifQ"
+        },
+        {
+          "resource": "repo://headroom/scripts/tests/test_pr_governance.py#L77-L163",
+          "version": "repo-lines-v1:sha256:5cc72bff353511bacb5f35391a2125a282b89efeac4dd6e664416d866594801d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MjU4ODk5NWQzMThlMjg5ZTRiYmMyM2E5NmFiZjgyMzZkZGNiZmYzODcwYjYyNDE1MGRkZjcyNGY3ZDE0MjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyODU1MTM2MzQ5ZTIyZWY4YTljYTI2ZTJhNTU0MjZmZDY5MDVmYzlkN2JlYWQ2ZDA5Zjk3Mzg1OTgwZjg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4YWU2MGEwOWE3ODRiNDdlYTA4NTMxNmJmZjkyYzY4MDExZGQ2NzBkODlmMjhkYWY1ZGE5YmI2YWU0MWJjNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb7504ed0d49405aab3d8b3849b9a90e",
+      "statement": "The PR Governance workflow runs under `pull_request_target` but checks out `github.event.pull_request.base.sha` before executing the validator; it uses the validator report to upsert a marker-based bot comment and synchronize readiness labels only for non-bot PRs, preserving base-branch-only execution under privileged event credentials.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/.github/workflows/pr-health.yml#L1-L34",
+          "version": "repo-lines-v1:sha256:a431a34e0c4939d0208e533fc02408bac28bcd56ac5e58a609dad776b9e82c8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3MjQ0NzhhZGQ2OTMyMDBlOGY2YjdjNGM5NmEyODI1MjQyMDU4Y2VjNzUzOGYzMzY1ZDcyNGY3NDFiZTZiZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhNTc2ZmViMzM4MmNlYmVmMGVlZDRmYTRiMWNlZmMzNDhkNzVjNjcyOWVhODIzNGQ3NGJiNDI3YzY5NWJjOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5YzJkNzJjZTc3YWU5OTBhY2RmY2ZkNjI4YTA3ZjRmZTkxMjk3YzY5MmQwODQxYmQ4NTNhN2E4MjIzMTlkZmYifQ"
+        },
+        {
+          "resource": "repo://headroom/.github/workflows/pr-health.yml#L67-L132",
+          "version": "repo-lines-v1:sha256:f776242706168ec94a30931f1fe7f88fddb7cf61c249af230483928376fa0b56:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YjViYjhmNWRjNzYxMWZkODBjZmIwMDU0MDFlN2I4MjY0MjEyMDFiZmUyYWIzNTQ0NzY4NGNiMWZmMjUzN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YTg1NzJiODg4YjA4Zjc5Nzk4YTE5YWNhZDFlZmRhZmVkMDI3MDQyNWEzZTFjMjJkODg4ZDEwNmQ2NTY4M2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZWM3Y2NlN2I5NWRhODQ0NWU2NDAyMGNjM2ZjNTE2ZmJkYjJjMTI2OGQ5MTE1MTI2OTI1ODkwZTc2MjdiMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzNTMxMDMzODg2MGQ4NjU3MDc2ZDA0MGVmZDA4NmY1YTUxNDYzMjFkNGM2ZGFlYTdkZjFmZWVmMDg3Y2FkNTIifQ"
+        },
+        {
+          "resource": "repo://headroom/scripts/pr-governance.py#L261-L293",
+          "version": "repo-lines-v1:sha256:0685d38d5323ca17df3cdc48358526b67c7135f5c188f21c7af10aba4649ec6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMzllYjg1YWYyMThlZDBkMzhkY2JjZTUyZTk4MzdhZmFjNTMwMGMzNWEzNDA5MTcyZWNmNzBhNTdiZTFjZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MjMzYjNmZmVhMzJhMjNkZjUzMDY1MzQzNDhmMmRlZTc3NmE1YTZmNzRmYjUzMzE3NWRkYzUzOWE4ZmU0NjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_42aa13f7652e452a826d9ebab8243c89",
+      "statement": "Headroom's label-maintenance job keeps rebase, conflict, and CI-failure labels current from merge/check state and removes review-ready status when a PR is behind, conflicted, failing checks, or draft; its helper uses the latest attempt per workflow/name so historical failures do not remain decisive.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/.github/scripts/pr-health-labels.py#L12-L63",
+          "version": "repo-lines-v1:sha256:c6d5af5fed1666064d5aca5eb9a4a021660f1dcf6002b3a8fd8cc85c35d13e8e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0OTE1YzU3YzBkY2MwMWY3NmVhNTVlNGQwODFiODMzNzRiZWIzZGU4ZWE5YjA5ZTg5NjhlZGNjZWQzNTBiZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNGJiOTgyYjU4MTI0ZTJhYjJiMGIwZGI3M2M0ODNiYzYxOWJjMzUxNDhlYTE2MzdkMjhkNWEzYzg3YmRmYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyZjRkNTI3OTFmMzI0OWFkYzVjNGE5ZTlmMWIxYWQ1MjZhOGFlYTQ0YzNhNTg3ZDFkNDI2OTFiZjdiYjQ5Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkMzAxZmM3YTY5YTFlNGEyMGExYjRhYjQyOGNhOGMxOTNiM2Y3ZWVmMGFhZDU0NDUyZmNkOGFlMWUwNjdjOTcifQ"
+        },
+        {
+          "resource": "repo://headroom/.github/workflows/pr-health.yml#L139-L219",
+          "version": "repo-lines-v1:sha256:894b28e525ca6b57b2932dd19822d823b43cdc7d1d9a725f88197cd6ad066c40:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDk1YTAxNWEzOGFhMmU4YTU2YWM2NDllMWE4MWRjOTgyNjRlNGJjMmZkYzRmNzhmNjMyNTU2MjQxZjE4M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5YTcyZGNhMjViOTI5MGU5NjQwZjc3MzczYjI2NjE2ZWVkZmRiMGQxMmZiZmQzNmM3MGI3MWMyMDA2MjM2ZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2ODc4ZmE0YmVkMzVkYmMwMjhmMzY4ZTdhNDkzODM5NWNkOGM3NzhkZDg4N2EzNWVjNjU1NmU3NmQzNTYwMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://headroom/scripts/tests/test_pr_health_labels.py#L21-L94",
+          "version": "repo-lines-v1:sha256:bbf77daf9c013534244bd24d68f47d5fae7c516b573aa3c2d774c622f60af07f:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3OTdmMDU5NTJjMTFjYzExNmQ5YmRmNjcxNTk4MjA2NGY5M2ViMzU5OGIyZjFhOWQ5NDczYjUyMWQwNjQyNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjM0MWIzZGFkNTc3MzEzYTBmZTA0MjA3Y2U0MDliMzEwMmI5NDc4MzkyNzhlN2U2Y2FkYmZhMmFjZDc4ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3OTNiMDczYzE0ODYyMzIxMGJkZTI0ZmZhNjc5NzNhZjI0NzE0ZTY3ODlkNzRmODEzODVhY2RhOTE1OTBjZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e4c805d7ebb1464a8b558ef78000ee5e",
+      "statement": "Invalid PR template content is actionable but non-blocking: the validator emits a report and exits successfully, while the workflow prints an incomplete-body notice instead of failing the job.",
+      "evidence": [
+        {
+          "resource": "repo://headroom/.github/workflows/pr-health.yml#L134-L137",
+          "version": "repo-lines-v1:sha256:d4ceab2b68de491568d1d3fbb52af2b9ecc88c0ee2f14b4d3461e2c2dbaec59c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmUwNzZkYTg1ZGM5M2IyODEwM2QyMTVhY2E3NDQzZjQ5ZjUxYWRlMTNmMmZmNjI5ZWQ4MjFjMjQzMjAwNDdhZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdlZGU4ZTZmN2ZlNTBmMTI1NDk2YzNlMTUxY2MwNjAwNzVhNjY4OTQ0ZjEwN2I1NmE0NDg3YmQ4YTQ5MTBhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWRjMzUyYjZjZjc1MjcxYWNkZmQ4YmQzNWE4MmZiZTFkMWE4MTNjMDlhMDE3YmVlZWZjYTgwMjQ4ZGViYzFkMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA1ZGNmMmY1YjhmNmQzZmYyZjI0Nzk3MmM3MjQxNDk2MTZjODdlNTcyM2M0MDUyZmJjMDBhYTc4ZDc2NDU3YSJ9"
+        },
+        {
+          "resource": "repo://headroom/scripts/pr-governance.py#L288-L293",
+          "version": "repo-lines-v1:sha256:6203290d849e1d2d57ae1f3e58ac5df383dde52e218d3e15451ca7fa38a0a027:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTQ0MGFiZjRkMzc2ZWI0ZTNhZTFmM2JkNTdjYWFiOWExODU4YmUyMGM1N2U3NGY3ZjA0YTE4ZDU1MjhkZmYxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTYyMzNiM2ZmZWEzMmEyM2RmNTMwNjUzNDM0OGYyZGVlNzc2YTVhNmY3NGZiNTMzMTc1ZGRjNTM5YThmZTQ2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjY1NGU1ZWQ5YTRhMDFhZWI0ODJhY2VjMmU5Zjc2NmViMjFmODYzNGU4NTY1NGFmODYwYzlmZDRmMWFmMzcxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MTM0MGNjMjM5YTE1OWNlOWI2MDIyZTlmNjMyMjgzMmUyZWFkNzZjYWU5ZTQ3NTRkMjEwZWI4ZmI2ZDVlOCJ9"
+        },
+        {
+          "resource": "repo://headroom/scripts/tests/test_pr_health_workflow.py#L8-L14",
+          "version": "repo-lines-v1:sha256:1ad229de44efe6928431a595b59548a3f7288fa40bbdcbd2a097c1480ab6fb5e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM1MjJiYWM2MmQ4YWY2NGVhYjljNzhkM2ZhZmUzNTUyMjM0ZWY4MjZlYWRjNzUwYThhNDUwZjgzZmI2YmQ0MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjdmYWI0Y2IyZjM2OWFmN2M2Y2FmYzM4MTJlZGRjYTVhMTBiZTZlYWVjYmQzY2U4ZDdkNzU1MjJiY2M2ODA0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTkxYmYzZDk2ZjFiMTE5Njg4ZGVlYTlhMDA0YjJiM2ZlYmIxODBiYjhmYjIzNDQ2MjU2MTRhZGM4NTk1NjNhYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-05T16:47:01.790Z"
+  }
+}

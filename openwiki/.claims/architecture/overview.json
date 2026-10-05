@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2193709d8b0d5e495e54f31d79b0b2522450ca3d4e0f16a6d25552c8a817fcd9",
+  "claims": [
+    {
+      "id": "claim_55d73b1fbe054afab8345b471014740d",
+      "statement": "VOLY separates governed chat inference at `AIGateway.chat()` from file-capable execution at `AgentRunner.run()`; hybrid A2A routes implementation roles to the runner only when explicitly configured with a shared project `cwd`.",
+      "evidence": [
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L85-L181",
+          "version": "repo-lines-v1:sha256:b0335df691a43ac599f4afa6468938a3a4f80285c19e58a2f878595743331064:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNzhjZDdlOWE5ZDhjMjljMDhmYzU4Nzk5YjEyNjBmYTkxOTZjN2FmMzgwYTZmNTU0YmI2ZWFmMzQ1MjA2YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmY5Njk1Yzc0NjdjNzQ3NzNjOWNlN2ZjNDI5YzVkMGQwZTQ4N2YzYzUxZDE1ZDY2NjhhM2QyNDA3MmJiOTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYTZiMmIzZDBjZWZiYTcwZmY2ZTYzMTc5ZWJjMjAxYWNjYTFlOWZmNDFmMWNkMGM2MzAyYzk5YWU3ZDk0OTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NGZmY2E0ODdiY2RiMTFjNmJmMThiNTkyYzI3YWY5MTE4YmZjNjNkYzBlZTQ4ZmY1OWY4ZTFkMTA1ZjMxZDIifQ"
+        },
+        {
+          "resource": "repo://voly/config/_types.py#L118-L143",
+          "version": "repo-lines-v1:sha256:468f8e0b07261171dcce3bcfabe36f78c63fb6ef0c8f36bb614b2075b57fdee6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxZjM5YjU0MzYzOTg5MDkyMjY0ZTE2MjFiM2M3ZjY3N2RhZjI0MGUzY2E2ZjMxZmI2OWMzY2ZkYWQ2YjQ1ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxMmE0MzcwNjExOWUzYWM0Njg0OTUxYTRkNWExODk5YjM4ZjUwMzE5YmNhNWI5MWZmYTU1ZWUxNjFhMTJhZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzZGU0MGVmZmE5NGU5NGNlN2MwNzBiNzE2ZjAyMjg3ODJhMWFkOTZmNGU0Zjk4MjE1OWIyYjI1NzU1MDhhMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiZjkxZjA0MjlhYTVhNjJiYzAyNGE1YWJkNzFiZmRiODc5MjkxMjJmOTNlOTkwMjM0MWI3M2UzY2YyNjY4ZDUifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L90-L106",
+          "version": "repo-lines-v1:sha256:9f7aaf8b43644994e2a09b27c9a711755b364b43bc436a1d86a44a8574743959:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOGNkOTc5NjliOTRmN2NhYmQ5YWI4NTJjZGVjZGM5Y2U5OWU1MmQ3MmVjMWNkMThiOGFlY2EyOWE5ZTJiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4M2FhZjE5YTA5ZDQzOTRmMzkyMTA0MTI3MGI5ZDgyZTk0ZDU2N2U0MzljYjhlMGMzZDA1MDg0YTI3ZjA1M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlNGQwNWU1ZmU0NzdiMGZlYWNlZmJkNTIwMTAxMTNhZTA5M2U5ZjZiZjlkMzE1NjBjODhlNzBlNTQ2YzViNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViOTE5MWE4MTdiYzIwMjcyNGUxMzlhZTgwYzdhOTM4ZjA0MzQzZWJlMGYwZWU2MzcwYzA3YjUwNmI5YWE5ZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c054afae0d274737b22468a0dc568a33",
+      "statement": "When enabled, `AIGateway.chat()` applies DLP before scoped caching, rate and spend admission, then routes through Cloudflare for supported providers or delegated/direct adapters; it records spend and caches only error-free results.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L163-L197",
+          "version": "repo-lines-v1:sha256:bfd650fdbc908cc7ba74412ff6577cf4380b78e8700481531fa9af26ef0b6eee:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNzg5YzMzNmU5NzVjMTFlOTJkYjBjYjMxN2YxYjQ3NGZiNzg0NDAxZGM5ZmRjMTAxOTA3NzFmZjQyMzNkN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMzEzY2M4YWUwODc0MWJjOTg1MTgyODNmNTVjNjliZTIwZmJkMTY3NzBjZTE2YzM2ZWQ0ZjBiNTJkNjgyOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyOGViNzQ0MjNiMWYxOTZiZGQyOWJiZjdiNDRmMDE4ZTNmNjQyODUyZDdlNGIwNGU5M2NlNTJiYTgxZjE0ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmM2M5YWIwYjRhNWZlZTBkZDdhODg0MThlODlhMmY3NTgyZTAwNTFkODc2MDU5MzBhMGQwNzVjNDUyMDBkMzMifQ"
+        },
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L353-L417",
+          "version": "repo-lines-v1:sha256:6f6cf7915cc589270c55fb243571fb5e9159147d0db520a75d356be68e5ec61e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNWE3YmU1NGI5Yzg4ZDU1ZmQzNWYxYmFmZGIxMjkzNjI4N2FhNzQxNzRkMzg1N2E0NzU0Y2NkOTgzZmI0MjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YjM5OWY1MmE3M2JlMmUwMmIyYzg3OGQ4MmVlMDYyY2JjYjA2NjcwOTRjYTdkODNkNWMyYmU2NGM3YWE2MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxMGEyZGNhMDU2NzQxODE3YWE5ODdjYzRiZmI3YTkwMzE2MGJjNTg1OTVhODc1ZjEzNmVkYjc3MGQyMWIyMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYjU2ZjhlNGY5MjE2ZmQ4MjU5NTA5MzBjNmM2ZTQyY2EzMWI5M2ZlZDJiZmU5ZDRhOWZmNGE4ZTQyZDU0NDMifQ"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L101-L181",
+          "version": "repo-lines-v1:sha256:43018813b7016de272144b0e2b87b7fc5d343919fbf60c54184d09449519ac24:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NWMxZWEyNDY5ODQ3OTIxODZhMGZiNDUwN2JkNzVjZmY4YzQzMGJiYWUxNmMzNDUzZWJjZWQzYWJlMjJkOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmY5Njk1Yzc0NjdjNzQ3NzNjOWNlN2ZjNDI5YzVkMGQwZTQ4N2YzYzUxZDE1ZDY2NjhhM2QyNDA3MmJiOTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmYjg3MDM4NWY3NGJiMDRjYTlkYzM2ODhlZGZiNDIxNDA3MzZkMjQxM2UwNDJmOWIzMTJhOWZlMTM1MmFlZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NGZmY2E0ODdiY2RiMTFjNmJmMThiNTkyYzI3YWY5MTE4YmZjNjNkYzBlZTQ4ZmY1OWY4ZTFkMTA1ZjMxZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8efaa24b593449dc9d9af817587026bc",
+      "statement": "The gateway can delegate non-Cloudflare calls to a configured upstream and normally falls back to the originally requested direct adapter if that upstream fails; tests cover both the successful delegation and fallback paths.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_ai_gateway.py#L420-L521",
+          "version": "repo-lines-v1:sha256:ebfb5838a01eb1f844f0320e6789d6c7f13f6038cfd066e24f896cb407def269:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjYjliMjRlYmQ0MWY5YWIyMDQzNTk1YjNmNThjMjVhOWYwNzUyZDYyYWM1OWRkNTAzZTBiYWYxOTViNTIxYzg4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5MDYwMzA2ZTczMjJhNjRjM2Q2MDU5ZTVkMmIzZjhiMjBhYTdiOGJjNWFkNjJlN2RmZjcyZjcxYWY2NTZiYzY4IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiY2RhMjMzMGUxODIxNzc3ZTBiNjRkZThiYzg2ZmM2ZGQ5ODEzMjdlMTJkZDQ3MDM0YWI0YWU2YjE1MmI5MGYzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjYjkwNzUyZjY1ZWZiYmYxZGRlMGM2MGQ0NzMxMmE1ZWU0YTdmMWZkN2Q2ZDc4YTJlM2ZiMmYxMTVlZjM0MmZhIn0"
+        },
+        {
+          "resource": "repo://voly/ai_gateway/gateway.py#L183-L246",
+          "version": "repo-lines-v1:sha256:0f7a222447f05d27080542929276c408be6e88e67d87542ce5d2ed164e2b3b6c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwZjQzOWNiNTRlMjRhZTAzOTEzN2Y5OGVmNzhmMjcyMzFjYTllZjczMzE0MDYzZGEyN2JkYjVjZDQ3NDY5MmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmY5Njk1Yzc0NjdjNzQ3NzNjOWNlN2ZjNDI5YzVkMGQwZTQ4N2YzYzUxZDE1ZDY2NjhhM2QyNDA3MmJiOTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2ZDlkMDNlMDM3N2FhMzA4MzI5NWI5Yzk1NzJmMTkwNzA3ZTY5Y2M1NzU1NTgwYjNlNTRiZjNiMWE0MjdlYzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNDZhYTQ1OTE2MjIwM2QyNDllMjQzYmU0NjRlMzQ4YTg3YWQ2NmYxZmU5YTk1MjI5NDViMWY3YjI0MDFhNWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f62a6485ced449fda87ceebdd21d4b4c",
+      "statement": "`AgentRunner` executes a selected executor in the supplied `cwd`, falls through its executor chain only on billing or availability failure, and includes abandoned attempt token/cost totals in the final task accounting.",
+      "evidence": [
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L223-L245",
+          "version": "repo-lines-v1:sha256:bcc01cc2ffd90eec21102e83ebe635eb344bea642ab4b8b0e5ba401413d90e6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxYWRkYzFlMDdiMzUwMWIxYTlhZGYzZTBkMmU3ODlkYzFmNzNkMmJmNTFmYzk4NGVjZTRhNTE1MjViMTA0OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNzk2YWRiZWE2YTI4NzBiZjQ0YjJiZWUxM2I5YWNlNWE4MGU3NjEyZWEyOTAyNjg0NWEwNWY2MTVlNWI2NTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0YTU4NzA5ODgyNzlhODdkN2E2OWFlNTkxNzZkY2RmZjVmODMyZWJlMjhhZGNiYWVhZDU5YTZiN2UzZTZmMzYifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L275-L363",
+          "version": "repo-lines-v1:sha256:7d03f0abc1eb03b6bcd84fe17f67340601d89cae5796820250107f0b71044430:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3MDlmOGE4NGFmZDlhYTIyMmQ3MGQ5NzMyZWNjNTFjNGI1YWUxYWNlYmVhNTc1MDUzZjI3OTUyMDgyNGI1OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjMjRhMWY0MmY2Yjc2NGNjNWI4ODcwY2M5YzcyOWE1MzBjZmY0ZGZkMWZjYjNmNjY2MjY5NGVhMDkxZWFiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhYTNiNmZmNjg3YjMzODdhOTZjNjk2NWU5YjhjOWJhOGUxNDY4MWJhN2E3YWViNGQzNmJlODY2ZmEzOThkMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3M2ZlYzMyZmY4YmUwMzFkZWE4ZjAzMzQxNWMzMWViOGQxYTg0OGNjZDk3NzQyYTljZDZlZDkyOTE0Y2I3YWMifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L504-L516",
+          "version": "repo-lines-v1:sha256:78d84c588b18668f4f02fa6a8c77b95a16d561df84e8f38229cdc8335723dad5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwYjc5ZWUxNjkwODU0ODY3NWZmNmEwYTcxM2VkY2UyZTFiNDFhYmEzZTFiYjM2MGY2ZmI2OTAxOTE1MTVhMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkYmU1ZmMyNzBlNjQ1NGE2NjBjOTk4M2YzNjdhYTJjODJkNTg1MDI0YTcyOWM3NDU5MjQ4MWEyZTI5ZWVjMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhYjg4NjAzOGMzMzc3OWJiMDJmMDRkMjY1MDZkNzY3ZGRjYzhjYzQzMTYyYWQ4MjMyNGQ3N2Q4N2QwZDA5MDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9aa2d061f4a8409b97a9e78bdb740553",
+      "statement": "The file-executor safety policy snapshots a Git working tree before execution, rolls back dry runs and protected-path changes, and hard-fails a max-files violation or a run whose only changes were rolled back; tests verify restoration of pre-existing dirty content.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_executor_safety.py#L227-L298",
+          "version": "repo-lines-v1:sha256:47ca206bbc1fec715541ff98e275e5e0986e2d609b7aa99de585904fbcd1c8e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYzY4ZmMzMWRjOGIzMjMzYjVlMzFkNjY3Y2RmMDI4MTAyMWU4MmFmMzljMDJlODA2YmI3MDcwNDc3NzFlMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MTJhNTY4M2FmNjVmMjllNGEzYmQ1MzFmZGI0N2ViMjE5ZTE3NWNmMjBkY2EyOGYyYzE1MGFmMGIwNmY0Y2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDExMWU1YjBmZTc1NDRmYTQyMDQ1YjI2ZjI0ODdlMWI4NDU4NjZiZjQ4MzQzNzk4NmM5MTM4ZjE5ODM1NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/test_executor_safety.py#L99-L184",
+          "version": "repo-lines-v1:sha256:97365429be3b0223cd0c6341a4205e284fd7dc3acb304dfbf70d08a68e447350:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMjE3YzM1NjBkZjU4NjhkYTFmOTE5MzQ1ODc1NWJlNjFkNmU4MGEyYzczMTMxYjc5MzBjZjE4YTY0NTJkYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmZWI3MTBhZWRmYmJiMzhhOWJhZGVmOWFhZGNhM2I4MGI2YzQ0MWUwOWZlMTJmZTNlYjNjMjFhMTNkMGNhNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMwMmFmYjQ0ZWU2MTkxNjZkZjI0NGYzOTNiM2Y0YWUxMDljNjlmMmNkNjI0ZGQ1MWI1NWMzZWU1NjgyODk2MjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmODIxYmU2YjliMmU5YzE1M2FkMjk1NDk1MWE0Yjc3ZmZhOTEzNDI3YTUwZGRkYjgzODUxN2ZkMmFjN2M0NjkifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L223-L238",
+          "version": "repo-lines-v1:sha256:cc422ba2a74fc3457696c40361865231555c0f75fd903406640a01d3396317be:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxYWRkYzFlMDdiMzUwMWIxYTlhZGYzZTBkMmU3ODlkYzFmNzNkMmJmNTFmYzk4NGVjZTRhNTE1MjViMTA0OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhY2Q1MTU4MzkxZTcwZThjYjM5OGMxOWIwOWNlZmMzMjQ4MGQ4NWFhMTY4ZDhhYzhkMDExNTk5NTIyN2NmZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNzk2YWRiZWE2YTI4NzBiZjQ0YjJiZWUxM2I5YWNlNWE4MGU3NjEyZWEyOTAyNjg0NWEwNWY2MTVlNWI2NTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4ODBmMjU3NGI0ZDBiYTUzOTM5NTBmMDI3NWU4YzMwZGI4YTQ0NTlkODBiMGE3YWMxY2QwYjEyYmZmMGU3YmQifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L388-L434",
+          "version": "repo-lines-v1:sha256:996b0bb8c63e65ee59efbfcf76d25dcde53c5d7ccb212483b9ee1a4ad3343cc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0YjI1OGU1NjgwNmJkYmFiMGNiYjQ0MzFkODE1ZWFiN2I1MmM2OTg2Y2ZhMzI1Y2E3NTgxYThiY2U4NDZhNGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZTVmYWZmYjk2ZmRjNTM0ZDk0YmU0ZDg1Yzc2YWQ1OWZiYWFjOGRmYzJhZWFhM2JlZTBmYzRiNWNmOTEyY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjMzFlMzZhNDljZjBlZjY4ZmJmZTE5ZWEwMDRjNTIxOWVhZTdlZjRkODJkODVlODZkNGM3NDAwODY0MTk3NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3NWYyNjNhYzU1MDk5ZmMzYWUyMWRiNGNmYWJmYzNkYzE2MjVkYTMxMGViYTNiYmJiOGI5MzFkZWJhOWQxYjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_16c1288f5e744af0b0f2a33ba8fa3608",
+      "statement": "Pipeline execution routes and optionally auto-dispatches A2A work, while the ordinary inference path retrieves context, compresses messages, runs inference, stores memory, and emits a task event; nested A2A work is prevented from auto-dispatching recursively.",
+      "evidence": [
+        {
+          "resource": "repo://voly/pipeline/core.py#L329-L457",
+          "version": "repo-lines-v1:sha256:169111b0ae7ae70f2a686aa43170bfe57afe7df10af22b9df2e7788b260d76df:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlZDk4YzQyOGQwYjllN2E3YmM3MGI4ZTFhZWYwZTQ4MmRhZDQzZjNmMWVlYjZiNTc3NWQ3ZDZkNDJiZThiZTBhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlOGM4M2I3MWY4YTAwMjBlZGQzYWMwZTU0Mjg2NzdlMTIwNzJkN2IwOWU2M2JjOGQ0YTgzYzFhZmIyYmI1ZTlkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5YzFiNTVjYTY0YWJiZDFlYjliNjMwOTNiMGMyOWZjNGFiNTE4NWFhM2RiMmY5MzFiNDg2YmIwYjQyY2ZkMzE3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxZDc3YmI4MTE1NGYzOGE4N2EzYzdkYjRjNjM0ZjM1YTZmN2ZjY2QyMjk1MmM0YjE1NWE3NzMyMTk1ZTQ2OWRjIn0"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L466-L556",
+          "version": "repo-lines-v1:sha256:9bff51c73bccf38dd35a182e33a032c2bbc094237c266a36e273e25e4cbb8365:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmOTg3NWQ1ZDE2YTQ2M2U2NmE5YjE2NDBmODg2ZDY1ZjY2ODljY2E1M2EyOWQ4OWE2ZjNkYjAyYmVmZDVlOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyMDAyNzA1OTlmZTE2NGFlNTNjOWZhNTYyMjI5NGVkYjQ1NzJiN2JiYjM4YWYyZjJiNGY0MWE2Y2ZmYjk0Y2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ZjA3NDkxNjQ4OTg4OTJhZDg1ZGU3MjI5NzdmYTZhYTg1YzVkNzYzNGM2ZDVhMjBkYTQ2MDE2ZjkzOTE1ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzYWQwYWI0ZTQ4ZjQ0NjVlZTFlNzkwY2E4NTg2Zjg1ZTgxN2M3MGRmMjk5MjczNDU2NjE2OGZkMjA4NTNjMDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6afd1fc94b4e40c8bc6f026dbf84ccfd",
+      "statement": "A2A episodes are orchestration records stored atomically under `.voly/episodes/<task_id>.json`; they contain traces, artifacts, decisions, and metrics and explicitly link to evidence rather than replacing executor evidence or evaluation records.",
+      "evidence": [
+        {
+          "resource": "repo://voly/a2a/episode.py#L1-L18",
+          "version": "repo-lines-v1:sha256:98729a2d57cb36f70fd6c83bf5247ca3376ba11e801583467d5b18d743258895:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNGJmM2MxNmJhNzkxNjQxMTcyMDM3Yjk4MzZiY2E3ZDFlYWM3YzQwMGI2NjZmNWFiYThkOTI2NTMwYmM5YjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3ZDNhMWRjNWU0YjhlZGM4ZTdkMjEwZTkyMDYzMDRkZWU1ODRlZGNhYjYwYjVmN2NmNjM3ZWUyNmJiZGM2YWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1OThjYzk1ZjRkYTdhZTRmMWY5MGM2N2M1ZDUyM2FjZWI1MGJiNTA0NGM2MTBhZjhlYTczZGQ4MmJiMjAyODAifQ"
+        },
+        {
+          "resource": "repo://voly/a2a/episode.py#L87-L180",
+          "version": "repo-lines-v1:sha256:99483cb1dc99612cd37a710d3e0a1459711d4be7ae6d769c6f371c3438fbec8c:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkZjgxNzUxMmRiYTZlOTQwOGFmOWU4NWZmZWJmYjA4ZGNjOGI4Y2EzNmM3MmE5OTc5NWI5NDVmYTEyOGE1NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhY2NjOGEzMzAwOWVjOTQwNzkyNGFlNjMzZjBkMjdiNmVjOGVlYThhYWI1NjFjNWE2ZWI3ZGY3ZDkxYzg3NzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4ZjM4NjA4ZTg1MzQ3ZTk0NmYyZTMwZmNhODg2NmMwMGFmMDNkNTFiMjJhODg1MWUwODBiYTk2MGEyNGIyZmIifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/stages_a2a.py#L450-L478",
+          "version": "repo-lines-v1:sha256:bc6edf4c71bf5040495ec32206ba8197b9f1b76ff5527c1902e758a6689df30f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxZDQyZjhiNmExZDAxMjk3NWZiMDA4NWI0ZDgxNTJjZWFmODBmMTI2MDBiN2FlMjk4MzNhM2IzMTcwNGExM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYTIwMjQyMWFmYTk3MTg3OWUxOTY3ZTY2NTlkNjY5YWZmNjdkMmE2ZDg3ODQ0MTZhZmYwMGEyYzc2MjkzOWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMzk5YTRjYWI2N2UyNTFjMjU2YzRmMmE3NTEwZGU4OWU5YWZiODQwMDIyYmY4ZTdjNmYwN2U5OGFmODRjNDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0MWMwZGI0YzMyYzEwNTdlM2JkNDNlYzQ3ZjdiYTdjZGZhMzYxYWQzNDk2NWEwMzVhYTlmNjhhMzMyOGMzMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a788c080474c4707b3ff859f3b0c617b",
+      "statement": "`TaskEvent` telemetry is a versioned local record, while remote Cloud Analytics is a separately versioned allowlisted projection that excludes prompts, results, errors, repository paths, reports, artifacts, stage logs, and A2A assignments and is sent only with explicit remote-analytics consent.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_protocol_contracts.py#L29-L105",
+          "version": "repo-lines-v1:sha256:781de56bc6768b06c330dd52890c107849642d99eef58418dca80a34def268e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0MDhiYjYwNDQ2ZTVmZjc5NWJhNmY4YzdjNzIwNjBmZjQxOWVhNzcxM2QxMzc2YTA1MGE3ZTEyYjcwYWNlMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhMDg2NWVkNDQ4MDM3MTg3MDZjODk5M2UxYWZlN2FkMTIwMzE3YzdmYzc3MmZiNWQ1ZTgzNjFmM2IwZmM3MzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZjk2OGIyYmRiOTEzNzgxZDNjYzlkZmUyMDljOTMyMTFlM2U2OWMyZGJiNjMxN2UyYzY4YmQyZmZmMWE2MjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0NjBhOTVhM2IxYjFmODAzMTQ4N2E1MmZhMGMxYjQ0MDhkNjZjMjFmYjdkMGI1ZDliOThjNTVlMGQ2NWI5OWYifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L148-L224",
+          "version": "repo-lines-v1:sha256:c2fad4bf44cc12f5c723c20dff2ee03867ee87bc21f150b7460f7c3ce13c112e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNTEwM2Y0NDM3YTg2YmYxYzE4MDRhYjc3YWI4OTIyNzkyYjNjNjI2Y2QxMTBmZDE5ZWQ4ZWVjNWVhN2ZhZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NzU4MjQ3MGQzMTA4OGI1ZGEzZjhmODRlYzBjNjNlYmYzMWNjNTVlMTYyYjkwZDM4Mzk5MTZkOTU3MjE5ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwNWU1YTYwNzgzYjczY2JmYzBkMjYzOTNkZjZmMzU2NmRjOTc2ZjFkYThkNWRkYmJkMmQzNmRhNThmNjE5ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4YjRiMjJjZjg4YzJlZWY1MjdjNDNkZDc4Njc1YWU5ODA0MzMwNGZmNjUwOGJjZThjNWI4NGY0OTVlNzI5NWEifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L269-L311",
+          "version": "repo-lines-v1:sha256:07b6954f6f4f52edcbfed44351681d706e61a188ef10588acf5083a91dc0e33d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYmRiM2FmMzY2YjEyNzFkNGRhNmMwODllZWY2NGNmYjZhYTI0OTBiZmViMDlkOGJjN2NjOGExYmJkOWQ5MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlNGQ1YTY2MTVmMzczNGRjOGI5OTk5OWI3NGI2ODIyMmQxZWE4MWUwN2FhMTUxNWVlNTNkOGJlNDExNGI4YTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOWU4MGMwNDliZTZjN2FlNTMzMmM5MmE4NGI5ZjU4YmRkOTkzYzJmOGZmZGI4MTU4NGFkM2FjMTQzMGNjODIifQ"
+        },
+        {
+          "resource": "repo://voly/telemetry.py#L355-L390",
+          "version": "repo-lines-v1:sha256:3e3bfd756b71dfcdb78eeb2b03bc25a7044d26341c2b82c99261d185796ca5c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YTdjY2NiNzk5NDM3NDlkYWNkNThiNjljMGFkNGUyNTg4ZjEzN2RiZWZiZGFlMWI5ZDEyOWFjODlkZGM5NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYmRkZTZmOTJlODY4OWIyMGM5NDFkNWRkMGQxMmU5YjM5NjNhM2JjYjc0NjU3MWVmMWE5MWNmNDcwNWNhNTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f2bdaf9792348e4bc3cfa52d7e83614",
+      "statement": "Enabled evidence collection captures repository baseline before executor work and writes a versioned local evidence record containing execution identity, root-cause-attributed outcome, optional evaluation, and human feedback; the cloud evidence conversion is metadata-only.",
+      "evidence": [
+        {
+          "resource": "repo://voly/evidence/privacy.py#L13-L95",
+          "version": "repo-lines-v1:sha256:323583ac7fc2d70101ab610f0a57814f7abb13ce9d53f6b1c2913391dbc0e7b9:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4MTExM2Q0YzYyNWVjYjk0YzdlZDIzNTFmNTAzYjY2YjNkNmI0M2E2YTgxNzg5ODM4MmRiYWY3ZDlhNWMzNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZjIwOWI5MzRmY2ZlYjQzNDYxOGMyMzViY2NlOWVmNjdhMzgxOTZhYTJkMzViYTM0NDljMmI4YWQxOTIzNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://voly/evidence/schema.py#L10-L96",
+          "version": "repo-lines-v1:sha256:b8c021d7c9de57e1aed8ae16642690ccf88956218541e0e15d57c01c6542945d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyYjk5YmJhZTg4NmNkYTc2ZDA5ZjJmNGIzYTMwOTE2NWQyNjNlYWJiNThlOGM2ZjkzNTMxZjZkODQ1OTIzZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiYzc1MjlmMzRlOTY1MGFhNTgyOTRmODgyOTJjZGFkODExYTk2YWJhYWEwOGRlM2ViZDU4ODBjZjAzYTNiZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3NjUyNDhmZWNkYmFlYzljMTE3ZDM1ODJjYmRmODFhZWJlYTQxMTNkMGMyYTVkOTMxNzc2NTY2NTFhOWQ0YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5MWM2NDBhNjUzYzlmOTFjYzZhNjgxNmZjYzU0NWNjMDNhMDJhYWI4ZDJjYzg5YmFjYjc2MTFiNzM3MDE5ZjAifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L153-L210",
+          "version": "repo-lines-v1:sha256:3cf107e9f41993a5ab191ca387fb60f74f8d46749f6f4798faff63ae0fa206b1:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YjdjM2UxMmI4YjJhZTljNzk0MjliNDRjNzg1Y2E3NTI3ZTdhMmNkZGM2NzM2YzZkOTkwNWRlMzk1YWE2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyMWQyYTg5MGRhMGMzMzVkNzE0YjE1NjVmY2Y0NmZmZmE3NzQ3MzY1NDY2MDdjZmM0ZDZmYmYwN2M3MzM4YmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlZTM4NjJlNTU0OTdlYjAwNzk0MzgzOTkzYTRlYjM4MGIwMjc4NWEwZmVlMzMzZDFlZWVhMGQyNmU3NzMwOGIifQ"
+        },
+        {
+          "resource": "repo://voly/runner/agent_runner.py#L436-L574",
+          "version": "repo-lines-v1:sha256:ab97d88b73e23571ca7ddf501c53caa995081c074262f518d1048f2a1feca3be:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzZmFhY2Y2ZTlhZWNiMjlkZWNmOGFiNGNkZGRhMWM1NmQxNzk4NDQ3MGU5NTdiMjlhYmI4NzFiYjUwMTU3Zjg5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1MTAzNDgxYzU3ZDBmMGRjMGY3NmNkMmNjOGIzNjA0YzRlODI5NmRhNDEyMmFkZDE5ZTgxNzQ1ZGM3ZTMzMWE2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3MmVmMWQ5Nzc4N2Y1NWViYmRlOTBmNDI4OGU4NWE2MzRiNjcxYmUxODg4NTE3MWE2MTdhYjQ3NjIzZmM2MWUzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwZGNhZjkwYjQ5ZWZiNzNlZmQyZTM4MGQwNWZlZTQ2YTRmZDdkYjdhZjkyYjZhMmIwOTc1OTY1ZmY3OTg2MzQ1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_33d6bbd68b3e4fda9f8d1837271d09bc",
+      "statement": "The optional FastAPI UI/API adds correlation-ID middleware and a stale-run watchdog, serves built static assets when present, and is deliberately unauthenticated with permissive CORS for localhost use.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L43-L82",
+          "version": "repo-lines-v1:sha256:0b3912c7bde899fb7617c2df3c342fdcad2b6f5fc18e5f0ae161dcecc4d433e6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MjE4ZGM0Y2U5NzFjYmUzZDM4ZDc3NDMwZTYzOTkxODg4NGRkNzdkNzE4NGM3YjkzZGZkYzJlOTk4NjkxYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NzcwYjM2ZDhjZTRmY2QzZmNlYmY1Y2IzMTMwYzc5Mzk5NzM1MTRjNGRkNTNmNGI3YTU2NmYwMDgxOGI3ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3NTUzMmRhZWFjNmI3YzFiNzliZWJkZDJiNWY0YzZiMzVmOTg5NGRlM2JiNGNjOGVmMTQ2NWE2YjgwMjg3NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5ZTg5OWYwYmYyNTFhY2ZmODY0NDM4MGJjOWIxMzU0OTA5MGI1MTJmMTMzNGMzMGM0ZWU4ZjNiMmJiZGQ0OTAifQ"
+        },
+        {
+          "resource": "repo://voly/web/server.py#L116-L208",
+          "version": "repo-lines-v1:sha256:7ac5b634e04bcc8fd43c7a4bbd9c457250b9989c77d1a01f5ab99ee455ad4c97:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyYzRjZmIyZTdjZjM3NTI4MjFiN2MzMWJkNDI2N2ViYTQ2ODZhMzMyZTMyZWQ0ZWY2NzE0MmMwODkwMDhiNDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNjdiNDY2Mzc4NzVjM2JiN2Y5MDNiMWRiODczNGI0YTI5NjY4NWRmNGRiZTY2YTRmNmNlZjdmZGM0MTE2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMTY1MDNmNmVkNzgxY2UyYzI3ZjNjZTc3Y2Q4Yzc1MTJiOWEwNmU2MWY2ZWIwZjgwOWJiMDIzMDY2NDQ0NGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmY2RlMWIyNzJiOTA2NDNjMTVhNzRhOTI1NzAwZTg5NTM4ZjU5MDBkMGFjZGRlNDA3Mzk4MTM5MmIxYWQ2NzEifQ"
+        },
+        {
+          "resource": "repo://voly/web/server.py#L55-L85",
+          "version": "repo-lines-v1:sha256:e8e0b8370142db34d8ab514694a2fdda6c80ae7f28cca80368dba8aa4453a725:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3OTQyY2FkNTE1MmE2YzNjOTcxNjUyNjM2NTkwNTlmMDc1Y2U0ZWJiMTFjYmQ1NGMxN2QwZDBhN2IxNmZiM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkOWEwM2I1OWQxZDdhNTZiZWZiMWE5OWQ5N2Q0NzE0ZWYwMDNlNjczM2NmOGZmNzQ3ODUyOTc1MzJhMjU2MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzg0NWI3NGY0MjYwY2YyMGVkYWEyNmQ3MjZhZWViZWY3YzIzOTNjYmE4YjIxNmZiYzI3OTAwYTM4MTNkZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlZDdiNWRjZGJhNWI0ZmQwMWY5ZWQ5NWNjNDQwZjJkZTEyZmQzNTkzNDljZTNkMGE2NDI3YzdiMTMyMTQxOWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b79d11ffd7f4f7f926ff89da7967798",
+      "statement": "Headroom is an optional proxy dependency managed as a local subprocess; pipeline setup starts it, shutdown stops it, and compression failure returns the original messages so later inference can continue through the gateway.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L43-L46",
+          "version": "repo-lines-v1:sha256:a7c0b730a6a05c9330b63ffa0eca48eace4958c1dd7a9d31bf387bcc123b8fef:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkyMThkYzRjZTk3MWNiZTNkMzhkNzc0MzBlNjM5OTE4ODg0ZGQ3N2Q3MTg0YzdiOTNkZmRjMmU5OTg2OTFiNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk0MTZlMDlmNzhiYTMxNmMwMzI1NjgyMTNiODU1ZWU3NTZlNDE1NjVkOTE4ZjA5NTE5YzgxZmQ2MjBmNDA2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTc1NTMyZGFlYWM2YjdjMWI3OWJlYmRkMmI1ZjRjNmIzNWY5ODk0ZGUzYmI0Y2M4ZWYxNDY1YTZiODAyODc1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmUwNmEwNzg1NjQ3Mzc2NDZiZmU4NGFkY2E0NTI3YTRkMjkwNTRiMTQ5ZjViNGEzNTRlYTBjOWEyYzk5ZTVjZSJ9"
+        },
+        {
+          "resource": "repo://voly/headroom/proxy.py#L151-L169",
+          "version": "repo-lines-v1:sha256:32fa270645906621c771a523d2163397e25fdd382c76546f0d3ecdcf9507661c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwMmQyOWZhYjE4MTIwNjNhZmIxMjA2ZTEwNGE3ZWZjNjBjMTAzYjNjZDA3YTVjM2M4YmZjNzU4M2U3MGVkNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NjMxOWY1OWRmOTI0ZTFiNTkwZDQ5OTBmMzA3MGZhMjE5OGFhYmYyNjM5OGEwZDE5YjMxMjc5NTEyN2Q2MzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiZjVhOTRjZjgwNzI1ZjYwNWI1OTllOTNmODBiOTUxZGJkMmU2NzkyYWY1N2Q0MWE1MzAyYTU0MzJiOTRmMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiODk3ZDRhNzA0YjFkZjU2ZDQwOTA0MmRlNDE2NjBhMDM1YjA2YmU3ZDdkZGE3MDhkNmEyNzlhZjZiMDI3MmQifQ"
+        },
+        {
+          "resource": "repo://voly/headroom/proxy.py#L63-L107",
+          "version": "repo-lines-v1:sha256:5ede7928ebc805ac4d7043ed82b0fbe05c6901d6c828f1b71fd44cf317528db5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MTc5NDhkOWRhMTI5Zjg5MjBiYWY0NTk5YTdjYmNjNzg5MThhYWI5ODA0YjhiNTFmZTk1MzI5OTBjYjIxOWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNWVmYTU1YjlkOGQ4YzhmOGQxYjA0MWNkZTI0YmRhZGRhMjdmZWEwMzMwN2ZjMzU1NzBjNTU0ODE0YTNlOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5YTAzNDc0NmVlNGEzZWFlZTljMjAyOWFkNmI4YjgxODcxNGNlZWNjMTc2N2ZmNDk5MGIzMzdiNDI3ZTBiMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyNTlhYjNmNzkxY2FjOTAyNzFjZmE2MWYzMGRmOTkwNGI5YmFlOTI3NDc2OTBiNWM5ZDUzMGM2ODc1MWZkZTIifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L197-L250",
+          "version": "repo-lines-v1:sha256:1f676163ef8f5f21df099d533717704ecc6dce0014dc90d25d60ab6fba268316:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0NDU0YjBlZmI3NDMwMDIyMTUyM2JmMWU4ZTdjNDg1ZjJhYTlmY2JmZWYzYWUxMmU5MjU0Mjk1ZjU2M2FhZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzOTU4NTRlMDcwODdmMWY5YWYyYzJkMmNiNGMzZmUxZjJiYWE5YjRjYTc4NTdjOTllYjk2OWU3OTllY2M1N2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhNzIwMTVhMjZjZWZlYTlmYTA0ZDVkNTg2NzExZDY4NmU4OTc1NzczN2E2OWIwNThjMDYxNjc4MDQ0ZDY5MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzMWE0NzRlNDIxZjk5ZTBhZjZiZTI2ZWYxZjZhYTZmNzRhZDY0NTFmMTIxOWY5MGNlODdhOGRiMTQ1OTM3MDQifQ"
+        },
+        {
+          "resource": "repo://voly/pipeline/core.py#L303-L306",
+          "version": "repo-lines-v1:sha256:77574590dfc81ffd173ba0723525c1def6866bf6097f4925f2d4e4c82c7c51b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY1NjcyNzY0ZDU2YjQ4ODQ1N2Y5ZmM5ZDhmOTI1NDkyMTQzZmM3YTkzOTA1NjQ3ZTFmZTkxZWYzN2JjOGRkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGJiZWNiNTQ1OTU0MzRiNGY5ZjI0MDQ0MDFlNTYzNTAyNDJhN2I2NzZjNGM4ZjgwODE5ZTg2Yjk2ZjM3ZWEwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDBlMzE4M2U0MzM3Y2U1MTU0OTZmODcxMGRmMDZmNGU0YzE3MDg0Njg4NzExZGQ3NWY5Yzk2NzI4ZGYwMzNjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWQ0YzM2YTQzM2NjOWNiYjFhZDRjYWM0MzE0M2Q4MzViNzMyYWQ4ZWQwMmZhYWVjMmE4YjYwODlhODMxZTczZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3bc320ee585a42758485af652b0b7fe0",
+      "statement": "The bundled Cloudflare services are separate deployable boundaries: the agent Worker provides `/infer` through AI Gateway or a Workers AI fallback, the spend Worker fronts Durable Objects, the A2A Worker uses D1 and a queue, and telemetry/capability workers provide their own R2/D1-backed services.",
+      "evidence": [
+        {
+          "resource": "repo://cf-workers/a2a/wrangler.jsonc#L12-L41",
+          "version": "repo-lines-v1:sha256:e35d1cd78cba32fde23865e280d492c8d42e73e2c3b709700b6c0b902822bbf7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MDc5Yzc0NGQwMjZmOGVhZjAzYWQ3ZDFhYTk4MGM0MTJlZGI4ZTRjZTQyODI3ZDIyN2Y4ZTI3MTg4NDlmZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxMzZiZTRiODQ5NTg0NTc0ZmRmMzMzM2Q4NTQ1MGZjMTA4ZWRmMmU2NWIzMTM4OGYwNjk5NDZhZjlhYTA1ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://cf-workers/agent/src/index.ts#L34-L42",
+          "version": "repo-lines-v1:sha256:4b8fddd01e327ec542e0140927b025fa28733148a7f3ef666a09c59ba95981d4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIyOWM1Yzk1N2E3YzAxYzkwNWE4ZGZmN2RlNzg1ZDY2OGIxNDAxNzhjOTZhZTg4ZjNjNTI2YWRjNWRjYjc5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDIxZDYwNzdkNDhjMGRlMDA2ZjRmM2FkYzA1ZDllMGQzNzZhODgyNWQwNjEwZWZhYzU1NmQ4Mjk5MWE1OTViOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTkyYjIwZTM1ZTY2YTAyNTU1NGY4NWE3MjdmZDRjNDNiY2Y1Zjk2ZWY0Y2EyMzZmZjU5Mjk0YmNlY2Q3N2I0NSJ9"
+        },
+        {
+          "resource": "repo://cf-workers/agent/src/infer.ts#L99-L219",
+          "version": "repo-lines-v1:sha256:e2e9fc5c26adfd555ba9b8530d255c5217d78bcc5cf370b92aa2a44cd45e4f5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2ZmJmMzdjYWQ5MjI0NjBlNDQ2Y2FlYmJiMjVjYWRkZTE2NDNiYWExOGQxMDMzMjk0NDg0OTBjNjc0NzIxYjFhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyN2U1Nzg4ZDVkOWQ3M2QyNGE4MWRiYzBhNWE3NGJmYTgyYzljM2IzYWY5OWU1MmFmNzk2ZTkwYjQ2OGE4YTNkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxOTJlOTQ0MjI4MTkwOTdkYWRjOWRhNWU3OGM1MmY3NjdjYjljZTE5YTIwMTZhNTBkZDI3ZGJmODBlNzQ2ZWJlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIn0"
+        },
+        {
+          "resource": "repo://cf-workers/capability/src/index.ts#L1-L37",
+          "version": "repo-lines-v1:sha256:5f61c0784975139ae8671ab77993f015f4db7ebc5ab3ac8121de5dd21879c287:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNTc5MGM0YzE3OGJmNGViNDE2ZTczNjkzNmZlODgyNDU5ODU2NWNkYWVmNDE1MTgxNjNhM2I4MjBlZmE3ZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0N2E1ZDU0M2ZhZDZjZDZmZDIxYzFiNGFhYmI4NTM2YTE4MjhkNmQyODY3NGFmYTAyMDkwNzNlNDQ4Mzc4YWEifQ"
+        },
+        {
+          "resource": "repo://cf-workers/spend/src/index.ts#L18-L116",
+          "version": "repo-lines-v1:sha256:771a7edbcf7cc503c137c23e462fa8156a85b5d4d455077b77e12ccd447f487e:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3ZmQ3ZDFjYmY1YzQwMDRkMzI1Nzk2YzhmODhiOGI2ZTFkZTEwNWNiOTI4ZGRjNjRhMDZkNjVlOGViNTdhM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNTc5MGM0YzE3OGJmNGViNDE2ZTczNjkzNmZlODgyNDU5ODU2NWNkYWVmNDE1MTgxNjNhM2I4MjBlZmE3ZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMGUyZThiYTdmYTE0NDZlZjA3OGQ2MjFiNTA0ZjdjMGZlMDFmZjcwMmRiNDlmMmUwNTcyZTllYWJhZDg5YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlNTk0ODc5MTFjMGM3ZWZkNDlmZTIxYzQ1MjNmYjE1YjNjMjEyM2UwNzRhZDNkZWEzMzliNWEzZWNiNmJkN2IifQ"
+        },
+        {
+          "resource": "repo://cf-workers/telemetry/src/index.ts#L76-L174",
+          "version": "repo-lines-v1:sha256:9167acb5cd24749e6bb3588f998f8326f7d870b9a2e287484f717a63650bf1ee:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3MDZiNDgwNGJiYWUxOGVlM2YzMDMxMTMwNDQ5NWI0ZWM4NDk3MzRmNTk1ZmE3YTcyMjc5YTRlMzU1NmNjYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlNDRkNjQxMWI2MmUzNmI0NGYwY2ViMGQ0ZjU1MWI0MjI1MjVhM2FmMGIwYjBiNDQ3MGVjNGY2MWE2Nzk2NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwMjJlMjg2YjU4OWE5MjNjNTY4ZTQ4NDVlNTA1YTczZTgxNzlkYmUzZjQyMWUxOWJlODI0MTNjMmIwY2E4ZDQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-05T16:47:01.790Z"
+  }
+}

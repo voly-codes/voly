@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/architecture/overview.md": {
+      "pageVersion": "sha256:2193709d8b0d5e495e54f31d79b0b2522450ca3d4e0f16a6d25552c8a817fcd9",
+      "completedBy": "openwiki/0.7.0",
+      "completedRunId": "47bb1ed5-f91a-4755-b5d3-46c540c4f7dc",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/governance/capabilities.md": {
+      "pageVersion": "sha256:bcdc033a30a0a9b43eca1493217e4db18d883957a2c668b15e12df20a92996bf",
+      "completedBy": "openwiki/0.7.0",
+      "completedRunId": "47bb1ed5-f91a-4755-b5d3-46c540c4f7dc",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/operations/entrypoints-and-safety.md": {
+      "pageVersion": "sha256:76042bffbe35b372e7760e7bf6a2a6b142d4330c097ecc77f5bd6ab88a0d4104",
+      "completedBy": "openwiki/0.7.0",
+      "completedRunId": "47bb1ed5-f91a-4755-b5d3-46c540c4f7dc",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/operations/headroom-integration-and-governance.md": {
+      "pageVersion": "sha256:3877ee4b26e851606ede6dafe8af5c7a34f336a6d9be8fdc15892c985f514e7a",
+      "completedBy": "openwiki/0.7.0",
+      "completedRunId": "47bb1ed5-f91a-4755-b5d3-46c540c4f7dc",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/orchestration/a2a-and-pipeline.md": {
+      "pageVersion": "sha256:f7273b11dfc9d7db41c35de8e2f2ae26a52900b5c8fab57f4539c628f75e26e1",
+      "completedBy": "openwiki/0.7.0",
+      "completedRunId": "47bb1ed5-f91a-4755-b5d3-46c540c4f7dc",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    },
+    "/openwiki/quickstart.md": {
+      "pageVersion": "sha256:39d6b02a05d895b7fcd036982a0c8064300d5fdf59b1ad18edb7f8c160164189",
+      "completedBy": "openwiki/0.7.0",
+      "completedRunId": "47bb1ed5-f91a-4755-b5d3-46c540c4f7dc",
+      "gitHead": "d21dab640647ca5a0a096e12b01a9a3a4f7432af",
+      "sourceFingerprint": "sha256:a1b011c0013bfbd942f22e73fb6f87f368992c13f4c9f2ba8eff18befcd7a7c5"
+    }
+  }
+}
