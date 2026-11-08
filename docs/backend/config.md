@@ -437,6 +437,7 @@ workflow_sdk:
 # Env overrides:
 #   VOLY_WORKFLOW_SDK_ENABLED=1|0
 #   VOLY_WORKFLOW_SDK_MAX_PARALLEL_NODES=<int>
+#   VOLY_WORKFLOW_POOL_WORKERS=<int>   # thread pool for /api/workflows runs (default 8)
 
 # Capability Registry (executor routing + EMA scores; see docs/backend/capability.md)
 capability:
