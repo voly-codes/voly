@@ -164,6 +164,8 @@ class SpendConfig:
     enabled: bool = True
     remote_url: str = ""
     daily_budget_usd: float = 20.0
+    # Spend Protocol v2 product tag (free string, max 64 chars; see spend/client.py).
+    product: str = "voly"
 
 
 @dataclass

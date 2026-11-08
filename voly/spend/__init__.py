@@ -21,15 +21,20 @@ def record_task_spend(event: TaskEvent, config: VOLYConfig) -> None:
     client = create_spend_client(spend_cfg.remote_url)
     if not client:
         return
+    product = getattr(spend_cfg, "product", "voly") or "voly"
     try:
+        # Each call is one logical spend event, so it gets its own event_id.
         client.record(
             event.agent,
             event.cost_usd,
             task_id=event.task_id,
             model=event.model,
             provider=event.provider,
+            product=product,
         )
     except Exception:
+        # Spend reporting must never break a run. An unknown product raises
+        # ValueError here and is dropped; config validation should catch it.
         pass
 
 
