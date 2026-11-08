@@ -154,8 +154,14 @@ def test_spend_protocol_record_contract():
     ))
     assert cap.url == "http://spend.example/spend/record"
     assert cap.method == "POST"
-    # Замороженный состав тела /spend/record (v1)
-    assert set(cap.body) == {"agent", "cost_usd", "task_id", "model", "provider"}
+    # Замороженный состав тела /spend/record (v2): v1-поля + поля v2
+    assert set(cap.body) == {
+        "agent", "cost_usd", "task_id", "model", "provider",
+        "schema_version", "event_id", "product", "model_version",
+        "tokens_in", "tokens_out",
+    }
+    assert cap.body["schema_version"] == 2
+    assert cap.body["product"] == "voly"
     assert cap.body["agent"] == "developer"
     assert cap.body["cost_usd"] == 0.25
 

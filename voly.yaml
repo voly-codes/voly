@@ -124,6 +124,7 @@ spend:
   enabled: true
   remote_url: "${CF_WORKER_SPEND_URL}"
   daily_budget_usd: 20.0
+  product: "voly"   # Spend Protocol v2 product tag (free string, max 64 chars)
 
 mcp:
   servers: []
