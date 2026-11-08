@@ -1,6 +1,6 @@
 # Spend Protocol v2 (proposal)
 
-Status: client side implemented in `voly` (`voly/spend/client.py`); server side in progress in the hosted spend worker. Protocol v2 is documented in [spend-protocol](../backend/spend-protocol.md).
+Status: closed on 2026-11-08. Client (`voly/spend/client.py`) and server (hosted spend worker) are merged; the server is deployed to production and verified there (migration, idempotent insert by `event_id`, product filter). Protocol v2 is documented in [spend-protocol](../backend/spend-protocol.md).
 Related: [spend-protocol v1](../backend/spend-protocol.md), [task tags and trusted outcomes](task-tags-and-trusted-outcomes.md).
 
 ## Problem
