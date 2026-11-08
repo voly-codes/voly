@@ -9,9 +9,16 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from typing import Any
 
 USER_AGENT = "VOLY/0.1 (+https://github.com/voly)"
+
+# Spend Protocol v2 (see docs/backend/spend-protocol.md and
+# docs/proposals/spend-protocol-v2.md). `product` is a free string.
+SPEND_SCHEMA_VERSION = 2
+_MAX_PRODUCT_LEN = 64
+_MAX_MODEL_VERSION_LEN = 128
 
 
 class SpendClientError(Exception):
@@ -65,8 +72,25 @@ class SpendClient:
         task_id: str = "",
         model: str = "",
         provider: str = "",
-    ) -> None:
-        self._request(
+        product: str = "voly",
+        model_version: str = "",
+        tokens_in: int = 0,
+        tokens_out: int = 0,
+        event_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Record one spend event (protocol v2).
+
+        ``event_id`` identifies the logical event. A new id is generated when
+        omitted. A caller that retries must pass the same id, so the server
+        can recognise the repeat and not count it twice.
+        """
+        if not product or len(product) > _MAX_PRODUCT_LEN:
+            raise ValueError("product must be 1 to 64 characters")
+        if tokens_in < 0 or tokens_out < 0:
+            raise ValueError("token counts must be >= 0")
+        if len(model_version) > _MAX_MODEL_VERSION_LEN:
+            raise ValueError("model_version is too long")
+        return self._request(
             "POST",
             "/spend/record",
             body={
@@ -75,6 +99,12 @@ class SpendClient:
                 "task_id": task_id,
                 "model": model,
                 "provider": provider,
+                "schema_version": SPEND_SCHEMA_VERSION,
+                "event_id": event_id or str(uuid.uuid4()),
+                "product": product,
+                "model_version": model_version,
+                "tokens_in": tokens_in,
+                "tokens_out": tokens_out,
             },
         )
 

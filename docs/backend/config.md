@@ -58,7 +58,8 @@ CLOUDFLARE_R2_BUCKET=...
 CF_PIPELINE_TELEMETRY_ENDPOINT=https://telemetry.voly.codes/events
 CF_PIPELINE_TELEMETRY_TOKEN=<worker API_TOKEN secret>
 
-# Spend tracker + AGUI sessions — cf-workers/spend/
+# Spend tracker + AGUI sessions — worker URL (the hosted worker is maintained outside this repository)
+# spend.product in voly.yaml: free string, max 64 characters
 CF_WORKER_SPEND_URL=https://spend.voly.codes
 CF_WORKER_SPEND_TOKEN=<worker API_TOKEN secret>  # must match wrangler secret API_TOKEN
 CF_WORKER_AGUI_URL=https://spend.voly.codes      # AGUI uses /agui/* on the same worker
