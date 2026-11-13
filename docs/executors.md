@@ -139,6 +139,24 @@ print(report.to_markdown())
 
 Each step should return an `ExecutorResult` and, where possible, emit telemetry.
 
+### Same-working-directory executor lock
+
+File-writing executor runs that share a non-empty `--cwd` acquire an exclusive
+`<cwd>/.voly/executor.lock` before starting the protected work. This
+serializes separate processes that would otherwise mix file changes or Git
+deltas. Chat-only waves do not acquire this file lock.
+
+If another process holds the lock, an executor waits for its release, up to
+the configured timeout (900 seconds by default). An abandoned lock may be
+reclaimed when its recorded owner process no longer exists.
+
+**Lock acquisition is fail-closed:** if `<cwd>/.voly` cannot be created,
+or the lock file cannot be opened or written, the executor raises the
+underlying `OSError` and **does not run without a lock**. A failure while
+writing the lock record closes the descriptor and removes the lock file
+created by that attempt. Check the directory permissions and available disk
+space before retrying; do not disable locking to work around the error.
+
 ---
 
 ## Relationship with Pipeline and DSPy
