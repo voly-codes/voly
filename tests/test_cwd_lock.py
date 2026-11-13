@@ -49,3 +49,27 @@ def test_cwd_executor_lock_steals_stale(tmp_path: Path) -> None:
     (lock / "executor.lock").write_text(f"{dead}\n", encoding="utf-8")
     with cwd_executor_lock(str(tmp_path), timeout=2.0):
         assert (lock / "executor.lock").exists()
+
+
+def test_cwd_lock_directory_error_must_not_enter_unlocked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_mkdir(_path: Path, *args: object, **kwargs: object) -> None:
+        raise PermissionError("lock directory denied")
+
+    monkeypatch.setattr(Path, "mkdir", fail_mkdir)
+    entered = False
+    with pytest.raises(PermissionError):
+        with cwd_executor_lock(str(tmp_path)):
+            entered = True
+    assert not entered
+
+
+def test_cwd_lock_open_error_must_not_enter_unlocked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_open(*args: object, **kwargs: object) -> int:
+        raise PermissionError("lock file denied")
+
+    monkeypatch.setattr(os, "open", fail_open)
+    entered = False
+    with pytest.raises(PermissionError):
+        with cwd_executor_lock(str(tmp_path)):
+            entered = True
+    assert not entered

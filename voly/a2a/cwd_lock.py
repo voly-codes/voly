@@ -28,9 +28,8 @@ def cwd_executor_lock(cwd: str, *, timeout: float = 900.0) -> Iterator[None]:
     try:
         lock_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        _log.debug("cwd lock mkdir skipped: %s", exc)
-        yield
-        return
+        _log.error("cwd lock mkdir failed; refusing unlocked executor: %s", exc)
+        raise
 
     lock_path = lock_dir / "executor.lock"
     deadline = time.monotonic() + max(1.0, float(timeout))
@@ -61,9 +60,19 @@ def cwd_executor_lock(cwd: str, *, timeout: float = 900.0) -> Iterator[None]:
                         pass
             time.sleep(0.25)
         except OSError as exc:
-            _log.debug("cwd lock open skipped: %s", exc)
-            yield
-            return
+            # A write failure may have created the lock and opened its fd.
+            # Reclaim only this attempt's newly created file before failing.
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+                try:
+                    lock_path.unlink(missing_ok=True)
+                except OSError:
+                    pass
+            _log.error("cwd lock creation failed; refusing unlocked executor: %s", exc)
+            raise
     try:
         yield
     finally:
